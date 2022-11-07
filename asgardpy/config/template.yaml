@@ -1,0 +1,30 @@
+# Configuration file template for Data analysis
+
+# General settings
+general:
+  something
+
+# Target source settings
+target:
+  ra: 
+  dec:
+  redshift: 
+  extended: False
+
+skymodel:
+  from_fermi: 
+
+components:
+  component_1_name: 
+    ... full description ...
+  component_2_name:
+    ... full description ...
+
+products:
+  sed_1:
+    ... full description ...
+  sed_2: 
+    ... full description ...
+  lc_1: 
+    ... full description ...
+
