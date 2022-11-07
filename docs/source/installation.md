@@ -1,23 +1,23 @@
 Installation
 ============
 
-**my-package** supports Python >= 3.7.
+**asgardpy** supports Python >= 3.7.
 
 ## Installing with `pip`
 
-**my-package** is available [on PyPI](https://pypi.org/project/my-package/). Just run
+**asgardpy** is available [on PyPI](https://pypi.org/project/asgardpy/). Just run
 
 ```bash
-pip install my-package
+pip install asgardpy
 ```
 
 ## Installing from source
 
-To install **my-package** from source, first clone [the repository](https://github.com/allenai/python-package-template):
+To install **asgardpy** from source, first clone [the repository](https://github.com/mireianievas/asgardpy):
 
 ```bash
-git clone https://github.com/allenai/python-package-template.git
-cd python-package-template
+git clone https://github.com/mireianievas/asgardpy.git
+cd asgardpy
 ```
 
 Then run
