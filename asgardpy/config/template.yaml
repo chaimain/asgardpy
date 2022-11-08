@@ -12,7 +12,9 @@ target:
   extended: False
 
 skymodel:
-  from_fermi: 
+  from_fermi: None
+  from_dict: None
+  from_file: None
 
 components:
   component_1_name: 
