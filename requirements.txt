@@ -1,9 +1,1 @@
 # Add your own dependencies to this file.
-numpy
-scipy<1.23
-gammapy~=0.20.1
-astropy~=5.1
-regions>0.5
-matplotlib>=3.4
-iminuit>=2.8.0
-ruamel.yaml
