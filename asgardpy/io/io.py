@@ -2,15 +2,17 @@ from astropy.io import fits
 
 from pathlib import Path
 import logging
-import pickle
 
-from gammapy.modeling.models import SPECTRAL_MODEL_REGISTRY
+from gammapy.datasets import FluxPointsDataset
+from gammapy.estimators import FluxPoints
+from gammapy.modeling.models import Models, SPECTRAL_MODEL_REGISTRY
 
 
 __all__ = []
 
 
 EXPECTED_DL3_RANGE = ["lst", "lat", "lat-aux"]
+
 
 class DL3_Files(object):
     def __init__(self, dl3_path, source_model, dl3_type):
@@ -41,16 +43,14 @@ class DL3_Files(object):
             "expmap_files",
             "psf_files",
             "iso_files",
-            #'diff_gal_files'
+            # 'diff_gal_files'
         ]
         for _v in var_list:
             try:
                 filtered = [K for K in getattr(self, _v) if key in K]
                 assert len(filtered) == 1
             except:
-                print(
-                    f"Variable self.{_v} does not contain one element after filtering by {key}"
-                )
+                print(f"Variable self.{_v} does not contain one element after filtering by {key}")
                 print(filtered)
                 raise
             else:
@@ -77,14 +77,9 @@ class DL3_Files(object):
             self.lat_bute_file = [
                 K
                 for K in self.lat_spectra
-                if "cov" not in K
-                and "Ebin" not in K
-                and "ResData" not in K
-                and "fitpars" not in K
+                if "cov" not in K and "Ebin" not in K and "ResData" not in K and "fitpars" not in K
             ]
-            self.lat_ebin_file = [
-                K for K in self.lat_spectra if "cov" not in K and "Ebin" in K
-            ]
+            self.lat_ebin_file = [K for K in self.lat_spectra if "cov" not in K and "Ebin" in K]
 
     def prepare_lat_files(self, key):
         self.tag = key
@@ -100,17 +95,15 @@ class DL4_files(object):
         self.model = model
         self.flux_points = flux_points
 
-    def write_model_to_dat(self, filename_prefix=None):
+    def write_model_to_yaml(self, filename_prefix=None, overwrite=True):
         if filename_prefix is None:
-            filename = "spectral_model_dict.dat"
+            filename = "spectral_model_dict.yaml"
         else:
-            filename = filename_prefix + "_spectral_model_dict.dat"
+            filename = filename_prefix + "_spectral_model_dict.yaml"
 
-        f = open(self.dl4_path / filename, "wb")
-        pickle.dump(self.model, f)
-        f.close()
+        self.model.write(self.dl4_path / filename, overwrite=overwrite)
 
-    def write_flux_points_to_fits(self, filename_prefix=None):
+    def write_flux_points_to_fits(self, filename_prefix=None, overwrite=True):
         if filename_prefix is None:
             filename = "flux_points.fits"
         else:
@@ -118,23 +111,17 @@ class DL4_files(object):
 
         if not Path(filename).exists():
             f = fits.HDUList(
-                [
-                    fits.PrimaryHDU(),
-                    fits.BinTableHDU(
-                        self.flux_points.to_table(),
-                        name="SED"
-                    ),
-                ]
+                [fits.PrimaryHDU(), fits.BinTableHDU(self.flux_points.to_table(), name="SED"),]
             )
-            f.writeto(self.dl4_path / filename, overwrite=True)
+            f.writeto(self.dl4_path / filename, overwrite=overwrite)
             f.close()
         else:
             f = fits.open(filename)
-            f.append(
-                fits.BinTableHDU(
-                    self.flux_points.to_table(),
-                    name="SED"
-                ),
-            )
-            f.writeto(self.dl4_path / filename, overwrite=True)
+            f.append(fits.BinTableHDU(self.flux_points.to_table(), name="SED"),)
+            f.writeto(self.dl4_path / filename, overwrite=overwrite)
             f.close()
+
+    def read_flux_points_dataset(self, flux_file, model_file):
+        self.flux_file = FluxPoints.read(flux_file)
+        self.models = Models.read(model_file)
+        self.flux_points_dataset = FluxPointsDataset(data=self.flux_file, models=self.models)
