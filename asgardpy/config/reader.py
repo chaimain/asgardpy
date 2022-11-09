@@ -1,8 +1,11 @@
+"""
+Basic class for reading and writing configuration files.
+"""
 from pathlib import Path
 from ruamel.yaml import YAML
 
 
-class Configuration(object):
+class Configuration:
     """
     Configuration class containing all variables
 
@@ -13,6 +16,7 @@ class Configuration(object):
     def __init__(self, filename=None):
         if filename is not None:
             self.read_file(filename)
+        self.default_config = None
 
     def read_file(self, filename):
         """

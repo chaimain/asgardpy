@@ -1,3 +1,6 @@
+"""
+Base I/O functions
+"""
 import logging
 from pathlib import Path
 
@@ -79,8 +82,7 @@ class DL3Files:
                 assert len(filtered) == 1
             except Exception:
                 self.log.error(
-                    "Variable self.%(_v) does not contain one element"+
-                    " after filtering by %(key)"
+                    "Variable self.%(_v) does not contain one element after filtering by %(key)"
                 )
                 raise
             else:
