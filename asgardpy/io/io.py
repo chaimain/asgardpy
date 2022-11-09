@@ -1,7 +1,7 @@
-from astropy.io import fits
-
-from pathlib import Path
 import logging
+from pathlib import Path
+
+from astropy.io import fits
 
 from gammapy.datasets import FluxPointsDataset
 from gammapy.estimators import FluxPoints
