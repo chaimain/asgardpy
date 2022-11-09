@@ -140,7 +140,8 @@ class DL4Files:
             self.dl4_path = Path(dl4_path)
         else:
             self.log.error("%(dl4_path) does not exist")
-        self.model = model
+        # Check the object type? and take apprpriate measures
+        self.model = Models(model)
         self.flux_points = flux_points
 
         self.flux_from_file = None
@@ -163,7 +164,11 @@ class DL4Files:
         else:
             filename = filename_prefix + "_spectral_model_dict.yaml"
 
-        self.model.write(self.dl4_path / filename, overwrite=overwrite)
+        self.model.write(
+            self.dl4_path / filename,
+            full_output=True,
+            overwrite=overwrite
+        )
 
     def write_flux_points_to_fits(self, filename_prefix=None, overwrite=True):
         """
