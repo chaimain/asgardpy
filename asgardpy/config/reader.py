@@ -3,7 +3,8 @@ from pathlib import Path
 
 
 class Configuration(object):
-    """Configuration class containing all variables
+    """
+    Configuration class containing all variables
 
     Args:
         filename (str): path to the yaml configuration file
@@ -14,7 +15,8 @@ class Configuration(object):
             self.read_file(filename)
 
     def read_file(self, filename):
-        """read configuration from a file
+        """
+        read configuration from a file
 
         Args:
             filename (str): path to the yaml configuration file to read
@@ -23,7 +25,8 @@ class Configuration(object):
         self.config = yaml.load(Path(filename))
 
     def write_file(self, filename):
-        """write the configuration to a file
+        """
+        write the configuration to a file
 
         Args:
             filename (str): path to the yaml configuration file to write
@@ -32,11 +35,13 @@ class Configuration(object):
         yaml.dump(self.config, Path(filename))
 
     def load_template(self):
-        """load template configuration file.
+        """
+        load template configuration file.
         """
         yaml = YAML()
         self.default_config = yaml.load(Path("template.yaml"))
 
     def validate(self):
-        """Validate configuration 
+        """
+        Validate configuration
         """

@@ -8,7 +8,7 @@ from gammapy.estimators import FluxPoints
 from gammapy.modeling.models import Models, SPECTRAL_MODEL_REGISTRY
 
 
-__all__ = []
+# __all__ = []
 
 
 EXPECTED_DL3_RANGE = ["lst", "lat", "lat-aux"]
@@ -49,7 +49,7 @@ class DL3_Files(object):
             try:
                 filtered = [K for K in getattr(self, _v) if key in K]
                 assert len(filtered) == 1
-            except:
+            except Exception:
                 print(f"Variable self.{_v} does not contain one element after filtering by {key}")
                 print(filtered)
                 raise
@@ -111,17 +111,28 @@ class DL4_files(object):
 
         if not Path(filename).exists():
             f = fits.HDUList(
-                [fits.PrimaryHDU(), fits.BinTableHDU(self.flux_points.to_table(), name="SED"),]
+                [
+                    fits.PrimaryHDU(),
+                    fits.BinTableHDU(
+                        self.flux_points.to_table(),
+                        name="SED"
+                    ),
+                ]
             )
             f.writeto(self.dl4_path / filename, overwrite=overwrite)
             f.close()
         else:
             f = fits.open(filename)
-            f.append(fits.BinTableHDU(self.flux_points.to_table(), name="SED"),)
+            f.append(fits.BinTableHDU(
+                self.flux_points.to_table(), name="SED")
+            )
             f.writeto(self.dl4_path / filename, overwrite=overwrite)
             f.close()
 
     def read_flux_points_dataset(self, flux_file, model_file):
         self.flux_file = FluxPoints.read(flux_file)
         self.models = Models.read(model_file)
-        self.flux_points_dataset = FluxPointsDataset(data=self.flux_file, models=self.models)
+        self.flux_points_dataset = FluxPointsDataset(
+            data=self.flux_file,
+            models=self.models
+        )
