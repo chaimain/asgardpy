@@ -2,6 +2,7 @@
 Basic class for reading and writing configuration files.
 """
 from pathlib import Path
+
 from ruamel.yaml import YAML
 
 

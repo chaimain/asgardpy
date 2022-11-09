@@ -5,11 +5,9 @@ import logging
 from pathlib import Path
 
 from astropy.io import fits
-
 from gammapy.datasets import FluxPointsDataset
 from gammapy.estimators import FluxPoints
-from gammapy.modeling.models import Models, SPECTRAL_MODEL_REGISTRY
-
+from gammapy.modeling.models import SPECTRAL_MODEL_REGISTRY, Models
 
 # __all__ = []
 
