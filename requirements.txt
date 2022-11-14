@@ -3,7 +3,7 @@ numpy
 scipy<1.23
 astropy~=5.1
 jupyter
-gammapy~=0.20.1
+gammapy~=1.0
 regions>0.5
 matplotlib>=3.4
 seaborn
