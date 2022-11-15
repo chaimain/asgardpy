@@ -1,3 +1,6 @@
+"""
+Main Fit and Spectral Analysis classes
+"""
 import os
 import warnings
 import numpy as np
@@ -19,16 +22,17 @@ class FitMaker:
     """
     Basic class to setup for processes to perform the global fit.
     """
-
     def __init__(self, analyses, target_name, *args, **kwargs):
         self.datasets = Datasets()
 
         self._set_analysis_objects(analyses)
         self._setup_fit(*args, **kwargs)
-        self._set_target_source(target_name)
 
-        self.Fit_Bin = None
+        self.target_model = None
+        self.fit_bin = None
         self.result = None
+
+        self.set_target_source(target_name)
 
     def _set_analysis_objects(self, analyses):
         self.analyses = analyses
@@ -37,18 +41,20 @@ class FitMaker:
     def _setup_fit(self, *args, **kwargs):
         self.fit = Fit(*args, **kwargs)
 
-    def _set_target_source(self, target_name, dataset=None):
+    def set_target_source(self, target_name, dataset=None):
         if dataset is not None:
             dataset = [dataset]
         else:
             dataset = self.datasets
+
         for data in dataset:
             for mod in data.models:
                 if mod.name == target_name:
                     self.target_model = mod
-                    return None
 
     def set_energy_mask(self, dataset_, en_min, en_max):
+        """
+        """
         coords = dataset_.counts.geom.get_coord()
         mask_energy = (coords["energy"] >= en_min) * (coords["energy"] <= en_max)
         dataset_.mask_fit = Map.from_geom(geom=dataset_.counts.geom, data=mask_energy)
@@ -64,7 +70,11 @@ class FitMaker:
             safe_en_max = 30 * u.TeV
 
         for data in datasets:
-            data = self.set_energy_mask(self, dataset=data, en_min=safe_en_min, en_max=safe_en_max,)
+            data = self.set_energy_mask(
+                dataset_=data,
+                en_min=safe_en_min,
+                en_max=safe_en_max,
+            )
             self.datasets.append(data)
 
     # Justify
@@ -73,13 +83,15 @@ class FitMaker:
         """
         warnings.filterwarnings("ignore")
         for dataset in self.datasets:
-            dataset.edisp_interp_kernel = EDispKernel(axes=[energy_true, energy_reco], data=data)
+            dataset.edisp_interp_kernel = EDispKernel(
+                axes=[energy_true, energy_reco], data=data
+            )
 
-        self.Fit_Bin = Fit(*args, **kwargs)
-        self.result = self.Fit_Bin.run(datasets=self.datasets)
+        self.fit_bin = Fit(*args, **kwargs)
+        self.result = self.fit_bin.run(datasets=self.datasets)
         warnings.filterwarnings("default")
 
-        return (self.Fit_Bin, self.result)
+        return (self.fit_bin, self.result)
 
 
 class SpectralAnalysis(FitMaker):
@@ -95,6 +107,7 @@ class SpectralAnalysis(FitMaker):
         self.energy_bin_edges = None
         self.flux_points = None
         self.flux_points_dataset = None
+        self.light_curve_flux = None
 
     def read_enrico_spectrum(self, lat_ebin_file=None, lat_bute_file=None):
         """
@@ -107,7 +120,10 @@ class SpectralAnalysis(FitMaker):
 
         self.lat_ebin = Table.read(lat_ebin_file, format="ascii")
         self.lat_bute = Table.read(lat_bute_file, format="ascii")
-        self.energy_bin_edges = np.append(self.lat_ebin["col2"][0], self.lat_ebin["col3"]) * u.MeV
+        self.energy_bin_edges = (
+            np.append(self.lat_ebin["col2"][0], self.lat_ebin["col3"]) * u.MeV
+        )
+
 
     """
     def prepare_energy_bins(self, dataset, energy_bin_edges=None):
@@ -167,7 +183,12 @@ class SpectralAnalysis(FitMaker):
             else:
                 data.models.to_parameters_table().pprint()
 
-    def get_spectral_points(self, energy_bin_edges=None, target_name=None, datasets=None):
+    def get_spectral_points(
+        self,
+        energy_bin_edges=None,
+        target_name=None,
+        datasets=None
+    ):
         """
         """
         warnings.filterwarnings("ignore")
@@ -193,11 +214,11 @@ class SpectralAnalysis(FitMaker):
 
     def get_lc_flux_points(
         self,
-        energy_edges=None,
+        energy_range=None,
         time_intervals=None,
         target_name=None,
         datasets=None,
-        reoptimize=False,
+        reoptimize=False
     ):
         """
         """
@@ -206,21 +227,21 @@ class SpectralAnalysis(FitMaker):
         if datasets is None:
             datasets = self.datasets
 
-        if energy_edges is not None:
-            self.energy_edges = energy_edges
+        if energy_range is not None:
+            energy_range = Quantity([self.energy_bin_edges[0], self.energy_bin_edges[-1]])
 
         if target_name is None:
             target_name = self.analyses[0].target_name
 
-        lc = LightCurveEstimator(
-            energy_edges=self.energy_edges,
+        lc_flux = LightCurveEstimator(
+            energy_edges=energy_range,
             time_intervals=time_intervals,
             source=self.target_model.name,
             reoptimize=reoptimize,
             selection_optional="all",
         )
 
-        self.light_curve_flux = lc.run(datasets=datasets)
+        self.light_curve_flux = lc_flux.run(datasets=datasets)
         warnings.filterwarnings("default")
 
     def plot_parameter_stat_profile(self, datasets, parameter, axs=None):
@@ -232,7 +253,10 @@ class SpectralAnalysis(FitMaker):
 
         profile = self.fit.stat_profile(datasets=datasets, parameter=parameter)
 
-        axs.plot(profile[f"{parameter.name}_scan"], profile["stat_scan"] - total_stat)
+        axs.plot(
+            profile[f"{parameter.name}_scan"],
+            profile["stat_scan"] - total_stat
+        )
         axs.set_xlabel(f"{parameter.unit}")
         axs.set_ylabel("Delta TS")
         axs.set_title(
@@ -295,7 +319,9 @@ class SpectralAnalysis(FitMaker):
             kwargs_model_err = kwargs_model.copy()
             kwargs_model_err.pop("label", None)
 
-            spec.plot_error(ax=axs, energy_bounds=energy_range, **kwargs_model_err)
+            spec.plot_error(
+                ax=axs, energy_bounds=energy_range, **kwargs_model_err
+            )
             spec.plot(ax=axs, energy_bounds=energy_range, **kwargs_model)
 
         return axs
@@ -304,7 +330,8 @@ class SpectralAnalysis(FitMaker):
         """
         """
         self.flux_points_dataset = FluxPointsDataset(
-            data=self.flux_points, models=SkyModel(spectral_model=self.target_model.spectral_model)
+            data=self.flux_points,
+            models=SkyModel(spectral_model=self.target_model.spectral_model)
         )
 
         self.flux_points_dataset.plot_residuals(ax=axs, method=method, **kwargs_res)
@@ -370,7 +397,9 @@ class SpectralAnalysis(FitMaker):
 
         # Best-Fit model
         axs.plot(
-            self.lat_bute["col1"] * u.MeV, y_mean * u.Unit("erg/(cm2*s)"), **kwargs_model,
+            self.lat_bute["col1"] * u.MeV,
+            y_mean * u.Unit("erg/(cm2*s)"),
+            **kwargs_model,
         )
         # confidence band
         axs.fill_between(
@@ -381,19 +410,19 @@ class SpectralAnalysis(FitMaker):
         )
 
         # spectral points
-        lat_ebin = Table(self.lat_ebin)
-        isuplim = lat_ebin["col5"] == 0
-        lat_ebin["col5"][isuplim] = lat_ebin["col4"][isuplim] * 0.5
+        # lat_ebin = self.lat_ebin # Copy?
+        isuplim = self.lat_ebin["col5"] == 0
+        self.lat_ebin["col5"][isuplim] = self.lat_ebin["col4"][isuplim] * 0.5
         kwargs_fp["uplims"] = isuplim
 
         axs.errorbar(
-            x=lat_ebin["col1"] * u.MeV,
-            y=lat_ebin["col4"] * u.Unit("erg/(cm2*s)"),
+            x=self.lat_ebin["col1"] * u.MeV,
+            y=self.lat_ebin["col4"] * u.Unit("erg/(cm2*s)"),
             xerr=[
-                lat_ebin["col1"] * u.MeV - lat_ebin["col2"] * u.MeV,
-                lat_ebin["col3"] * u.MeV - lat_ebin["col1"] * u.MeV,
+                self.lat_ebin["col1"] * u.MeV - self.lat_ebin["col2"] * u.MeV,
+                self.lat_ebin["col3"] * u.MeV - self.lat_ebin["col1"] * u.MeV,
             ],
-            yerr=lat_ebin["col5"] * u.Unit("erg/(cm2*s)"),
+            yerr=self.lat_ebin["col5"] * u.Unit("erg/(cm2*s)"),
             **kwargs_fp,
         )
 
@@ -426,20 +455,23 @@ class SpectralAnalysis(FitMaker):
             }
 
         fold = uproot.open(fold_file)
-        sed = fold["observed_sed"].tojson()
+        fold_sed = fold["observed_sed"].tojson()
 
-        f_x = sed["fX"]
-        f_y = sed["fY"]
-        x_err_low = sed["fEXlow"]
-        x_err_high = sed["fEXhigh"]
-        y_err_low = sed["fEYlow"]
-        y_err_high = sed["fEYhigh"]
+        f_x = fold_sed["fX"]
+        f_y = fold_sed["fY"]
+        x_err_low = fold_sed["fEXlow"]
+        x_err_high = fold_sed["fEXhigh"]
+        y_err_low = fold_sed["fEYlow"]
+        y_err_high = fold_sed["fEYhigh"]
 
         axs.errorbar(
             x=f_x * u.GeV,
             y=f_y * u.Unit("TeV/(cm2 * s)"),
             xerr=[x_err_low * u.GeV, x_err_high * u.GeV],
-            yerr=[y_err_low * u.Unit("TeV/(cm2 * s)"), y_err_high * u.Unit("TeV/(cm2 * s)"),],
+            yerr=[
+                y_err_low * u.Unit("TeV/(cm2 * s)"),
+                y_err_high * u.Unit("TeV/(cm2 * s)"),
+            ],
             **kwargs,
         )
 
