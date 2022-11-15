@@ -8,9 +8,9 @@ from astropy.table import Table
 from astropy.units import Quantity
 
 from gammapy.datasets import Datasets, FluxPointsDataset
-from gammapy.estimators import FluxPointsEstimator
+from gammapy.estimators import FluxPointsEstimator, LightCurveEstimator
 from gammapy.irf import EDispKernel
-from gammapy.maps import Map # , MapAxis
+from gammapy.maps import Map  # , MapAxis
 from gammapy.modeling import Fit
 from gammapy.modeling.models import SkyModel
 
@@ -19,6 +19,7 @@ class FitMaker:
     """
     Basic class to setup for processes to perform the global fit.
     """
+
     def __init__(self, analyses, target_name, *args, **kwargs):
         self.datasets = Datasets()
 
@@ -63,12 +64,7 @@ class FitMaker:
             safe_en_max = 30 * u.TeV
 
         for data in datasets:
-            data = self.set_energy_mask(
-                self,
-                dataset=data,
-                en_min=safe_en_min,
-                en_max=safe_en_max,
-            )
+            data = self.set_energy_mask(self, dataset=data, en_min=safe_en_min, en_max=safe_en_max,)
             self.datasets.append(data)
 
     # Justify
@@ -77,9 +73,7 @@ class FitMaker:
         """
         warnings.filterwarnings("ignore")
         for dataset in self.datasets:
-            dataset.edisp_interp_kernel = EDispKernel(
-                axes=[energy_true, energy_reco], data=data
-            )
+            dataset.edisp_interp_kernel = EDispKernel(axes=[energy_true, energy_reco], data=data)
 
         self.Fit_Bin = Fit(*args, **kwargs)
         self.result = self.Fit_Bin.run(datasets=self.datasets)
@@ -113,10 +107,7 @@ class SpectralAnalysis(FitMaker):
 
         self.lat_ebin = Table.read(lat_ebin_file, format="ascii")
         self.lat_bute = Table.read(lat_bute_file, format="ascii")
-        self.energy_bin_edges = (
-            np.append(self.lat_ebin["col2"][0], self.lat_ebin["col3"]) * u.MeV
-        )
-
+        self.energy_bin_edges = np.append(self.lat_ebin["col2"][0], self.lat_ebin["col3"]) * u.MeV
 
     """
     def prepare_energy_bins(self, dataset, energy_bin_edges=None):
@@ -176,12 +167,7 @@ class SpectralAnalysis(FitMaker):
             else:
                 data.models.to_parameters_table().pprint()
 
-    def get_spectral_points(
-        self,
-        energy_bin_edges=None,
-        target_name=None,
-        datasets=None
-    ):
+    def get_spectral_points(self, energy_bin_edges=None, target_name=None, datasets=None):
         """
         """
         warnings.filterwarnings("ignore")
@@ -205,6 +191,38 @@ class SpectralAnalysis(FitMaker):
         self.flux_points = fpe.run(datasets=datasets)
         warnings.filterwarnings("default")
 
+    def get_lc_flux_points(
+        self,
+        energy_edges=None,
+        time_intervals=None,
+        target_name=None,
+        datasets=None,
+        reoptimize=False,
+    ):
+        """
+        """
+        warnings.filterwarnings("ignore")
+
+        if datasets is None:
+            datasets = self.datasets
+
+        if energy_edges is not None:
+            self.energy_edges = energy_edges
+
+        if target_name is None:
+            target_name = self.analyses[0].target_name
+
+        lc = LightCurveEstimator(
+            energy_edges=self.energy_edges,
+            time_intervals=time_intervals,
+            source=self.target_model.name,
+            reoptimize=reoptimize,
+            selection_optional="all",
+        )
+
+        self.light_curve_flux = lc.run(datasets=datasets)
+        warnings.filterwarnings("default")
+
     def plot_parameter_stat_profile(self, datasets, parameter, axs=None):
         """
         """
@@ -214,10 +232,7 @@ class SpectralAnalysis(FitMaker):
 
         profile = self.fit.stat_profile(datasets=datasets, parameter=parameter)
 
-        axs.plot(
-            profile[f"{parameter.name}_scan"],
-            profile["stat_scan"] - total_stat
-        )
+        axs.plot(profile[f"{parameter.name}_scan"], profile["stat_scan"] - total_stat)
         axs.set_xlabel(f"{parameter.unit}")
         axs.set_ylabel("Delta TS")
         axs.set_title(
@@ -239,6 +254,21 @@ class SpectralAnalysis(FitMaker):
                 "label": "Flux points",
             }
         self.flux_points.plot(ax=axs, **kwargs_fp)
+
+        return axs
+
+    def plot_lc(self, axs=None, kwargs=None):
+        """
+        """
+        if kwargs is None:
+            kwargs = {
+                "sed_type": "flux",
+                "axis_name": "time",
+                "color": "black",
+                "marker": "o",
+                "label": "LC Flux points",
+            }
+        self.light_curve_flux.plot(ax=axs, **kwargs)
 
         return axs
 
@@ -265,9 +295,7 @@ class SpectralAnalysis(FitMaker):
             kwargs_model_err = kwargs_model.copy()
             kwargs_model_err.pop("label", None)
 
-            spec.plot_error(
-                ax=axs, energy_bounds=energy_range, **kwargs_model_err
-            )
+            spec.plot_error(ax=axs, energy_bounds=energy_range, **kwargs_model_err)
             spec.plot(ax=axs, energy_bounds=energy_range, **kwargs_model)
 
         return axs
@@ -292,6 +320,7 @@ class SpectralAnalysis(FitMaker):
                 "color": "darkorange",
             }
         self.flux_points.plot_ts_profiles(ax=axs, add_cbar=add_cbar, **kwargs_ts)
+        self.flux_points.plot(ax=axs, **kwargs_ts)
 
         return axs
 
@@ -341,9 +370,7 @@ class SpectralAnalysis(FitMaker):
 
         # Best-Fit model
         axs.plot(
-            self.lat_bute["col1"] * u.MeV,
-            y_mean * u.Unit("erg/(cm2*s)"),
-            **kwargs_model,
+            self.lat_bute["col1"] * u.MeV, y_mean * u.Unit("erg/(cm2*s)"), **kwargs_model,
         )
         # confidence band
         axs.fill_between(
@@ -412,10 +439,7 @@ class SpectralAnalysis(FitMaker):
             x=f_x * u.GeV,
             y=f_y * u.Unit("TeV/(cm2 * s)"),
             xerr=[x_err_low * u.GeV, x_err_high * u.GeV],
-            yerr=[
-                y_err_low * u.Unit("TeV/(cm2 * s)"),
-                y_err_high * u.Unit("TeV/(cm2 * s)"),
-            ],
+            yerr=[y_err_low * u.Unit("TeV/(cm2 * s)"), y_err_high * u.Unit("TeV/(cm2 * s)"),],
             **kwargs,
         )
 
