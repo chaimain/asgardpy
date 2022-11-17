@@ -6,16 +6,18 @@ General:
   outdir: /path/to/store/final/products/
 
 # Target source settings
-Target_source: Crab Nebula
+Target_source:
+  source_name: Crab Nebula
   sky_position: {ra: 83.63308333 deg, dec: 22.0145 deg}
   redshift: 0.0
   extended: False
 
 # Target spectral model settings
 Target_model:
-  spectral: LogParabola
+  spectral:
+    model_name: LogParabola
     parameters:
-      par1:
+    - par1:
         name: amplitude
         value: 8.2e-06
         unit: cm-2 s-1 TeV-1
@@ -23,7 +25,7 @@ Target_model:
         min: 0.0
         max: 0.01
         frozen: false
-      par2:
+    - par2:
         name: reference
         value: 0.1
         unit: TeV
@@ -31,7 +33,7 @@ Target_model:
         min: 0.001
         max: 100.0
         frozen: true
-      par3:
+    - par3:
         name: alpha
         value: 1.5
         unit: ''
@@ -39,7 +41,7 @@ Target_model:
         min: 0.5
         max: 3.0
         frozen: false
-      par4:
+    - par4:
         name: beta
         value: 0.1
         unit: ''
@@ -54,19 +56,21 @@ Target_model:
 
 # Instrument datasets with 3D info
 Dataset3D:
-  Instrument_1_name: Fermi-LAT
+  Instrument_1:
+    name: Fermi-LAT
     IO:
       input_dir_1: /path/to/event/fits/files/
       input_dir_2: /path/to/diffusion/models/
     DatasetInfo:
       dataset_name: Fermi-LAT
       safe_energy_mask: {min: 0.1 GeV, max: 1 TeV}
-  Instrument_2_name:
+  Instrument_2:
     ... full description ...
 
 # Instrument datasets with 1D info
 Dataset1D:
-  Instrument_1_name: LST-1
+  Instrument_1:
+    name: LST-1
     IO:
       input_dir: /path/to/DL3/fits/files/
     DatasetInfo:
@@ -94,7 +98,7 @@ Dataset1D:
           standard: {aeff_percent: 10, bias_percent: 10, fixed_offset: 0.1 deg, offset_max: 3 deg}
           position: {ra: 83.63 deg, dec: 22.01 deg}
           custom_energy_range: {min: 25 GeV, max: 40 TeV}
-    Instrument_2_name:
+    Instrument_2:
       ... full description ...
 
 # Fit parameters
