@@ -7,8 +7,7 @@ General:
 
 # Target source settings
 Target_source: Crab Nebula
-  ra: 83.63308333 deg
-  dec: 22.0145 deg
+  sky_position: {ra: 83.63308333 deg, dec: 22.0145 deg}
   redshift: 0.0
   extended: False
 
@@ -50,6 +49,7 @@ Target_model:
         frozen: false
   ebl_abs:
     model: dominguez
+    alpha_norm: 1
   from_file: None
 
 # Instrument datasets with 3D info
@@ -78,25 +78,21 @@ Dataset1D:
       base_geom:
         on_region: PointSkyRegion
         on_region_radius: None
-        exclusion_region:
+      map_selection: [counts, exposure, edisp]
+      containment_correction: False
+      background:
+        method: reflected
+        wobble_off_regions: 1
+        excluded:
           name: None
-          gal_lon: 183.604 deg
-          gal_lat: -8.708 deg
-          radius: 0.5 deg
-      background_off_regions: 1
+          region_size: {gal_lon: 183.604 deg, gal_lat: -8.708 deg, radius: 0.5 deg}
       safe_energy_mask:
         method:
-          aeff_default: False
-          aeff_max: False
-          edisp_bias: False
-          offset_max: False
-          custom: True
-        values:
-          aeff_percent: 10
-          bias_percent: 10
+          standard: [aeff_default, aeff_max, edisp_bias, offset_max]
+          custom: False
+        parameters:
+          standard: {aeff_percent: 10, bias_percent: 10, fixed_offset: 0.1 deg, offset_max: 3 deg}
           position: {ra: 83.63 deg, dec: 22.01 deg}
-          fixed_offset: 0.1 deg
-          offset_max: 3 deg
           custom_energy_range: {min: 25 GeV, max: 40 TeV}
     Instrument_2_name:
       ... full description ...
