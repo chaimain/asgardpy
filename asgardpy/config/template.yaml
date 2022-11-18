@@ -6,41 +6,41 @@ General:
   outdir: /path/to/store/final/products/
 
 # Target source settings
-Target_source: Crab Nebula
+Target_source:
+  source_name: Crab Nebula
   sky_position: {ra: 83.63308333 deg, dec: 22.0145 deg}
+  use_uniform_position: True
   redshift: 0.0
   extended: False
 
 # Target spectral model settings
 Target_model:
-  spectral: LogParabola
+  spectral:
+    model_name: LogParabola
+    type: LogParabolaSpectralModel # For Gammapy Model registry search
     parameters:
-      par1:
-        name: amplitude
+    -   name: amplitude
         value: 8.2e-06
         unit: cm-2 s-1 TeV-1
         error: 1.5e-06
         min: 0.0
         max: 0.01
         frozen: false
-      par2:
-        name: reference
+    -   name: reference
         value: 0.1
         unit: TeV
         error: 0.0
         min: 0.001
         max: 100.0
         frozen: true
-      par3:
-        name: alpha
+    -   name: alpha
         value: 1.5
         unit: ''
         error: 0.1
         min: 0.5
         max: 3.0
         frozen: false
-      par4:
-        name: beta
+    -   name: beta
         value: 0.1
         unit: ''
         error: 0.01
@@ -48,29 +48,38 @@ Target_model:
         max: 1.0
         frozen: false
   ebl_abs:
-    model: dominguez
+    model_name: dominguez
+    type: EBLAbsorptionNormSpectralModel # For Gammapy Model registry search
     alpha_norm: 1
   from_file: None
+  from_fermi: False
 
 # Instrument datasets with 3D info
 Dataset3D:
-  Instrument_1_name: Fermi-LAT
+  Instruments:
+  - name: Fermi-LAT
     IO:
-      input_dir_1: /path/to/event/fits/files/
-      input_dir_2: /path/to/diffusion/models/
+      input_dir:
+      -  type: lat
+         path: /path/to/event/fits/files/
+      -  type: lat-aux
+         path: /path/to/diffusion/models/
     DatasetInfo:
       dataset_name: Fermi-LAT
+      key: [FRONT, BACK]
       safe_energy_mask: {min: 0.1 GeV, max: 1 TeV}
-  Instrument_2_name:
-    ... full description ...
+# - name: HAWC?
+#    ... full description ...
 
 # Instrument datasets with 1D info
 Dataset1D:
-  Instrument_1_name: LST-1
+  Instruments:
+  - name: LST-1
     IO:
       input_dir: /path/to/DL3/fits/files/
     DatasetInfo:
       dataset_name: LST-1
+      required_irfs: [events, gti, aeff, edisp, rad_max]
       energy_axes:
         reco_energy_axis: {min: 10 GeV, max: 100 TeV, nbins: 5}
         true_energy_axis: {min: 10 GeV, max: 100 TeV, nbins: 5}
@@ -85,17 +94,21 @@ Dataset1D:
         wobble_off_regions: 1
         excluded:
           name: None
-          region_size: {gal_lon: 183.604 deg, gal_lat: -8.708 deg, radius: 0.5 deg}
+          region_coord: {gal_lon: 183.604 deg, gal_lat: -8.708 deg}
+          region_radius: 0.5 deg
       safe_energy_mask:
         method:
-          standard: [aeff_default, aeff_max, edisp_bias, offset_max]
+          standard: [aeff_max, edisp_bias, offset_max]
           custom: False
         parameters:
-          standard: {aeff_percent: 10, bias_percent: 10, fixed_offset: 0.1 deg, offset_max: 3 deg}
+          aeff_percent: 10
+          bias_percent: 10
+          fixed_offset: 0.1 deg
+          offset_max: 3 deg
           position: {ra: 83.63 deg, dec: 22.01 deg}
           custom_energy_range: {min: 25 GeV, max: 40 TeV}
-    Instrument_2_name:
-      ... full description ...
+#  - name: MAGIC
+#      ... full description ...
 
 # Fit parameters
 Fit_params:
