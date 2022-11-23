@@ -1,32 +1,118 @@
-# Configuration file template for Data analysis
+# Configuration file template for Data analysis of 3D+1D DL3 datasets
 
 # General settings
-general:
-  something
+General:
+  log: {level: info}
+  outdir: /path/to/store/final/products/
 
 # Target source settings
-target:
-  ra: 
-  dec:
-  redshift: 
+Target_source:
+  source_name: Crab Nebula
+  sky_position: {ra: 83.63308333 deg, dec: 22.0145 deg}
+  redshift: 0.0
   extended: False
 
-skymodel:
-  from_fermi: None
-  from_dict: None
+# Target spectral model settings
+Target_model:
+  spectral:
+    model_name: LogParabola
+    parameters:
+    - par1:
+        name: amplitude
+        value: 8.2e-06
+        unit: cm-2 s-1 TeV-1
+        error: 1.5e-06
+        min: 0.0
+        max: 0.01
+        frozen: false
+    - par2:
+        name: reference
+        value: 0.1
+        unit: TeV
+        error: 0.0
+        min: 0.001
+        max: 100.0
+        frozen: true
+    - par3:
+        name: alpha
+        value: 1.5
+        unit: ''
+        error: 0.1
+        min: 0.5
+        max: 3.0
+        frozen: false
+    - par4:
+        name: beta
+        value: 0.1
+        unit: ''
+        error: 0.01
+        min: 0.0
+        max: 1.0
+        frozen: false
+  ebl_abs:
+    model: dominguez
+    alpha_norm: 1
   from_file: None
 
-components:
-  component_1_name: 
-    ... full description ...
-  component_2_name:
+# Instrument datasets with 3D info
+Dataset3D:
+  Instrument_1:
+    name: Fermi-LAT
+    IO:
+      input_dir_1: /path/to/event/fits/files/
+      input_dir_2: /path/to/diffusion/models/
+    DatasetInfo:
+      dataset_name: Fermi-LAT
+      safe_energy_mask: {min: 0.1 GeV, max: 1 TeV}
+  Instrument_2:
     ... full description ...
 
-products:
-  sed_1:
-    ... full description ...
-  sed_2: 
-    ... full description ...
-  lc_1: 
-    ... full description ...
+# Instrument datasets with 1D info
+Dataset1D:
+  Instrument_1:
+    name: LST-1
+    IO:
+      input_dir: /path/to/DL3/fits/files/
+    DatasetInfo:
+      dataset_name: LST-1
+      energy_axes:
+        reco_energy_axis: {min: 10 GeV, max: 100 TeV, nbins: 5}
+        true_energy_axis: {min: 10 GeV, max: 100 TeV, nbins: 5}
+        fit_energy_axis: {min: 10 GeV, max: 100 TeV, nbins: 5}
+      base_geom:
+        on_region: PointSkyRegion
+        on_region_radius: None
+      map_selection: [counts, exposure, edisp]
+      containment_correction: False
+      background:
+        method: reflected
+        wobble_off_regions: 1
+        excluded:
+          name: None
+          region_size: {gal_lon: 183.604 deg, gal_lat: -8.708 deg, radius: 0.5 deg}
+      safe_energy_mask:
+        method:
+          standard: [aeff_default, aeff_max, edisp_bias, offset_max]
+          custom: False
+        parameters:
+          standard: {aeff_percent: 10, bias_percent: 10, fixed_offset: 0.1 deg, offset_max: 3 deg}
+          position: {ra: 83.63 deg, dec: 22.01 deg}
+          custom_energy_range: {min: 25 GeV, max: 40 TeV}
+    Instrument_2:
+      ... full description ...
 
+# Fit parameters
+Fit_params:
+  backend: minuit
+  optimize_opts: None
+  covariance_opts: None
+  confidence_opts: None
+  store_trace: False
+
+# Final DL4 products to generate
+Final_products:
+  sed: True
+  residuals: True
+  ts_profile: True
+  stat_profile: True
+  lc: False
