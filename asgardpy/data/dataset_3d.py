@@ -2,39 +2,36 @@
 Generating 3D Datasets from given Instrument DL3 data
 """
 
-import logging
 import gzip
-import xmltodict
-import numpy as np
+import logging
 
+import numpy as np
+import xmltodict
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
-from regions import CircleSkyRegion
+
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
 from gammapy.data import EventList
 from gammapy.datasets import MapDataset
-from gammapy.irf import (
-    EDispKernel,
-    PSFMap,
-    EDispKernelMap,
-)
+from gammapy.irf import EDispKernel, EDispKernelMap, PSFMap
 from gammapy.maps import Map, MapAxis
 from gammapy.modeling import Parameters
 from gammapy.modeling.models import (
-    SkyModel,
+    SPECTRAL_MODEL_REGISTRY,
+    EBLAbsorptionNormSpectralModel,
+    LogParabolaSpectralModel,
     Models,
-    TemplateSpatialModel,
+    PointSpatialModel,
     PowerLawNormSpectralModel,
     PowerLawSpectralModel,
-    LogParabolaSpectralModel,
-    EBLAbsorptionNormSpectralModel,
-    PointSpatialModel,
+    SkyModel,
+    TemplateSpatialModel,
     create_fermi_isotropic_diffuse_model,
-    SPECTRAL_MODEL_REGISTRY,
 )
+from regions import CircleSkyRegion
 
-from ..io import DL3Files
+from .io import DL3Files
 
 __all__ = ["Dataset3D", "Dataset3DIO", "Dataset3DInfo"]
 
@@ -45,6 +42,7 @@ class Dataset3DIO(DL3Files):
     """
     Read the DL3 files of 3D datasets.
     """
+
     def __init__(self, config, instrument_idx=0, key_idx=0):
         self.config = config
         self.config_3d_dataset = self.config["Dataset3D"]["Instruments"][instrument_idx]
@@ -90,9 +88,7 @@ class Dataset3DIO(DL3Files):
         energy_lo = self.drmap["DRM"].data["ENERG_LO"] * u.MeV
         energy_hi = self.drmap["DRM"].data["ENERG_HI"] * u.MeV
 
-        energy_axis = MapAxis.from_energy_edges(
-            np.append(energy_lo[0], energy_hi)
-        )
+        energy_axis = MapAxis.from_energy_edges(np.append(energy_lo[0], energy_hi))
         energy_axis_true = energy_axis.copy(name="energy_true")
 
         return energy_axis, energy_axis_true
@@ -106,8 +102,7 @@ class Dataset3DIO(DL3Files):
         drm_matrix = np.array(list(drm))
 
         self.edisp_kernel = EDispKernel(
-            axes=[self.energy_axis_true, self.energy_axis],
-            data=drm_matrix
+            axes=[self.energy_axis_true, self.energy_axis], data=drm_matrix
         )
 
     def load_events(self):
@@ -138,10 +133,7 @@ class Dataset3DIO(DL3Files):
         except IndexError:
             history = str(self.event_fits[1].header["HISTORY"])
             ra_pos, dec_pos = (
-                history.split("angsep(RA,DEC,")[1]
-                .replace("\n", "")
-                .split(")")[0]
-                .split(",")
+                history.split("angsep(RA,DEC,")[1].replace("\n", "").split(")")[0].split(",")
             )
 
         self.src_pos = SkyCoord(ra_pos, dec_pos, unit="deg", frame="fk5").icrs
@@ -211,7 +203,7 @@ class Dataset3DIO(DL3Files):
                     spectrum_type,
                     is_target=is_src_target,
                     keep_sign=ebl_atten_pl,
-                    lp_is_intrinsic=lp_is_intrinsic
+                    lp_is_intrinsic=lp_is_intrinsic,
                 )
                 spec_model.from_parameters(params_list)
 
@@ -221,8 +213,7 @@ class Dataset3DIO(DL3Files):
         if is_src_target and ebl_absorption_included:
             ebl_model = ebl_absorption["model_name"]
             ebl_spectral_model = EBLAbsorptionNormSpectralModel.read_builtin(
-                ebl_model,
-                redshift=self.config["Target_source"]["redshift"]
+                ebl_model, redshift=self.config["Target_source"]["redshift"]
             )
             spec_model = spec_model * ebl_spectral_model
 
@@ -230,13 +221,11 @@ class Dataset3DIO(DL3Files):
             fk5_frame = SkyCoord(
                 lon=f"{spatial_pars[0]['@value']} deg",
                 lat=f"{spatial_pars[1]['@value']} deg",
-                frame="fk5"
+                frame="fk5",
             )
             gal_frame = fk5_frame.transform_to("galactic")
             spatial_model = PointSpatialModel(
-                lon_0=gal_frame.lon,
-                lat_0=gal_frame.lat,
-                frame="galactic"
+                lon_0=gal_frame.lon, lat_0=gal_frame.lat, frame="galactic"
             )
         elif src["spatialModel"]["@type"] == "SpatialMap":
             file_name = src["spatialModel"]["@file"].split("/")[-1]
@@ -245,10 +234,7 @@ class Dataset3DIO(DL3Files):
             spatial_map = Map.read(file_path)
             spatial_map = spatial_map.copy(unit="sr^-1")
 
-            spatial_model = TemplateSpatialModel(
-                spatial_map,
-                filename=file_path
-            )
+            spatial_model = TemplateSpatialModel(spatial_map, filename=file_path)
 
         spatial_model.freeze()
         source_sky_model = SkyModel(
@@ -313,15 +299,12 @@ class Dataset3DIO(DL3Files):
                     new_par["min"] *= -1
                     new_par["max"] *= -1
 
-            new_model.append(
-                Parameters().update_from_dict(new_par)
-            )
+            new_model.append(Parameters().update_from_dict(new_par))
 
         return new_model
 
     def read_to_objects(self):
-        """
-        """
+        """ """
         model = self.config["Target_model"]["spectral"]["model_name"]
         lp_is_intrinsic = model == "LogParabola"
 
@@ -333,16 +316,10 @@ class Dataset3DIO(DL3Files):
         dl3_path_2 = inp_cfg[1]["path"]
         # For each key, get all the base objects.
         self.exposure, self.psf, self.drmap, self.edisp_kernel = self.get_base_objects(
-            dl3_path_1,
-            model,
-            dl3_type_1,
-            self.key_name
+            dl3_path_1, model, dl3_type_1, self.key_name
         )
         self.diff_gal, self.diff_iso = self.get_base_objects(
-            dl3_path_2,
-            model,
-            dl3_type_2,
-            self.key_name
+            dl3_path_2, model, dl3_type_2, self.key_name
         )
         self.get_list_objects(dl3_path_2, lp_is_intrinsic)
 
@@ -371,26 +348,17 @@ class Dataset3DInfo(Dataset3DIO):
         self._generate_diffuse_background_cutout()
 
     def _counts_map(self):
-        """
-        """
+        """ """
         self.counts_map = Map.create(
             skydir=self.src_pos,
-            npix=(
-                self.exposure.geom.npix[0][0],
-                self.exposure.geom.npix[1][0]
-            ),
+            npix=(self.exposure.geom.npix[0][0], self.exposure.geom.npix[1][0]),
             proj="TAN",
             frame="fk5",
             binsz=self.exposure.geom.pixel_scales[0],
             axes=[self.energy_axis],
             dtype=float,
         )
-        self.counts_map.fill_by_coord(
-            {
-                "skycoord": self.events.radec,
-                "energy": self.events.energy
-            }
-        )
+        self.counts_map.fill_by_coord({"skycoord": self.events.radec, "energy": self.events.energy})
 
     def _generate_diffuse_background_cutout(self):
         """
@@ -400,14 +368,10 @@ class Dataset3DInfo(Dataset3DIO):
         The Template Spatial Model is without normalization currently.
         """
         self.diffuse_cutout = self.diff_gal.cutout(
-            self.counts_map.geom.center_skydir,
-            self.counts_map.geom.width[0]
+            self.counts_map.geom.center_skydir, self.counts_map.geom.width[0]
         )
 
-        self.template_diffuse = TemplateSpatialModel(
-            self.diffuse_cutout,
-            normalize=False
-        )
+        self.template_diffuse = TemplateSpatialModel(self.diffuse_cutout, normalize=False)
 
         self.diff_gal_cutout = SkyModel(
             spectral_model=PowerLawNormSpectralModel(),
@@ -433,21 +397,17 @@ class Dataset3DInfo(Dataset3DIO):
         energy_reco, energy_true = np.meshgrid(axis_true.center, axis_reco.center)
 
         drm_interp = self.edisp_kernel.evaluate(
-            "linear",
-            **{"energy": energy_reco, "energy_true": energy_true}
+            "linear", **{"energy": energy_reco, "energy_true": energy_true}
         )
         self.edisp_interp_kernel = EDispKernel(
-            axes=[axis_true, axis_reco],
-            data=np.asarray(drm_interp)
+            axes=[axis_true, axis_reco], data=np.asarray(drm_interp)
         )
 
     def _set_exposure_interpolator(self):
         """
         Set Exposure interpolated along energy axis of real counts.
         """
-        self.exposure_interp = self.exposure.interp_to_geom(
-            self.counts_map.geom.as_energy_true
-        )
+        self.exposure_interp = self.exposure.interp_to_geom(self.counts_map.geom.as_energy_true)
 
     def _create_exclusion_mask(self):
         """
@@ -464,9 +424,7 @@ class Dataset3DInfo(Dataset3DIO):
             self.log.info("Creating exclusion region")
             self.exclusion_mask = ~excluded_geom.region_mask(self.exclusion_regions)
 
-    def add_source_to_exclusion_region(
-        self, source_pos=None, radius=0.1 * u.deg
-    ):
+    def add_source_to_exclusion_region(self, source_pos=None, radius=0.1 * u.deg):
         """
         Add to an existing exclusion_regions list, the source region.
         """
@@ -478,8 +436,7 @@ class Dataset3DInfo(Dataset3DIO):
         else:
             sky_pos = self.config["Target_source"]["sky_position"]
             source_pos = SkyCoord.from_name(
-                ra=u.quantity(sky_pos["ra"]),
-                dec=u.quantity(sky_pos["dec"])
+                ra=u.quantity(sky_pos["ra"]), dec=u.quantity(sky_pos["dec"])
             )
             exclusion_region = CircleSkyRegion(
                 center=source_pos.galactic,
@@ -492,6 +449,7 @@ class Dataset3D(Dataset3DInfo):
     """
     Main class to generate the 3D Dataset for a given Instrument information.
     """
+
     def __init__(self):
         self.dataset = None
         self.instrument_idx = 0
@@ -527,9 +485,7 @@ class Dataset3D(Dataset3DInfo):
         for src in self.list_sources:
             if src.name == self.config["Target_source"]["source_name"]:
                 source_position_from_3d = SkyCoord(
-                    lon=src.spatial_model["lon_0"],
-                    lat=src.spatial_model["lat_0"],
-                    frame="galactic"
+                    lon=src.spatial_model["lon_0"], lat=src.spatial_model["lat_0"], frame="galactic"
                 ).icrs
                 return source_position_from_3d
             else:

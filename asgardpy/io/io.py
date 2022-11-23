@@ -255,7 +255,10 @@ class DL4Files:
             self.spectral_model_from_file = self.model_from_file[0].spectral_model
 
     def read_flux_points(
-        self, flux_file, model_file, sed_type="e2dnde",
+        self,
+        flux_file,
+        model_file,
+        sed_type="e2dnde",
     ):
         """
         From a given FluxPoints FITS file and Models YAML files, create a
@@ -268,7 +271,10 @@ class DL4Files:
         )
 
     def read_flux_points_dataset(
-        self, flux_file, model_file, sed_type="e2dnde",
+        self,
+        flux_file,
+        model_file,
+        sed_type="e2dnde",
     ):
         """
         From a given FluxPoints FITS file and Models YAML files, create a
