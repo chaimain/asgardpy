@@ -23,7 +23,7 @@ from gammapy.maps import MapAxis, RegionGeom, WcsGeom
 from .io import DL3Files
 from .dataset_3d import get_source_pos_from_3d_dataset
 
-# __all__ = ["Dataset1D", "Dataset1DIO", "Dataset1DInfo"]
+__all__ = ["Dataset1D", "Dataset1DIO", "Dataset1DInfo"]
 
 log = logging.getLogger(__name__)
 

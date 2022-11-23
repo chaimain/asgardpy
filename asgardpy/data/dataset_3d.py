@@ -36,7 +36,7 @@ from gammapy.modeling.models import (
 
 from ..io import DL3Files
 
-# __all__ = ["Dataset3D", "Dataset3DIO", "Dataset3DInfo"]
+__all__ = ["Dataset3D", "Dataset3DIO", "Dataset3DInfo"]
 
 log = logging.getLogger(__name__)
 
