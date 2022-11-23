@@ -11,7 +11,6 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from regions import CircleSkyRegion
-
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
 from gammapy.data import EventList
 from gammapy.datasets import MapDataset
@@ -34,9 +33,10 @@ from gammapy.modeling.models import (
     create_fermi_isotropic_diffuse_model,
     SPECTRAL_MODEL_REGISTRY,
 )
+
 from ..io import DL3Files
 
-__all__ = ["Dataset3D", "Dataset3DIO", "Dataset3DInfo"]
+# __all__ = ["Dataset3D", "Dataset3DIO", "Dataset3DInfo"]
 
 log = logging.getLogger(__name__)
 

@@ -7,7 +7,6 @@ import logging
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from regions import PointSkyRegion, CircleSkyRegion
-
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
 from gammapy.data import DataStore
 from gammapy.datasets import (
@@ -24,7 +23,7 @@ from gammapy.maps import MapAxis, RegionGeom, WcsGeom
 from .io import DL3Files
 from .dataset_3d import get_source_pos_from_3d_dataset
 
-__all__ = ["Dataset1D", "Dataset1DIO", "Dataset1DInfo"]
+# __all__ = ["Dataset1D", "Dataset1DIO", "Dataset1DInfo"]
 
 log = logging.getLogger(__name__)
 

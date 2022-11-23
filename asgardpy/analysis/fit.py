@@ -3,13 +3,12 @@ Main Fit and Spectral Analysis classes
 """
 import os
 import warnings
-import numpy as np
 import uproot
+import numpy as np
 
 import astropy.units as u
 from astropy.table import Table
 from astropy.units import Quantity
-
 from gammapy.datasets import Datasets, FluxPointsDataset
 from gammapy.estimators import FluxPointsEstimator, LightCurveEstimator
 from gammapy.irf import EDispKernel
@@ -123,7 +122,6 @@ class SpectralAnalysis(FitMaker):
         self.energy_bin_edges = (
             np.append(self.lat_ebin["col2"][0], self.lat_ebin["col3"]) * u.MeV
         )
-
 
     """
     def prepare_energy_bins(self, dataset, energy_bin_edges=None):

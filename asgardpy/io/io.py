@@ -9,7 +9,7 @@ from gammapy.datasets import FluxPointsDataset
 from gammapy.estimators import FluxPoints
 from gammapy.modeling.models import SPECTRAL_MODEL_REGISTRY, Models
 
- __all__ = ["DL3Files"]
+__all__ = ["DL3Files"]
 
 EXPECTED_DL3_RANGE = ["lst-1", "lat", "lat-aux"]
 
@@ -128,7 +128,7 @@ class DL3Files:
                 if "cov" not in K and "Ebin" not in K and "ResData" not in K and "fitpars" not in K
             ]
             self.lat_ebin_file = [K for K in self.lat_spectra if "cov" not in K and "Ebin" in K]
-        
+
     def prepare_lat_files(self, key):
         """
         Prepare a list of LAT files following a particular key.
