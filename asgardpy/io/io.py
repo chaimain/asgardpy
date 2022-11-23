@@ -9,10 +9,9 @@ from gammapy.datasets import FluxPointsDataset
 from gammapy.estimators import FluxPoints
 from gammapy.modeling.models import SPECTRAL_MODEL_REGISTRY, Models
 
-# __all__ = []
+ __all__ = ["DL3Files"]
 
-
-EXPECTED_DL3_RANGE = ["lst", "lat", "lat-aux"]
+EXPECTED_DL3_RANGE = ["lst-1", "lat", "lat-aux"]
 
 
 class DL3Files:
@@ -61,20 +60,26 @@ class DL3Files:
         if self.dl3_type.lower() not in EXPECTED_DL3_RANGE:
             self.log.error("%(self.dl3_type) is not in the expected range for DL3 files")
 
-    def select_unique_files(self, key):
+    def select_unique_files(self, dl3_type, key):
         """
         Select Unique files from all of the provided LAT files, as per the
         given key.
         """
-        # self.unique_name = key
-        var_list = [
-            "events_files",
-            "edrm_files",
-            "expmap_files",
-            "psf_files",
-            "iso_files",
-            # 'diff_gal_files'
-        ]
+        if dl3_type.lower() == "lat":
+            var_list = [
+                "events_f",
+                "edrm_f",
+                "expmap_f",
+                "psf_f",
+            ]
+            self.xml_f = [f for f in self.xml_files if self.model in f][0]
+
+        if dl3_type.lower() == "lat-aux":
+            var_list = [
+                "iso_files",
+            ]
+            self.diff_gal_f = self.diff_gal_files[0]
+
         for _v in var_list:
             try:
                 filtered = [K for K in getattr(self, _v) if key in K]
@@ -87,24 +92,28 @@ class DL3Files:
             else:
                 setattr(self, _v.replace("_files", "_f"), filtered[0])
 
-        self.xml_f = [f for f in self.xml_files if self.model in f][0]
-        self.diff_gal_f = self.diff_gal_files[0]
-
     def list_dl3_files(self):
         """
         From a given DL3 files path, categorize the different types of DL3
         files, to be used for further analysis.
         """
         if self.dl3_type.lower() == "lat":
-            self.events_files = self.dl3_path.glob("*_MkTime.fits*")
-            self.edrm_files = self.dl3_path.glob(f"*{self.model}_*eDRM.fits*")
-            self.xml_files = self.dl3_path.glob("*_out.xml")
-            self.expmap_files = self.dl3_path.glob("*_BinnedMap.fits*")
-            self.psf_files = self.dl3_path.glob("*_psf.fits*")
+            self.events_files = sorted(list(self.dl3_path.glob("*_MkTime.fits*")))
+            self.edrm_files = sorted(list(self.dl3_path.glob(f"*{self.model}_*eDRM.fits*")))
+            self.xml_files = sorted(list(self.dl3_path.glob("*_out.xml")))
+            self.expmap_files = sorted(list(self.dl3_path.glob("*_BinnedMap.fits*")))
+            self.psf_files = sorted(list(self.dl3_path.glob("*_psf.fits*")))
 
         if self.dl3_type.lower() == "lat-aux":
-            self.diff_gal_files = self.dl3_path.glob("gll_iem_v07.fits*")
-            self.iso_files = self.dl3_path.glob("iso_P8R3_SOURCE_V3_*.txt")
+            self.diff_gal_files = sorted(list(self.dl3_path.glob("gll_iem_v07.fits*")))
+            self.iso_files = sorted(list(self.dl3_path.glob("iso_P8R3_SOURCE_V3_*.txt")))
+
+        if self.dl3_type.lower() == "lst-1":
+            self.event_files = sorted(list(self.dl3_path.glob("dl3*fits")))
+
+            if len(self.event_files) == 0:
+                # Nested sub-directories as per date. For LST-1 at least.
+                self.event_files = sorted(list(self.dl3_path.glob("202*/dl3*fits")))
 
     def get_lat_spectra_results(self):
         """
@@ -119,7 +128,7 @@ class DL3Files:
                 if "cov" not in K and "Ebin" not in K and "ResData" not in K and "fitpars" not in K
             ]
             self.lat_ebin_file = [K for K in self.lat_spectra if "cov" not in K and "Ebin" in K]
-
+        
     def prepare_lat_files(self, key):
         """
         Prepare a list of LAT files following a particular key.

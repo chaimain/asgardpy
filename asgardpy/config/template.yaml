@@ -47,10 +47,10 @@ Target_model:
         min: 0.0
         max: 1.0
         frozen: false
-  ebl_abs:
-    model_name: dominguez
-    type: EBLAbsorptionNormSpectralModel # For Gammapy Model registry search
-    alpha_norm: 1
+    ebl_abs:
+      model_name: dominguez
+      type: EBLAbsorptionNormSpectralModel # For Gammapy Model registry search
+      alpha_norm: 1
   from_file: None
   from_fermi: False
 
@@ -67,6 +67,15 @@ Dataset3D:
     DatasetInfo:
       dataset_name: Fermi-LAT
       key: [FRONT, BACK]
+      exclusion:
+        target_source: True
+        regions:
+          - type: CircleAnnulusSkyRegion
+            name: None
+            position: {gal_lon: 120 deg, gal_lat: 20 deg}
+            parameters:
+              - rad_0: 8 deg
+              - rad_1: 15 deg
       safe_energy_mask: {min: 0.1 GeV, max: 1 TeV}
 # - name: HAWC?
 #    ... full description ...
