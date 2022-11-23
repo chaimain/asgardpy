@@ -18,8 +18,8 @@ from gammapy.makers import (
 from gammapy.maps import MapAxis, RegionGeom, WcsGeom
 from regions import CircleSkyRegion, PointSkyRegion
 
-from .dataset_3d import Dataset3D
-from .io import DL3Files
+from asgardpy.data.dataset_3d import Dataset3D
+from asgardpy.io.io import DL3Files
 
 __all__ = ["Dataset1D", "Dataset1DIO", "Dataset1DInfo"]
 

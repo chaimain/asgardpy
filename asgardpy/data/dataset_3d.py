@@ -31,7 +31,7 @@ from gammapy.modeling.models import (
 )
 from regions import CircleSkyRegion
 
-from .io import DL3Files
+from asgardpy.io.io import DL3Files
 
 __all__ = ["Dataset3D", "Dataset3DIO", "Dataset3DInfo"]
 

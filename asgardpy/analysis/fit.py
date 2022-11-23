@@ -16,6 +16,8 @@ from gammapy.maps import Map  # , MapAxis
 from gammapy.modeling import Fit
 from gammapy.modeling.models import SkyModel
 
+__all__ = ["FitMaker", "SpectralAnalysis"]
+
 
 class FitMaker:
     """

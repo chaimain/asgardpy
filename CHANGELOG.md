@@ -19,3 +19,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial template for the pipeline by [@chaimain](https://github.com/chaimain).
 - Build pipeline structure  by [@chaimain](https://github.com/chaimain).
 - Update Changelog and fix an earlier commit change by [@chaimain](https://github.com/chaimain).
+- Add release-drafter in github workflow by [@chaimain](https://github.com/chaimain).
+- 

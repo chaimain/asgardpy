@@ -9,7 +9,7 @@ from gammapy.datasets import FluxPointsDataset
 from gammapy.estimators import FluxPoints
 from gammapy.modeling.models import SPECTRAL_MODEL_REGISTRY, Models
 
-__all__ = ["DL3Files"]
+__all__ = ["DL3Files", "DL4Files"]
 
 EXPECTED_DL3_RANGE = ["lst-1", "lat", "lat-aux"]
 
