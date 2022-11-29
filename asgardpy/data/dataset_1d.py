@@ -31,11 +31,14 @@ class Dataset1DIO(DL3Files):
     Read the DL3 files of 1D datasets.
     """
 
-    def __init__(self, config, instrument_idx=0):
-        self.config_1d_dataset = config["Dataset1D"]["Instruments"][instrument_idx]
-        self.config_1d_dataset_io = self.config_1d_dataset["IO"]
+    def __init__(self, config):
+        self.config=config
         self.datastore = None
         self.observations = None
+
+    def __call__(self, instrument_idx):
+        self.config_1d_dataset = self.config["Dataset1D"]["Instruments"][instrument_idx]
+        self.config_1d_dataset_io = self.config_1d_dataset["IO"]
 
         self.dl3_path = self.config_1d_dataset_io["input_dir"]
         model = self.config["Target_model"]["spectral"]["type"]
@@ -56,8 +59,12 @@ class Dataset1DInfo:
     for 1D datasets.
     """
 
-    def __init__(self, config, instrument_idx=0):
-        self.config_1d_dataset = config["Dataset1D"]["Instruments"][instrument_idx]
+    def __init__(self, config):
+        self.config = config
+
+
+    def __call__(self, instrument_idx):
+        self.config_1d_dataset = self.config["Dataset1D"]["Instruments"][instrument_idx]
         self.config_1d_dataset_info = self.config_1d_dataset["DatasetInfo"]
         # self.config.set_logging()
 
@@ -116,6 +123,7 @@ class Dataset1DInfo:
         geom = RegionGeom.create(region=on_region, axes=[energy_axis])
 
         dataset_template = SpectrumDataset.create(geom=geom, energy_axis_true=true_energy_axis)
+
         return dataset_template
 
     def get_reduction_makers(self):
@@ -185,14 +193,17 @@ class Dataset1D(Dataset1DIO, Dataset1DInfo):
     """
 
     def __init__(self, config):
-        io = Dataset1DIO(self, config, instrument_idx=0)
-        info = Dataset1DInfo(self, config, instrument_idx=0)
+        self.config = config
 
-        self.observations = io.load_data().observations
-        self.datastore = io.load_data().datastore
+    def __call__(self, instrument_idx):
+        self.io = Dataset1DIO(self.config, instrument_idx)
+        self.info = Dataset1DInfo(self.config, instrument_idx)
+        
+        self.observations = self.io.load_data().observations
+        self.datastore = self.io.load_data().datastore
 
-        self.dataset_template = info.generate_geom()
-        self.dataset_maker, self.bkg_maker, self.safe_maker = info().get_reduction_makers()
+        self.dataset_template = self.info.generate_geom()
+        self.dataset_maker, self.bkg_maker, self.safe_maker = self.info().get_reduction_makers()
 
         self.datasets = Datasets()
 
