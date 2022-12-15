@@ -2,161 +2,30 @@ import json
 import logging
 
 # from collections import defaultdict
-from enum import Enum
 from pathlib import Path
 from typing import List
 
 import yaml
-from astropy.coordinates import Angle
-from astropy.time import Time
-from astropy.units import Quantity
 from gammapy.utils.scripts import make_path, read_yaml
-from pydantic import BaseModel
 from pydantic.utils import deep_update
 
-from asgardpy.data import Dataset1DConfig, Dataset3DConfig
+from asgardpy.analysis.analysis import (
+    ExcessMapConfig,
+    FitConfig,
+    FluxPointsConfig,
+    LightCurveConfig,
+)
+from asgardpy.data.base import BaseConfig
+from asgardpy.data.dataset_1d import Dataset1DConfig
+from asgardpy.data.dataset_3d import Dataset3DConfig
+from asgardpy.data.target import TargetModel, TargetSource
 
-__all__ = ["BaseConfig", "AsgardpyConfig"]
+__all__ = ["AsgardpyConfig"]
 
 CONFIG_PATH = Path(__file__).resolve().parent / "config"
 DOCS_FILE = CONFIG_PATH / "docs.yaml"
 
 log = logging.getLogger(__name__)
-
-
-# Basic input classes
-class AngleType(Angle):
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v):
-        return Angle(v)
-
-
-class EnergyType(Quantity):
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v):
-        v = Quantity(v)
-        if v.unit.physical_type != "energy":
-            raise ValueError(f"Invalid unit for energy: {v.unit!r}")
-        return v
-
-
-class TimeType(Time):
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v):
-        return Time(v)
-
-
-class FrameEnum(str, Enum):
-    icrs = "icrs"
-    galactic = "galactic"
-
-
-# Start to enlist info on the different datasets
-# Main Base config schema
-class BaseConfig(BaseModel):
-    class Config:
-        validate_all = True
-        validate_assignment = True
-        extra = "forbid"
-        json_encoders = {
-            Angle: lambda v: f"{v.value} {v.unit}",
-            Quantity: lambda v: f"{v.value} {v.unit}",
-            Time: lambda v: f"{v.value}",
-        }
-
-
-# Auxillary config info
-class SkyCoordConfig(BaseConfig):
-    frame: FrameEnum = None
-    lon: AngleType = None
-    lat: AngleType = None
-
-
-class EnergyAxisConfig(BaseConfig):
-    min: EnergyType = None
-    max: EnergyType = None
-    nbins: int = None
-
-
-class EnergyRangeConfig(BaseConfig):
-    min: EnergyType = None
-    max: EnergyType = None
-
-
-class TimeRangeConfig(BaseConfig):
-    start: TimeType = None
-    stop: TimeType = None
-
-
-# DL4 products config
-class FluxPointsConfig(BaseConfig):
-    energy: EnergyAxisConfig = EnergyAxisConfig()
-    source: str = "source"
-    parameters: dict = {"selection_optional": "all"}
-
-
-class LightCurveConfig(BaseConfig):
-    time_intervals: TimeRangeConfig = TimeRangeConfig()
-    energy_edges: EnergyAxisConfig = EnergyAxisConfig()
-    source: str = "source"
-    parameters: dict = {"selection_optional": "all"}
-
-
-class FitConfig(BaseConfig):
-    fit_range: EnergyRangeConfig = EnergyRangeConfig()
-
-
-class ExcessMapConfig(BaseConfig):
-    correlation_radius: AngleType = "0.1 deg"
-    parameters: dict = {}
-    energy_edges: EnergyAxisConfig = EnergyAxisConfig()
-
-
-# Target Model info config
-class EBLAbsorptionModel(BaseConfig):
-    model_name: str = "dominguez"
-    type: str = "EBLAbsorptionNormSpectralModel"
-    alpha_norm: float = 1.0
-
-
-class SpectralModelConfig(BaseConfig):
-    model_name: str = "source_name"
-    type: str = "type"
-    parameters: dict = {}
-    ebl_abs: EBLAbsorptionModel = EBLAbsorptionModel()
-
-
-class SpatialModelConfig(BaseConfig):
-    model_name: str = "model-name"
-    type: str = "type"
-    parameters: dict = {}
-
-
-# Target information config
-class TargetSource(BaseConfig):
-    source_name: str = None
-    sky_position: SkyCoordConfig = SkyCoordConfig()
-    use_uniform_position: bool = True
-    redshift: float = 0.0
-    extended: bool = False
-
-
-class TargetModel(BaseConfig):
-    models_file: Path = None
-    spectral: SpectralModelConfig = SpectralModelConfig()
-    spatial: SpatialModelConfig = SpatialModelConfig()
 
 
 # Other general config params

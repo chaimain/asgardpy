@@ -20,17 +20,15 @@ from gammapy.makers import (
 from gammapy.maps import MapAxis, RegionGeom, WcsGeom
 from regions import CircleSkyRegion, PointSkyRegion
 
-from asgardpy.config import BaseConfig
-from asgardpy.data.base import (
-    AnalysisStepBase,
+from asgardpy.data.base import AnalysisStepBase, BaseConfig
+from asgardpy.data.dataset_3d import Dataset3DDatasetsAnalysisStep
+from asgardpy.data.geom import GeomConfig, OnRegion
+from asgardpy.data.reduction import (
     BackgroundConfig,
-    GeomConfig,
     ObservationsConfig,
-    OnRegion,
     ReductionTypeEnum,
     SafeMaskConfig,
 )
-from asgardpy.data.dataset_3d import Dataset3DDatasetsAnalysisStep
 from asgardpy.io.io import DL3Files, IOConfig
 
 __all__ = [
@@ -141,7 +139,10 @@ class Dataset1DObservationsAnalysisStep(AnalysisStepBase):
             on_region.meta = {"include": False}
 
         else:
-            on_region = CircleSkyRegion(center=src_pos, radius=u.Quantity(given_on_geom["radius"]),)
+            on_region = CircleSkyRegion(
+                center=src_pos,
+                radius=u.Quantity(given_on_geom["radius"]),
+            )
 
         # Defining the energy axes
         reco_energy_from_config = self.config_1d_dataset_info["geom"]["axes"]["energy"]
@@ -217,7 +218,8 @@ class Dataset1DObservationsAnalysisStep(AnalysisStepBase):
         pars = safe_config["parameters"]
         if "custom-mask" not in safe_config["method"]:
             pos = SkyCoord(
-                ra=u.Quantity(pars["position"]["ra"]), dec=u.Quantity(pars["position"]["dec"]),
+                ra=u.Quantity(pars["position"]["ra"]),
+                dec=u.Quantity(pars["position"]["dec"]),
             )
             safe_maker = SafeMaskMaker(
                 methods=safe_config["method"],

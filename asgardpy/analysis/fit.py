@@ -68,7 +68,11 @@ class FitMaker:
             safe_en_max = 30 * u.TeV
 
         for data in datasets:
-            data = self.set_energy_mask(dataset_=data, en_min=safe_en_min, en_max=safe_en_max,)
+            data = self.set_energy_mask(
+                dataset_=data,
+                en_min=safe_en_min,
+                en_max=safe_en_max,
+            )
             self.datasets.append(data)
 
     # Justify
@@ -362,7 +366,9 @@ class SpectralAnalysis(FitMaker):
 
         # Best-Fit model
         axs.plot(
-            self.lat_bute["col1"] * u.MeV, y_mean * u.Unit("erg/(cm2*s)"), **kwargs_model,
+            self.lat_bute["col1"] * u.MeV,
+            y_mean * u.Unit("erg/(cm2*s)"),
+            **kwargs_model,
         )
         # confidence band
         axs.fill_between(
@@ -430,7 +436,7 @@ class SpectralAnalysis(FitMaker):
             x=f_x * u.GeV,
             y=f_y * u.Unit("TeV/(cm2 * s)"),
             xerr=[x_err_low * u.GeV, x_err_high * u.GeV],
-            yerr=[y_err_low * u.Unit("TeV/(cm2 * s)"), y_err_high * u.Unit("TeV/(cm2 * s)"),],
+            yerr=[y_err_low * u.Unit("TeV/(cm2 * s)"), y_err_high * u.Unit("TeV/(cm2 * s)")],
             **kwargs,
         )
 

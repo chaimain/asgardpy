@@ -10,15 +10,9 @@ from gammapy.datasets import FluxPointsDataset
 from gammapy.estimators import FluxPoints
 from gammapy.modeling.models import SPECTRAL_MODEL_REGISTRY, Models
 
-from asgardpy.config import BaseConfig
+from asgardpy.data.base import BaseConfig
 
-__all__ = [
-    "InputFilePatterns",
-    "InputConfig",
-    "IOConfig",
-    "DL3Files",
-    "DL4Files"
-]
+__all__ = ["InputFilePatterns", "InputConfig", "IOConfig", "DL3Files", "DL4Files"]
 
 EXPECTED_DL3_RANGE = ["lst-1", "lat", "lat-aux"]
 
@@ -321,7 +315,10 @@ class DL4Files:
             self.spectral_model_from_file = self.model_from_file[0].spectral_model
 
     def read_flux_points(
-        self, flux_file, model_file, sed_type="e2dnde",
+        self,
+        flux_file,
+        model_file,
+        sed_type="e2dnde",
     ):
         """
         From a given FluxPoints FITS file and Models YAML files, create a
@@ -334,7 +331,10 @@ class DL4Files:
         )
 
     def read_flux_points_dataset(
-        self, flux_file, model_file, sed_type="e2dnde",
+        self,
+        flux_file,
+        model_file,
+        sed_type="e2dnde",
     ):
         """
         From a given FluxPoints FITS file and Models YAML files, create a

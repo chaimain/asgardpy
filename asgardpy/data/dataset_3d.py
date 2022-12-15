@@ -33,12 +33,11 @@ from gammapy.modeling.models import (
 )
 from regions import CircleSkyRegion
 
-from asgardpy.config.generator import BaseConfig
-from asgardpy.data.base import (
-    AnalysisStepBase,
+from asgardpy.data.base import AnalysisStepBase, BaseConfig
+from asgardpy.data.geom import OnRegion
+from asgardpy.data.reduction import (
     BackgroundConfig,
     MapSelectionEnum,
-    OnRegion,
     ReductionTypeEnum,
     SafeMaskConfig,
 )
@@ -303,7 +302,9 @@ class Dataset3DDataSelectionAnalysisStep(AnalysisStepBase):
 
         spatial_model.freeze()
         source_sky_model = SkyModel(
-            spectral_model=spec_model, spatial_model=spatial_model, name=source_name,
+            spectral_model=spec_model,
+            spatial_model=spatial_model,
+            name=source_name,
         )
 
         return source_sky_model
@@ -424,7 +425,10 @@ class Dataset3DObservationsAnalysisStep(AnalysisStepBase):
         energy of the real counts.
         """
         axis_reco = MapAxis.from_edges(
-            self.counts_map.geom.axes["energy"].edges, name="energy", unit="MeV", interp="log",
+            self.counts_map.geom.axes["energy"].edges,
+            name="energy",
+            unit="MeV",
+            interp="log",
         )
         axis_true = axis_reco.copy(name="energy_true")
         energy_reco, energy_true = np.meshgrid(axis_true.center, axis_reco.center)
@@ -463,14 +467,18 @@ class Dataset3DObservationsAnalysisStep(AnalysisStepBase):
         """
         if source_pos is not None:
             exclusion_region = CircleSkyRegion(
-                center=source_pos.galactic, radius=radius,  # Generalize frame or ask from user.
+                center=source_pos.galactic,
+                radius=radius,  # Generalize frame or ask from user.
             )
         else:
             sky_pos = self.config["Target_source"]["sky_position"]
             source_pos = SkyCoord.from_name(
                 ra=u.quantity(sky_pos["ra"]), dec=u.quantity(sky_pos["dec"])
             )
-            exclusion_region = CircleSkyRegion(center=source_pos.galactic, radius=radius,)
+            exclusion_region = CircleSkyRegion(
+                center=source_pos.galactic,
+                radius=radius,
+            )
         self.exclusion_regions.append(exclusion_region)
 
 
