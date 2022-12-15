@@ -3,15 +3,22 @@ Base I/O functions
 """
 import logging
 from pathlib import Path
-
 from typing import List
+
 from astropy.io import fits
 from gammapy.datasets import FluxPointsDataset
 from gammapy.estimators import FluxPoints
 from gammapy.modeling.models import SPECTRAL_MODEL_REGISTRY, Models
+
 from asgardpy.config import BaseConfig
 
-__all__ = ["DL3Files"]
+__all__ = [
+    "InputFilePatterns",
+    "InputConfig",
+    "IOConfig",
+    "DL3Files",
+    "DL4Files"
+]
 
 EXPECTED_DL3_RANGE = ["lst-1", "lat", "lat-aux"]
 

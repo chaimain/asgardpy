@@ -1,15 +1,16 @@
+from gammapy.utils.registry import Registry
+
+from asgardpy.data.base import AnalysisStep, AnalysisStepBase
 from asgardpy.data.dataset_1d import (
     Dataset1DDataSelectionAnalysisStep,
-    Dataset1DObservationsAnalysisStep,
     Dataset1DDatasetsAnalysisStep,
+    Dataset1DObservationsAnalysisStep,
 )
 from asgardpy.data.dataset_3d import (
     Dataset3DDataSelectionAnalysisStep,
-    Dataset3DObservationsAnalysisStep,
     Dataset3DDatasetsAnalysisStep,
+    Dataset3DObservationsAnalysisStep,
 )
-from asgardpy.data.base import AnalysisStep, AnalysisStepBase
-from gammapy.utils.registry import Registry
 
 ANALYSIS_STEP_REGISTRY = Registry(
     [

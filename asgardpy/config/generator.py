@@ -5,13 +5,15 @@ import logging
 from enum import Enum
 from pathlib import Path
 from typing import List
+
+import yaml
 from astropy.coordinates import Angle
 from astropy.time import Time
 from astropy.units import Quantity
-import yaml
+from gammapy.utils.scripts import make_path, read_yaml
 from pydantic import BaseModel
 from pydantic.utils import deep_update
-from gammapy.utils.scripts import make_path, read_yaml
+
 from asgardpy.data import Dataset1DConfig, Dataset3DConfig
 
 __all__ = ["BaseConfig", "AsgardpyConfig"]

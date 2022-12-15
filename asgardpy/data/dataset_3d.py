@@ -4,10 +4,10 @@ Generating 3D Datasets from given Instrument DL3 data
 
 import gzip
 import logging
+from typing import List
 
 import numpy as np
 import xmltodict
-from typing import List
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
@@ -33,16 +33,16 @@ from gammapy.modeling.models import (
 )
 from regions import CircleSkyRegion
 
+from asgardpy.config.generator import BaseConfig
 from asgardpy.data.base import (
     AnalysisStepBase,
     BackgroundConfig,
+    MapSelectionEnum,
     OnRegion,
     ReductionTypeEnum,
     SafeMaskConfig,
-    MapSelectionEnum,
 )
 from asgardpy.io import DL3Files, IOConfig
-from asgardpy.config.generator import BaseConfig
 
 __all__ = [
     "Dataset3DInfoConfig",

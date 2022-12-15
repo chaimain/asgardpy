@@ -3,9 +3,9 @@ Generating 1D Datasets from given Instrument DL3 data
 """
 
 import logging
+from typing import List
 
 import numpy as np
-from typing import List
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 
@@ -20,18 +20,18 @@ from gammapy.makers import (
 from gammapy.maps import MapAxis, RegionGeom, WcsGeom
 from regions import CircleSkyRegion, PointSkyRegion
 
+from asgardpy.config import BaseConfig
 from asgardpy.data.base import (
     AnalysisStepBase,
     BackgroundConfig,
-    OnRegion,
     GeomConfig,
+    ObservationsConfig,
+    OnRegion,
     ReductionTypeEnum,
     SafeMaskConfig,
-    ObservationsConfig,
 )
 from asgardpy.data.dataset_3d import Dataset3DDatasetsAnalysisStep
 from asgardpy.io.io import DL3Files, IOConfig
-from asgardpy.config import BaseConfig
 
 __all__ = [
     "Dataset1DConfig",

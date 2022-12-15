@@ -1,17 +1,18 @@
 """classes containing the analysis steps supported by the high level interface"""
 
 import abc
+import logging
 from enum import Enum
 from pathlib import Path
 from typing import List
-import logging
+
 from asgardpy.config.generator import (
     AngleType,
+    BaseConfig,
     EnergyAxisConfig,
     FrameEnum,
     SkyCoordConfig,
     TimeRangeConfig,
-    BaseConfig,
 )
 
 __all__ = [

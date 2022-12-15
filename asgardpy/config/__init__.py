@@ -1,3 +1,3 @@
-from asgardpy.config.generator import BaseConfig, AsgardpyConfig
+from asgardpy.config.generator import AsgardpyConfig, BaseConfig
 
 __all__ = ["BaseConfig", "AsgardpyConfig"]
