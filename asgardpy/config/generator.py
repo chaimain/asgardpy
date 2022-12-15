@@ -1,5 +1,6 @@
 import json
 import logging
+
 # from collections import defaultdict
 from enum import Enum
 from pathlib import Path
@@ -10,7 +11,6 @@ from astropy.units import Quantity
 import yaml
 from pydantic import BaseModel
 from pydantic.utils import deep_update
-from gammapy.makers import MapDatasetMaker
 from gammapy.utils.scripts import make_path, read_yaml
 from asgardpy.data import Dataset1DConfig, Dataset3DConfig
 
@@ -54,6 +54,11 @@ class TimeType(Time):
     @classmethod
     def validate(cls, v):
         return Time(v)
+
+
+class FrameEnum(str, Enum):
+    icrs = "icrs"
+    galactic = "galactic"
 
 
 # Start to enlist info on the different datasets
@@ -149,7 +154,7 @@ class TargetSource(BaseConfig):
 class TargetModel(BaseConfig):
     models_file: Path = None
     spectral: SpectralModelConfig = SpectralModelConfig()
-    spatial: SpatialPointConfig = SpatialPointConfig()
+    spatial: SpatialModelConfig = SpatialModelConfig()
 
 
 # Other general config params
@@ -229,9 +234,7 @@ class AsgardpyConfig(BaseConfig):
         # We should change this once pydantic adds support for custom encoders
         # to `dict()`. See https://github.com/samuelcolvin/pydantic/issues/1043
         config = json.loads(self.json())
-        return yaml.dump(
-            config, sort_keys=False, indent=4, width=80, default_flow_style=None
-        )
+        return yaml.dump(config, sort_keys=False, indent=4, width=80, default_flow_style=None)
 
     def set_logging(self):
         """

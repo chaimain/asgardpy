@@ -4,6 +4,8 @@ Generating 1D Datasets from given Instrument DL3 data
 
 import logging
 
+import numpy as np
+from typing import List
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 
@@ -19,13 +21,15 @@ from gammapy.maps import MapAxis, RegionGeom, WcsGeom
 from regions import CircleSkyRegion, PointSkyRegion
 
 from asgardpy.data.base import (
-    AnalysisStepBase
+    AnalysisStepBase,
     BackgroundConfig,
     OnRegion,
+    GeomConfig,
     ReductionTypeEnum,
-    SafeMaskConfig
+    SafeMaskConfig,
+    ObservationsConfig,
 )
-from asgardpy.data.dataset_3d import Dataset3D
+from asgardpy.data.dataset_3d import Dataset3DDatasetsAnalysisStep
 from asgardpy.io.io import DL3Files, IOConfig
 from asgardpy.config import BaseConfig
 
@@ -35,10 +39,11 @@ __all__ = [
     "Dataset1DConfig",
     "Dataset1DDataSelectionAnalysisStep",
     "Dataset1DObservationsAnalysisStep",
-    "Dataset1DDatasetsAnalysisStep"
+    "Dataset1DDatasetsAnalysisStep",
 ]
 
 log = logging.getLogger(__name__)
+
 
 class Dataset1DInfoConfig(BaseConfig):
     name: str = "dataset-name"
@@ -72,6 +77,7 @@ class Dataset1DDataSelectionAnalysisStep(AnalysisStepBase):
     config: dict or AsgardpyConfig
     config_1d_dataset: dict or AsgardpyConfig
     """
+
     tag = "dataset-1d-data-selection"
 
     def _run(self):
@@ -81,26 +87,24 @@ class Dataset1DDataSelectionAnalysisStep(AnalysisStepBase):
 
         dl3_info = DL3Files(dl3_dir_dict, model)
         dl3_info.list_dl3_files()
-        #dl3_info.event_files
-        # invoke Dataset1DObservationsAnalysisStep
 
         self.datastore = DataStore.from_dir(dl3_info.dl3_path)
         # Maybe get (unique) source names and coordinates, to have something similar as for LAT datasets
+
 
 class Dataset1DObservationsAnalysisStep(AnalysisStepBase):
     """
     Prepare standard data reduction using the parameters passed in the config
     for 1D datasets.
     """
+
     tag = "dataset-1d-observations"
 
     def _run(self):
         self.config_1d_dataset_info = self.config_1d_dataset["DatasetInfo"]
         irfs_selected = self.config_1d_dataset_info["observation"]["required_irfs"]
 
-        self.observations = self.datastore.get_observations(
-            required_irf=irfs_selected
-        )
+        self.observations = self.datastore.get_observations(required_irf=irfs_selected)
         self.dataset_template = self.generate_geom()
         self.dataset_maker, self.bkg_maker, self.safe_maker = self.get_reduction_makers()
 
@@ -116,7 +120,7 @@ class Dataset1DObservationsAnalysisStep(AnalysisStepBase):
         if target_config["use_uniform_position"]:
             # Using the same target source position as that used for
             # the 3D datasets analysis
-            dataset_3d = Dataset3D() # Replace appropriately
+            dataset_3d = Dataset3DDatasetsAnalysisStep()  # Replace appropriately
             src_pos = dataset_3d.get_source_pos_from_3d_dataset()
         else:
             src_name = target_config["source_name"]
@@ -137,10 +141,7 @@ class Dataset1DObservationsAnalysisStep(AnalysisStepBase):
             on_region.meta = {"include": False}
 
         else:
-            on_region = CircleSkyRegion(
-                center=src_pos,
-                radius=u.Quantity(given_on_geom["radius"]),
-            )
+            on_region = CircleSkyRegion(center=src_pos, radius=u.Quantity(given_on_geom["radius"]),)
 
         # Defining the energy axes
         reco_energy_from_config = self.config_1d_dataset_info["geom"]["axes"]["energy"]
@@ -162,10 +163,7 @@ class Dataset1DObservationsAnalysisStep(AnalysisStepBase):
 
         # Main geom and template Spectrum Dataset
         geom = RegionGeom.create(region=on_region, axes=[energy_axis])
-        dataset_template = SpectrumDataset.create(
-            geom=geom,
-            energy_axis_true=true_energy_axis
-        )
+        dataset_template = SpectrumDataset.create(geom=geom, energy_axis_true=true_energy_axis)
 
         return dataset_template
 
@@ -188,16 +186,13 @@ class Dataset1DObservationsAnalysisStep(AnalysisStepBase):
             if bkg_config["exclusion"]["name"] is None:
                 coord = bkg_config["exclusion"]["region_coord"]
                 center_ex = SkyCoord(
-                    u.Quantity(coord["gal_lon"]),
-                    u.Quantity(coord["gal_lat"]),
-                    frame="galactic"
+                    u.Quantity(coord["gal_lon"]), u.Quantity(coord["gal_lat"]), frame="galactic"
                 ).icrs
             else:
                 center_ex = SkyCoord.from_name(bkg_config["exclusion"]["name"])
 
             excluded_region = CircleSkyRegion(
-                center=center_ex,
-                radius=u.Quantity(bkg_config["exclusion"]["region_radius"])
+                center=center_ex, radius=u.Quantity(bkg_config["exclusion"]["region_radius"])
             )
         else:
             excluded_region = None
@@ -205,19 +200,14 @@ class Dataset1DObservationsAnalysisStep(AnalysisStepBase):
         # Needs to be united with other Geometry creation functions, into a separate class
         # Also make these geom parameters also part of the config requirements
         excluded_geom = WcsGeom.create(
-            npix=(125, 125),
-            binsz=0.05,
-            skydir=center_ex,
-            proj="TAN",
-            frame="icrs"
+            npix=(125, 125), binsz=0.05, skydir=center_ex, proj="TAN", frame="icrs"
         )
         exclusion_mask = ~excluded_geom.region_mask([excluded_region])
 
         # Background reduction maker
         if bkg_config["method"] == "reflected":
             bkg_maker = ReflectedRegionsBackgroundMaker(
-                n_off_regions=int(bkg_config["wobble_off_regions"]),
-                exclusion_mask=exclusion_mask
+                n_off_regions=int(bkg_config["wobble_off_regions"]), exclusion_mask=exclusion_mask
             )
         else:
             bkg_maker = None
@@ -227,8 +217,7 @@ class Dataset1DObservationsAnalysisStep(AnalysisStepBase):
         pars = safe_config["parameters"]
         if "custom-mask" not in safe_config["method"]:
             pos = SkyCoord(
-                ra=u.Quantity(pars["position"]["ra"]),
-                dec=u.Quantity(pars["position"]["dec"]),
+                ra=u.Quantity(pars["position"]["ra"]), dec=u.Quantity(pars["position"]["dec"]),
             )
             safe_maker = SafeMaskMaker(
                 methods=safe_config["method"],
@@ -249,6 +238,7 @@ class Dataset1DDatasetsAnalysisStep(AnalysisStepBase):
     Using the Datastore and Observations generated after reading the DL3 files,
     and the various data reduction makers, generate 1D Datasets.
     """
+
     tag = "dataset-1d-datasets"
 
     def _run(self):
@@ -281,10 +271,7 @@ class Dataset1DDatasetsAnalysisStep(AnalysisStepBase):
         object.
         """
         for obs in self.observations:
-            dataset = self.dataset_maker.run(
-                self.dataset_template.copy(name=str(obs.obs_id)),
-                obs
-            )
+            dataset = self.dataset_maker.run(self.dataset_template.copy(name=str(obs.obs_id)), obs)
             dataset_on_off = self.bkg_maker.run(dataset, obs)
             # Necessary meta information addition?
             dataset_on_off.meta_table["SOURCE"] = self.config["Target_source"]["source_name"]
@@ -293,8 +280,7 @@ class Dataset1DDatasetsAnalysisStep(AnalysisStepBase):
             if safe_cfg["method"]["custom-mask"]:
                 pars = safe_cfg["parameters"]
                 dataset_on_off.mask_safe = dataset_on_off.counts.geom.energy_mask(
-                    energy_min=u.Quantity(pars["min"]),
-                    energy_max=u.Quantity(pars["max"])
+                    energy_min=u.Quantity(pars["min"]), energy_max=u.Quantity(pars["max"])
                 )
             else:
                 dataset_on_off = self.safe_maker.run(dataset_on_off, obs)

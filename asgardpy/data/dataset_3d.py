@@ -7,6 +7,7 @@ import logging
 
 import numpy as np
 import xmltodict
+from typing import List
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
@@ -15,6 +16,7 @@ from astropy.io import fits
 from gammapy.data import EventList
 from gammapy.datasets import MapDataset
 from gammapy.irf import EDispKernel, EDispKernelMap, PSFMap
+from gammapy.makers import MapDatasetMaker
 from gammapy.maps import Map, MapAxis
 from gammapy.modeling import Parameters
 from gammapy.modeling.models import (
@@ -32,11 +34,12 @@ from gammapy.modeling.models import (
 from regions import CircleSkyRegion
 
 from asgardpy.data.base import (
-    AnalysisStepBase
+    AnalysisStepBase,
     BackgroundConfig,
     OnRegion,
     ReductionTypeEnum,
-    SafeMaskConfig
+    SafeMaskConfig,
+    MapSelectionEnum,
 )
 from asgardpy.io import DL3Files, IOConfig
 from asgardpy.config.generator import BaseConfig
@@ -47,15 +50,10 @@ __all__ = [
     "Dataset3DConfig",
     "Dataset3DDataSelectionAnalysisStep",
     "Dataset3DObservationsAnalysisStep",
-    "Dataset3DDatasetsAnalysisStep"
+    "Dataset3DDatasetsAnalysisStep",
 ]
 
 log = logging.getLogger(__name__)
-
-# Create different steps for analysis.
-#1. getting datastore,
-#2. getting observations.
-#3. perform dataset reduction.
 
 
 class Dataset3DInfoConfig(BaseConfig):
@@ -83,20 +81,38 @@ class Dataset3DDataSelectionAnalysisStep(AnalysisStepBase):
     """
     Read the DL3 files of 3D datasets into gammapy readable objects.
     """
+
     tag = "dataset-3d-data-selection"
 
     def _run(self):
         self.config_3d_dataset_io = self.config_3d_dataset["IO"]
-        dl3_dir_dict = self.config_3d_dataset_io["input_dir"]
         model = self.config["Target_model"]["spectral"]["type"]
 
-        self.read_to_objects()
+        self.read_to_objects(model)
         self.set_energy_dispersion_matrix()
         self.load_events()
         self.get_src_skycoord()
 
+    def read_to_objects(self, model):
+        """
+        For each key type of files, read the files to get the required
+        Gammapy objects for further analyses.
+        """
+        lp_is_intrinsic = model == "LogParabola"
+        inp_cfg = self.config_3d_dataset_io["input_dir"]
 
-    def get_base_objects(self, dl3_dir_dict, model, key):
+        for cfg in inp_cfg:
+            if cfg["type"] == "lat":
+                self.exposure, self.psf, self.drmap, self.edisp_kernel = self.get_base_objects(
+                    cfg, model, self.key_name, cfg["type"]
+                )
+            if cfg["type"] == "lat-aux":
+                self.diff_gal, self.diff_iso = self.get_base_objects(
+                    cfg, model, self.key_name, cfg["type"]
+                )
+                self.get_list_objects(cfg["path"], lp_is_intrinsic)
+
+    def get_base_objects(self, dl3_dir_dict, model, key, dl3_type):
         """
         For a DL3 files type and tag of the 'mode of observations' - FRONT or
         BACK, read the files to appropriate Object type for further analysis.
@@ -158,7 +174,7 @@ class Dataset3DDataSelectionAnalysisStep(AnalysisStepBase):
         dummy fits file if the original files are gzipped.
         """
         # Create a local file (important if gzipped, as sometimes it fails to read)
-        ## Check again the valididty of gzipping files, and also on the use
+        # Check again the valididty of gzipping files, and also on the use
         # of EventList, instead of other Gammapy object
         try:
             with gzip.open(self.events_f) as gzfile:
@@ -287,16 +303,13 @@ class Dataset3DDataSelectionAnalysisStep(AnalysisStepBase):
 
         spatial_model.freeze()
         source_sky_model = SkyModel(
-            spectral_model=spec_model,
-            spatial_model=spatial_model,
-            name=source_name,
+            spectral_model=spec_model, spatial_model=spatial_model, name=source_name,
         )
 
         return source_sky_model
 
     def xml_to_gammapy_model_params(
-        self, params, spectrum_type, is_target=False,
-        keep_sign=False, lp_is_intrinsic=False
+        self, params, spectrum_type, is_target=False, keep_sign=False, lp_is_intrinsic=False
     ):
         """
         Make some basic conversions on the spectral model parameters
@@ -353,32 +366,13 @@ class Dataset3DDataSelectionAnalysisStep(AnalysisStepBase):
 
         return new_model
 
-    def read_to_objects(self):
-        """ """
-        model = self.config["Target_model"]["spectral"]["model_name"]
-        lp_is_intrinsic = model == "LogParabola"
-
-        # Multiple input paths
-        inp_cfg = self.config_3d_dataset_io["input_dir"]
-        dl3_type_1 = inp_cfg[0]["type"]
-        dl3_type_2 = inp_cfg[1]["type"]  # Optional or something more general?
-        dl3_path_1 = inp_cfg[0]["path"]
-        dl3_path_2 = inp_cfg[1]["path"]
-        # For each key, get all the base objects.
-        self.exposure, self.psf, self.drmap, self.edisp_kernel = self.get_base_objects(
-            dl3_path_1, model, dl3_type_1, self.key_name
-        )
-        self.diff_gal, self.diff_iso = self.get_base_objects(
-            dl3_path_2, model, dl3_type_2, self.key_name
-        )
-        self.get_list_objects(dl3_path_2, lp_is_intrinsic)
-
 
 class Dataset3DObservationsAnalysisStep(AnalysisStepBase):
     """
     Prepare standard data reduction using the parameters passed in the config
     for 3D datasets.
     """
+
     tag = "dataset-3d-observations"
 
     def _run(self):
@@ -430,10 +424,7 @@ class Dataset3DObservationsAnalysisStep(AnalysisStepBase):
         energy of the real counts.
         """
         axis_reco = MapAxis.from_edges(
-            self.counts_map.geom.axes["energy"].edges,
-            name="energy",
-            unit="MeV",
-            interp="log",
+            self.counts_map.geom.axes["energy"].edges, name="energy", unit="MeV", interp="log",
         )
         axis_true = axis_reco.copy(name="energy_true")
         energy_reco, energy_true = np.meshgrid(axis_true.center, axis_reco.center)
@@ -472,18 +463,14 @@ class Dataset3DObservationsAnalysisStep(AnalysisStepBase):
         """
         if source_pos is not None:
             exclusion_region = CircleSkyRegion(
-                center=source_pos.galactic,  # Generalize frame or ask from user.
-                radius=radius,
+                center=source_pos.galactic, radius=radius,  # Generalize frame or ask from user.
             )
         else:
             sky_pos = self.config["Target_source"]["sky_position"]
             source_pos = SkyCoord.from_name(
                 ra=u.quantity(sky_pos["ra"]), dec=u.quantity(sky_pos["dec"])
             )
-            exclusion_region = CircleSkyRegion(
-                center=source_pos.galactic,
-                radius=radius,
-            )
+            exclusion_region = CircleSkyRegion(center=source_pos.galactic, radius=radius,)
         self.exclusion_regions.append(exclusion_region)
 
 
@@ -491,6 +478,7 @@ class Dataset3DDatasetsAnalysisStep(AnalysisStepBase):
     """
     Main class to generate the 3D Dataset for a given Instrument information.
     """
+
     tag = "dataset-3d-datasets"
 
     def _run(self):

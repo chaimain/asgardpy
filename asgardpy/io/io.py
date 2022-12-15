@@ -4,10 +4,12 @@ Base I/O functions
 import logging
 from pathlib import Path
 
+from typing import List
 from astropy.io import fits
 from gammapy.datasets import FluxPointsDataset
 from gammapy.estimators import FluxPoints
 from gammapy.modeling.models import SPECTRAL_MODEL_REGISTRY, Models
+from asgardpy.config import BaseConfig
 
 __all__ = ["DL3Files"]
 
@@ -22,8 +24,9 @@ glob_dict_std = {
     "diffuse": "gll_iem_v*.fits*",
     "iso": "iso_P8R3_SOURCE_V*_*.txt",
     "dl3": "dl3*fits",
-    "spectrum": "Spectrum/SED*.dat"
+    "spectrum": "Spectrum/SED*.dat",
 }
+
 
 class InputFilePatterns(BaseConfig):
     events: str = "*events.fits*"
@@ -141,69 +144,31 @@ class DL3Files:
         files, to be used for further analysis.
         """
         if self.dl3_type.lower() == "lat":
-            self.events_files = sorted(
-                list(
-                    self.dl3_path.glob(self.glob_dict["events"])
-                )
-            )
+            self.events_files = sorted(list(self.dl3_path.glob(self.glob_dict["events"])))
             self.log("The list of DL3 event files for LAT selected:", self.events_files)
-            self.edrm_files = sorted(
-                list(
-                    self.dl3_path.glob(self.glob_dict["edisp"])
-                )
-            )
+            self.edrm_files = sorted(list(self.dl3_path.glob(self.glob_dict["edisp"])))
             self.log(
-                "The list of Detector Response Matrix files for LAT selected:",
-                self.edrm_files
+                "The list of Detector Response Matrix files for LAT selected:", self.edrm_files
             )
-            self.xml_files = sorted(
-                list(
-                    self.dl3_path.glob(self.glob_dict["xml"])
-                )
-            )
+            self.xml_files = sorted(list(self.dl3_path.glob(self.glob_dict["xml"])))
             self.log("The list of XML files for LAT selected:", self.xml_files)
-            self.expmap_files = sorted(
-                list(
-                    self.dl3_path.glob(self.glob_dict["exposure"])
-                )
-            )
-            self.log(
-                "The list of Exposure Map files for LAT selected:",
-                self.expmap_files
-            )
-            self.psf_files = sorted(
-                list(
-                    self.dl3_path.glob(self.glob_dict["psf"])
-                )
-            )
+            self.expmap_files = sorted(list(self.dl3_path.glob(self.glob_dict["exposure"])))
+            self.log("The list of Exposure Map files for LAT selected:", self.expmap_files)
+            self.psf_files = sorted(list(self.dl3_path.glob(self.glob_dict["psf"])))
             self.log("The list of PSF files for LAT selected:", self.psf_files)
 
         if self.dl3_type.lower() == "lat-aux":
-            self.diff_gal_files = sorted(
-                list(
-                    self.dl3_path.glob(self.glob_dict["diffuse"])
-                )
-            )
+            self.diff_gal_files = sorted(list(self.dl3_path.glob(self.glob_dict["diffuse"])))
             self.log(
-                "The list of Diffuse Galactic sources for LAT-Aux selected:",
-                self.diff_gal_files
+                "The list of Diffuse Galactic sources for LAT-Aux selected:", self.diff_gal_files
             )
-            self.iso_files = sorted(
-                list(
-                    self.dl3_path.glob(self.glob_dict["iso"])
-                )
-            )
+            self.iso_files = sorted(list(self.dl3_path.glob(self.glob_dict["iso"])))
             self.log(
-                "The list of Isotropic Diffuse model files for LAT-Aux selected:",
-                self.iso_files
+                "The list of Isotropic Diffuse model files for LAT-Aux selected:", self.iso_files
             )
 
         if self.dl3_type.lower() == "lst-1":
-            self.event_files = sorted(
-                list(
-                    self.dl3_path.glob(self.glob_dict["dl3"])
-                )
-            )
+            self.event_files = sorted(list(self.dl3_path.glob(self.glob_dict["dl3"])))
             self.log("The list of DL3 files for LST-1 selected:", self.events_files)
 
     def get_lat_spectra_results(self):
@@ -215,9 +180,7 @@ class DL3Files:
         self.lat_ebin_file = []
 
         if self.dl3_type.lower() == "lat":
-            self.lat_spectra = self.dl3_path.glob(
-                self.glob_dict["spectrum"]
-            )
+            self.lat_spectra = self.dl3_path.glob(self.glob_dict["spectrum"])
             self.lat_bute_file = [
                 K
                 for K in self.lat_spectra
@@ -351,10 +314,7 @@ class DL4Files:
             self.spectral_model_from_file = self.model_from_file[0].spectral_model
 
     def read_flux_points(
-        self,
-        flux_file,
-        model_file,
-        sed_type="e2dnde",
+        self, flux_file, model_file, sed_type="e2dnde",
     ):
         """
         From a given FluxPoints FITS file and Models YAML files, create a
@@ -367,10 +327,7 @@ class DL4Files:
         )
 
     def read_flux_points_dataset(
-        self,
-        flux_file,
-        model_file,
-        sed_type="e2dnde",
+        self, flux_file, model_file, sed_type="e2dnde",
     ):
         """
         From a given FluxPoints FITS file and Models YAML files, create a

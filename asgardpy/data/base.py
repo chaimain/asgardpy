@@ -2,7 +2,8 @@
 
 import abc
 from enum import Enum
-from gammapy.utils.scripts import make_path #, make_name
+from pathlib import Path
+from typing import List
 import logging
 from asgardpy.config.generator import (
     AngleType,
@@ -10,6 +11,7 @@ from asgardpy.config.generator import (
     FrameEnum,
     SkyCoordConfig,
     TimeRangeConfig,
+    BaseConfig,
 )
 
 __all__ = [
@@ -31,7 +33,7 @@ __all__ = [
     "FinalFrameConfig",
     "WcsConfig",
     "GeomConfig",
-    "ObservationsConfig"
+    "ObservationsConfig",
 ]
 
 
@@ -51,9 +53,9 @@ class AnalysisStepBase(abc.ABC):
     def name(self):
         return self._name
 
-    def run(self): #, data
-        #self.data = data
-        #self.products = self.data
+    def run(self):  # , data
+        # self.data = data
+        # self.products = self.data
         self._run()
 
     @abc.abstractmethod
@@ -75,11 +77,6 @@ class AnalysisStep:
 class ReductionTypeEnum(str, Enum):
     spectrum = "1d"
     cube = "3d"
-
-
-class FrameEnum(str, Enum):
-    icrs = "icrs"
-    galactic = "galactic"
 
 
 class RequiredHDUEnum(str, Enum):
@@ -141,7 +138,7 @@ class OnRegion(str, Enum):
 class BackgroundConfig(BaseConfig):
     method: BackgroundMethodEnum = None
     exclusion: dict = {}
-    parameters: dict = {} # Only for 1D dataset?
+    parameters: dict = {}  # Only for 1D dataset?
 
 
 class SafeMaskConfig(BaseConfig):
@@ -151,12 +148,8 @@ class SafeMaskConfig(BaseConfig):
 
 # Dataset geom config
 class EnergyAxesConfig(BaseConfig):
-    energy: EnergyAxisConfig = EnergyAxisConfig(
-        min="1 TeV", max="10 TeV", nbins=5
-    )
-    energy_true: EnergyAxisConfig = EnergyAxisConfig(
-        min="0.5 TeV", max="20 TeV", nbins=16
-    )
+    energy: EnergyAxisConfig = EnergyAxisConfig(min="1 TeV", max="10 TeV", nbins=5)
+    energy_true: EnergyAxisConfig = EnergyAxisConfig(min="0.5 TeV", max="20 TeV", nbins=16)
 
 
 class SelectionConfig(BaseConfig):
