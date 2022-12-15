@@ -2,11 +2,11 @@
 flake8
 
 # Static type checking
-mypy==0.991
+mypy>=0.991
 
 # Automatic code formatting
-black==22.10.0
-isort==5.10.1
+black>=22.10
+isort>=5.10
 
 # Running tests
 pytest
@@ -24,16 +24,16 @@ wheel
 Sphinx>=4.3.0,<5.4.0
 
 # Sphinx theme: https://sphinx-themes.org/sample-sites/furo/
-furo==2022.9.29
+furo>=2022.12.7
 
 # Lets Sphinx parse markdown files in addition to rst.
 myst-parser>=0.15.2,<0.19.0
 
 # Adds a copy button to code examples in the docs.
-sphinx-copybutton==0.5.0
+sphinx-copybutton>=0.5.0
 
 # Live rebuilding and reloading of docs for developing locally.
-sphinx-autobuild==2021.3.14
+sphinx-autobuild>=2021.3.14
 
 # Automatically adds types to docs
 sphinx-autodoc-typehints

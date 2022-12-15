@@ -1,7 +1,7 @@
 # Add your own dependencies to this file.
 numpy
 scipy<1.23
-astropy~=5.1
+astropy>=5.1
 jupyter
 gammapy~=1.0
 regions>0.5
