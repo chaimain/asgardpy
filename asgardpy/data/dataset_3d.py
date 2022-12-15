@@ -31,31 +31,78 @@ from gammapy.modeling.models import (
 )
 from regions import CircleSkyRegion
 
-from .io import DL3Files
+from asgardpy.data.base import (
+    AnalysisStepBase
+    BackgroundConfig,
+    OnRegion,
+    ReductionTypeEnum,
+    SafeMaskConfig
+)
+from asgardpy.io import DL3Files, IOConfig
+from asgardpy.config.generator import BaseConfig
 
-__all__ = ["Dataset3D", "Dataset3DIO", "Dataset3DInfo"]
+__all__ = [
+    "Dataset3DInfoConfig",
+    "Dataset3DBaseConfig",
+    "Dataset3DConfig",
+    "Dataset3DDataSelectionAnalysisStep",
+    "Dataset3DObservationsAnalysisStep",
+    "Dataset3DDatasetsAnalysisStep"
+]
 
 log = logging.getLogger(__name__)
 
+# Create different steps for analysis.
+#1. getting datastore,
+#2. getting observations.
+#3. perform dataset reduction.
 
-class Dataset3DIO(DL3Files):
-    """
-    Read the DL3 files of 3D datasets.
-    """
 
-    def __init__(self, config, instrument_idx=0, key_idx=0):
-        self.config = config
-        self.config_3d_dataset = self.config["Dataset3D"]["Instruments"][instrument_idx]
+class Dataset3DInfoConfig(BaseConfig):
+    name: str = "dataset-name"
+    key: List = []
+    map_selection: List[MapSelectionEnum] = MapDatasetMaker.available_selection
+    background: BackgroundConfig = BackgroundConfig()
+    safe_mask: SafeMaskConfig = SafeMaskConfig()
+    on_region: OnRegion = OnRegion.circle_region
+    containment_correction: bool = True
+
+
+class Dataset3DBaseConfig(BaseConfig):
+    name: str = "Instrument-name"
+    io: IOConfig = IOConfig()
+    dataset_info: Dataset3DInfoConfig = Dataset3DInfoConfig()
+
+
+class Dataset3DConfig(BaseConfig):
+    type: ReductionTypeEnum = ReductionTypeEnum.cube
+    instruments: List[Dataset3DBaseConfig] = [Dataset3DBaseConfig()]
+
+
+class Dataset3DDataSelectionAnalysisStep(AnalysisStepBase):
+    """
+    Read the DL3 files of 3D datasets into gammapy readable objects.
+    """
+    tag = "dataset-3d-data-selection"
+
+    def _run(self):
         self.config_3d_dataset_io = self.config_3d_dataset["IO"]
-        self.key_name = self.config_3d_dataset_info["key"][key_idx]
+        dl3_dir_dict = self.config_3d_dataset_io["input_dir"]
+        model = self.config["Target_model"]["spectral"]["type"]
 
-    def get_base_objects(self, dl3_path, model, dl3_type, key):
+        self.read_to_objects()
+        self.set_energy_dispersion_matrix()
+        self.load_events()
+        self.get_src_skycoord()
+
+
+    def get_base_objects(self, dl3_dir_dict, model, key):
         """
         For a DL3 files type and tag of the 'mode of observations' - FRONT or
         BACK, read the files to appropriate Object type for further analysis.
         """
-        temp = DL3Files(self, dl3_path, model, dl3_type)
-        temp.prepare_lat_files(key)
+        temp = DL3Files(dl3_dir_dict, model)
+        temp.prepare_lat_files(self.key_name)
 
         if dl3_type.lower() == "lat":
             self.exposure = Map.read(self.expmap_f)
@@ -111,6 +158,8 @@ class Dataset3DIO(DL3Files):
         dummy fits file if the original files are gzipped.
         """
         # Create a local file (important if gzipped, as sometimes it fails to read)
+        ## Check again the valididty of gzipping files, and also on the use
+        # of EventList, instead of other Gammapy object
         try:
             with gzip.open(self.events_f) as gzfile:
                 with open("temp_events.fits", "wb") as file:
@@ -246,7 +295,8 @@ class Dataset3DIO(DL3Files):
         return source_sky_model
 
     def xml_to_gammapy_model_params(
-        self, params, spectrum_type, is_target=False, keep_sign=False, lp_is_intrinsic=False
+        self, params, spectrum_type, is_target=False,
+        keep_sign=False, lp_is_intrinsic=False
     ):
         """
         Make some basic conversions on the spectral model parameters
@@ -324,24 +374,16 @@ class Dataset3DIO(DL3Files):
         self.get_list_objects(dl3_path_2, lp_is_intrinsic)
 
 
-class Dataset3DInfo(Dataset3DIO):
+class Dataset3DObservationsAnalysisStep(AnalysisStepBase):
     """
     Prepare standard data reduction using the parameters passed in the config
     for 3D datasets.
     """
+    tag = "dataset-3d-observations"
 
-    def __init__(self, config, instrument_idx=0, key_idx=0):
-        self.config = config
-        self.config_3d_dataset = self.config["Dataset3D"]["Instruments"][instrument_idx]
+    def _run(self):
         self.config_3d_dataset_info = self.config_3d_dataset["DatasetInfo"]
         self.exclusion_regions = []
-
-        io = Dataset3DIO()
-        io.read_to_objects()
-        io.set_energy_dispersion_matrix()
-        io.load_events()
-        io.get_src_skycoord()
-
         self._counts_map()
         self._set_edisp_interpolator()
         self._set_exposure_interpolator()
@@ -445,19 +487,40 @@ class Dataset3DInfo(Dataset3DIO):
         self.exclusion_regions.append(exclusion_region)
 
 
-class Dataset3D(Dataset3DInfo):
+class Dataset3DDatasetsAnalysisStep(AnalysisStepBase):
     """
     Main class to generate the 3D Dataset for a given Instrument information.
     """
+    tag = "dataset-3d-datasets"
 
-    def __init__(self):
-        self.dataset = None
-        self.instrument_idx = 0
-        self.key_idx = 0
-        info = Dataset3DInfo(self.config, self.instrument_idx, self.key_idx)
-        info()
+    def _run(self):
+        instruments_list = self.config["Dataset3D"]["Instruments"]
+        self.log(len(instruments_list), " number of 3D Datasets given")
 
-    def create_dataset(self):
+        datasets_3d_final = []
+
+        for i in np.arange(len(instruments_list)):
+            self.config_3d_dataset = instruments_list[i]
+            key_names = self.config_3d_dataset["dataset_info"]["key"]
+            self.log("The different keys used:", key_names)
+
+            for key in key_names:
+                self.key_name = key
+                io_step = Dataset3DDataSelectionAnalysisStep(
+                    self.config_3d_dataset, log=self.log, overwrite=self.overwrite
+                )
+                obs_step = Dataset3DObservationsAnalysisStep(
+                    self.config_3d_dataset, log=self.log, overwrite=self.overwrite
+                )
+
+                io_step.run()
+                obs_step.run()
+
+                datasets_3d_final.append(self.generate_dataset())
+
+        return datasets_3d_final
+
+    def generate_dataset(self):
         """
         Generate MapDataset for the given Instrument files.
         """
