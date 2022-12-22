@@ -17,5 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Try to fix some coding styles to avoid test errors by [@chaimain](https://github.com/chaimain).
 - Start entering Fit and plot functions by [@chaimain](https://github.com/chaimain).
 - Initial template for the pipeline by [@chaimain](https://github.com/chaimain).
-- Build pipeline structure  by [@chaimain](https://github.com/chaimain).
+- Build pipeline structure by [@chaimain](https://github.com/chaimain).
 - Update Changelog and fix an earlier commit change by [@chaimain](https://github.com/chaimain).
+- Restructuring pipeline by [@chaimain](https://github.com/chaimain).
