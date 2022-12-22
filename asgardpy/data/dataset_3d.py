@@ -84,8 +84,8 @@ class Dataset3DDataSelectionAnalysisStep(AnalysisStepBase):
     tag = "dataset-3d-data-selection"
 
     def _run(self):
-        self.config_3d_dataset_io = self.config_3d_dataset["IO"]
-        model = self.config["Target_model"]["spectral"]["type"]
+        self.config_3d_dataset_io = self.config_3d_dataset["io"]
+        model = self.config["target"]["spectral"]["type"]
 
         self.read_to_objects(model)
         self.set_energy_dispersion_matrix()
@@ -98,9 +98,8 @@ class Dataset3DDataSelectionAnalysisStep(AnalysisStepBase):
         Gammapy objects for further analyses.
         """
         lp_is_intrinsic = model == "LogParabola"
-        inp_cfg = self.config_3d_dataset_io["input_dir"]
 
-        for cfg in inp_cfg:
+        for cfg in self.config_3d_dataset_io:
             if cfg["type"] == "lat":
                 self.exposure, self.psf, self.drmap, self.edisp_kernel = self.get_base_objects(
                     cfg, model, self.key_name, cfg["type"]
@@ -377,7 +376,7 @@ class Dataset3DObservationsAnalysisStep(AnalysisStepBase):
     tag = "dataset-3d-observations"
 
     def _run(self):
-        self.config_3d_dataset_info = self.config_3d_dataset["DatasetInfo"]
+        self.config_3d_dataset_info = self.config_3d_dataset["dataset_info"]
         self.exclusion_regions = []
         self._counts_map()
         self._set_edisp_interpolator()
@@ -471,9 +470,11 @@ class Dataset3DObservationsAnalysisStep(AnalysisStepBase):
                 radius=radius,  # Generalize frame or ask from user.
             )
         else:
-            sky_pos = self.config["Target_source"]["sky_position"]
+            sky_pos = self.config["target"]["sky_position"]
             source_pos = SkyCoord.from_name(
-                ra=u.quantity(sky_pos["ra"]), dec=u.quantity(sky_pos["dec"])
+                u.quantity(sky_pos["lon"]),
+                u.quantity(sky_pos["lat"]),
+                frame=sky_pos["frame"]
             )
             exclusion_region = CircleSkyRegion(
                 center=source_pos.galactic,
@@ -490,7 +491,7 @@ class Dataset3DDatasetsAnalysisStep(AnalysisStepBase):
     tag = "dataset-3d-datasets"
 
     def _run(self):
-        instruments_list = self.config["Dataset3D"]["Instruments"]
+        instruments_list = self.config["dataset3d"]["instruments"]
         self.log(len(instruments_list), " number of 3D Datasets given")
 
         datasets_3d_final = []
@@ -542,9 +543,11 @@ class Dataset3DDatasetsAnalysisStep(AnalysisStepBase):
         Introduce the source coordinates from 3D dataset to 1D dataset.
         """
         for src in self.list_sources:
-            if src.name == self.config["Target_source"]["source_name"]:
+            if src.name == self.config["target"]["source_name"]:
                 source_position_from_3d = SkyCoord(
-                    lon=src.spatial_model["lon_0"], lat=src.spatial_model["lat_0"], frame="galactic"
+                    src.spatial_model["lon"],
+                    src.spatial_model["lat"],
+                    frame=src.spatial_model["frame"]
                 ).icrs
                 return source_position_from_3d
             else:

@@ -81,9 +81,10 @@ class Dataset1DDataSelectionAnalysisStep(AnalysisStepBase):
     tag = "dataset-1d-data-selection"
 
     def _run(self):
-        self.config_1d_dataset_io = self.config_1d_dataset["IO"]
-        dl3_dir_dict = self.config_1d_dataset_io["input_dir"]
-        model = self.config["Target_model"]["spectral"]["type"]
+        self.config_1d_dataset_io = self.config_1d_dataset["io"]
+        # Maybe we can iterate over a list for generalization purpose
+        dl3_dir_dict = self.config_1d_dataset_io[0]
+        model = self.config["target"]["components"]["spectral"]["type"]
 
         dl3_info = DL3Files(dl3_dir_dict, model)
         dl3_info.list_dl3_files()
@@ -101,7 +102,7 @@ class Dataset1DObservationsAnalysisStep(AnalysisStepBase):
     tag = "dataset-1d-observations"
 
     def _run(self):
-        self.config_1d_dataset_info = self.config_1d_dataset["DatasetInfo"]
+        self.config_1d_dataset_info = self.config_1d_dataset["dataset_info"]
         irfs_selected = self.config_1d_dataset_info["observation"]["required_irfs"]
 
         self.observations = self.datastore.get_observations(required_irf=irfs_selected)
@@ -115,7 +116,7 @@ class Dataset1DObservationsAnalysisStep(AnalysisStepBase):
         axes information on reco energy and true energy, a dataset can be defined.
         """
         # Fixing the source position
-        target_config = self.config["Target_source"]
+        target_config = self.config["target"]
 
         if target_config["use_uniform_position"]:
             # Using the same target source position as that used for
@@ -128,8 +129,9 @@ class Dataset1DObservationsAnalysisStep(AnalysisStepBase):
                 src_pos = SkyCoord.from_name(src_name)
             else:
                 src_pos = SkyCoord(
-                    ra=u.Quantity(target_config["sky_position"]["ra"]),
-                    dec=u.Quantity(target_config["sky_position"]["dec"]),
+                    u.Quantity(target_config["sky_position"]["lon"]),
+                    u.Quantity(target_config["sky_position"]["lat"]),
+                    frame=target_config["sky_position"]["frame"]
                 )
 
         # Defining the ON region's geometry
@@ -187,9 +189,11 @@ class Dataset1DObservationsAnalysisStep(AnalysisStepBase):
         # Exclusion mask
         if bkg_config["exclusion"]:
             if bkg_config["exclusion"]["name"] is None:
-                coord = bkg_config["exclusion"]["region_coord"]
+                coord = bkg_config["exclusion"]["position"]
                 center_ex = SkyCoord(
-                    u.Quantity(coord["gal_lon"]), u.Quantity(coord["gal_lat"]), frame="galactic"
+                    u.Quantity(coord["lon"]),
+                    u.Quantity(coord["lat"]),
+                    frame=coord["frame"]
                 ).icrs
             else:
                 center_ex = SkyCoord.from_name(bkg_config["exclusion"]["name"])
@@ -210,21 +214,23 @@ class Dataset1DObservationsAnalysisStep(AnalysisStepBase):
         # Background reduction maker
         if bkg_config["method"] == "reflected":
             bkg_maker = ReflectedRegionsBackgroundMaker(
-                n_off_regions=int(bkg_config["wobble_off_regions"]), exclusion_mask=exclusion_mask
+                n_off_regions=int(bkg_config["wobble_off_regions"]),
+                exclusion_mask=exclusion_mask
             )
         else:
             bkg_maker = None
 
         # Safe Energy Mask Maker
-        safe_config = self.config_1d_dataset_info["safe_energy_mask"]
+        safe_config = self.config_1d_dataset_info["safe_mask"]
         pars = safe_config["parameters"]
-        if "custom-mask" not in safe_config["method"]:
+        if "custom-mask" not in safe_config["methods"]:
             pos = SkyCoord(
-                ra=u.Quantity(pars["position"]["ra"]),
-                dec=u.Quantity(pars["position"]["dec"]),
+                u.Quantity(pars["position"]["lon"]),
+                u.Quantity(pars["position"]["lat"]),
+                frame=pars["position"]["frame"]
             )
             safe_maker = SafeMaskMaker(
-                methods=safe_config["method"],
+                methods=safe_config["methods"],
                 aeff_percent=pars["aeff_percent"],
                 bias_percent=pars["bias_percent"],
                 position=pos,
@@ -247,7 +253,7 @@ class Dataset1DDatasetsAnalysisStep(AnalysisStepBase):
 
     def _run(self):
         # Iterate over all instrument information given:
-        instruments_list = self.config["Dataset1D"]["Instruments"]
+        instruments_list = self.config["dataset1d"]["instruments"]
         self.log(len(instruments_list), " number of 1D Datasets given")
 
         datasets_1d_final = []
@@ -278,13 +284,14 @@ class Dataset1DDatasetsAnalysisStep(AnalysisStepBase):
             dataset = self.dataset_maker.run(self.dataset_template.copy(name=str(obs.obs_id)), obs)
             dataset_on_off = self.bkg_maker.run(dataset, obs)
             # Necessary meta information addition?
-            dataset_on_off.meta_table["SOURCE"] = self.config["Target_source"]["source_name"]
+            dataset_on_off.meta_table["SOURCE"] = self.config["target"]["source_name"]
 
             safe_cfg = self.config_1d_dataset_info["safe_mask"]
-            if safe_cfg["method"]["custom-mask"]:
+            if safe_cfg["methods"]["custom-mask"]:
                 pars = safe_cfg["parameters"]
                 dataset_on_off.mask_safe = dataset_on_off.counts.geom.energy_mask(
-                    energy_min=u.Quantity(pars["min"]), energy_max=u.Quantity(pars["max"])
+                    energy_min=u.Quantity(pars["min"]),
+                    energy_max=u.Quantity(pars["max"])
                 )
             else:
                 dataset_on_off = self.safe_maker.run(dataset_on_off, obs)
