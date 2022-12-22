@@ -14,7 +14,7 @@ from asgardpy.analysis.analysis import (
     FluxPointsConfig,
     LightCurveConfig,
 )
-from asgardpy.data.base import BaseConfig
+from asgardpy.data.base import BaseConfig, AnalysisStepEnum
 from asgardpy.data.dataset_1d import Dataset1DConfig
 from asgardpy.data.dataset_3d import Dataset3DConfig
 from asgardpy.data.target import Target
@@ -40,6 +40,8 @@ class GeneralConfig(BaseConfig):
     log: LogConfig = LogConfig()
     outdir: str = "."
     n_jobs: int = 1
+    steps: List[AnalysisStepEnum] = []
+    overwrite: bool = True
 
 
 # Combine everything!

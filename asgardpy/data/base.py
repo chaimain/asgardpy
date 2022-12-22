@@ -116,6 +116,10 @@ class AnalysisStepEnum:
     dataset_3d_data_selection = "dataset-3d-data-selection"
     dataset_3d_observations = "dataset-3d-observations"
     dataset_3d_datasets = "dataset-3d-datasets"
+    fit = "fit"
+    flux_points = "flux-points"
+    excess_map = "excess-map"
+    light_curve = "light-curve"
 
 
 class TimeRangeConfig(BaseConfig):
