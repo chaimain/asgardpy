@@ -436,10 +436,7 @@ class SpectralAnalysis(FitMaker):
             x=f_x * u.GeV,
             y=f_y * u.Unit("TeV/(cm2 * s)"),
             xerr=[x_err_low * u.GeV, x_err_high * u.GeV],
-            yerr=[
-                y_err_low * u.Unit("TeV/(cm2 * s)"),
-                y_err_high * u.Unit("TeV/(cm2 * s)"),
-            ],
+            yerr=[y_err_low * u.Unit("TeV/(cm2 * s)"), y_err_high * u.Unit("TeV/(cm2 * s)")],
             **kwargs,
         )
 

@@ -3,15 +3,48 @@ Base I/O functions
 """
 import logging
 from pathlib import Path
+from typing import List
 
 from astropy.io import fits
 from gammapy.datasets import FluxPointsDataset
 from gammapy.estimators import FluxPoints
 from gammapy.modeling.models import SPECTRAL_MODEL_REGISTRY, Models
 
-__all__ = ["DL3Files"]
+from asgardpy.data.base import BaseConfig
+
+__all__ = ["InputFilePatterns", "InputConfig", "DL3Files", "DL4Files"]
 
 EXPECTED_DL3_RANGE = ["lst-1", "lat", "lat-aux"]
+
+glob_dict_std = {
+    "events": "*events.fits*",
+    "edisp": "*DRM.fits*",
+    "exposure": "*BinnedMap.fits*",
+    "xml_model": "*out.xml",
+    "psf": "*psf.fits*",
+    "diffuse": "gll_iem_v*.fits*",
+    "iso": "iso_P8R3_SOURCE_V*_*.txt",
+    "dl3": "dl3*fits",
+    "spectrum": "Spectrum/SED*.dat",
+}
+
+
+class InputFilePatterns(BaseConfig):
+    events: str = "*events.fits*"
+    edisp: str = "*DRM.fits*"
+    exposure: str = "*BinnedMap.fits*"
+    xml_model: str = "*out.xml"
+    psf: str = "*psf.fits*"
+    diffuse: str = "gll_iem_v*.fits*"
+    iso: str = "iso_P8R3_SOURCE_V*_*.txt"
+    dl3: str = "dl3*fits"
+    spectrum: str = "Spectrum/SED*.dat"
+
+
+class InputConfig(BaseConfig):
+    type: str = "type"
+    input_dir: Path = None
+    glob_pattern: List[InputFilePatterns] = [InputFilePatterns()]
 
 
 class DL3Files:
@@ -20,7 +53,10 @@ class DL3Files:
     Models and other auxillary files for neighbouring sources, if provided.
     """
 
-    def __init__(self, dl3_path, source_model, dl3_type):
+    def __init__(self, dir_dict, source_model):
+        dl3_path = dir_dict["path"]
+        dl3_type = dir_dict["type"]
+        glob_dict = dir_dict["glob_pattern"]
 
         if Path(dl3_path).exists():
             self.dl3_path = Path(dl3_path)
@@ -28,6 +64,12 @@ class DL3Files:
             self.log.error("%(dl3_path) is not a valid file")
         self.model = source_model
         self.dl3_type = dl3_type
+
+        if glob_dict is None:
+            self.glob_dict = glob_dict_std
+        else:
+            self.glob_dict = glob_dict
+
         self._set_logging()
         self._check_model()
         self._check_dl3_type()
@@ -60,12 +102,12 @@ class DL3Files:
         if self.dl3_type.lower() not in EXPECTED_DL3_RANGE:
             self.log.error("%(self.dl3_type) is not in the expected range for DL3 files")
 
-    def select_unique_files(self, dl3_type, key):
+    def select_unique_files(self, key):
         """
         Select Unique files from all of the provided LAT files, as per the
         given key.
         """
-        if dl3_type.lower() == "lat":
+        if self.dl3_type.lower() == "lat":
             var_list = [
                 "events_f",
                 "edrm_f",
@@ -74,7 +116,7 @@ class DL3Files:
             ]
             self.xml_f = [f for f in self.xml_files if self.model in f][0]
 
-        if dl3_type.lower() == "lat-aux":
+        if self.dl3_type.lower() == "lat-aux":
             var_list = [
                 "iso_files",
             ]
@@ -98,30 +140,43 @@ class DL3Files:
         files, to be used for further analysis.
         """
         if self.dl3_type.lower() == "lat":
-            self.events_files = sorted(list(self.dl3_path.glob("*_MkTime.fits*")))
-            self.edrm_files = sorted(list(self.dl3_path.glob(f"*{self.model}_*eDRM.fits*")))
-            self.xml_files = sorted(list(self.dl3_path.glob("*_out.xml")))
-            self.expmap_files = sorted(list(self.dl3_path.glob("*_BinnedMap.fits*")))
-            self.psf_files = sorted(list(self.dl3_path.glob("*_psf.fits*")))
+            self.events_files = sorted(list(self.dl3_path.glob(self.glob_dict["events"])))
+            self.log("The list of DL3 event files for LAT selected:", self.events_files)
+            self.edrm_files = sorted(list(self.dl3_path.glob(self.glob_dict["edisp"])))
+            self.log(
+                "The list of Detector Response Matrix files for LAT selected:", self.edrm_files
+            )
+            self.xml_files = sorted(list(self.dl3_path.glob(self.glob_dict["xml"])))
+            self.log("The list of XML files for LAT selected:", self.xml_files)
+            self.expmap_files = sorted(list(self.dl3_path.glob(self.glob_dict["exposure"])))
+            self.log("The list of Exposure Map files for LAT selected:", self.expmap_files)
+            self.psf_files = sorted(list(self.dl3_path.glob(self.glob_dict["psf"])))
+            self.log("The list of PSF files for LAT selected:", self.psf_files)
 
         if self.dl3_type.lower() == "lat-aux":
-            self.diff_gal_files = sorted(list(self.dl3_path.glob("gll_iem_v07.fits*")))
-            self.iso_files = sorted(list(self.dl3_path.glob("iso_P8R3_SOURCE_V3_*.txt")))
+            self.diff_gal_files = sorted(list(self.dl3_path.glob(self.glob_dict["diffuse"])))
+            self.log(
+                "The list of Diffuse Galactic sources for LAT-Aux selected:", self.diff_gal_files
+            )
+            self.iso_files = sorted(list(self.dl3_path.glob(self.glob_dict["iso"])))
+            self.log(
+                "The list of Isotropic Diffuse model files for LAT-Aux selected:", self.iso_files
+            )
 
         if self.dl3_type.lower() == "lst-1":
-            self.event_files = sorted(list(self.dl3_path.glob("dl3*fits")))
-
-            if len(self.event_files) == 0:
-                # Nested sub-directories as per date. For LST-1 at least.
-                self.event_files = sorted(list(self.dl3_path.glob("202*/dl3*fits")))
+            self.event_files = sorted(list(self.dl3_path.glob(self.glob_dict["dl3"])))
+            self.log("The list of DL3 files for LST-1 selected:", self.events_files)
 
     def get_lat_spectra_results(self):
         """
         From the given DL3 files path for LAT files, get the files for the
         spectrum, to be used for further analysis.
         """
+        self.lat_bute_file = []
+        self.lat_ebin_file = []
+
         if self.dl3_type.lower() == "lat":
-            self.lat_spectra = self.dl3_path.glob(f"Spectrum/SED*{self.model}*.dat")
+            self.lat_spectra = self.dl3_path.glob(self.glob_dict["spectrum"])
             self.lat_bute_file = [
                 K
                 for K in self.lat_spectra
