@@ -26,7 +26,6 @@ from asgardpy.data.geom import (
     EnergyAxisConfig,
     FinalFrameConfig,
     GeomConfig,
-    OnRegion,
     SelectionConfig,
     SkyCoordConfig,
     SpatialCircleConfig,
@@ -42,7 +41,7 @@ from asgardpy.data.reduction import (
     SafeMaskConfig,
     SafeMaskMethodsEnum,
 )
-from asgardpy.data.target import TargetModel, TargetSource
+from asgardpy.data.target import Target
 
 ANALYSIS_STEP_REGISTRY = Registry(
     [
@@ -69,11 +68,9 @@ __all__ = [
     "AnalysisStep",
     "TimeRangeConfig",
     "EnergyRangeConfig",
-    "TargetSource",
-    "TargetModel",
+    "Target",
     "SpatialCircleConfig",
     "SpatialPointConfig",
-    "OnRegion",
     "EnergyAxisConfig",
     "EnergyAxesConfig",
     "SelectionConfig",

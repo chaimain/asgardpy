@@ -1,180 +1,187 @@
 # Configuration file template for Data analysis of 3D+1D DL3 datasets
 
 # General settings
-General:
-  log: {level: info}
+general:
+  log:
+    level: info
   outdir: /data/magic/users-ifae/cpriyada/lst/
+  n_jobs: 1
 
-# Target source settings
-Target_source:
+# Target settings
+target:
   source_name: PG1553+113
-  sky_position: {ra: 238.92934976 deg, dec: 11.19010155 deg}
-  use_uniform_position: True
-  redshift: 0.433
-  extended: False
-
-# Target spectral model settings
-Target_model:
-  spectral:
-    model_name: LogParabola
-    type: LogParabolaSpectralModel # For Gammapy Model registry search
-    parameters:
-    -   name: amplitude
-        value: 8.2e-06
-        unit: cm-2 s-1 TeV-1
-        error: 1.5e-06
-        min: 0.0
-        max: 0.01
-        frozen: false
-    -   name: reference
-        value: 0.01
-        unit: TeV
-        error: 0.0
-        min: 0.001
-        max: 100.0
-        frozen: true
-    -   name: alpha
-        value: 1.5
-        unit: ''
-        error: 0.1
-        min: 0.5
-        max: 5.0
-        frozen: false
-    -   name: beta
-        value: 0.1
-        unit: ''
-        error: 0.01
-        min: 0.0
-        max: 1.0
-        frozen: false
-    ebl_abs:
-      model_name: dominguez
-      type: EBLAbsorptionNormSpectralModel # For Gammapy Model registry search
-      alpha_norm: 1
-  from_file: None
-  from_fermi: False
+  sky_position: {frame: icrs, lon: 238.92934976 deg, lat: 11.19010155 deg}
+  use_uniform_position: true
+  extended: false
+  components:
+    name: PG1553+113
+    type: SkyModel
+    spectral:
+      model_name: LogParabola
+      type: LogParabolaSpectralModel # For Gammapy Model registry search
+      parameters:
+      -   name: amplitude
+          value: 8.2e-06
+          unit: cm-2 s-1 TeV-1
+          error: 1.5e-06
+          min: 0.0
+          max: 0.01
+          frozen: false
+      -   name: reference
+          value: 0.01
+          unit: TeV
+          error: 0.0
+          min: 0.001
+          max: 100.0
+          frozen: true
+      -   name: alpha
+          value: 1.5
+          unit: ''
+          error: 0.1
+          min: 0.5
+          max: 5.0
+          frozen: false
+      -   name: beta
+          value: 0.1
+          unit: ''
+          error: 0.01
+          min: 0.0
+          max: 1.0
+          frozen: false
+      ebl_abs:
+        model_name: dominguez
+        type: EBLAbsorptionNormSpectralModel # For Gammapy Model registry search
+        redshift: 0.433
+        alpha_norm: 1.0
+  covariance: None
+  from_fermi: false
 
 # Instrument datasets with 3D info
-Dataset3D:
+dataset3d:
   type: "3d"
   instruments:
-  - name: Fermi-LAT
-    io:
-      input_dir:
-      -  type: lat
-         path: /data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/LAT/Analysis1/EBL/LogParabola/
-         glob_pattern:
-           events: *_MkTime.fits*
-           edisp: _*eDRM.fits*
-           xml_model: *_out.xml
-           exposure: *_BinnedMap.fits*
-           psf: *_psf.fits*
-      -  type: lat-aux
-         path: /data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/LAT/diffuse_models/
-         glob_pattern:
-           diffuse: gll_iem_v07.fits*
-           iso: iso_P8R3_SOURCE_V3_*.txt
-    dataset_info:
-      name: Fermi-LAT
-      key: [FRONT, BACK]
-      map_selection: []
-      background:
-        method: None
-        exclusion: None
-        parameters:
-          target_source: True
-          regions:
-            - type: CircleAnnulusSkyRegion
-              name: None
-              position: {gal_lon: 120 deg, gal_lat: 20 deg}
-              parameters:
-                - rad_0: 8 deg
-                - rad_1: 15 deg
-      safe_mask:
-        methods: []
-        parameters:
-          min: 0.1 GeV
-          max: 1 TeV
-      on_region:
-        frame: "galactic"
-        lon: "x deg"
-        lat: "y deg"
-        radius: "0.4 deg"
-      containment_correction: True
+  -   name: Fermi-LAT
+      io:
+      -   type: lat
+          input_dir: /data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/LAT/Analysis1/EBL/LogParabola/
+          glob_pattern:
+          -   events: "*_MkTime.fits*"
+          -   edisp: "_*eDRM.fits*"
+          -   xml_model: "*_out.xml"
+          -   exposure: "*_BinnedMap.fits*"
+          -   psf: "*_psf.fits*"
+      -   type: lat-aux
+          input_dir: /data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/LAT/diffuse_models/
+          glob_pattern:
+          -   diffuse: "gll_iem_v07.fits*"
+          -   iso: "iso_P8R3_SOURCE_V3_*.txt"
+      dataset_info:
+        name: Fermi-LAT
+        key: ["FRONT", "BACK"]
+        # map_selection: []
+        background:
+          # method: reflected
+          # exclusion: {}
+          parameters:
+            target_source: true
+            regions:
+            -   type: CircleAnnulusSkyRegion
+                name: None
+                position:
+                  frame: galactic
+                  lon: 120 deg
+                  lat: 20 deg
+                parameters:
+                -   rad_0: 8 deg
+                -   rad_1: 15 deg
+        safe_mask:
+          methods: []
+          parameters:
+            min: 0.1 GeV
+            max: 1 TeV
+        on_region:
+          frame: galactic
+          lon: 120 deg
+          lat: 20 deg
+          radius: 0.4 deg
+        containment_correction: true
 # - name: HAWC?
 #    ... full description ...
 
 # Instrument datasets with 1D info
-Dataset1D:
+dataset1d:
   type: "1d"
   instruments:
-  - name: LST-1
-    io:
-      input_dir:
-      -  type: lst
-         path: /data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/v09x/tailcut84/DL3/real/interp_irf_en_dep/no_tuning/geff_80/teff_80/20220511_dec931/
-         glob_pattern:
-           dl3: 202*/dl3*fits
-    dataset_info:
-      name: LST-1
-      geom:
-        selection:
-          offset_max: "2.5 deg"
-        axes:
-          energy:
+  -   name: LST-1
+      io:
+      -   type: lst-1
+          input_dir: "/data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/v09x/tailcut84/DL3/real/interp_irf_en_dep/no_tuning/geff_80/teff_80/20220511_dec931/"
+          glob_pattern:
+          -   dl3: "202*/dl3*fits"
+      dataset_info:
+        name: LST-1
+        geom:
+          selection:
+            offset_max: "2.5 deg"
+          axes:
+            energy:
+              min: "10 GeV"
+              max: "10 TeV"
+              nbins: 5
+            energy_true:
+              min: "10 GeV"
+              max: "10 TeV"
+              nbins: 5
+        observation:
+          # obs_ids: []
+          # obs_file: None
+          obs_time:
+            start: "2021-01-01"
+            stop: "2021-03-30"
+          required_irfs: [events, gti, aeff, edisp, rad_max]
+        background:
+          method: reflected
+          parameters:
+            wobble_off_regions: 1
+          exclusion:
+            name: None
+            position:
+              frame: galactic
+              lon: 183.604 deg
+              lat: -8.708 deg
+            region_radius: 0.5 deg
+        safe_mask:
+          methods: ["custom-mask"]
+          parameters:
             min: "10 GeV"
             max: "10 TeV"
-            nbins: 5
-          energy_true:
-            min: "10 GeV"
-            max: "10 TeV"
-            nbins: 5
-      observation:
-        obs_ids: []
-        obs_file: None
-        obs_time:
-          start: "59000"
-          stop: "60000"
-        required_irfs: [events, gti, aeff, edisp, rad_max]
-      background:
-        method: reflected
-        parameters:
-          wobble_off_regions: 1
-        exclusion:
-          name: None
-          position: {gal_lon: 183.604 deg, gal_lat: -8.708 deg}
-          region_radius: 0.5 deg
-      safe_mask:
-        method: ["custom-mask"]
-        parameters:
-          min: "10 GeV"
-          max: "10 TeV"
-          aeff_percent: 10
-          bias_percent: 10
-          fixed_offset: 0.1 deg
-          offset_max: 3 deg
-          position: {ra: 83.63 deg, dec: 22.01 deg}
-      on_region:
-        frame: "galactic"
-        lon: "x deg"
-        lat: "y deg"
-      containment_correction: True
-      map_selection: [counts, exposure, edisp]
+            aeff_percent: 10
+            bias_percent: 10
+            fixed_offset: 0.1 deg
+            offset_max: 3 deg
+            position:
+              frame: "icrs"
+              lon: 83.63 deg
+              lat: 22.01 deg
+        on_region:
+          frame: galactic
+          lon: 83.633 deg
+          lat: 22.0145 deg
+        containment_correction: true
+        map_selection: [counts, exposure, edisp]
 #  - name: MAGIC
 #      ... full description ...
 
 # Fit parameters
-Fit_params:
+fit_params:
+  fit_range: {min: 10 GeV, max: 10 TeV}
   backend: minuit
-  optimize_opts: None
-  covariance_opts: None
-  confidence_opts: None
-  store_trace: True
+  store_trace: true
 
 # Final DL4 products to generate
-Final_products:
-  sed: True
-  residuals: True
-  ts_profile: True
-  stat_profile: True
-  lc: False
+#final_products:
+#  sed: true
+#  residuals: true
+#  ts_profile: true
+#  stat_profile: true
+#  lc: false

@@ -9,7 +9,6 @@ from asgardpy.data.base import AngleType, BaseConfig, EnergyType, FrameEnum
 __all__ = [
     "SpatialCircleConfig",
     "SpatialPointConfig",
-    "OnRegion",
     "EnergyAxisConfig",
     "EnergyAxesConfig",
     "SelectionConfig",
@@ -31,11 +30,6 @@ class SpatialPointConfig(BaseConfig):
     frame: FrameEnum = None
     lon: AngleType = None
     lat: AngleType = None
-
-
-class OnRegion(str, Enum):
-    point_region = SpatialPointConfig()
-    circle_region = SpatialCircleConfig()
 
 
 class EnergyAxisConfig(BaseConfig):

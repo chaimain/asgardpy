@@ -75,7 +75,7 @@ class BaseConfig(BaseModel):
 class AnalysisStepBase(abc.ABC):
     tag = "analysis-step"
 
-    def __init__(self, config, log=None, overwrite=True):  # name=None, 
+    def __init__(self, config, log=None, overwrite=True):  # name=None,
         self.config = config
         self.overwrite = overwrite
         # self._name = make_name(name)
@@ -107,6 +107,15 @@ class AnalysisStep:
 
         cls = ANALYSIS_STEP_REGISTRY.get_cls(tag)
         return cls(config, **kwargs)
+
+
+class AnalysisStepEnum:
+    dataset_1d_data_selection = "dataset-1d-data-selection"
+    dataset_1d_observations = "dataset-1d-observations"
+    dataset_1d_datasets = "dataset-1d-datasets"
+    dataset_3d_data_selection = "dataset-3d-data-selection"
+    dataset_3d_observations = "dataset-3d-observations"
+    dataset_3d_datasets = "dataset-3d-datasets"
 
 
 class TimeRangeConfig(BaseConfig):

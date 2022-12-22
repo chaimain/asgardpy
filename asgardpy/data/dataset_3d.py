@@ -34,14 +34,14 @@ from gammapy.modeling.models import (
 from regions import CircleSkyRegion
 
 from asgardpy.data.base import AnalysisStepBase, BaseConfig
-from asgardpy.data.geom import OnRegion
+from asgardpy.data.geom import SpatialCircleConfig
 from asgardpy.data.reduction import (
     BackgroundConfig,
     MapSelectionEnum,
     ReductionTypeEnum,
     SafeMaskConfig,
 )
-from asgardpy.io import DL3Files, IOConfig
+from asgardpy.io import DL3Files, InputConfig
 
 __all__ = [
     "Dataset3DInfoConfig",
@@ -61,13 +61,13 @@ class Dataset3DInfoConfig(BaseConfig):
     map_selection: List[MapSelectionEnum] = MapDatasetMaker.available_selection
     background: BackgroundConfig = BackgroundConfig()
     safe_mask: SafeMaskConfig = SafeMaskConfig()
-    on_region: OnRegion = OnRegion.circle_region
+    on_region: SpatialCircleConfig = SpatialCircleConfig()
     containment_correction: bool = True
 
 
 class Dataset3DBaseConfig(BaseConfig):
     name: str = "Instrument-name"
-    io: IOConfig = IOConfig()
+    io: List[InputConfig] = [InputConfig()]
     dataset_info: Dataset3DInfoConfig = Dataset3DInfoConfig()
 
 

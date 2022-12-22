@@ -22,14 +22,15 @@ from regions import CircleSkyRegion, PointSkyRegion
 
 from asgardpy.data.base import AnalysisStepBase, BaseConfig
 from asgardpy.data.dataset_3d import Dataset3DDatasetsAnalysisStep
-from asgardpy.data.geom import GeomConfig, OnRegion
+from asgardpy.data.geom import GeomConfig, SpatialPointConfig
 from asgardpy.data.reduction import (
     BackgroundConfig,
     ObservationsConfig,
     ReductionTypeEnum,
     SafeMaskConfig,
+    MapSelectionEnum,
 )
-from asgardpy.io.io import DL3Files, IOConfig
+from asgardpy.io.io import DL3Files, InputConfig
 
 __all__ = [
     "Dataset1DConfig",
@@ -49,14 +50,15 @@ class Dataset1DInfoConfig(BaseConfig):
     observation: ObservationsConfig = ObservationsConfig()
     background: BackgroundConfig = BackgroundConfig()
     safe_mask: SafeMaskConfig = SafeMaskConfig()
-    on_region: OnRegion = OnRegion.point_region
+    on_region: SpatialPointConfig = SpatialPointConfig()
     containment_correction: bool = True
+    map_selection: List[MapSelectionEnum] = []
 
 
 class Dataset1DBaseConfig(BaseConfig):
     # stack: bool = True
     name: str = "Instrument-name"
-    io: IOConfig = IOConfig()
+    io: List[InputConfig] = [InputConfig()]
     dataset_info: Dataset1DInfoConfig = Dataset1DInfoConfig()
 
 

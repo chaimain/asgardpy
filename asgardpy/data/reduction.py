@@ -42,7 +42,7 @@ class ObservationsConfig(BaseConfig):
     obs_ids: List[int] = []
     obs_file: Path = None
     obs_time: TimeRangeConfig = TimeRangeConfig()
-    required_irf: List[RequiredHDUEnum] = ["aeff", "edisp", "psf", "bkg"]
+    required_irfs: List[RequiredHDUEnum] = []
 
 
 class BackgroundMethodEnum(str, Enum):
@@ -77,5 +77,5 @@ class BackgroundConfig(BaseConfig):
 
 
 class SafeMaskConfig(BaseConfig):
-    methods: List[SafeMaskMethodsEnum] = [SafeMaskMethodsEnum.aeff_default]
+    methods: List[SafeMaskMethodsEnum] = []
     parameters: dict = {}

@@ -12,7 +12,7 @@ from gammapy.modeling.models import SPECTRAL_MODEL_REGISTRY, Models
 
 from asgardpy.data.base import BaseConfig
 
-__all__ = ["InputFilePatterns", "InputConfig", "IOConfig", "DL3Files", "DL4Files"]
+__all__ = ["InputFilePatterns", "InputConfig", "DL3Files", "DL4Files"]
 
 EXPECTED_DL3_RANGE = ["lst-1", "lat", "lat-aux"]
 
@@ -43,13 +43,8 @@ class InputFilePatterns(BaseConfig):
 
 class InputConfig(BaseConfig):
     type: str = "type"
-    path: Path = None
+    input_dir: Path = None
     glob_pattern: List[InputFilePatterns] = [InputFilePatterns()]
-
-
-class IOConfig(BaseConfig):
-    type: str = "input_dir"
-    input: List[InputConfig] = [InputConfig()]
 
 
 class DL3Files:

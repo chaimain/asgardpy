@@ -18,7 +18,7 @@ from asgardpy.analysis.analysis import (
 from asgardpy.data.base import BaseConfig
 from asgardpy.data.dataset_1d import Dataset1DConfig
 from asgardpy.data.dataset_3d import Dataset3DConfig
-from asgardpy.data.target import TargetModel, TargetSource
+from asgardpy.data.target import Target
 
 __all__ = ["AsgardpyConfig"]
 
@@ -31,8 +31,8 @@ log = logging.getLogger(__name__)
 # Other general config params
 class LogConfig(BaseConfig):
     level: str = "info"
-    filename: List[Path] = []
-    filemode: List[str] = []
+    filename: Path = None
+    filemode: str = None
     format: str = None
     datefmt: str = None
 
@@ -51,16 +51,15 @@ class AsgardpyConfig(BaseConfig):
 
     general: GeneralConfig = GeneralConfig()
 
-    source: TargetSource = TargetSource()
-    model: TargetModel = TargetModel()
+    target: Target = Target()
 
     dataset3d: Dataset3DConfig = Dataset3DConfig()
     dataset1d: Dataset1DConfig = Dataset1DConfig()
 
-    fit: FitConfig = FitConfig()
-    flux_points: FluxPointsConfig = FluxPointsConfig()
-    excess_map: ExcessMapConfig = ExcessMapConfig()
-    light_curve: LightCurveConfig = LightCurveConfig()
+    fit_params: FitConfig = FitConfig()
+    #flux_points: FluxPointsConfig = FluxPointsConfig()
+    #excess_map: ExcessMapConfig = ExcessMapConfig()
+    #light_curve: LightCurveConfig = LightCurveConfig()
 
     def __str__(self):
         """
