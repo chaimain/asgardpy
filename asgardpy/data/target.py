@@ -8,12 +8,7 @@ from typing import List
 from asgardpy.data.base import BaseConfig
 from asgardpy.data.geom import SkyCoordConfig
 
-__all__ = [
-    "EBLAbsorptionModel",
-    "SpectralModelConfig",
-    "SpatialModelConfig",
-    "Target"
-]
+__all__ = ["EBLAbsorptionModel", "SpectralModelConfig", "SpatialModelConfig", "Target"]
 
 
 class EBLAbsorptionModel(BaseConfig):

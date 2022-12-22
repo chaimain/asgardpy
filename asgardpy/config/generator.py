@@ -3,7 +3,6 @@ import logging
 
 # from collections import defaultdict
 from pathlib import Path
-from typing import List
 
 import yaml
 from gammapy.utils.scripts import make_path, read_yaml
@@ -57,9 +56,9 @@ class AsgardpyConfig(BaseConfig):
     dataset1d: Dataset1DConfig = Dataset1DConfig()
 
     fit_params: FitConfig = FitConfig()
-    #flux_points: FluxPointsConfig = FluxPointsConfig()
-    #excess_map: ExcessMapConfig = ExcessMapConfig()
-    #light_curve: LightCurveConfig = LightCurveConfig()
+    # flux_points: FluxPointsConfig = FluxPointsConfig()
+    # excess_map: ExcessMapConfig = ExcessMapConfig()
+    # light_curve: LightCurveConfig = LightCurveConfig()
 
     def __str__(self):
         """

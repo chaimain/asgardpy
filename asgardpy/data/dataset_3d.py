@@ -472,9 +472,7 @@ class Dataset3DObservationsAnalysisStep(AnalysisStepBase):
         else:
             sky_pos = self.config["target"]["sky_position"]
             source_pos = SkyCoord.from_name(
-                u.quantity(sky_pos["lon"]),
-                u.quantity(sky_pos["lat"]),
-                frame=sky_pos["frame"]
+                u.quantity(sky_pos["lon"]), u.quantity(sky_pos["lat"]), frame=sky_pos["frame"]
             )
             exclusion_region = CircleSkyRegion(
                 center=source_pos.galactic,
@@ -547,7 +545,7 @@ class Dataset3DDatasetsAnalysisStep(AnalysisStepBase):
                 source_position_from_3d = SkyCoord(
                     src.spatial_model["lon"],
                     src.spatial_model["lat"],
-                    frame=src.spatial_model["frame"]
+                    frame=src.spatial_model["frame"],
                 ).icrs
                 return source_position_from_3d
             else:

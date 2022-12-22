@@ -25,10 +25,10 @@ from asgardpy.data.dataset_3d import Dataset3DDatasetsAnalysisStep
 from asgardpy.data.geom import GeomConfig, SpatialPointConfig
 from asgardpy.data.reduction import (
     BackgroundConfig,
+    MapSelectionEnum,
     ObservationsConfig,
     ReductionTypeEnum,
     SafeMaskConfig,
-    MapSelectionEnum,
 )
 from asgardpy.io.io import DL3Files, InputConfig
 
@@ -131,7 +131,7 @@ class Dataset1DObservationsAnalysisStep(AnalysisStepBase):
                 src_pos = SkyCoord(
                     u.Quantity(target_config["sky_position"]["lon"]),
                     u.Quantity(target_config["sky_position"]["lat"]),
-                    frame=target_config["sky_position"]["frame"]
+                    frame=target_config["sky_position"]["frame"],
                 )
 
         # Defining the ON region's geometry
@@ -191,9 +191,7 @@ class Dataset1DObservationsAnalysisStep(AnalysisStepBase):
             if bkg_config["exclusion"]["name"] is None:
                 coord = bkg_config["exclusion"]["position"]
                 center_ex = SkyCoord(
-                    u.Quantity(coord["lon"]),
-                    u.Quantity(coord["lat"]),
-                    frame=coord["frame"]
+                    u.Quantity(coord["lon"]), u.Quantity(coord["lat"]), frame=coord["frame"]
                 ).icrs
             else:
                 center_ex = SkyCoord.from_name(bkg_config["exclusion"]["name"])
@@ -214,8 +212,7 @@ class Dataset1DObservationsAnalysisStep(AnalysisStepBase):
         # Background reduction maker
         if bkg_config["method"] == "reflected":
             bkg_maker = ReflectedRegionsBackgroundMaker(
-                n_off_regions=int(bkg_config["wobble_off_regions"]),
-                exclusion_mask=exclusion_mask
+                n_off_regions=int(bkg_config["wobble_off_regions"]), exclusion_mask=exclusion_mask
             )
         else:
             bkg_maker = None
@@ -227,7 +224,7 @@ class Dataset1DObservationsAnalysisStep(AnalysisStepBase):
             pos = SkyCoord(
                 u.Quantity(pars["position"]["lon"]),
                 u.Quantity(pars["position"]["lat"]),
-                frame=pars["position"]["frame"]
+                frame=pars["position"]["frame"],
             )
             safe_maker = SafeMaskMaker(
                 methods=safe_config["methods"],
@@ -290,8 +287,7 @@ class Dataset1DDatasetsAnalysisStep(AnalysisStepBase):
             if safe_cfg["methods"]["custom-mask"]:
                 pars = safe_cfg["parameters"]
                 dataset_on_off.mask_safe = dataset_on_off.counts.geom.energy_mask(
-                    energy_min=u.Quantity(pars["min"]),
-                    energy_max=u.Quantity(pars["max"])
+                    energy_min=u.Quantity(pars["min"]), energy_max=u.Quantity(pars["max"])
                 )
             else:
                 dataset_on_off = self.safe_maker.run(dataset_on_off, obs)

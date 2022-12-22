@@ -2,8 +2,6 @@
 Classes containing the Geometry config parameters for the high-level interface
 """
 
-from enum import Enum
-
 from asgardpy.data.base import AngleType, BaseConfig, EnergyType, FrameEnum
 
 __all__ = [

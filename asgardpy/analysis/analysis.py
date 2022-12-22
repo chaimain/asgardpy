@@ -2,6 +2,7 @@
 Classes containing the DL4 products config parameters for the high-level interface
 """
 from enum import Enum
+
 from asgardpy.data.base import AngleType, BaseConfig, EnergyRangeConfig, TimeRangeConfig
 from asgardpy.data.geom import EnergyAxisConfig
 
