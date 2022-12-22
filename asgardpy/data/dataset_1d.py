@@ -3,7 +3,9 @@ Generating 1D Datasets from given Instrument DL3 data
 """
 
 import logging
+from typing import List
 
+import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 
@@ -18,68 +20,108 @@ from gammapy.makers import (
 from gammapy.maps import MapAxis, RegionGeom, WcsGeom
 from regions import CircleSkyRegion, PointSkyRegion
 
-from asgardpy.data.dataset_3d import Dataset3D
-from asgardpy.io.io import DL3Files
+from asgardpy.data.base import AnalysisStepBase, BaseConfig
+from asgardpy.data.dataset_3d import Dataset3DDatasetsAnalysisStep
+from asgardpy.data.geom import GeomConfig, SpatialPointConfig
+from asgardpy.data.reduction import (
+    BackgroundConfig,
+    MapSelectionEnum,
+    ObservationsConfig,
+    ReductionTypeEnum,
+    SafeMaskConfig,
+)
+from asgardpy.io.io import DL3Files, InputConfig
 
-__all__ = ["Dataset1D", "Dataset1DIO", "Dataset1DInfo"]
+__all__ = [
+    "Dataset1DConfig",
+    "Dataset1DBaseConfig",
+    "Dataset1DConfig",
+    "Dataset1DDataSelectionAnalysisStep",
+    "Dataset1DObservationsAnalysisStep",
+    "Dataset1DDatasetsAnalysisStep",
+]
 
 log = logging.getLogger(__name__)
 
 
-class Dataset1DIO(DL3Files):
+class Dataset1DInfoConfig(BaseConfig):
+    name: str = "dataset-name"
+    geom: GeomConfig = GeomConfig()
+    observation: ObservationsConfig = ObservationsConfig()
+    background: BackgroundConfig = BackgroundConfig()
+    safe_mask: SafeMaskConfig = SafeMaskConfig()
+    on_region: SpatialPointConfig = SpatialPointConfig()
+    containment_correction: bool = True
+    map_selection: List[MapSelectionEnum] = []
+
+
+class Dataset1DBaseConfig(BaseConfig):
+    # stack: bool = True
+    name: str = "Instrument-name"
+    io: List[InputConfig] = [InputConfig()]
+    dataset_info: Dataset1DInfoConfig = Dataset1DInfoConfig()
+
+
+class Dataset1DConfig(BaseConfig):
+    type: ReductionTypeEnum = ReductionTypeEnum.spectrum
+    instruments: List[Dataset1DBaseConfig] = [Dataset1DBaseConfig()]
+
+
+class Dataset1DDataSelectionAnalysisStep(AnalysisStepBase):
     """
-    Read the DL3 files of 1D datasets.
+    Read the DL3 files of 1D datasets, from a given full config and specific
+    configuration information on the 1D Dataset.
+
+    Parameters:
+    -----------
+    config: dict or AsgardpyConfig
+    config_1d_dataset: dict or AsgardpyConfig
     """
 
-    def __init__(self, config):
-        self.config=config
-        self.datastore = None
-        self.observations = None
+    tag = "dataset-1d-data-selection"
 
-    def __call__(self, instrument_idx):
-        self.config_1d_dataset = self.config["Dataset1D"]["Instruments"][instrument_idx]
-        self.config_1d_dataset_io = self.config_1d_dataset["IO"]
+    def _run(self):
+        self.config_1d_dataset_io = self.config_1d_dataset["io"]
+        # Maybe we can iterate over a list for generalization purpose
+        dl3_dir_dict = self.config_1d_dataset_io[0]
+        model = self.config["target"]["components"]["spectral"]["type"]
 
-        self.dl3_path = self.config_1d_dataset_io["input_dir"]
-        model = self.config["Target_model"]["spectral"]["type"]
-        dl3_type = self.config_1d_dataset["name"]
+        dl3_info = DL3Files(dl3_dir_dict, model)
+        dl3_info.list_dl3_files()
 
-        super().__init__(self.dl3_path, model, dl3_type)
-
-    def load_data(self):
-        self.datastore = DataStore.from_dir(self.dl3_path)
-        self.observations = self.datastore.get_observations(
-            required_irf=self.config_1d_dataset_info["required_irfs"]
-        )
+        self.datastore = DataStore.from_dir(dl3_info.dl3_path)
+        # Maybe get (unique) source names and coordinates, to have something similar as for LAT datasets
 
 
-class Dataset1DInfo:
+class Dataset1DObservationsAnalysisStep(AnalysisStepBase):
     """
     Prepare standard data reduction using the parameters passed in the config
     for 1D datasets.
     """
 
-    def __init__(self, config):
-        self.config = config
+    tag = "dataset-1d-observations"
 
+    def _run(self):
+        self.config_1d_dataset_info = self.config_1d_dataset["dataset_info"]
+        irfs_selected = self.config_1d_dataset_info["observation"]["required_irfs"]
 
-    def __call__(self, instrument_idx):
-        self.config_1d_dataset = self.config["Dataset1D"]["Instruments"][instrument_idx]
-        self.config_1d_dataset_info = self.config_1d_dataset["DatasetInfo"]
-        # self.config.set_logging()
+        self.observations = self.datastore.get_observations(required_irf=irfs_selected)
+        self.dataset_template = self.generate_geom()
+        self.dataset_maker, self.bkg_maker, self.safe_maker = self.get_reduction_makers()
 
     def generate_geom(self):
         """
         From a given or corrected target source position, provided in
         astropy's SkyCoord object, the geometry of the ON events and the
-        dataset is defined.
+        axes information on reco energy and true energy, a dataset can be defined.
         """
-        target_config = self.config["Target_source"]
+        # Fixing the source position
+        target_config = self.config["target"]
 
         if target_config["use_uniform_position"]:
             # Using the same target source position as that used for
             # the 3D datasets analysis
-            dataset_3d = Dataset3D()
+            dataset_3d = Dataset3DDatasetsAnalysisStep()  # Replace appropriately
             src_pos = dataset_3d.get_source_pos_from_3d_dataset()
         else:
             src_name = target_config["source_name"]
@@ -87,24 +129,27 @@ class Dataset1DInfo:
                 src_pos = SkyCoord.from_name(src_name)
             else:
                 src_pos = SkyCoord(
-                    ra=u.Quantity(target_config["sky_position"]["ra"]),
-                    dec=u.Quantity(target_config["sky_position"]["dec"]),
+                    u.Quantity(target_config["sky_position"]["lon"]),
+                    u.Quantity(target_config["sky_position"]["lat"]),
+                    frame=target_config["sky_position"]["frame"],
                 )
 
-        given_on_geom = self.config_1d_dataset_info["base_geom"]["on_region"]
-        if given_on_geom == PointSkyRegion.__name__:
+        # Defining the ON region's geometry
+        given_on_geom = self.config_1d_dataset_info["on_region"]
+        if not given_on_geom["radius"]:
             on_region = PointSkyRegion(src_pos)
             # Hack to allow for the joint fit
             # (otherwise pointskyregion.contains returns None)
             on_region.meta = {"include": False}
 
-        elif given_on_geom == CircleSkyRegion.__name__:
+        else:
             on_region = CircleSkyRegion(
                 center=src_pos,
-                radius=u.Quantity(self.config_1d_dataset_info["base_geom"]["on_region_radius"]),
+                radius=u.Quantity(given_on_geom["radius"]),
             )
 
-        reco_energy_from_config = self.config_1d_dataset_info["energy_axes"]["reco_energy_axis"]
+        # Defining the energy axes
+        reco_energy_from_config = self.config_1d_dataset_info["geom"]["axes"]["energy"]
         energy_axis = MapAxis.from_energy_bounds(
             energy_min=u.Quantity(reco_energy_from_config["min"]),
             energy_max=u.Quantity(reco_energy_from_config["max"]),
@@ -112,7 +157,7 @@ class Dataset1DInfo:
             per_decade=True,
             name="energy",
         )
-        true_energy_from_config = self.config_1d_dataset_info["energy_axes"]["true_energy_axis"]
+        true_energy_from_config = self.config_1d_dataset_info["geom"]["axes"]["energy_true"]
         true_energy_axis = MapAxis.from_energy_bounds(
             energy_min=u.Quantity(true_energy_from_config["min"]),
             energy_max=u.Quantity(true_energy_from_config["max"]),
@@ -120,8 +165,9 @@ class Dataset1DInfo:
             per_decade=True,
             name="energy_true",
         )
-        geom = RegionGeom.create(region=on_region, axes=[energy_axis])
 
+        # Main geom and template Spectrum Dataset
+        geom = RegionGeom.create(region=on_region, axes=[energy_axis])
         dataset_template = SpectrumDataset.create(geom=geom, energy_axis_true=true_energy_axis)
 
         return dataset_template
@@ -141,22 +187,29 @@ class Dataset1DInfo:
         bkg_config = self.config_1d_dataset_info["background"]
 
         # Exclusion mask
-        if bkg_config["excluded"]["name"] is None:
-            coord = bkg_config["excluded"]["region_coord"]
-            center_ex = SkyCoord(
-                u.Quantity(coord["gal_lon"]), u.Quantity(coord["gal_lat"]), frame="galactic"
-            ).icrs
-        else:
-            center_ex = SkyCoord.from_name(bkg_config["excluded"]["name"])
+        if bkg_config["exclusion"]:
+            if bkg_config["exclusion"]["name"] is None:
+                coord = bkg_config["exclusion"]["position"]
+                center_ex = SkyCoord(
+                    u.Quantity(coord["lon"]), u.Quantity(coord["lat"]), frame=coord["frame"]
+                ).icrs
+            else:
+                center_ex = SkyCoord.from_name(bkg_config["exclusion"]["name"])
 
-        excluded_region = CircleSkyRegion(
-            center=center_ex, radius=u.Quantity(bkg_config["excluded"]["region_radius"])
-        )
+            excluded_region = CircleSkyRegion(
+                center=center_ex, radius=u.Quantity(bkg_config["exclusion"]["region_radius"])
+            )
+        else:
+            excluded_region = None
+
+        # Needs to be united with other Geometry creation functions, into a separate class
+        # Also make these geom parameters also part of the config requirements
         excluded_geom = WcsGeom.create(
             npix=(125, 125), binsz=0.05, skydir=center_ex, proj="TAN", frame="icrs"
         )
         exclusion_mask = ~excluded_geom.region_mask([excluded_region])
 
+        # Background reduction maker
         if bkg_config["method"] == "reflected":
             bkg_maker = ReflectedRegionsBackgroundMaker(
                 n_off_regions=int(bkg_config["wobble_off_regions"]), exclusion_mask=exclusion_mask
@@ -164,21 +217,22 @@ class Dataset1DInfo:
         else:
             bkg_maker = None
 
-        # Safe Energy Mask
-        safe_config = self.config_1d_dataset_info["safe_energy_mask"]
-        if not safe_config["method"]["custom"]:
-            std_pars = safe_config["parameters"]["standard"]
+        # Safe Energy Mask Maker
+        safe_config = self.config_1d_dataset_info["safe_mask"]
+        pars = safe_config["parameters"]
+        if "custom-mask" not in safe_config["methods"]:
             pos = SkyCoord(
-                ra=u.Quantity(std_pars["position"]["ra"]),
-                dec=u.Quantity(std_pars["position"]["dec"]),
+                u.Quantity(pars["position"]["lon"]),
+                u.Quantity(pars["position"]["lat"]),
+                frame=pars["position"]["frame"],
             )
             safe_maker = SafeMaskMaker(
-                methods=safe_config["method"]["standard"],
-                aeff_percent=std_pars["aeff_percent"],
-                bias_percent=std_pars["bias_percent"],
+                methods=safe_config["methods"],
+                aeff_percent=pars["aeff_percent"],
+                bias_percent=pars["bias_percent"],
                 position=pos,
-                fixed_offset=std_pars["fixed_offset"],
-                offset_max=std_pars["offset_max"],
+                fixed_offset=pars["fixed_offset"],
+                offset_max=pars["offset_max"],
             )
         else:
             safe_maker = None
@@ -186,26 +240,37 @@ class Dataset1DInfo:
         return dataset_maker, bkg_maker, safe_maker
 
 
-class Dataset1D(Dataset1DIO, Dataset1DInfo):
+class Dataset1DDatasetsAnalysisStep(AnalysisStepBase):
     """
     Using the Datastore and Observations generated after reading the DL3 files,
     and the various data reduction makers, generate 1D Datasets.
     """
 
-    def __init__(self, config):
-        self.config = config
+    tag = "dataset-1d-datasets"
 
-    def __call__(self, instrument_idx):
-        self.io = Dataset1DIO(self.config, instrument_idx)
-        self.info = Dataset1DInfo(self.config, instrument_idx)
-        
-        self.observations = self.io.load_data().observations
-        self.datastore = self.io.load_data().datastore
+    def _run(self):
+        # Iterate over all instrument information given:
+        instruments_list = self.config["dataset1d"]["instruments"]
+        self.log(len(instruments_list), " number of 1D Datasets given")
 
-        self.dataset_template = self.info.generate_geom()
-        self.dataset_maker, self.bkg_maker, self.safe_maker = self.info().get_reduction_makers()
+        datasets_1d_final = []
 
-        self.datasets = Datasets()
+        for i in np.arange(len(instruments_list)):
+            self.config_1d_dataset = instruments_list[i]
+
+            io_step = Dataset1DDataSelectionAnalysisStep(
+                self.config_1d_dataset, log=self.log, overwrite=self.overwrite
+            )
+            obs_step = Dataset1DObservationsAnalysisStep(
+                self.config_1d_dataset, log=self.log, overwrite=self.overwrite
+            )
+            io_step.run()
+            obs_step.run()
+
+            self.datasets = Datasets()
+            datasets_1d_final.append(self.generate_dataset())
+
+        return datasets_1d_final
 
     def generate_dataset(self):
         """
@@ -215,13 +280,14 @@ class Dataset1D(Dataset1DIO, Dataset1DInfo):
         for obs in self.observations:
             dataset = self.dataset_maker.run(self.dataset_template.copy(name=str(obs.obs_id)), obs)
             dataset_on_off = self.bkg_maker.run(dataset, obs)
-            dataset_on_off.meta_table["SOURCE"] = self.config["Target_source"]["source_name"]
+            # Necessary meta information addition?
+            dataset_on_off.meta_table["SOURCE"] = self.config["target"]["source_name"]
 
-            safe_cfg = self.config_1d_dataset_info["safe_energy_mask"]
-            if safe_cfg["method"]["custom"]:
-                safe_en = safe_cfg["parameters"]["custom_energy_range"]
+            safe_cfg = self.config_1d_dataset_info["safe_mask"]
+            if safe_cfg["methods"]["custom-mask"]:
+                pars = safe_cfg["parameters"]
                 dataset_on_off.mask_safe = dataset_on_off.counts.geom.energy_mask(
-                    energy_min=u.Quantity(safe_en["min"]), energy_max=u.Quantity(safe_en["max"])
+                    energy_min=u.Quantity(pars["min"]), energy_max=u.Quantity(pars["max"])
                 )
             else:
                 dataset_on_off = self.safe_maker.run(dataset_on_off, obs)
