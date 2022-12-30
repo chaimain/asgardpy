@@ -1,54 +1,20 @@
 """
-Classes containing the DL4 products config parameters for the high-level interface
+Config-driven high level analysis interface.
 """
-from enum import Enum
-from asgardpy.config.generator import AsgardpyConfig
 from gammapy.datasets import Datasets
-from gammapy.modeling import Fit
+from gammapy.modeling.models import (
+    DatasetModels,
+    EBLAbsorptionNormSpectralModel,
+    Models,
+    SkyModel,
+    SpatialModel,
+    SpectralModel,
+)
 
-from asgardpy.data.base import AnalysisStep, AngleType, BaseConfig, EnergyRangeConfig, TimeRangeConfig
-from asgardpy.data.geom import EnergyAxisConfig
+from asgardpy.config.generator import AsgardpyConfig
+from asgardpy.data.base import AnalysisStep
 
-__all__ = [
-    "FluxPointsConfig",
-    "LightCurveConfig",
-    "FitConfig",
-    "ExcessMapConfig",
-    "AsgardpyAnalysis",
-]
-
-
-class FluxPointsConfig(BaseConfig):
-    energy: EnergyAxisConfig = EnergyAxisConfig()
-    source: str = "source"
-    parameters: dict = {"selection_optional": "all"}
-
-
-class LightCurveConfig(BaseConfig):
-    time_intervals: TimeRangeConfig = TimeRangeConfig()
-    energy_edges: EnergyAxisConfig = EnergyAxisConfig()
-    source: str = "source"
-    parameters: dict = {"selection_optional": "all"}
-
-
-class BackendEnum(str, Enum):
-    minuit = "minuit"
-    scipy = "scipy"
-
-
-class FitConfig(BaseConfig):
-    fit_range: EnergyRangeConfig = EnergyRangeConfig()
-    backend: BackendEnum = None
-    optimize_opts: dict = {}
-    covariance_opts: dict = {}
-    confidence_opts: dict = {}
-    store_trace: bool = True
-
-
-class ExcessMapConfig(BaseConfig):
-    correlation_radius: AngleType = "0.1 deg"
-    parameters: dict = {}
-    energy_edges: EnergyAxisConfig = EnergyAxisConfig()
+__all__ = ["AsgardpyAnalysis"]
 
 
 class AsgardpyAnalysis:
@@ -67,13 +33,13 @@ class AsgardpyAnalysis:
     """
 
     def __init__(self, config):
-        self.log = log
+        # self.log = log
         self.config = config
         self.config.set_logging()
-        self.datasets = None
-        self.fit = Fit()
-        self.fit_result = None
-        self.flux_points = None
+        self.datasets = Datasets()
+        # self.fit = Fit()
+        # self.fit_result = None
+        # self.flux_points = None
 
     @property
     def models(self):
@@ -84,6 +50,58 @@ class AsgardpyAnalysis:
     @models.setter
     def models(self, models):
         self.set_models(models, extend=False)
+
+    def set_models(self, models=None, extend=True):
+        """
+        Set models on Datasets.
+        Parameters
+        ----------
+        models : `~gammapy.modeling.models.Models` or str
+            Models object or YAML models string
+        extend : bool
+            Extend the exiting models on the datasets or replace them.
+        """
+        if self.config["target"]["components"]:
+            model_config = self.config["target"]["components"]
+            # Spectral Model
+            if model_config["spectral"]["ebl_abs"]:
+                # spec_model_type = "CompoundSpectralModel"
+                model1 = SpectralModel.from_dict(model_config["spectral"])
+
+                ebl_model = model_config["spectral"]["ebl_abs"]
+                model2 = EBLAbsorptionNormSpectralModel.read_builtin(
+                    ebl_model["model_name"], redshift=ebl_model["redshift"]
+                )
+                if ebl_model["alpha_norm"]:
+                    model2.alpha_norm = ebl_model["alpha_norm"]
+                spec_model = model1 * model2
+            else:
+                # spec_model_type = model_config["spectral"]["type"]
+                spec_model = SpectralModel.from_dict(model_config["spectral"])
+            # Spatial model if provided
+            if model_config["spatial"]:
+                spat_model = SpatialModel.from_dict(model_config["spatial"])
+            else:
+                spat_model = None
+            # Final SkyModel
+            models = SkyModel(
+                spectral_model=spec_model,
+                spatial_model=spat_model,
+                name=self.config["target"]["source_name"],
+            )
+        elif isinstance(models, str):  # Check this condition
+            models = Models.from_yaml(models)
+        elif isinstance(models, Models):
+            pass
+        elif isinstance(models, DatasetModels) or isinstance(models, list):  # Essential?
+            models = Models(models)
+        else:
+            raise TypeError(f"Invalid type: {models!r}")
+
+        if extend:
+            models.extend(self.datasets.models)
+
+        self.datasets.models = models
 
     @property
     def config(self):
@@ -108,11 +126,34 @@ class AsgardpyAnalysis:
         else:
             if overwrite is None:
                 overwrite = True
-        for k, step in enumerate(steps):
-            analysis_step = AnalysisStep.create(
-                step, self.config, log=self.log, overwrite=overwrite, **kwargs
-            )
-            analysis_step.run(self)
+
+        for step in steps:
+            # For each type of Dataset, run the extra sub-steps
+            # Always start with 3D datasets. Probably add a check or fail-safe
+            if "d-datasets" in step:
+                sub_steps = [
+                    step.replace("datasets", "data-selection"),
+                    step.replace("datasets", "observations"),
+                ]
+                for sub_step in sub_steps:
+                    analysis_sub_step = AnalysisStep.create(
+                        sub_step, self.config, log=self.log, overwrite=overwrite, **kwargs
+                    )
+                    analysis_sub_step.run(self)
+
+                analysis_step = AnalysisStep.create(
+                    step, self.config, log=self.log, overwrite=overwrite, **kwargs
+                )
+                datasets_list = analysis_step.run(self)
+                # Add to the final list of datasets
+                for data in datasets_list:
+                    self.datasets.append(data)
+            else:
+                # Running DL4 functions on a given Datasets object
+                analysis_step = AnalysisStep.create(
+                    step, self.config, log=self.log, overwrite=overwrite, **kwargs
+                )
+                analysis_step.run(self)
 
     # keep these methods to be backward compatible
     def get_1d_dataset(self):
@@ -141,46 +182,3 @@ class AsgardpyAnalysis:
 
     def update_config(self, config):
         self.config = self.config.update(config=config)
-
-    def read_datasets(self): ## Necessary?
-        """
-        Read datasets from YAML file.
-        File names are taken from the configuration file.
-
-        """
-
-        filename = self.config.general.datasets_file
-        filename_models = self.config.general.models_file
-        if filename is not None:
-            self.datasets = Datasets.read(filename)
-            self.log.info(f"Datasets loaded from {filename}.")
-            if filename_models is not None:
-                self.read_models(filename_models, extend=False)
-        else:
-            raise RuntimeError("Missing datasets_file in config.general")
-
-    def write_datasets(self, overwrite=True, write_covariance=True):
-        """Write datasets to YAML file.
-        File names are taken from the configuration file.
-
-        Parameters
-        ----------
-        overwrite : bool
-            overwrite datasets FITS files
-        write_covariance : bool
-            save covariance or not
-        """
-
-        filename = self.config.general.datasets_file
-        filename_models = self.config.general.models_file
-        if filename is not None:
-            self.datasets.write(
-                filename,
-                filename_models,
-                overwrite=overwrite,
-                write_covariance=write_covariance,
-            )
-            self.log.info(f"Datasets stored to {filename}.")
-            self.log.info(f"Datasets stored to {filename_models}.")
-        else:
-            raise RuntimeError("Missing datasets_file in config.general")

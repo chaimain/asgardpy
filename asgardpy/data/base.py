@@ -109,7 +109,7 @@ class AnalysisStep:
         return cls(config, **kwargs)
 
 
-class AnalysisStepEnum:
+class AnalysisStepEnum(str, Enum):
     dataset_1d_data_selection = "dataset-1d-data-selection"
     dataset_1d_observations = "dataset-1d-observations"
     dataset_1d_datasets = "dataset-1d-datasets"

@@ -3,20 +3,21 @@ import logging
 
 # from collections import defaultdict
 from pathlib import Path
+from typing import List
 
 import yaml
 from gammapy.utils.scripts import make_path, read_yaml
 from pydantic.utils import deep_update
 
-from asgardpy.analysis.analysis import (
+from asgardpy.data.base import AnalysisStepEnum, BaseConfig
+from asgardpy.data.dataset_1d import Dataset1DConfig
+from asgardpy.data.dataset_3d import Dataset3DConfig
+from asgardpy.data.dl4 import (
     ExcessMapConfig,
     FitConfig,
     FluxPointsConfig,
     LightCurveConfig,
 )
-from asgardpy.data.base import BaseConfig, AnalysisStepEnum
-from asgardpy.data.dataset_1d import Dataset1DConfig
-from asgardpy.data.dataset_3d import Dataset3DConfig
 from asgardpy.data.target import Target
 
 __all__ = ["AsgardpyConfig"]
@@ -58,9 +59,9 @@ class AsgardpyConfig(BaseConfig):
     dataset1d: Dataset1DConfig = Dataset1DConfig()
 
     fit_params: FitConfig = FitConfig()
-    # flux_points: FluxPointsConfig = FluxPointsConfig()
-    # excess_map: ExcessMapConfig = ExcessMapConfig()
-    # light_curve: LightCurveConfig = LightCurveConfig()
+    flux_points_params: FluxPointsConfig = FluxPointsConfig()
+    excess_map_params: ExcessMapConfig = ExcessMapConfig()
+    light_curve_params: LightCurveConfig = LightCurveConfig()
 
     def __str__(self):
         """

@@ -4,9 +4,9 @@
 general:
   log:
     level: info
-  outdir: /data/magic/users-ifae/cpriyada/lst/
+  outdir: /home/cpriyadarshi/Data/lst/DL3_all/AGN/PG1553/ #/data/magic/users-ifae/cpriyada/lst/
   n_jobs: 1
-  steps: [dataset-1d-datasets, dataset-3d-datasets, fit]
+  steps: [dataset-3d-datasets, dataset-1d-datasets, fit]
   overwrite: true
 
 # Target settings
@@ -65,7 +65,7 @@ dataset3d:
   -   name: Fermi-LAT
       io:
       -   type: lat
-          input_dir: /data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/LAT/Analysis1/EBL/LogParabola/
+          input_dir: /home/cpriyadarshi/Data/lst/DL3_all/AGN/PG1553/LAT/Analysis1/EBL/LogParabola/ #/data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/LAT/Analysis1/EBL/LogParabola/
           glob_pattern:
           -   events: "*_MkTime.fits*"
           -   edisp: "_*eDRM.fits*"
@@ -73,7 +73,7 @@ dataset3d:
           -   exposure: "*_BinnedMap.fits*"
           -   psf: "*_psf.fits*"
       -   type: lat-aux
-          input_dir: /data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/LAT/diffuse_models/
+          input_dir: /home/cpriyadarshi/Data/lst/DL3_all/AGN/PG1553/LAT/diffuse_models/ #/data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/LAT/diffuse_models/
           glob_pattern:
           -   diffuse: "gll_iem_v07.fits*"
           -   iso: "iso_P8R3_SOURCE_V3_*.txt"
@@ -117,7 +117,7 @@ dataset1d:
   -   name: LST-1
       io:
       -   type: lst-1
-          input_dir: "/data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/v09x/tailcut84/DL3/real/interp_irf_en_dep/no_tuning/geff_80/teff_80/20220511_dec931/"
+          input_dir: /home/cpriyadarshi/Data/lst/DL3_all/AGN/PG1553/v09x/tailcut84/DL3/real/interp_irf_en_dep/no_tuning/geff_80/teff_80/20220511_dec931/ #"/data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/v09x/tailcut84/DL3/real/interp_irf_en_dep/no_tuning/geff_80/teff_80/20220511_dec931/"
           glob_pattern:
           -   dl3: "202*/dl3*fits"
       dataset_info:

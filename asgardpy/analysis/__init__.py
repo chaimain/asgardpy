@@ -1,3 +1,3 @@
-from asgardpy.analysis.fit import FitMaker, SpectralAnalysis
+from asgardpy.analysis.analysis import AsgardpyAnalysis
 
-__all__ = ["FitMaker", "SpectralAnalysis"]
+__all__ = ["AsgardpyAnalysis"]

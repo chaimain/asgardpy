@@ -233,11 +233,11 @@ class Dataset3DDataSelectionAnalysisStep(AnalysisStepBase):
         spatial_pars = src["spatialModel"]["parameter"]
 
         source_name_red = source_name.replace("_", "").replace(" ", "")
-        target_red = self.config["Target_source"]["source_name"].replace("_", "").replace(" ", "")
+        target_red = self.config["target"]["source_name"].replace("_", "").replace(" ", "")
 
         # Check if target_source file exists
         if source_name_red == target_red:
-            source_name = self.config["Target_source"]["source_name"]
+            source_name = self.config["target"]["source_name"]
             is_src_target = True
             self.log.debug("Detected target source")
         else:
@@ -270,13 +270,13 @@ class Dataset3DDataSelectionAnalysisStep(AnalysisStepBase):
                 )
                 spec_model.from_parameters(params_list)
 
-        ebl_absorption = self.config["Target_model"]["spectral"]["ebl_abs"]
+        ebl_absorption = self.config["target"]["components"]["spectral"]["ebl_abs"]
         ebl_absorption_included = len(ebl_absorption) > 0
 
         if is_src_target and ebl_absorption_included:
             ebl_model = ebl_absorption["model_name"]
             ebl_spectral_model = EBLAbsorptionNormSpectralModel.read_builtin(
-                ebl_model, redshift=self.config["Target_source"]["redshift"]
+                ebl_model, redshift=ebl_absorption["redshift"]
             )
             spec_model = spec_model * ebl_spectral_model
 
