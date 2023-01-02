@@ -54,9 +54,9 @@ class DL3Files:
     """
 
     def __init__(self, dir_dict, source_model):
-        dl3_path = dir_dict["path"]
-        dl3_type = dir_dict["type"]
-        glob_dict = dir_dict["glob_pattern"]
+        dl3_path = dir_dict.input_dir
+        dl3_type = dir_dict.type
+        glob_dict = dir_dict.glob_pattern
 
         if Path(dl3_path).exists():
             self.dl3_path = Path(dl3_path)

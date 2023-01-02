@@ -11,16 +11,8 @@ from asgardpy.data.base import (
     TimeRangeConfig,
     TimeType,
 )
-from asgardpy.data.dataset_1d import (
-    Dataset1DDataSelectionAnalysisStep,
-    Dataset1DDatasetsAnalysisStep,
-    Dataset1DObservationsAnalysisStep,
-)
-from asgardpy.data.dataset_3d import (
-    Dataset3DDataSelectionAnalysisStep,
-    Dataset3DDatasetsAnalysisStep,
-    Dataset3DObservationsAnalysisStep,
-)
+from asgardpy.data.dataset_1d import Dataset1DGeneration, Datasets1DAnalysisStep
+from asgardpy.data.dataset_3d import Dataset3DGeneration, Datasets3DAnalysisStep
 from asgardpy.data.dl4 import (
     ExcessMapConfig,
     FitAnalysisStep,
@@ -54,12 +46,8 @@ from asgardpy.data.target import Target
 
 ANALYSIS_STEP_REGISTRY = Registry(
     [
-        Dataset1DDataSelectionAnalysisStep,
-        Dataset1DObservationsAnalysisStep,
-        Dataset1DDatasetsAnalysisStep,
-        Dataset3DDataSelectionAnalysisStep,
-        Dataset3DObservationsAnalysisStep,
-        Dataset3DDatasetsAnalysisStep,
+        Datasets1DAnalysisStep,
+        Datasets3DAnalysisStep,
         # ExcessMapAnalysisStep,
         FitAnalysisStep,
         FluxPointsAnalysisStep,
@@ -94,12 +82,10 @@ __all__ = [
     "MapSelectionEnum",
     "BackgroundConfig",
     "SafeMaskConfig",
-    "Dataset1DDataSelectionAnalysisStep",
-    "Dataset1DObservationsAnalysisStep",
-    "Dataset1DDatasetsAnalysisStep",
-    "Dataset3DDataSelectionAnalysisStep",
-    "Dataset3DObservationsAnalysisStep",
-    "Dataset3DDatasetsAnalysisStep",
+    "Dataset1DGeneration",
+    "Datasets1DAnalysisStep",
+    "Dataset3DGeneration",
+    "Datasets3DAnalysisStep",
     "FluxPointsConfig",
     "LightCurveConfig",
     "FitConfig",

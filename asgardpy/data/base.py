@@ -110,12 +110,8 @@ class AnalysisStep:
 
 
 class AnalysisStepEnum(str, Enum):
-    dataset_1d_data_selection = "dataset-1d-data-selection"
-    dataset_1d_observations = "dataset-1d-observations"
-    dataset_1d_datasets = "dataset-1d-datasets"
-    dataset_3d_data_selection = "dataset-3d-data-selection"
-    dataset_3d_observations = "dataset-3d-observations"
-    dataset_3d_datasets = "dataset-3d-datasets"
+    datasets_1d = "datasets-1d"
+    datasets_3d = "datasets-3d"
     fit = "fit"
     flux_points = "flux-points"
     excess_map = "excess-map"

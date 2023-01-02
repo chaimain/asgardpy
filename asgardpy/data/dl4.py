@@ -4,8 +4,8 @@ Classes containing the DL4 products config parameters for the high-level interfa
 from enum import Enum
 
 from astropy import units as u
-from gammapy.modeling import Fit
 from gammapy.estimators import FluxPointsEstimator, LightCurveEstimator
+from gammapy.modeling import Fit
 
 from asgardpy.data.base import (
     AnalysisStepBase,
@@ -29,14 +29,12 @@ __all__ = [
 
 class FluxPointsConfig(BaseConfig):
     energy: EnergyAxisConfig = EnergyAxisConfig()
-    source: str = "source"
     parameters: dict = {"selection_optional": "all"}
 
 
 class LightCurveConfig(BaseConfig):
     time_intervals: TimeRangeConfig = TimeRangeConfig()
     energy_edges: EnergyAxisConfig = EnergyAxisConfig()
-    source: str = "source"
     parameters: dict = {"selection_optional": "all"}
 
 
@@ -102,7 +100,8 @@ class FitAnalysisStep(AnalysisStepBase):
 
 class FluxPointsAnalysisStep(AnalysisStepBase):
     """
-    Retrieve flux points for a give dataset.
+    Retrieve flux points for a given dataset.
+    Currently getting flux points for ALL datasets and storing them in a list.
     """
 
     tag = "flux-points"
@@ -111,9 +110,7 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
         self.flux_points = []
 
         for dataset in self.datasets:
-            self.flux_points.append(
-                self._get_spectral_points(dataset)
-            )
+            self.flux_points.append(self._get_spectral_points(dataset))
 
     def get_spectral_points(self, datasets):
         """ """
@@ -133,7 +130,8 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
 
 class LightCurveAnalysisStep(AnalysisStepBase):
     """
-    Retrieve light curve flux points for a give dataset.
+    Retrieve light curve flux points for a given dataset.
+    Currently getting flux points for ALL datasets and storing them in a list.
     """
 
     tag = "light-curve"
@@ -142,9 +140,7 @@ class LightCurveAnalysisStep(AnalysisStepBase):
         self.light_curve = []
 
         for dataset in self.datasets:
-            self.light_curve.append(
-                self._get_lc_flux_points(dataset)
-            )
+            self.light_curve.append(self._get_lc_flux_points(dataset))
 
     def get_lc_flux_points(self, datasets=None):
         """ """

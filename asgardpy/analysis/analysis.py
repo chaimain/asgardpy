@@ -1,6 +1,8 @@
 """
 Config-driven high level analysis interface.
 """
+import logging
+
 from gammapy.datasets import Datasets
 from gammapy.modeling.models import (
     DatasetModels,
@@ -13,6 +15,8 @@ from gammapy.modeling.models import (
 
 from asgardpy.config.generator import AsgardpyConfig
 from asgardpy.data.base import AnalysisStep
+
+log = logging.getLogger(__name__)
 
 __all__ = ["AsgardpyAnalysis"]
 
@@ -33,7 +37,7 @@ class AsgardpyAnalysis:
     """
 
     def __init__(self, config):
-        # self.log = log
+        self.log = log
         self.config = config
         self.config.set_logging()
         self.datasets = Datasets()
@@ -61,33 +65,33 @@ class AsgardpyAnalysis:
         extend : bool
             Extend the exiting models on the datasets or replace them.
         """
-        if self.config["target"]["components"]:
-            model_config = self.config["target"]["components"]
+        if self.config.target.components:
+            model_config = self.config.target.components
             # Spectral Model
-            if model_config["spectral"]["ebl_abs"]:
+            if model_config.spectral.ebl_abs:
                 # spec_model_type = "CompoundSpectralModel"
-                model1 = SpectralModel.from_dict(model_config["spectral"])
+                model1 = SpectralModel.from_dict(model_config.spectral)
 
-                ebl_model = model_config["spectral"]["ebl_abs"]
+                ebl_model = model_config.spectral.ebl_abs
                 model2 = EBLAbsorptionNormSpectralModel.read_builtin(
-                    ebl_model["model_name"], redshift=ebl_model["redshift"]
+                    ebl_model.model_name, redshift=ebl_model.redshift
                 )
-                if ebl_model["alpha_norm"]:
-                    model2.alpha_norm = ebl_model["alpha_norm"]
+                if ebl_model.alpha_norm:
+                    model2.alpha_norm = ebl_model.alpha_norm
                 spec_model = model1 * model2
             else:
                 # spec_model_type = model_config["spectral"]["type"]
-                spec_model = SpectralModel.from_dict(model_config["spectral"])
+                spec_model = SpectralModel.from_dict(model_config.spectral)
             # Spatial model if provided
-            if model_config["spatial"]:
-                spat_model = SpatialModel.from_dict(model_config["spatial"])
+            if model_config.spatial:
+                spat_model = SpatialModel.from_dict(model_config.spatial)
             else:
                 spat_model = None
             # Final SkyModel
             models = SkyModel(
                 spectral_model=spec_model,
                 spatial_model=spat_model,
-                name=self.config["target"]["source_name"],
+                name=self.config.target.source_name,
             )
         elif isinstance(models, str):  # Check this condition
             models = Models.from_yaml(models)
@@ -130,39 +134,27 @@ class AsgardpyAnalysis:
         for step in steps:
             # For each type of Dataset, run the extra sub-steps
             # Always start with 3D datasets. Probably add a check or fail-safe
-            if "d-datasets" in step:
-                sub_steps = [
-                    step.replace("datasets", "data-selection"),
-                    step.replace("datasets", "observations"),
-                ]
-                for sub_step in sub_steps:
-                    analysis_sub_step = AnalysisStep.create(
-                        sub_step, self.config, log=self.log, overwrite=overwrite, **kwargs
-                    )
-                    analysis_sub_step.run(self)
-
-                analysis_step = AnalysisStep.create(
-                    step, self.config, log=self.log, overwrite=overwrite, **kwargs
-                )
-                datasets_list = analysis_step.run(self)
+            if "datasets" in step:
+                analysis_step = AnalysisStep.create(step, self.config, **kwargs)
+                datasets_list = analysis_step.run()
                 # Add to the final list of datasets
                 for data in datasets_list:
                     self.datasets.append(data)
             else:
                 # Running DL4 functions on a given Datasets object
                 analysis_step = AnalysisStep.create(
-                    step, self.config, log=self.log, overwrite=overwrite, **kwargs
+                    step, self.config, **kwargs  # , log=self.log, overwrite=overwrite
                 )
-                analysis_step.run(self)
+                analysis_step.run()
 
     # keep these methods to be backward compatible
     def get_1d_dataset(self):
         """Produce stacked 1D datasets."""
-        self.run(steps=["dataset-1d-datasets"])
+        self.run(steps=["datasets-1d"])
 
     def get_3d_datasets(self):
         """Produce stacked 3D datasets."""
-        self.run(steps=["dataset-3d-datasets"])
+        self.run(steps=["datasets-3d"])
 
     def run_fit(self):
         """Fitting reduced datasets to model."""
