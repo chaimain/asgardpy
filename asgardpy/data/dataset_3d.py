@@ -18,7 +18,7 @@ from gammapy.datasets import MapDataset
 from gammapy.irf import EDispKernel, EDispKernelMap, PSFMap
 from gammapy.makers import MapDatasetMaker
 from gammapy.maps import Map, MapAxis
-from gammapy.modeling import Parameters
+from gammapy.modeling import Parameter, Parameters
 from gammapy.modeling.models import (
     SPECTRAL_MODEL_REGISTRY,
     EBLAbsorptionNormSpectralModel,
@@ -120,13 +120,13 @@ class Dataset3DGeneration:
         self.config_3d_dataset_io = config_3d_dataset.io
         self.key_name = key_name
         self.config_target = config_target
-        self.model = self.config_target.components.spectral.type
+        self.model = self.config_target.components.spectral
         self.exclusion_regions = []
 
     def run(self):
-        self.read_to_objects(self.model, self.key_name)
+        file_list = self.read_to_objects(self.model, self.key_name)
         self.set_energy_dispersion_matrix()
-        self.load_events()
+        self.load_events(file_list["event_file"])
         self.get_src_skycoord()
         self._counts_map()
         self._create_exclusion_mask()
@@ -144,15 +144,23 @@ class Dataset3DGeneration:
         Gammapy objects for further analyses.
         """
         lp_is_intrinsic = model == "LogParabola"
+        file_list = {}
 
         for cfg in self.config_3d_dataset_io:
             if cfg.type == "lat":
-                self.exposure, self.psf, self.drmap, self.edisp_kernel = self.get_base_objects(
-                    cfg, model, key_name, cfg.type
-                )
+                file_list, [
+                    self.exposure,
+                    self.psf,
+                    self.drmap,
+                    self.edisp_kernel,
+                ] = self.get_base_objects(cfg, model, key_name, cfg.type, file_list)
             if cfg.type == "lat-aux":
-                self.diff_gal, self.diff_iso = self.get_base_objects(cfg, model, key_name, cfg.type)
-                self.get_list_objects(cfg.path, lp_is_intrinsic)
+                file_list, [self.diff_gal, self.diff_iso] = self.get_base_objects(
+                    cfg, model, key_name, cfg.type, file_list
+                )
+                self.get_list_objects(cfg.input_dir, file_list["xml_file"], lp_is_intrinsic)
+
+        return file_list
 
     def get_source_pos_from_3d_dataset(self):
         """
@@ -169,37 +177,28 @@ class Dataset3DGeneration:
             else:
                 return None
 
-    def get_base_objects(self, dl3_dir_dict, model, key, dl3_type):
+    def get_base_objects(self, dl3_dir_dict, model, key, dl3_type, file_list):
         """
         For a DL3 files type and tag of the 'mode of observations' - FRONT or
         BACK, read the files to appropriate Object type for further analysis.
         """
-        temp = DL3Files(dl3_dir_dict, model)
-        temp.prepare_lat_files(key)
+        temp = DL3Files(dl3_dir_dict, model, file_list)
+        file_list = temp.prepare_lat_files(key, file_list)
 
         if dl3_type.lower() == "lat":
-            self.exposure = Map.read(self.expmap_f)
-            self.psf = PSFMap.read(self.psf_f, format="gtpsf")
-            self.drmap = fits.open(self.edrm_f)
+            self.exposure = Map.read(file_list["expmap_file"])
+            self.psf = PSFMap.read(file_list["psf_file"], format="gtpsf")
+            self.drmap = fits.open(file_list["edrm_file"])
             self.edisp_kernel = self.set_energy_dispersion_matrix()
-            return [self.exposure, self.psf, self.drmap, self.edisp_kernel]
+            return file_list, [self.exposure, self.psf, self.drmap, self.edisp_kernel]
 
         elif dl3_type.lower() == "lat-aux":
-            self.diff_gal = Map.read(self.diff_gal_f)
-            self.diff_iso = create_fermi_isotropic_diffuse_model(
-                filename=self.iso_f, interp_kwargs={"fill_value": None}
-            )
-            self.diff_iso.name = f"{self.diff_iso.name}-{key}"
+            self.diff_gal = Map.read(file_list["diff_gal_file"])
+            self.diff_iso = self.create_iso_diffuse_skymodel(file_list["iso_file"], key)
 
-            # Parameters' limits generalization?
-            self.diff_iso.spectral_model.model1.parameters[0].min = 0.001
-            self.diff_iso.spectral_model.model1.parameters[0].max = 10
-            self.diff_iso.spectral_model.model2.parameters[0].min = 0
-            self.diff_iso.spectral_model.model2.parameters[0].max = 10
-
-            return [self.diff_gal, self.diff_iso]
+            return file_list, [self.diff_gal, self.diff_iso]
         else:
-            return []
+            return file_list, []
 
     def set_energy_axes(self):
         """
@@ -225,7 +224,7 @@ class Dataset3DGeneration:
             axes=[self.energy_axis_true, self.energy_axis], data=drm_matrix
         )
 
-    def load_events(self):
+    def load_events(self, events_file):
         """
         Loading the events files for the specific "Key" and saving them to a
         dummy fits file if the original files are gzipped.
@@ -234,7 +233,7 @@ class Dataset3DGeneration:
         # Check again the valididty of gzipping files, and also on the use
         # of EventList, instead of other Gammapy object
         try:
-            with gzip.open(self.events_f) as gzfile:
+            with gzip.open(events_file) as gzfile:
                 with open("temp_events.fits", "wb") as file:
                     unzipped_file = gzip.decompress(gzfile.read())
                     file.write(unzipped_file)
@@ -242,8 +241,8 @@ class Dataset3DGeneration:
             self.event_fits = fits.open("temp_events.fits")
             self.events = EventList.read("temp_events.fits")
         except Exception:
-            self.event_fits = fits.open(self.events_f)
-            self.events = EventList.read(self.events_f)
+            self.event_fits = fits.open(events_file)
+            self.events = EventList.read(events_file)
 
     def get_src_skycoord(self):
         """
@@ -260,14 +259,14 @@ class Dataset3DGeneration:
 
         self.src_pos = SkyCoord(ra_pos, dec_pos, unit="deg", frame="fk5").icrs
 
-    def get_list_objects(self, aux_path, lp_is_intrinsic=False):
+    def get_list_objects(self, aux_path, xml_file, lp_is_intrinsic=False):
         """
         Read from the XML file to enlist the various objects and get their
         SkyModels
         """
         self.list_sources = []
 
-        with open(self.xml_f) as f:
+        with open(xml_file) as f:
             data = xmltodict.parse(f.read())["source_library"]["source"]
             self.list_of_sources_final = [src["@name"] for src in data]
 
@@ -276,11 +275,45 @@ class Dataset3DGeneration:
             if source_name == "IsoDiffModel":
                 source = self.diff_iso
             elif source_name == "GalDiffModel":
-                source = self.create_gal_diffuse_skymodel()
+                source = self.create_gal_diffuse_skymodel(self.diff_gal)
             else:
                 source = self.create_source_skymodel(src, aux_path, lp_is_intrinsic)
 
             self.list_sources.append(source)
+
+    def create_iso_diffuse_skymodel(self, iso_file, key):
+        """
+        Create a SkyModel of the Fermi Isotropic Diffuse Model.
+        """
+        diff_iso = create_fermi_isotropic_diffuse_model(
+            filename=iso_file, interp_kwargs={"fill_value": None}
+        )
+        diff_iso._name = f"{diff_iso.name}-{key}"
+
+        # Parameters' limits generalization?
+        diff_iso.spectral_model.model1.parameters[0].min = 0.001
+        diff_iso.spectral_model.model1.parameters[0].max = 10
+        diff_iso.spectral_model.model2.parameters[0].min = 0
+        diff_iso.spectral_model.model2.parameters[0].max = 10
+
+        return diff_iso
+
+    def create_gal_diffuse_skymodel(self, diff_gal):
+        """
+        Create SkyModel of the Diffuse Galactic sources.
+        Maybe a repeat of code from the _cutout function.
+        """
+        template_diffuse = TemplateSpatialModel(diff_gal, normalize=False)
+        source = SkyModel(
+            spectral_model=PowerLawNormSpectralModel(),
+            spatial_model=template_diffuse,
+            name="diffuse-iem",
+        )
+        source.parameters["norm"].min = 0
+        source.parameters["norm"].max = 10
+        source.parameters["norm"].frozen = False
+
+        return source
 
     def create_source_skymodel(self, src, aux_path, lp_is_intrinsic=False):
         """
@@ -311,28 +344,29 @@ class Dataset3DGeneration:
                 else:
                     spectrum_type_final = f"{spectrum_type}SpectralModel"
 
-                spec_model = SPECTRAL_MODEL_REGISTRY.get_cls(spectrum_type_final)
+                spec_model = SPECTRAL_MODEL_REGISTRY.get_cls(spectrum_type_final)()
+                ebl_atten_pl = False
+
                 if spectrum_type == "LogParabola" and "EblAtten" in src["spectrum"]["@type"]:
                     if lp_is_intrinsic:
-                        ebl_atten_pl = False
                         spec_model = LogParabolaSpectralModel()
                     else:
                         ebl_atten_pl = True
                         spec_model = PowerLawSpectralModel()
 
-                params_list = self.xml_to_gammapy_model_params(
-                    spectrum,
-                    spectrum_type,
-                    is_target=is_src_target,
-                    keep_sign=ebl_atten_pl,
-                    lp_is_intrinsic=lp_is_intrinsic,
-                )
-                spec_model.from_parameters(params_list)
+        params_list = self.xml_to_gammapy_model_params(
+            spectrum,
+            spectrum_type,
+            is_target=is_src_target,
+            keep_sign=ebl_atten_pl,
+            lp_is_intrinsic=lp_is_intrinsic,
+        )
+        spec_model.from_parameters(params_list)
 
-        ebl_absorption = self.config_target.components.spectral.ebl_abs
-        ebl_absorption_included = len(ebl_absorption) > 0
+        ebl_absorption_included = self.config_target.components.spectral.ebl_abs is not None
 
         if is_src_target and ebl_absorption_included:
+            ebl_absorption = self.config_target.components.spectral.ebl_abs
             ebl_model = ebl_absorption.model_name
             ebl_spectral_model = EBLAbsorptionNormSpectralModel.read_builtin(
                 ebl_model, redshift=ebl_absorption.redshift
@@ -341,14 +375,12 @@ class Dataset3DGeneration:
 
         if src["spatialModel"]["@type"] == "SkyDirFunction":
             fk5_frame = SkyCoord(
-                lon=f"{spatial_pars[0]['@value']} deg",
-                lat=f"{spatial_pars[1]['@value']} deg",
+                f"{spatial_pars[0]['@value']} deg",
+                f"{spatial_pars[1]['@value']} deg",
                 frame="fk5",
             )
             gal_frame = fk5_frame.transform_to("galactic")
-            spatial_model = PointSpatialModel(
-                lon_0=gal_frame.lon, lat_0=gal_frame.lat, frame="galactic"
-            )
+            spatial_model = PointSpatialModel.from_position(gal_frame)
         elif src["spatialModel"]["@type"] == "SpatialMap":
             file_name = src["spatialModel"]["@file"].split("/")[-1]
             file_path = aux_path / f"Templates/{file_name}"
@@ -373,7 +405,7 @@ class Dataset3DGeneration:
         """
         Make some basic conversions on the spectral model parameters
         """
-        new_model = []
+        params_list = []
         for par in params:
             new_par = {}
             # For EBL Attenuated Power Law, it is taken with LogParabola model
@@ -405,8 +437,6 @@ class Dataset3DGeneration:
                     new_par["name"] = "emin"
                 if par["@name"].lower() in ["upperlimit"]:
                     new_par["name"] = "emax"
-                if new_par["name"] in ["reference", "ebreak", "emin", "emax"]:
-                    new_par["unit"] = "MeV"
                 if par["@name"].lower() in ["cutoff"]:
                     new_par["name"] = "lambda_"
                     new_par["value"] = 1.0 / new_par["value"]
@@ -414,16 +444,25 @@ class Dataset3DGeneration:
                     new_par["max"] = 1.0 / new_par["max"]
                     new_par["unit"] = "MeV-1"
 
-                # More modifications:
-                if new_par["name"] == "index" and not keep_sign:
-                    # Other than EBL Attenuated Power Law
-                    new_par["value"] *= -1
-                    new_par["min"] *= -1
-                    new_par["max"] *= -1
+            # More modifications:
+            if new_par["name"] in ["reference", "ebreak", "emin", "emax"]:
+                new_par["unit"] = "MeV"
+            if new_par["name"] == "index" and not keep_sign:
+                # Other than EBL Attenuated Power Law
+                new_par["value"] *= -1
+                new_par["min"] *= -1
+                new_par["max"] *= -1
+            new_par["error"] = 0
+            # print(Parameters.from_dict(new_par))
+            # for new in new_par:
+            #    new_model.append(Parameter(**new))
+            # new_model.append(Parameters.from_dict(new_par))
+            # new_param = Parameter(new_par["name"], new_par["value"]).update_from_dict(new_par)
+            params_list.append(new_par)
 
-            new_model.append(Parameters().update_from_dict(new_par))
+        params_final = Parameters.from_dict(params_list)
 
-        return new_model
+        return params_final
 
     def _counts_map(self):
         """ """

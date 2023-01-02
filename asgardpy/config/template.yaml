@@ -67,16 +67,16 @@ dataset3d:
       -   type: lat
           input_dir: /data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/LAT/Analysis1/EBL/LogParabola/
           glob_pattern:
-          -   events: "*_MkTime.fits*"
-          -   edisp: "_*eDRM.fits*"
-          -   xml_model: "*_out.xml"
-          -   exposure: "*_BinnedMap.fits*"
-          -   psf: "*_psf.fits*"
+            events: "*MkTime.fits*"
+            edisp: "*eDRM.fits*"
+            xml_model: "*out.xml"
+            exposure: "*BinnedMap.fits*"
+            psf: "*psf.fits*"
       -   type: lat-aux
           input_dir: /data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/LAT/diffuse_models/
           glob_pattern:
-          -   diffuse: "gll_iem_v07.fits*"
-          -   iso: "iso_P8R3_SOURCE_V3_*.txt"
+            diffuse: "gll_iem_v07.fits*"
+            iso: "iso_P8R3_SOURCE_V3_*.txt"
       dataset_info:
         name: Fermi-LAT
         key: ["FRONT", "BACK"]
@@ -119,7 +119,7 @@ dataset1d:
       -   type: lst-1
           input_dir: /data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/v09x/tailcut84/DL3/real/interp_irf_en_dep/no_tuning/geff_80/teff_80/20220511_dec931/
           glob_pattern:
-          -   dl3: "202*/dl3*fits"
+            dl3: "202*/dl3*fits"
       dataset_info:
         name: LST-1
         geom:
