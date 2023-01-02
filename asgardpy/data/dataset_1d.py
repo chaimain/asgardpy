@@ -122,6 +122,9 @@ class Dataset1DGeneration:
 
         self.dataset_template = self.generate_geom()
         self.dataset_maker, self.bkg_maker, self.safe_maker = self.get_reduction_makers()
+        dataset = self.generate_dataset()
+
+        return dataset
 
     def generate_geom(self):
         """
