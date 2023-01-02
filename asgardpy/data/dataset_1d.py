@@ -11,11 +11,13 @@ from astropy.coordinates import SkyCoord
 
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
 from gammapy.data import DataStore
-from gammapy.datasets import SpectrumDataset
+from gammapy.datasets import SpectrumDataset, Datasets
 from gammapy.makers import (
     ReflectedRegionsBackgroundMaker,
     SafeMaskMaker,
     SpectrumDatasetMaker,
+    WobbleRegionsFinder,
+    ReflectedRegionsFinder
 )
 from gammapy.maps import MapAxis, RegionGeom, WcsGeom
 from regions import CircleSkyRegion, PointSkyRegion
@@ -77,17 +79,20 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
     def _run(self):
         # Iterate over all instrument information given:
         instruments_list = self.config.dataset1d.instruments
+        self.dataset_3d = self.config.dataset3d.instruments[0]
         self.log.info(f"{len(instruments_list)} number of 1D Datasets given")
 
-        datasets_1d_final = []
+        datasets_1d_final = Datasets()
 
         for i in np.arange(len(instruments_list)):
             self.config_1d_dataset = instruments_list[i]
 
             generate_1d_dataset = Dataset1DGeneration(
-                self.config_1d_dataset, self.config.target
+                self.config_1d_dataset, self.config.target, self.dataset_3d
             )
             dataset = generate_1d_dataset.run()
+            #for data in dataset:
+            dataset = dataset.stack_reduce(name=self.config_1d_dataset.name)
             datasets_1d_final.append(dataset)
 
         return datasets_1d_final
@@ -105,26 +110,31 @@ class Dataset1DGeneration:
     3. Generate the final dataset.
     """
 
-    def __init__(self, config_1d_dataset, config_target):
+    def __init__(self, config_1d_dataset, config_target, config_3d_dataset):
         self.config_1d_dataset_io = config_1d_dataset.io
+        self.dataset_3d_src_pos = config_3d_dataset
+        self.config_1d_dataset_info = config_1d_dataset.dataset_info
         self.config_target = config_target
+        # Only 1 DL3 type of file.
+        self.datasets = Datasets()
         self.dl3_dir_dict = self.config_1d_dataset_io[0]
-        self.model = config_target.components.spectral.type
+        self.model = config_target.components.spectral
 
     def run(self):
-        dl3_info = DL3Files(self.dl3_dir_dict, self.model)
+        file_list = {}
+        dl3_info = DL3Files(self.dl3_dir_dict, self.model, file_list)
         dl3_info.list_dl3_files()
 
-        self.datastore = DataStore.from_dir(dl3_info.dl3_path)
+        self.datastore = DataStore.from_dir(self.dl3_dir_dict.input_dir)
 
         irfs_selected = self.config_1d_dataset_info.observation.required_irfs
         self.observations = self.datastore.get_observations(required_irf=irfs_selected)
 
         self.dataset_template = self.generate_geom()
         self.dataset_maker, self.bkg_maker, self.safe_maker = self.get_reduction_makers()
-        dataset = self.generate_dataset()
+        datasets = self.generate_dataset()
 
-        return dataset
+        return datasets
 
     def generate_geom(self):
         """
@@ -136,10 +146,14 @@ class Dataset1DGeneration:
             # Using the same target source position as that used for
             # the 3D datasets analysis. Which one?
             dataset_3d = Dataset3DGeneration(
-                self.config.dataset3d.instruments[0],  ## Need to fix this
-                self.config_target, ""
+                self.dataset_3d_src_pos,  ## Need to fix this
+                self.config_target,
+                self.dataset_3d_src_pos.dataset_info.key[0]
             )
-            dataset_3d.read_to_objects()
+            dataset_3d.read_to_objects(
+                self.model,
+                self.dataset_3d_src_pos.dataset_info.key[0]
+            )
             src_pos = dataset_3d.get_source_pos_from_3d_dataset()
         else:
             src_name = self.config_target.source_name
@@ -154,7 +168,7 @@ class Dataset1DGeneration:
 
         # Defining the ON region's geometry
         given_on_geom = self.config_1d_dataset_info.on_region
-        if not given_on_geom.radius:
+        if ~hasattr(given_on_geom, "radius"):
             on_region = PointSkyRegion(src_pos)
             # Hack to allow for the joint fit
             # (otherwise pointskyregion.contains returns None)
@@ -206,16 +220,18 @@ class Dataset1DGeneration:
 
         # Exclusion mask
         if bkg_config.exclusion:
-            if bkg_config.exclusion.name is None:
-                coord = bkg_config.exclusion.position
+            if bkg_config.exclusion["name"] == "None":
+                coord = bkg_config.exclusion["position"]
                 center_ex = SkyCoord(
-                    u.Quantity(coord.lon), u.Quantity(coord.lat), frame=coord.frame
+                    u.Quantity(coord["lon"]),
+                    u.Quantity(coord["lat"]),
+                    frame=coord["frame"]
                 ).icrs
             else:
-                center_ex = SkyCoord.from_name(bkg_config.exclusion.name)
+                center_ex = SkyCoord.from_name(bkg_config.exclusion["name"])
 
             excluded_region = CircleSkyRegion(
-                center=center_ex, radius=u.Quantity(bkg_config.exclusion.region_radius)
+                center=center_ex, radius=u.Quantity(bkg_config.exclusion["region_radius"])
             )
         else:
             excluded_region = None
@@ -227,10 +243,15 @@ class Dataset1DGeneration:
         )
         exclusion_mask = ~excluded_geom.region_mask([excluded_region])
 
-        # Background reduction maker
+        # Background reduction maker. Need to generalize further.
         if bkg_config.method == "reflected":
+            if bkg_config.region_finder_method == "wobble":
+                region_finder = WobbleRegionsFinder(**bkg_config.parameters)
+            elif bkg_config.region_finder_method == "reflected":
+                region_finder = ReflectedRegionsFinder(**bkg_config.parameters)
+
             bkg_maker = ReflectedRegionsBackgroundMaker(
-                n_off_regions=int(bkg_config.wobble_off_regions),
+                region_finder=region_finder,
                 exclusion_mask=exclusion_mask
             )
         else:
@@ -241,9 +262,9 @@ class Dataset1DGeneration:
         pars = safe_config.parameters
         if "custom-mask" not in safe_config.methods:
             pos = SkyCoord(
-                u.Quantity(pars.position.lon),
-                u.Quantity(pars.position.lat),
-                frame=pars.position.frame,
+                u.Quantity(pars.position["lon"]),
+                u.Quantity(pars.position["lat"]),
+                frame=pars.position["frame"],
             )
             safe_maker = SafeMaskMaker(
                 methods=safe_config.methods,
@@ -276,8 +297,8 @@ class Dataset1DGeneration:
             if "custom-mask" in safe_cfg.methods:
                 pars = safe_cfg.parameters
                 dataset_on_off.mask_safe = dataset_on_off.counts.geom.energy_mask(
-                    energy_min=u.Quantity(pars.min),
-                    energy_max=u.Quantity(pars.max)
+                    energy_min=u.Quantity(pars["min"]),
+                    energy_max=u.Quantity(pars["max"])
                 )
             else:
                 dataset_on_off = self.safe_maker.run(dataset_on_off, obs)

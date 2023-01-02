@@ -117,7 +117,7 @@ dataset1d:
   -   name: LST-1
       io:
       -   type: lst-1
-          input_dir: /data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/v09x/tailcut84/DL3/real/interp_irf_en_dep/no_tuning/geff_80/teff_80/20220511_dec931/
+          input_dir: "/data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/v09x/tailcut84/DL3/real/interp_irf_en_dep/no_tuning/geff_80/teff_80/20220511_dec931/"
           glob_pattern:
             dl3: "202*/dl3*fits"
       dataset_info:
@@ -140,11 +140,12 @@ dataset1d:
           obs_time:
             start: "2021-01-01"
             stop: "2021-03-30"
-          required_irfs: [events, gti, aeff, edisp, rad_max]
+          required_irfs: ["aeff", "edisp", "rad_max"]
         background:
           method: reflected
+          region_finder_method: wobble
           parameters:
-            wobble_off_regions: 1
+            n_off_regions: 1
           exclusion:
             name: None
             position:
@@ -169,29 +170,40 @@ dataset1d:
           frame: galactic
           lon: 83.633 deg
           lat: 22.0145 deg
-        containment_correction: true
+        containment_correction: false
         map_selection: [counts, exposure, edisp]
 #  - name: MAGIC
 #      ... full description ...
 
 # Fit parameters
 fit_params:
-  fit_range: {min: 10 GeV, max: 10 TeV}
+  fit_range:
+    min: "10 GeV"
+    max: "10 TeV"
   backend: minuit
+  optimize_opts: {}
+  covariance_opts: {}
+  confidence_opts: {}
   store_trace: true
 
 flux_points_params:
-  energy: {min: 100 MeV, max: 10 TeV}
+  energy:
+    min: "100 MeV"
+    max: "10 TeV"
   parameters:
     selection_optional: "all"
 
 light_curve_params:
   # time_intervals:
-  energy_edges: {min: 100 GeV, max: 100 TeV}
+  energy_edges:
+    min: "100 GeV"
+    max: "100 TeV"
   parameters:
     selection_optional: "all"
 
 excess_map_params:
-  energy_edges: {min: 100 MeV, max: 10 TeV}
+  energy_edges:
+    min: "100 MeV"
+    max: "10 TeV"
   correlation_radius: 0.1 deg
   # parameters:

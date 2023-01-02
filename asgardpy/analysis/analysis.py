@@ -11,6 +11,8 @@ from gammapy.modeling.models import (
     SkyModel,
     SpatialModel,
     SpectralModel,
+    SPECTRAL_MODEL_REGISTRY,
+    SPATIAL_MODEL_REGISTRY
 )
 
 from asgardpy.config.generator import AsgardpyConfig
@@ -55,7 +57,7 @@ class AsgardpyAnalysis:
     def models(self, models):
         self.set_models(models, extend=False)
 
-    def set_models(self, models=None, extend=True):
+    def set_models(self, models=None, extend=False):
         """
         Set models on Datasets.
         Parameters
@@ -63,28 +65,41 @@ class AsgardpyAnalysis:
         models : `~gammapy.modeling.models.Models` or str
             Models object or YAML models string
         extend : bool
-            Extend the exiting models on the datasets or replace them.
+            Extend the existing models on the datasets or replace them with
+            another model, maybe a Background Model. Not worked out currently.
         """
         if self.config.target.components:
             model_config = self.config.target.components
             # Spectral Model
-            if model_config.spectral.ebl_abs:
+            if model_config.spectral.ebl_abs.model_name is not None:
                 # spec_model_type = "CompoundSpectralModel"
-                model1 = SpectralModel.from_dict(model_config.spectral)
+                model1 = SPECTRAL_MODEL_REGISTRY.get_cls(
+                    model_config.spectral.type
+                )().from_dict(
+                    {"spectral": self.config_to_dict(model_config.spectral)}
+                )
 
                 ebl_model = model_config.spectral.ebl_abs
                 model2 = EBLAbsorptionNormSpectralModel.read_builtin(
                     ebl_model.model_name, redshift=ebl_model.redshift
                 )
                 if ebl_model.alpha_norm:
-                    model2.alpha_norm = ebl_model.alpha_norm
+                    model2.alpha_norm.value = ebl_model.alpha_norm
                 spec_model = model1 * model2
             else:
                 # spec_model_type = model_config["spectral"]["type"]
-                spec_model = SpectralModel.from_dict(model_config.spectral)
+                spec_model = SPECTRAL_MODEL_REGISTRY.get_cls(
+                    model_config.spectral.type
+                )().from_dict(
+                    {"spectral": self.config_to_dict(model_config.spectral)}
+                )
             # Spatial model if provided
-            if model_config.spatial:
-                spat_model = SpatialModel.from_dict(model_config.spatial)
+            if model_config.spatial.model_name is not None:
+                spat_model = SPATIAL_MODEL_REGISTRY.get_cls(
+                    model_config.spatial.type
+                )().from_dict(
+                    {"spatial": self.config_to_dict(model_config.spatial)}
+                )
             else:
                 spat_model = None
             # Final SkyModel
@@ -102,10 +117,31 @@ class AsgardpyAnalysis:
         else:
             raise TypeError(f"Invalid type: {models!r}")
 
-        if extend:
-            models.extend(self.datasets.models)
+        #if extend:
+        # For extending a Background Model
+        #    Models(models).extend(self.bkg_models)
 
         self.datasets.models = models
+
+    def config_to_dict(self, model_config):
+        """
+        Convert the Spectral/Spatial models defined in asgardpy/data/target.py
+        into dict.
+        """
+        model_dict = {}
+        model_dict["type"] = str(model_config.type)
+        model_dict["parameters"] = []
+        for par in model_config.parameters:
+            par_dict = {}
+            par_dict["name"] = par.name
+            par_dict["value"] = par.value
+            par_dict["unit"] = par.unit
+            par_dict["error"] = par.error
+            par_dict["min"] = par.min
+            par_dict["max"] = par.max
+            par_dict["frozen"] = par.frozen
+            model_dict["parameters"].append(par_dict)
+        return model_dict
 
     @property
     def config(self):
@@ -140,12 +176,13 @@ class AsgardpyAnalysis:
                 # Add to the final list of datasets
                 for data in datasets_list:
                     self.datasets.append(data)
+                self.set_models()
             else:
                 # Running DL4 functions on a given Datasets object
                 analysis_step = AnalysisStep.create(
                     step, self.config, **kwargs  # , log=self.log, overwrite=overwrite
                 )
-                analysis_step.run()
+                analysis_step.run(datasets=self.datasets)
 
     # keep these methods to be backward compatible
     def get_1d_dataset(self):

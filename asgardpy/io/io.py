@@ -66,7 +66,7 @@ class DL3Files:
         if Path(dl3_path).exists():
             self.dl3_path = Path(dl3_path)
         else:
-            self.log.error(f"{dl3_path} is not a valid file")
+            self.log.error(f"{dl3_path} is not a valid file location")
         self.model = source_model
         self.dl3_type = dl3_type
 
@@ -74,7 +74,6 @@ class DL3Files:
             self.glob_dict = glob_dict_std
         else:
             self.glob_dict = glob_dict
-
         self._check_model()
         self._check_dl3_type()
 
@@ -193,7 +192,7 @@ class DL3Files:
 
         if self.dl3_type.lower() == "lst-1":
             self.event_files = sorted(list(self.dl3_path.glob(self.glob_dict["dl3"])))
-            self.log.info(f"The list of DL3 files for LST-1 selected: {self.events_files}")
+            self.log.info(f"The list of DL3 files for LST-1 selected: {self.event_files}")
 
     def get_lat_spectra_results(self):
         """

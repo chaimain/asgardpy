@@ -14,7 +14,7 @@ from astropy.io import fits
 
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
 from gammapy.data import EventList
-from gammapy.datasets import MapDataset
+from gammapy.datasets import MapDataset, Datasets
 from gammapy.irf import EDispKernel, EDispKernelMap, PSFMap
 from gammapy.makers import MapDatasetMaker
 from gammapy.maps import Map, MapAxis
@@ -86,7 +86,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
         instruments_list = self.config.dataset3d.instruments
         self.log.info(f"{len(instruments_list)} number of 3D Datasets given")
 
-        datasets_3d_final = []
+        datasets_3d_final = Datasets()
 
         for i in np.arange(len(instruments_list)):
             self.config_3d_dataset = instruments_list[i]
@@ -98,7 +98,6 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                     self.config_3d_dataset, self.config.target, key
                 )
                 dataset = generate_3d_dataset.run()
-                # obs_step._run()
                 datasets_3d_final.append(dataset)
 
         return datasets_3d_final
@@ -122,11 +121,12 @@ class Dataset3DGeneration:
         self.config_target = config_target
         self.model = self.config_target.components.spectral
         self.exclusion_regions = []
+        self.target_full_model = None
 
     def run(self):
         file_list = self.read_to_objects(self.model, self.key_name)
         self.set_energy_dispersion_matrix()
-        self.load_events(file_list["event_file"])
+        self.load_events(file_list["events_file"])
         self.get_src_skycoord()
         self._counts_map()
         self._create_exclusion_mask()
@@ -165,17 +165,14 @@ class Dataset3DGeneration:
     def get_source_pos_from_3d_dataset(self):
         """
         Introduce the source coordinates from 3D dataset to 1D dataset.
+        Need to generalize this as well for all datasets.
         """
+        source_position_from_3d = None
         for src in self.list_sources:
             if src.name == self.config_target.source_name:
-                source_position_from_3d = SkyCoord(
-                    src.spatial_model.lon,
-                    src.spatial_model.lat,
-                    frame=src.spatial_model.frame,
-                ).icrs
-                return source_position_from_3d
-            else:
-                return None
+                source_position_from_3d = src.spatial_model.position.icrs
+
+        return source_position_from_3d
 
     def get_base_objects(self, dl3_dir_dict, model, key, dl3_type, file_list):
         """
@@ -277,8 +274,9 @@ class Dataset3DGeneration:
             elif source_name == "GalDiffModel":
                 source = self.create_gal_diffuse_skymodel(self.diff_gal)
             else:
-                source = self.create_source_skymodel(src, aux_path, lp_is_intrinsic)
-
+                source, is_target_source = self.create_source_skymodel(src, aux_path, lp_is_intrinsic)
+            if is_target_source:
+                self.target_full_model = source
             self.list_sources.append(source)
 
     def create_iso_diffuse_skymodel(self, iso_file, key):
@@ -397,7 +395,7 @@ class Dataset3DGeneration:
             name=source_name,
         )
 
-        return source_sky_model
+        return source_sky_model, is_src_target
 
     def xml_to_gammapy_model_params(
         self, params, spectrum_type, is_target=False, keep_sign=False, lp_is_intrinsic=False
@@ -453,11 +451,6 @@ class Dataset3DGeneration:
                 new_par["min"] *= -1
                 new_par["max"] *= -1
             new_par["error"] = 0
-            # print(Parameters.from_dict(new_par))
-            # for new in new_par:
-            #    new_model.append(Parameter(**new))
-            # new_model.append(Parameters.from_dict(new_par))
-            # new_param = Parameter(new_par["name"], new_par["value"]).update_from_dict(new_par)
             params_list.append(new_par)
 
         params_final = Parameters.from_dict(params_list)
@@ -552,8 +545,8 @@ class Dataset3DGeneration:
             )
         else:
             sky_pos = self.config_target.sky_position
-            source_pos = SkyCoord.from_name(
-                u.quantity(sky_pos.lon), u.quantity(sky_pos.lat), frame=sky_pos.frame
+            source_pos = SkyCoord(
+                u.Quantity(sky_pos.lon), u.Quantity(sky_pos.lat), frame=sky_pos.frame
             )
             exclusion_region = CircleSkyRegion(
                 center=source_pos.galactic,
@@ -572,8 +565,8 @@ class Dataset3DGeneration:
             mask_safe = Map.from_geom(self.counts_map.geom, mask_bool)
             mask_safe.data = np.asarray(mask_safe.data == 0, dtype=bool)
 
-        self.dataset = MapDataset(
-            models=Models(self.list_sources),
+        dataset = MapDataset(
+            # models=self.target_full_model,
             counts=self.counts_map,
             exposure=self.exposure_interp,
             psf=self.psf,
@@ -581,3 +574,4 @@ class Dataset3DGeneration:
             mask_safe=mask_safe,
             name="Fermi-LAT_{}".format(key_name),
         )
+        return dataset

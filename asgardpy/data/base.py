@@ -88,14 +88,17 @@ class AnalysisStepBase(abc.ABC):
     # def name(self):
     #    return self._name
 
-    def run(self):  # , data
-        # self.data = data
+    def run(self, datasets=None):  # , data
+        self.datasets = datasets
         # self.products = self.data
-        self._run()
+        final_product = self._run()
+        print("Analysis Step completed")
+
+        return final_product
 
     @abc.abstractmethod
     def _run(self):
-        pass
+        print("Analysis Step completed?")
 
 
 class AnalysisStep:

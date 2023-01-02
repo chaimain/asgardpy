@@ -4,8 +4,10 @@ Classes containing the DL4 products config parameters for the high-level interfa
 from enum import Enum
 
 from astropy import units as u
+from gammapy.datasets import Datasets
 from gammapy.estimators import FluxPointsEstimator, LightCurveEstimator
 from gammapy.modeling import Fit
+from gammapy.maps import Map
 
 from asgardpy.data.base import (
     AnalysisStepBase,
@@ -69,33 +71,44 @@ class FitAnalysisStep(AnalysisStepBase):
         self.fit_params = self.config.fit_params
 
         self._setup_fit()
-        self._set_datasets()
-        self.fit_result = self.fit.run(self.datasets)
-        # self.log.info(self.fit_result)
+        final_dataset = self._set_datasets()
+        # print(final_dataset, self.fit_params)
+        self.fit_result = self.fit.run(datasets=final_dataset)
+        self.log.info(self.fit_result)
 
     def _setup_fit(self):
         """
         Setup the Gammapy Fit function with all the provided parameters
         """
-        fit_settings = self.fit_params
-        fit_settings.pop("fit_range")
-        self.fit = Fit(**fit_settings)
+        self.fit = Fit(
+            backend=self.fit_params.backend,
+            optimize_opts = self.fit_params.optimize_opts,
+            covariance_opts = self.fit_params.covariance_opts,
+            confidence_opts = self.fit_params.confidence_opts,
+            store_trace = self.fit_params.store_trace,
+        )
 
     def _set_datasets(self):
         """
         Prepare each dataset for running the Fit function, by setting the
         energy range.
         """
-        if self.fit_params.fit_range:
-            en_min = u.Quantity(self.fit_params.fit_range["min"])
-            en_max = u.Quantity(self.fit_params.fit_range["max"])
-        else:
-            en_min = 100 * u.MeV
-            en_max = 100 * u.TeV
+        en_min = u.Quantity(self.fit_params.fit_range.min)
+        en_max = u.Quantity(self.fit_params.fit_range.max)
 
+        final_dataset = Datasets()
         for data in self.datasets:
+            # print(data.name)
+            #coords = data.counts.geom.get_coord()
+            # print(data.counts.geom.data_shape)
+            #mask_energy = (coords["energy"] >= en_min) * (coords["energy"] <= en_max)
+            #data.mask_fit = Map.from_geom(geom=data.counts.geom, data=mask_energy)
             geom = data.counts.geom
             data.mask_fit = geom.energy_mask(en_min, en_max)
+            # print(data.name, " complete")
+            final_dataset.append(data)
+
+        return final_dataset
 
 
 class FluxPointsAnalysisStep(AnalysisStepBase):

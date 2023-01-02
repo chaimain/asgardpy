@@ -7,12 +7,15 @@ from enum import Enum
 from pathlib import Path
 from typing import List
 
-from asgardpy.data.base import BaseConfig, TimeRangeConfig
+from asgardpy.data.base import BaseConfig, TimeRangeConfig, AngleType
 
 __all__ = [
     "ReductionTypeEnum",
     "RequiredHDUEnum",
     "ObservationsConfig",
+    "BackgroundRegionFinderMethodEnum",
+    "ReflectedRegionFinderConfig",
+    "WobbleRegionsFinderConfig",
     "BackgroundMethodEnum",
     "SafeMaskMethodsEnum",
     "MapSelectionEnum",
@@ -27,8 +30,6 @@ class ReductionTypeEnum(str, Enum):
 
 
 class RequiredHDUEnum(str, Enum):
-    events = "events"
-    gti = "gti"
     aeff = "aeff"
     bkg = "bkg"
     edisp = "edisp"
@@ -42,14 +43,31 @@ class ObservationsConfig(BaseConfig):
     obs_ids: List[int] = []
     obs_file: Path = None
     obs_time: TimeRangeConfig = TimeRangeConfig()
-    required_irfs: List[RequiredHDUEnum] = []
+    required_irfs: List[RequiredHDUEnum] = ["aeff"]
 
 
 class BackgroundMethodEnum(str, Enum):
     reflected = "reflected"
     fov = "fov_background"
     ring = "ring"
-    region_finder = "region-finder"
+
+
+class BackgroundRegionFinderMethodEnum(str, Enum):
+    reflected = "reflected"
+    wobble = "wobble"
+
+
+class ReflectedRegionFinderConfig(BaseConfig):
+    angle_increment: AngleType = None
+    min_distance: AngleType = None
+    min_distance_input: AngleType = None
+    max_region_number: int = 10000
+    binsz: AngleType = None
+
+
+class WobbleRegionsFinderConfig(BaseConfig):
+    n_off_regions: int = 1
+    binsz: AngleType = None
 
 
 class SafeMaskMethodsEnum(str, Enum):
@@ -72,8 +90,9 @@ class MapSelectionEnum(str, Enum):
 # Dataset Reduction Makers config
 class BackgroundConfig(BaseConfig):
     method: BackgroundMethodEnum = None
+    region_finder_method: BackgroundRegionFinderMethodEnum = None
+    parameters: dict = {}
     exclusion: dict = {}
-    parameters: dict = {}  # Only for 1D dataset?
 
 
 class SafeMaskConfig(BaseConfig):
