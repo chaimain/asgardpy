@@ -72,7 +72,6 @@ class AsgardpyAnalysis:
             model_config = self.config.target.components
             # Spectral Model
             if model_config.spectral.ebl_abs.model_name is not None:
-                # spec_model_type = "CompoundSpectralModel"
                 model1 = SPECTRAL_MODEL_REGISTRY.get_cls(
                     model_config.spectral.type
                 )().from_dict(
@@ -87,7 +86,6 @@ class AsgardpyAnalysis:
                     model2.alpha_norm.value = ebl_model.alpha_norm
                 spec_model = model1 * model2
             else:
-                # spec_model_type = model_config["spectral"]["type"]
                 spec_model = SPECTRAL_MODEL_REGISTRY.get_cls(
                     model_config.spectral.type
                 )().from_dict(
@@ -127,6 +125,7 @@ class AsgardpyAnalysis:
         """
         Convert the Spectral/Spatial models defined in asgardpy/data/target.py
         into dict.
+        Probably an extra step and maybe removed later.
         """
         model_dict = {}
         model_dict["type"] = str(model_config.type)
@@ -168,11 +167,11 @@ class AsgardpyAnalysis:
                 overwrite = True
 
         for step in steps:
-            # For each type of Dataset, run the extra sub-steps
             # Always start with 3D datasets. Probably add a check or fail-safe
             if "datasets" in step:
                 analysis_step = AnalysisStep.create(step, self.config, **kwargs)
                 datasets_list = analysis_step.run()
+
                 # Add to the final list of datasets
                 for data in datasets_list:
                     self.datasets.append(data)
@@ -180,7 +179,7 @@ class AsgardpyAnalysis:
             else:
                 # Running DL4 functions on a given Datasets object
                 analysis_step = AnalysisStep.create(
-                    step, self.config, **kwargs  # , log=self.log, overwrite=overwrite
+                    step, self.config, **kwargs
                 )
                 analysis_step.run(datasets=self.datasets)
 

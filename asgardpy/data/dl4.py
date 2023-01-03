@@ -64,7 +64,6 @@ class FitAnalysisStep(AnalysisStepBase):
     """
     Fit the target model to the updated list of datasets.
     """
-
     tag = "fit"
 
     def _run(self):
@@ -72,7 +71,6 @@ class FitAnalysisStep(AnalysisStepBase):
 
         self._setup_fit()
         final_dataset = self._set_datasets()
-        # print(final_dataset, self.fit_params)
         self.fit_result = self.fit.run(datasets=final_dataset)
         self.log.info(self.fit_result)
 
@@ -98,14 +96,8 @@ class FitAnalysisStep(AnalysisStepBase):
 
         final_dataset = Datasets()
         for data in self.datasets:
-            # print(data.name)
-            #coords = data.counts.geom.get_coord()
-            # print(data.counts.geom.data_shape)
-            #mask_energy = (coords["energy"] >= en_min) * (coords["energy"] <= en_max)
-            #data.mask_fit = Map.from_geom(geom=data.counts.geom, data=mask_energy)
             geom = data.counts.geom
             data.mask_fit = geom.energy_mask(en_min, en_max)
-            # print(data.name, " complete")
             final_dataset.append(data)
 
         return final_dataset

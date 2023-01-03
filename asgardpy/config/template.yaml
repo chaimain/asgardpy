@@ -94,19 +94,19 @@ dataset3d:
                   lon: 120 deg
                   lat: 20 deg
                 parameters:
-                -   rad_0: 8 deg
-                -   rad_1: 15 deg
+                -   rad_0: 1 deg
+                -   rad_1: 2 deg
         safe_mask:
           methods: []
           parameters:
             min: 0.1 GeV
             max: 1 TeV
         on_region:
-          frame: galactic
-          lon: 120 deg
-          lat: 20 deg
+          frame: "icrs"
+          lon: 238.92934976 deg
+          lat: 11.19010155 deg
           radius: 0.4 deg
-        containment_correction: true
+        containment_correction: false
 # - name: HAWC?
 #    ... full description ...
 
@@ -164,12 +164,12 @@ dataset1d:
             offset_max: 3 deg
             position:
               frame: "icrs"
-              lon: 83.63 deg
-              lat: 22.01 deg
+              lon: 238.92934976 deg
+              lat: 11.19010155 deg
         on_region:
-          frame: galactic
-          lon: 83.633 deg
-          lat: 22.0145 deg
+          frame: "icrs"
+          lon: 238.92934976 deg
+          lat: 11.19010155 deg
         containment_correction: false
         map_selection: [counts, exposure, edisp]
 #  - name: MAGIC
@@ -178,7 +178,7 @@ dataset1d:
 # Fit parameters
 fit_params:
   fit_range:
-    min: "10 GeV"
+    min: "100 MeV"
     max: "10 TeV"
   backend: minuit
   optimize_opts: {}

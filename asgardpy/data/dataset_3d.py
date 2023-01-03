@@ -254,7 +254,7 @@ class Dataset3DGeneration:
                 history.split("angsep(RA,DEC,")[1].replace("\n", "").split(")")[0].split(",")
             )
 
-        self.src_pos = SkyCoord(ra_pos, dec_pos, unit="deg", frame="fk5").icrs
+        self.src_pos = SkyCoord(ra_pos, dec_pos, unit="deg", frame="fk5")
 
     def get_list_objects(self, aux_path, xml_file, lp_is_intrinsic=False):
         """
@@ -458,7 +458,9 @@ class Dataset3DGeneration:
         return params_final
 
     def _counts_map(self):
-        """ """
+        """
+        Generate the counts Map object and fill it with the events information.
+        """
         self.counts_map = Map.create(
             skydir=self.src_pos,
             npix=(self.exposure.geom.npix[0][0], self.exposure.geom.npix[1][0]),
@@ -566,7 +568,7 @@ class Dataset3DGeneration:
             mask_safe.data = np.asarray(mask_safe.data == 0, dtype=bool)
 
         dataset = MapDataset(
-            # models=self.target_full_model,
+            models=self.target_full_model,
             counts=self.counts_map,
             exposure=self.exposure_interp,
             psf=self.psf,
@@ -574,4 +576,5 @@ class Dataset3DGeneration:
             mask_safe=mask_safe,
             name="Fermi-LAT_{}".format(key_name),
         )
+
         return dataset
