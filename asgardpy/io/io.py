@@ -3,7 +3,6 @@ Base I/O functions
 """
 import logging
 from pathlib import Path
-from typing import List
 
 from astropy.io import fits
 from gammapy.datasets import FluxPointsDataset
@@ -11,6 +10,9 @@ from gammapy.estimators import FluxPoints
 from gammapy.modeling.models import SPECTRAL_MODEL_REGISTRY, Models
 
 from asgardpy.data.base import BaseConfig
+
+# from typing import List
+
 
 __all__ = ["InputFilePatterns", "InputConfig", "DL3Files", "DL4Files"]
 
@@ -44,7 +46,7 @@ class InputFilePatterns(BaseConfig):
 class InputConfig(BaseConfig):
     type: str = "type"
     input_dir: Path = None
-    glob_pattern: List[InputFilePatterns] = [InputFilePatterns()]
+    glob_pattern: dict = {}
 
 
 class DL3Files:
@@ -53,15 +55,20 @@ class DL3Files:
     Models and other auxillary files for neighbouring sources, if provided.
     """
 
-    def __init__(self, dir_dict, source_model):
-        dl3_path = dir_dict["path"]
-        dl3_type = dir_dict["type"]
-        glob_dict = dir_dict["glob_pattern"]
+    def __init__(self, dir_dict, source_model, file_list, log=None):
+        dl3_path = dir_dict.input_dir
+        dl3_type = dir_dict.type
+        glob_dict = dir_dict.glob_pattern
+
+        if not log:
+            self._set_logging()
+        else:
+            self.log = log
 
         if Path(dl3_path).exists():
             self.dl3_path = Path(dl3_path)
         else:
-            self.log.error("%(dl3_path) is not a valid file")
+            self.log.error(f"{dl3_path} is not a valid file location")
         self.model = source_model
         self.dl3_type = dl3_type
 
@@ -69,8 +76,6 @@ class DL3Files:
             self.glob_dict = glob_dict_std
         else:
             self.glob_dict = glob_dict
-
-        self._set_logging()
         self._check_model()
         self._check_dl3_type()
 
@@ -92,47 +97,73 @@ class DL3Files:
 
     def _set_logging(self):
         self.log = logging.getLogger(__name__)
-        self.log.setLevel("%(logging.INFO)")
+        self.log.setLevel(logging.INFO)
 
     def _check_model(self):
-        if self.model not in SPECTRAL_MODEL_REGISTRY:
-            self.log.error("%(self.model) is not a proper Spectral Model recognized by Gammapy")
+        try:
+            SPECTRAL_MODEL_REGISTRY.get_cls(self.model.type)
+        except Exception:
+            self.log.error(
+                f"{self.model.type} is not a proper Spectral Model recognized by Gammapy"
+            )
 
     def _check_dl3_type(self):
         if self.dl3_type.lower() not in EXPECTED_DL3_RANGE:
-            self.log.error("%(self.dl3_type) is not in the expected range for DL3 files")
+            self.log.error(f"{self.dl3_type} is not in the expected range for DL3 files")
 
-    def select_unique_files(self, key):
+    def prepare_lat_files(self, key, file_list):
+        """
+        Prepare a list of LAT files following a particular key.
+        """
+        self.tag = key
+        # Try to combine LAT and LAT-AUX files
+        self.list_dl3_files()
+        # self.get_lat_spectra_results()
+        file_list = self.select_unique_files(self.tag, file_list)
+
+        return file_list
+
+    def select_unique_files(self, key, file_list):
         """
         Select Unique files from all of the provided LAT files, as per the
         given key.
         """
         if self.dl3_type.lower() == "lat":
             var_list = [
-                "events_f",
-                "edrm_f",
-                "expmap_f",
-                "psf_f",
+                "events_files",
+                "edrm_files",
+                "expmap_files",
+                "psf_files",
             ]
-            self.xml_f = [f for f in self.xml_files if self.model in f][0]
+            if isinstance(self.xml_files, list):
+                self.xml_f = [f for f in self.xml_files if self.model.model_name in str(f)][0]
+            else:
+                self.xml_f = self.xml_files
+            file_list["xml_file"] = self.xml_f
 
         if self.dl3_type.lower() == "lat-aux":
             var_list = [
                 "iso_files",
             ]
-            self.diff_gal_f = self.diff_gal_files[0]
+            if isinstance(self.diff_gal_files, list):
+                self.diff_gal_f = self.diff_gal_files[0]
+            else:
+                self.diff_gal_f = self.diff_gal_files
+            file_list["diff_gal_file"] = self.diff_gal_f
 
         for _v in var_list:
             try:
-                filtered = [K for K in getattr(self, _v) if key in K]
+                filtered = [K for K in getattr(self, _v) if key in str(K)]
                 assert len(filtered) == 1
             except Exception:
                 self.log.error(
-                    "Variable self.%(_v) does not contain one element after filtering by %(key)"
+                    f"Variable self.{_v} does not contain one element after filtering by {key}"
                 )
-                raise
             else:
                 setattr(self, _v.replace("_files", "_f"), filtered[0])
+            file_list[_v.replace("files", "file")] = getattr(self, _v.replace("_files", "_f"))
+
+        return file_list
 
     def list_dl3_files(self):
         """
@@ -141,31 +172,31 @@ class DL3Files:
         """
         if self.dl3_type.lower() == "lat":
             self.events_files = sorted(list(self.dl3_path.glob(self.glob_dict["events"])))
-            self.log("The list of DL3 event files for LAT selected:", self.events_files)
+            self.log.info(f"The list of DL3 event files for LAT selected: {self.events_files}")
             self.edrm_files = sorted(list(self.dl3_path.glob(self.glob_dict["edisp"])))
-            self.log(
-                "The list of Detector Response Matrix files for LAT selected:", self.edrm_files
+            self.log.info(
+                f"The list of Detector Response Matrix files for LAT selected: {self.edrm_files}"
             )
-            self.xml_files = sorted(list(self.dl3_path.glob(self.glob_dict["xml"])))
-            self.log("The list of XML files for LAT selected:", self.xml_files)
+            self.xml_files = sorted(list(self.dl3_path.glob(self.glob_dict["xml_model"])))
+            self.log.info(f"The list of XML files for LAT selected: {self.xml_files}")
             self.expmap_files = sorted(list(self.dl3_path.glob(self.glob_dict["exposure"])))
-            self.log("The list of Exposure Map files for LAT selected:", self.expmap_files)
+            self.log.info(f"The list of Exposure Map files for LAT selected: {self.expmap_files}")
             self.psf_files = sorted(list(self.dl3_path.glob(self.glob_dict["psf"])))
-            self.log("The list of PSF files for LAT selected:", self.psf_files)
+            self.log.info(f"The list of PSF files for LAT selected: {self.psf_files}")
 
         if self.dl3_type.lower() == "lat-aux":
             self.diff_gal_files = sorted(list(self.dl3_path.glob(self.glob_dict["diffuse"])))
-            self.log(
-                "The list of Diffuse Galactic sources for LAT-Aux selected:", self.diff_gal_files
+            self.log.info(
+                f"The list of Diffuse Galactic sources for LAT-Aux selected: {self.diff_gal_files}"
             )
             self.iso_files = sorted(list(self.dl3_path.glob(self.glob_dict["iso"])))
-            self.log(
-                "The list of Isotropic Diffuse model files for LAT-Aux selected:", self.iso_files
+            self.log.info(
+                f"The list of Isotropic Diffuse model files for LAT-Aux selected: {self.iso_files}"
             )
 
         if self.dl3_type.lower() == "lst-1":
             self.event_files = sorted(list(self.dl3_path.glob(self.glob_dict["dl3"])))
-            self.log("The list of DL3 files for LST-1 selected:", self.events_files)
+            self.log.info(f"The list of DL3 files for LST-1 selected: {self.event_files}")
 
     def get_lat_spectra_results(self):
         """
@@ -184,16 +215,6 @@ class DL3Files:
             ]
             self.lat_ebin_file = [K for K in self.lat_spectra if "cov" not in K and "Ebin" in K]
 
-    def prepare_lat_files(self, key):
-        """
-        Prepare a list of LAT files following a particular key.
-        """
-        self.tag = key
-        # Try to combine LAT and LAT-AUX files
-        self.list_dl3_files()
-        self.get_lat_spectra_results()
-        self.select_unique_files(self.tag)
-
 
 class DL4Files:
     """
@@ -205,7 +226,7 @@ class DL4Files:
         if Path(dl4_path).exists():
             self.dl4_path = Path(dl4_path)
         else:
-            self.log.error("%(dl4_path) does not exist")
+            self.log.error(f"{dl4_path} does not exist")
         # Check the object type? and take apprpriate measures
         self.model = Models(model)
         self.flux_points = flux_points
@@ -218,7 +239,7 @@ class DL4Files:
 
     def _set_logging(self):
         self.log = logging.getLogger(__name__)
-        self.log.setLevel("%(logging.INFO)")
+        self.log.setLevel(logging.INFO)
 
     def write_model_to_yaml(
         self,

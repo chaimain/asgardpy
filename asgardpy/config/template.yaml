@@ -6,6 +6,8 @@ general:
     level: info
   outdir: /data/magic/users-ifae/cpriyada/lst/
   n_jobs: 1
+  steps: [datasets-3d, datasets-1d, fit]
+  overwrite: true
 
 # Target settings
 target:
@@ -65,16 +67,16 @@ dataset3d:
       -   type: lat
           input_dir: /data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/LAT/Analysis1/EBL/LogParabola/
           glob_pattern:
-          -   events: "*_MkTime.fits*"
-          -   edisp: "_*eDRM.fits*"
-          -   xml_model: "*_out.xml"
-          -   exposure: "*_BinnedMap.fits*"
-          -   psf: "*_psf.fits*"
+            events: "*MkTime.fits*"
+            edisp: "*eDRM.fits*"
+            xml_model: "*out.xml"
+            exposure: "*BinnedMap.fits*"
+            psf: "*psf.fits*"
       -   type: lat-aux
           input_dir: /data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/LAT/diffuse_models/
           glob_pattern:
-          -   diffuse: "gll_iem_v07.fits*"
-          -   iso: "iso_P8R3_SOURCE_V3_*.txt"
+            diffuse: "gll_iem_v07.fits*"
+            iso: "iso_P8R3_SOURCE_V3_*.txt"
       dataset_info:
         name: Fermi-LAT
         key: ["FRONT", "BACK"]
@@ -92,17 +94,17 @@ dataset3d:
                   lon: 120 deg
                   lat: 20 deg
                 parameters:
-                -   rad_0: 8 deg
-                -   rad_1: 15 deg
+                -   rad_0: 1 deg
+                -   rad_1: 2 deg
         safe_mask:
           methods: []
           parameters:
             min: 0.1 GeV
             max: 1 TeV
         on_region:
-          frame: galactic
-          lon: 120 deg
-          lat: 20 deg
+          frame: "icrs"
+          lon: 238.92934976 deg
+          lat: 11.19010155 deg
           radius: 0.4 deg
         containment_correction: true
 # - name: HAWC?
@@ -117,7 +119,7 @@ dataset1d:
       -   type: lst-1
           input_dir: "/data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/v09x/tailcut84/DL3/real/interp_irf_en_dep/no_tuning/geff_80/teff_80/20220511_dec931/"
           glob_pattern:
-          -   dl3: "202*/dl3*fits"
+            dl3: "202*/dl3*fits"
       dataset_info:
         name: LST-1
         geom:
@@ -138,11 +140,12 @@ dataset1d:
           obs_time:
             start: "2021-01-01"
             stop: "2021-03-30"
-          required_irfs: [events, gti, aeff, edisp, rad_max]
+          required_irfs: ["aeff", "edisp", "rad_max"]
         background:
           method: reflected
+          region_finder_method: wobble
           parameters:
-            wobble_off_regions: 1
+            n_off_regions: 1
           exclusion:
             name: None
             position:
@@ -161,27 +164,46 @@ dataset1d:
             offset_max: 3 deg
             position:
               frame: "icrs"
-              lon: 83.63 deg
-              lat: 22.01 deg
+              lon: 238.92934976 deg
+              lat: 11.19010155 deg
         on_region:
-          frame: galactic
-          lon: 83.633 deg
-          lat: 22.0145 deg
-        containment_correction: true
+          frame: "icrs"
+          lon: 238.92934976 deg
+          lat: 11.19010155 deg
+        containment_correction: false
         map_selection: [counts, exposure, edisp]
 #  - name: MAGIC
 #      ... full description ...
 
 # Fit parameters
 fit_params:
-  fit_range: {min: 10 GeV, max: 10 TeV}
+  fit_range:
+    min: "100 MeV"
+    max: "10 TeV"
   backend: minuit
+  optimize_opts: {}
+  covariance_opts: {}
+  confidence_opts: {}
   store_trace: true
 
-# Final DL4 products to generate
-#final_products:
-#  sed: true
-#  residuals: true
-#  ts_profile: true
-#  stat_profile: true
-#  lc: false
+flux_points_params:
+  energy:
+    min: "100 MeV"
+    max: "10 TeV"
+  parameters:
+    selection_optional: "all"
+
+light_curve_params:
+  # time_intervals:
+  energy_edges:
+    min: "100 GeV"
+    max: "100 TeV"
+  parameters:
+    selection_optional: "all"
+
+excess_map_params:
+  energy_edges:
+    min: "100 MeV"
+    max: "10 TeV"
+  correlation_radius: 0.1 deg
+  # parameters:

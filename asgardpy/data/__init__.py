@@ -11,15 +11,16 @@ from asgardpy.data.base import (
     TimeRangeConfig,
     TimeType,
 )
-from asgardpy.data.dataset_1d import (
-    Dataset1DDataSelectionAnalysisStep,
-    Dataset1DDatasetsAnalysisStep,
-    Dataset1DObservationsAnalysisStep,
-)
-from asgardpy.data.dataset_3d import (
-    Dataset3DDataSelectionAnalysisStep,
-    Dataset3DDatasetsAnalysisStep,
-    Dataset3DObservationsAnalysisStep,
+from asgardpy.data.dataset_1d import Dataset1DGeneration, Datasets1DAnalysisStep
+from asgardpy.data.dataset_3d import Dataset3DGeneration, Datasets3DAnalysisStep
+from asgardpy.data.dl4 import (
+    ExcessMapConfig,
+    FitAnalysisStep,
+    FitConfig,
+    FluxPointsAnalysisStep,
+    FluxPointsConfig,
+    LightCurveAnalysisStep,
+    LightCurveConfig,
 )
 from asgardpy.data.geom import (
     EnergyAxesConfig,
@@ -41,20 +42,16 @@ from asgardpy.data.reduction import (
     SafeMaskConfig,
     SafeMaskMethodsEnum,
 )
-from asgardpy.data.target import Target
+from asgardpy.data.target import Target, config_to_dict, set_models
 
 ANALYSIS_STEP_REGISTRY = Registry(
     [
-        Dataset1DDataSelectionAnalysisStep,
-        Dataset1DObservationsAnalysisStep,
-        Dataset1DDatasetsAnalysisStep,
-        Dataset3DDataSelectionAnalysisStep,
-        Dataset3DObservationsAnalysisStep,
-        Dataset3DDatasetsAnalysisStep,
+        Datasets1DAnalysisStep,
+        Datasets3DAnalysisStep,
         # ExcessMapAnalysisStep,
-        # FitAnalysisStep,
-        # FluxPointsAnalysisStep,
-        # LightCurveAnalysisStep,
+        FitAnalysisStep,
+        FluxPointsAnalysisStep,
+        LightCurveAnalysisStep,
     ]
 )
 
@@ -69,6 +66,8 @@ __all__ = [
     "TimeRangeConfig",
     "EnergyRangeConfig",
     "Target",
+    "set_models",
+    "config_to_dict",
     "SpatialCircleConfig",
     "SpatialPointConfig",
     "EnergyAxisConfig",
@@ -85,10 +84,15 @@ __all__ = [
     "MapSelectionEnum",
     "BackgroundConfig",
     "SafeMaskConfig",
-    "Dataset1DDataSelectionAnalysisStep",
-    "Dataset1DObservationsAnalysisStep",
-    "Dataset1DDatasetsAnalysisStep",
-    "Dataset3DDataSelectionAnalysisStep",
-    "Dataset3DObservationsAnalysisStep",
-    "Dataset3DDatasetsAnalysisStep",
+    "Dataset1DGeneration",
+    "Datasets1DAnalysisStep",
+    "Dataset3DGeneration",
+    "Datasets3DAnalysisStep",
+    "FluxPointsConfig",
+    "LightCurveConfig",
+    "FitConfig",
+    "ExcessMapConfig",
+    "FitAnalysisStep",
+    "FluxPointsAnalysisStep",
+    "LightCurveAnalysisStep",
 ]

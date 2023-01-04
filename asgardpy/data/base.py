@@ -88,10 +88,13 @@ class AnalysisStepBase(abc.ABC):
     # def name(self):
     #    return self._name
 
-    def run(self):  # , data
-        # self.data = data
+    def run(self, datasets=None):  # , data
+        self.datasets = datasets
         # self.products = self.data
-        self._run()
+        final_product = self._run()
+        self.log.info(f"Analysis Step {self.tag} completed")
+
+        return final_product
 
     @abc.abstractmethod
     def _run(self):
@@ -109,13 +112,13 @@ class AnalysisStep:
         return cls(config, **kwargs)
 
 
-class AnalysisStepEnum:
-    dataset_1d_data_selection = "dataset-1d-data-selection"
-    dataset_1d_observations = "dataset-1d-observations"
-    dataset_1d_datasets = "dataset-1d-datasets"
-    dataset_3d_data_selection = "dataset-3d-data-selection"
-    dataset_3d_observations = "dataset-3d-observations"
-    dataset_3d_datasets = "dataset-3d-datasets"
+class AnalysisStepEnum(str, Enum):
+    datasets_1d = "datasets-1d"
+    datasets_3d = "datasets-3d"
+    fit = "fit"
+    flux_points = "flux-points"
+    excess_map = "excess-map"
+    light_curve = "light-curve"
 
 
 class TimeRangeConfig(BaseConfig):
