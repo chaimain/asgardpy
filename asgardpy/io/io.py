@@ -3,7 +3,6 @@ Base I/O functions
 """
 import logging
 from pathlib import Path
-# from typing import List
 
 from astropy.io import fits
 from gammapy.datasets import FluxPointsDataset
@@ -11,6 +10,9 @@ from gammapy.estimators import FluxPoints
 from gammapy.modeling.models import SPECTRAL_MODEL_REGISTRY, Models
 
 from asgardpy.data.base import BaseConfig
+
+# from typing import List
+
 
 __all__ = ["InputFilePatterns", "InputConfig", "DL3Files", "DL4Files"]
 
@@ -101,7 +103,9 @@ class DL3Files:
         try:
             SPECTRAL_MODEL_REGISTRY.get_cls(self.model.type)
         except Exception:
-            self.log.error(f"{self.model.type} is not a proper Spectral Model recognized by Gammapy")
+            self.log.error(
+                f"{self.model.type} is not a proper Spectral Model recognized by Gammapy"
+            )
 
     def _check_dl3_type(self):
         if self.dl3_type.lower() not in EXPECTED_DL3_RANGE:

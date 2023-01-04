@@ -42,7 +42,7 @@ from asgardpy.data.reduction import (
     SafeMaskConfig,
     SafeMaskMethodsEnum,
 )
-from asgardpy.data.target import Target
+from asgardpy.data.target import Target, config_to_dict, set_models
 
 ANALYSIS_STEP_REGISTRY = Registry(
     [
@@ -66,6 +66,8 @@ __all__ = [
     "TimeRangeConfig",
     "EnergyRangeConfig",
     "Target",
+    "set_models",
+    "config_to_dict",
     "SpatialCircleConfig",
     "SpatialPointConfig",
     "EnergyAxisConfig",

@@ -106,7 +106,7 @@ dataset3d:
           lon: 238.92934976 deg
           lat: 11.19010155 deg
           radius: 0.4 deg
-        containment_correction: false
+        containment_correction: true
 # - name: HAWC?
 #    ... full description ...
 

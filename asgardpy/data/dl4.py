@@ -6,8 +6,8 @@ from enum import Enum
 from astropy import units as u
 from gammapy.datasets import Datasets
 from gammapy.estimators import FluxPointsEstimator, LightCurveEstimator
+# from gammapy.maps import Map
 from gammapy.modeling import Fit
-from gammapy.maps import Map
 
 from asgardpy.data.base import (
     AnalysisStepBase,
@@ -64,6 +64,7 @@ class FitAnalysisStep(AnalysisStepBase):
     """
     Fit the target model to the updated list of datasets.
     """
+
     tag = "fit"
 
     def _run(self):
@@ -72,7 +73,9 @@ class FitAnalysisStep(AnalysisStepBase):
         self._setup_fit()
         final_dataset = self._set_datasets()
         self.fit_result = self.fit.run(datasets=final_dataset)
+        best_fit_model = final_dataset.models.to_dict()
         self.log.info(self.fit_result)
+        self.log.info(best_fit_model)
 
     def _setup_fit(self):
         """
@@ -80,10 +83,10 @@ class FitAnalysisStep(AnalysisStepBase):
         """
         self.fit = Fit(
             backend=self.fit_params.backend,
-            optimize_opts = self.fit_params.optimize_opts,
-            covariance_opts = self.fit_params.covariance_opts,
-            confidence_opts = self.fit_params.confidence_opts,
-            store_trace = self.fit_params.store_trace,
+            optimize_opts=self.fit_params.optimize_opts,
+            covariance_opts=self.fit_params.covariance_opts,
+            confidence_opts=self.fit_params.confidence_opts,
+            store_trace=self.fit_params.store_trace,
         )
 
     def _set_datasets(self):

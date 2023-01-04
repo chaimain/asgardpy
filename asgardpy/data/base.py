@@ -92,13 +92,13 @@ class AnalysisStepBase(abc.ABC):
         self.datasets = datasets
         # self.products = self.data
         final_product = self._run()
-        print("Analysis Step completed")
+        self.log.info(f"Analysis Step {self.tag} completed")
 
         return final_product
 
     @abc.abstractmethod
     def _run(self):
-        print("Analysis Step completed?")
+        pass
 
 
 class AnalysisStep:

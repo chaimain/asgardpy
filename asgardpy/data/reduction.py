@@ -7,7 +7,7 @@ from enum import Enum
 from pathlib import Path
 from typing import List
 
-from asgardpy.data.base import BaseConfig, TimeRangeConfig, AngleType
+from asgardpy.data.base import AngleType, BaseConfig, TimeRangeConfig
 
 __all__ = [
     "ReductionTypeEnum",

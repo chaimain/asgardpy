@@ -14,11 +14,11 @@ from astropy.io import fits
 
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
 from gammapy.data import EventList
-from gammapy.datasets import MapDataset, Datasets
+from gammapy.datasets import Datasets, MapDataset
 from gammapy.irf import EDispKernel, EDispKernelMap, PSFMap
 from gammapy.makers import MapDatasetMaker
 from gammapy.maps import Map, MapAxis
-from gammapy.modeling import Parameter, Parameters
+from gammapy.modeling import Parameters  #, Parameter
 from gammapy.modeling.models import (
     SPECTRAL_MODEL_REGISTRY,
     EBLAbsorptionNormSpectralModel,
@@ -93,12 +93,17 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             key_names = self.config_3d_dataset.dataset_info.key
             self.log.info(f"The different keys used: {key_names}")
 
+            datasets_instrument = Datasets()
             for key in key_names:
                 generate_3d_dataset = Dataset3DGeneration(
                     self.config_3d_dataset, self.config.target, key
                 )
                 dataset = generate_3d_dataset.run()
+                datasets_instrument.append(dataset)
                 datasets_3d_final.append(dataset)
+            # To have a stacked dataset for each instrument
+            # datasets_instrument.stack_reduce(name=self.config_3d_dataset.dataset_info.name)
+            # datasets_3d_final.append(datasets_instrument[0])
 
         return datasets_3d_final
 
@@ -274,7 +279,9 @@ class Dataset3DGeneration:
             elif source_name == "GalDiffModel":
                 source = self.create_gal_diffuse_skymodel(self.diff_gal)
             else:
-                source, is_target_source = self.create_source_skymodel(src, aux_path, lp_is_intrinsic)
+                source, is_target_source = self.create_source_skymodel(
+                    src, aux_path, lp_is_intrinsic
+                )
             if is_target_source:
                 self.target_full_model = source
             self.list_sources.append(source)
@@ -343,6 +350,7 @@ class Dataset3DGeneration:
                     spectrum_type_final = f"{spectrum_type}SpectralModel"
 
                 spec_model = SPECTRAL_MODEL_REGISTRY.get_cls(spectrum_type_final)()
+                # spec_model.name = source_name
                 ebl_atten_pl = False
 
                 if spectrum_type == "LogParabola" and "EblAtten" in src["spectrum"]["@type"]:
@@ -568,7 +576,7 @@ class Dataset3DGeneration:
             mask_safe.data = np.asarray(mask_safe.data == 0, dtype=bool)
 
         dataset = MapDataset(
-            models=self.target_full_model,
+            models=Models(self.target_full_model),
             counts=self.counts_map,
             exposure=self.exposure_interp,
             psf=self.psf,
