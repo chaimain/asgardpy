@@ -8,20 +8,20 @@ from typing import List
 
 from astropy.coordinates import SkyCoord
 from gammapy.maps import Map
-from gammapy.modeling import Parameters  # , Parameter
+from gammapy.modeling import Parameters  #, Parameter
 from gammapy.modeling.models import (
     SPATIAL_MODEL_REGISTRY,
     SPECTRAL_MODEL_REGISTRY,
     DatasetModels,
     EBLAbsorptionNormSpectralModel,
     LogParabolaSpectralModel,
-    Models,
     PointSpatialModel,
     PowerLawNormSpectralModel,
     PowerLawSpectralModel,
-    SkyModel,
     TemplateSpatialModel,
-    create_fermi_isotropic_diffuse_model,
+    Models,
+    SkyModel,
+    create_fermi_isotropic_diffuse_model
 )
 
 from asgardpy.data.base import BaseConfig
@@ -34,6 +34,7 @@ __all__ = [
     "Target",
     "set_models",
     "config_to_dict",
+    "read_models_from_asgardpy_config",
     "xml_to_gammapy_model_params",
     "create_source_skymodel",
     "create_iso_diffuse_skymodel",
@@ -88,7 +89,7 @@ class Target(BaseConfig):
     covariance: str = None
     from_fermi: bool = False
 
-
+# Models section
 def set_models(config, datasets, models=None, extend=False):
     """
     Set models on given Datasets.
@@ -105,33 +106,7 @@ def set_models(config, datasets, models=None, extend=False):
     """
     # Have some checks on argument types
     if config.components:
-        model_config = config.components
-        # Spectral Model
-        if model_config.spectral.ebl_abs.model_name is not None:
-            model1 = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
-                {"spectral": config_to_dict(model_config.spectral)}
-            )
-
-            ebl_model = model_config.spectral.ebl_abs
-            model2 = EBLAbsorptionNormSpectralModel.read_builtin(
-                ebl_model.model_name, redshift=ebl_model.redshift
-            )
-            if ebl_model.alpha_norm:
-                model2.alpha_norm.value = ebl_model.alpha_norm
-            spec_model = model1 * model2
-        else:
-            spec_model = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
-                {"spectral": config_to_dict(model_config.spectral)}
-            )
-        spec_model.name = config.source_name
-        # Spatial model if provided
-        if model_config.spatial.model_name is not None:
-            spat_model = SPATIAL_MODEL_REGISTRY.get_cls(model_config.spatial.type)().from_dict(
-                {"spatial": config_to_dict(model_config.spatial)}
-            )
-        else:
-            spat_model = None
-        # Final SkyModel
+        spec_model, spat_model = read_models_from_asgardpy_config(config)
         models = Models(
             SkyModel(
                 spectral_model=spec_model,
@@ -156,6 +131,39 @@ def set_models(config, datasets, models=None, extend=False):
 
     return datasets
 
+def read_models_from_asgardpy_config(config):
+    """
+    Reading Models information from AsgardpyConfig and return Spectral and
+    Spatial Models object to be combined later into SkyModels/Models object.
+    """
+    model_config = config.components
+    # Spectral Model
+    if model_config.spectral.ebl_abs.model_name is not None:
+        model1 = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
+            {"spectral": config_to_dict(model_config.spectral)}
+        )
+
+        ebl_model = model_config.spectral.ebl_abs
+        model2 = EBLAbsorptionNormSpectralModel.read_builtin(
+            ebl_model.model_name, redshift=ebl_model.redshift
+        )
+        if ebl_model.alpha_norm:
+            model2.alpha_norm.value = ebl_model.alpha_norm
+        spec_model = model1 * model2
+    else:
+        spec_model = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
+            {"spectral": config_to_dict(model_config.spectral)}
+        )
+    spec_model.name = config.source_name
+    # Spatial model if provided
+    if model_config.spatial.model_name is not None:
+        spat_model = SPATIAL_MODEL_REGISTRY.get_cls(model_config.spatial.type)().from_dict(
+            {"spatial": config_to_dict(model_config.spatial)}
+        )
+    else:
+        spat_model = None
+
+    return spec_model, spat_model
 
 def config_to_dict(model_config):
     """
@@ -179,12 +187,12 @@ def config_to_dict(model_config):
 
     return model_dict
 
-
 def xml_to_gammapy_model_params(
     params, spectrum_type, is_target=False, keep_sign=False, lp_is_intrinsic=False
 ):
     """
-    Make some basic conversions on the spectral model parameters
+    Convert the Models information from XML model of FermiTools to Gammapy
+    standards and return Parameters list.
     """
     params_list = []
     for par in params:
@@ -240,7 +248,6 @@ def xml_to_gammapy_model_params(
 
     return params_final
 
-
 def create_source_skymodel(config_target, src, aux_path, lp_is_intrinsic=False):
     """
     Build SkyModels from a given AsgardpyConfig section of the target
@@ -255,52 +262,52 @@ def create_source_skymodel(config_target, src, aux_path, lp_is_intrinsic=False):
     target_red = config_target.source_name.replace("_", "").replace(" ", "")
 
     # Check if target_source file exists
+    is_src_target = False
     if source_name_red == target_red:
         source_name = config_target.source_name
         is_src_target = True
-        # self.log.debug("Detected target source")
+        spec_model, _ = read_models_from_asgardpy_config(config_target)
     else:
-        is_src_target = False
-
-    for spec in spectrum:
-        if spec["@name"] not in ["GalDiffModel", "IsoDiffModel"]:
-            if spectrum_type == "PLSuperExpCutoff":
-                spectrum_type_final = "ExpCutoffPowerLawSpectralModel"
-            elif spectrum_type == "PLSuperExpCutoff4":
-                spectrum_type_final = "SuperExpCutoffPowerLaw4FGLDR3SpectralModel"
-            else:
-                spectrum_type_final = f"{spectrum_type}SpectralModel"
-
-            spec_model = SPECTRAL_MODEL_REGISTRY.get_cls(spectrum_type_final)()
-            # spec_model.name = source_name
-            ebl_atten_pl = False
-
-            if spectrum_type == "LogParabola" and "EblAtten" in src["spectrum"]["@type"]:
-                if lp_is_intrinsic:
-                    spec_model = LogParabolaSpectralModel()
+        for spec in spectrum:
+            if spec["@name"] not in ["GalDiffModel", "IsoDiffModel"]:
+                if spectrum_type == "PLSuperExpCutoff":
+                    spectrum_type_final = "ExpCutoffPowerLawSpectralModel"
+                elif spectrum_type == "PLSuperExpCutoff4":
+                    spectrum_type_final = "SuperExpCutoffPowerLaw4FGLDR3SpectralModel"
                 else:
-                    ebl_atten_pl = True
-                    spec_model = PowerLawSpectralModel()
+                    spectrum_type_final = f"{spectrum_type}SpectralModel"
 
-    params_list = xml_to_gammapy_model_params(
-        spectrum,
-        spectrum_type,
-        is_target=is_src_target,
-        keep_sign=ebl_atten_pl,
-        lp_is_intrinsic=lp_is_intrinsic,
-    )
-    spec_model.from_parameters(params_list)
-    config_spectral = config_target.components.spectral
-    ebl_absorption_included = config_spectral.ebl_abs is not None
+                spec_model = SPECTRAL_MODEL_REGISTRY.get_cls(spectrum_type_final)()
+                # spec_model.name = source_name
+                ebl_atten_pl = False
 
-    if is_src_target and ebl_absorption_included:
-        ebl_absorption = config_spectral.ebl_abs
-        ebl_model = ebl_absorption.model_name
-        ebl_spectral_model = EBLAbsorptionNormSpectralModel.read_builtin(
-            ebl_model, redshift=ebl_absorption.redshift
+                if spectrum_type == "LogParabola" and "EblAtten" in src["spectrum"]["@type"]:
+                    if lp_is_intrinsic:
+                        spec_model = LogParabolaSpectralModel()
+                    else:
+                        ebl_atten_pl = True
+                        spec_model = PowerLawSpectralModel()
+
+        params_list = xml_to_gammapy_model_params(
+            spectrum,
+            spectrum_type,
+            is_target=is_src_target,
+            keep_sign=ebl_atten_pl,
+            lp_is_intrinsic=lp_is_intrinsic,
         )
-        spec_model = spec_model * ebl_spectral_model
+        spec_model.from_parameters(params_list)
+        config_spectral = config_target.components.spectral
+        ebl_absorption_included = config_spectral.ebl_abs is not None
 
+        if is_src_target and ebl_absorption_included:
+            ebl_absorption = config_spectral.ebl_abs
+            ebl_model = ebl_absorption.model_name
+            ebl_spectral_model = EBLAbsorptionNormSpectralModel.read_builtin(
+                ebl_model, redshift=ebl_absorption.redshift
+            )
+            spec_model = spec_model * ebl_spectral_model
+
+    # Reading Spatial model from the XML file
     if src["spatialModel"]["@type"] == "SkyDirFunction":
         fk5_frame = SkyCoord(
             f"{spatial_pars[0]['@value']} deg",
@@ -319,6 +326,7 @@ def create_source_skymodel(config_target, src, aux_path, lp_is_intrinsic=False):
         spatial_model = TemplateSpatialModel(spatial_map, filename=file_path)
 
     spatial_model.freeze()
+
     source_sky_model = SkyModel(
         spectral_model=spec_model,
         spatial_model=spatial_model,
@@ -326,7 +334,6 @@ def create_source_skymodel(config_target, src, aux_path, lp_is_intrinsic=False):
     )
 
     return source_sky_model, is_src_target
-
 
 def create_iso_diffuse_skymodel(iso_file, key):
     """
@@ -344,7 +351,6 @@ def create_iso_diffuse_skymodel(iso_file, key):
     diff_iso.spectral_model.model2.parameters[0].max = 10
 
     return diff_iso
-
 
 def create_gal_diffuse_skymodel(diff_gal):
     """
