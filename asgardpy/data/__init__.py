@@ -42,7 +42,15 @@ from asgardpy.data.reduction import (
     SafeMaskConfig,
     SafeMaskMethodsEnum,
 )
-from asgardpy.data.target import Target, config_to_dict, set_models
+from asgardpy.data.target import (
+    Target,
+    config_to_dict,
+    create_gal_diffuse_skymodel,
+    create_iso_diffuse_skymodel,
+    create_source_skymodel,
+    set_models,
+    xml_to_gammapy_model_params,
+)
 
 ANALYSIS_STEP_REGISTRY = Registry(
     [
@@ -68,6 +76,10 @@ __all__ = [
     "Target",
     "set_models",
     "config_to_dict",
+    "xml_to_gammapy_model_params",
+    "create_source_skymodel",
+    "create_iso_diffuse_skymodel",
+    "create_gal_diffuse_skymodel",
     "SpatialCircleConfig",
     "SpatialPointConfig",
     "EnergyAxisConfig",
