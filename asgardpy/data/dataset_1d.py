@@ -11,13 +11,13 @@ from astropy.coordinates import SkyCoord
 
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
 from gammapy.data import DataStore
-from gammapy.datasets import SpectrumDataset, Datasets
+from gammapy.datasets import Datasets, SpectrumDataset
 from gammapy.makers import (
     ReflectedRegionsBackgroundMaker,
+    ReflectedRegionsFinder,
     SafeMaskMaker,
     SpectrumDatasetMaker,
     WobbleRegionsFinder,
-    ReflectedRegionsFinder
 )
 from gammapy.maps import MapAxis, RegionGeom, WcsGeom
 from regions import CircleSkyRegion, PointSkyRegion
@@ -92,12 +92,9 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
                 self.config_1d_dataset, self.config.target, self.dataset_3d
             )
             dataset = generate_1d_dataset.run()
-            #for data in dataset:
+            # for data in dataset:
             dataset = dataset.stack_reduce(name=self.config_1d_dataset.name)
-            dataset = set_models(
-                config=self.config.target,
-                datasets=dataset
-            )
+            dataset = set_models(config=self.config.target, datasets=dataset)
             datasets_1d_final.append(dataset)
 
         return datasets_1d_final
@@ -153,12 +150,9 @@ class Dataset1DGeneration:
             dataset_3d = Dataset3DGeneration(
                 self.dataset_3d_src_pos,  ## Need to fix this
                 self.config_target,
-                self.dataset_3d_src_pos.dataset_info.key[0]
+                self.dataset_3d_src_pos.dataset_info.key[0],
             )
-            dataset_3d.read_to_objects(
-                self.model,
-                self.dataset_3d_src_pos.dataset_info.key[0]
-            )
+            dataset_3d.read_to_objects(self.model, self.dataset_3d_src_pos.dataset_info.key[0])
             src_pos = dataset_3d.get_source_pos_from_3d_dataset()
         else:
             src_name = self.config_target.source_name
@@ -228,9 +222,7 @@ class Dataset1DGeneration:
             if bkg_config.exclusion["name"] == "None":
                 coord = bkg_config.exclusion["position"]
                 center_ex = SkyCoord(
-                    u.Quantity(coord["lon"]),
-                    u.Quantity(coord["lat"]),
-                    frame=coord["frame"]
+                    u.Quantity(coord["lon"]), u.Quantity(coord["lat"]), frame=coord["frame"]
                 ).icrs
             else:
                 center_ex = SkyCoord.from_name(bkg_config.exclusion["name"])
@@ -241,8 +233,8 @@ class Dataset1DGeneration:
         else:
             excluded_region = None
 
-        ## Needs to be united with other Geometry creation functions, into a separate class
-        ## Also make these geom parameters also part of the config requirements
+        # Needs to be united with other Geometry creation functions, into a separate class
+        # Also make these geom parameters also part of the config requirements
         excluded_geom = WcsGeom.create(
             npix=(125, 125), binsz=0.05, skydir=center_ex, proj="TAN", frame="icrs"
         )
@@ -256,8 +248,7 @@ class Dataset1DGeneration:
                 region_finder = ReflectedRegionsFinder(**bkg_config.parameters)
 
             bkg_maker = ReflectedRegionsBackgroundMaker(
-                region_finder=region_finder,
-                exclusion_mask=exclusion_mask
+                region_finder=region_finder, exclusion_mask=exclusion_mask
             )
         else:
             bkg_maker = None
@@ -290,10 +281,7 @@ class Dataset1DGeneration:
         object.
         """
         for obs in self.observations:
-            dataset = self.dataset_maker.run(
-                self.dataset_template.copy(name=str(obs.obs_id)),
-                obs
-            )
+            dataset = self.dataset_maker.run(self.dataset_template.copy(name=str(obs.obs_id)), obs)
             dataset_on_off = self.bkg_maker.run(dataset, obs)
             # Necessary meta information addition?
             dataset_on_off.meta_table["SOURCE"] = self.config_target.source_name
@@ -302,8 +290,7 @@ class Dataset1DGeneration:
             if "custom-mask" in safe_cfg.methods:
                 pars = safe_cfg.parameters
                 dataset_on_off.mask_safe = dataset_on_off.counts.geom.energy_mask(
-                    energy_min=u.Quantity(pars["min"]),
-                    energy_max=u.Quantity(pars["max"])
+                    energy_min=u.Quantity(pars["min"]), energy_max=u.Quantity(pars["max"])
                 )
             else:
                 dataset_on_off = self.safe_maker.run(dataset_on_off, obs)

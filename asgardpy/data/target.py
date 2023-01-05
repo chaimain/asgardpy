@@ -1,6 +1,6 @@
 """
 Classes containing the Target config parameters for the high-level interface.
-Also contains dome functions for setting various SkyModels for datasets.
+Also contains some functions for setting various SkyModels for datasets.
 """
 
 from pathlib import Path
@@ -8,20 +8,20 @@ from typing import List
 
 from astropy.coordinates import SkyCoord
 from gammapy.maps import Map
-from gammapy.modeling import Parameters  #, Parameter
+from gammapy.modeling import Parameters
 from gammapy.modeling.models import (
     SPATIAL_MODEL_REGISTRY,
     SPECTRAL_MODEL_REGISTRY,
     DatasetModels,
     EBLAbsorptionNormSpectralModel,
     LogParabolaSpectralModel,
+    Models,
     PointSpatialModel,
     PowerLawNormSpectralModel,
     PowerLawSpectralModel,
-    TemplateSpatialModel,
-    Models,
     SkyModel,
-    create_fermi_isotropic_diffuse_model
+    TemplateSpatialModel,
+    create_fermi_isotropic_diffuse_model,
 )
 
 from asgardpy.data.base import BaseConfig
@@ -89,6 +89,7 @@ class Target(BaseConfig):
     covariance: str = None
     from_fermi: bool = False
 
+
 # Models section
 def set_models(config, datasets, models=None, extend=False):
     """
@@ -96,25 +97,32 @@ def set_models(config, datasets, models=None, extend=False):
 
     Parameters
     ----------
-    config: AsgardpyConfig containing target information.
-    datasets: Dataset object or Datasets?
+    config: `AsgardpyConfig` or others?
+        AsgardpyConfig containing target information.
+    datasets: `gammapy.datasets.Datasets`
+        Datasets object
     models : `~gammapy.modeling.models.Models` or str
         Models object or YAML models string
     extend : bool
         Extend the existing models on the datasets or replace them with
         another model, maybe a Background Model. Not worked out currently.
+
+    Returns
+    ------
+    datasets: `gammapy.datasets.Datasets`
+        Datasets object with Models assigned.
     """
     # Have some checks on argument types
     if isinstance(models, Models):
         print("Assigning the given models to the given datasets")
-    elif isinstance(models, DatasetModels) or isinstance(models, list):  # Essential?
+    elif isinstance(models, DatasetModels) or isinstance(models, list):
         models = Models(models)
     elif config.components:
-        spec_model, spat_model = read_models_from_asgardpy_config(config)
+        spectral_model, spatial_model = read_models_from_asgardpy_config(config)
         models = Models(
             SkyModel(
-                spectral_model=spec_model,
-                spatial_model=spat_model,
+                spectral_model=spectral_model,
+                spatial_model=spatial_model,
                 name=config.source_name,
             )
         )
@@ -131,12 +139,26 @@ def set_models(config, datasets, models=None, extend=False):
 
     return datasets
 
+
 def read_models_from_asgardpy_config(config):
     """
     Reading Models information from AsgardpyConfig and return Spectral and
     Spatial Models object to be combined later into SkyModels/Models object.
+
+    Parameters
+    ----------
+    config: `AsgardpyConfig`
+        Config section containing Target source information
+
+    Returns
+    -------
+    spectral_model: `gammapy.modeling.models.SpectralModel`
+        Spectral Model components of a gammapy SkyModel object.
+    spatial_model: `gammapy.modeling.models.SpatialModel`
+        Spatial Model components of a gammapy SkyModel object.
     """
     model_config = config.components
+
     # Spectral Model
     if model_config.spectral.ebl_abs.model_name is not None:
         model1 = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
@@ -149,26 +171,38 @@ def read_models_from_asgardpy_config(config):
         )
         if ebl_model.alpha_norm:
             model2.alpha_norm.value = ebl_model.alpha_norm
-        spec_model = model1 * model2
+        spectral_model = model1 * model2
     else:
-        spec_model = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
+        spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
             {"spectral": config_to_dict(model_config.spectral)}
         )
-    spec_model.name = config.source_name
+    spectral_model.name = config.source_name
+
     # Spatial model if provided
     if model_config.spatial.model_name is not None:
-        spat_model = SPATIAL_MODEL_REGISTRY.get_cls(model_config.spatial.type)().from_dict(
+        spatial_model = SPATIAL_MODEL_REGISTRY.get_cls(model_config.spatial.type)().from_dict(
             {"spatial": config_to_dict(model_config.spatial)}
         )
     else:
-        spat_model = None
+        spatial_model = None
 
-    return spec_model, spat_model
+    return spectral_model, spatial_model
+
 
 def config_to_dict(model_config):
     """
     Convert the Spectral/Spatial models into dict.
     Probably an extra step and maybe removed later.
+
+    Parameter
+    ---------
+    model_config: `AsgardpyConfig`
+        Config section containg Target Model SkyModel components only.
+
+    Return
+    ------
+    model_dict: dict
+        dictionary of the particular model.
     """
     model_dict = {}
     model_dict["type"] = str(model_config.type)
@@ -187,12 +221,30 @@ def config_to_dict(model_config):
 
     return model_dict
 
-def xml_to_gammapy_model_params(
-    params, spectrum_type, is_target=False, keep_sign=False, lp_is_intrinsic=False
-):
+
+def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_intrinsic=False):
     """
     Convert the Models information from XML model of FermiTools to Gammapy
     standards and return Parameters list.
+
+    Parameters
+    ----------
+    params: `gammapy.modeling.Parameters`
+        List of gammapy Parameter object of a particular Model
+    is_target: bool
+        Boolean to check if the given list of Parameters belong to the target
+        source model or not.
+    keep_sign: bool
+        Boolean to keep the same sign on the parameter values or not.
+    lp_is_intrinsic: bool
+        Boolean to check if the given Model assumes an intrinsic spectrum of
+        Log Parabola type, but uses Power Law and then adds EBL attenuation
+        for characterizing the curvature.
+
+    Returns
+    -------
+    params_final: `gammapy.modeling.Parameters`
+        Final list of gammapy Parameter object
     """
     params_list = []
     for par in params:
@@ -212,7 +264,7 @@ def xml_to_gammapy_model_params(
             new_par["is_norm"] = False
 
             # Using the nomenclature as used in Gammapy
-            # Make scale = 1, by multiplying it to the value, min and max?
+            # Making scale = 1, by multiplying it to the value, min and max
             if par["@name"].lower() in ["norm", "prefactor", "integral"]:
                 new_par["name"] = "amplitude"
                 new_par["unit"] = "cm-2 s-1 MeV-1"
@@ -248,25 +300,48 @@ def xml_to_gammapy_model_params(
 
     return params_final
 
-def create_source_skymodel(config_target, src, aux_path, lp_is_intrinsic=False):
+
+def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=False):
     """
     Build SkyModels from a given AsgardpyConfig section of the target
     source information, list of LAT files and other relevant information.
-    """
-    source_name = src["@name"]
-    spectrum_type = src["spectrum"]["@type"].split("EblAtten::")[-1]
-    spectrum = src["spectrum"]["parameter"]
-    spatial_pars = src["spatialModel"]["parameter"]
 
-    source_name_red = source_name.replace("_", "").replace(" ", "")
-    target_red = config_target.source_name.replace("_", "").replace(" ", "")
+    Parameters
+    ----------
+    config_target: `AsgardpyConfig`
+        Config section containing the Target source information.
+    source: dict
+        Dictionary containing the source models infromation from XML file.
+    aux_path: str
+        Path location of the LAT auxillary files.
+    lp_is_intrinsic: bool
+        Boolean to check if the given Model assumes an intrinsic spectrum of
+        Log Parabola type, but uses Power Law and then adds EBL attenuation
+        for characterizing the curvature.
+
+    Returns
+    -------
+    source_sky_model: `gammapy.modeling.SkyModel`
+        SkyModels object for the given source information.
+    is_source_target: bool
+        Boolean to check if the Models belong to the target source.
+    """
+    source_name = source["@name"]
+    spectrum_type = source["spectrum"]["@type"].split("EblAtten::")[-1]
+    spectrum = source["spectrum"]["parameter"]
+    spatial_pars = source["spatialModel"]["parameter"]
+
+    source_name_check = source_name.replace("_", "").replace(" ", "")
+    target_check = config_target.source_name.replace("_", "").replace(" ", "")
 
     # Check if target_source file exists
-    is_src_target = False
-    if source_name_red == target_red:
+    is_source_target = False
+    if source_name_check == target_check:
         source_name = config_target.source_name
-        is_src_target = True
-        spec_model, _ = read_models_from_asgardpy_config(config_target)
+        is_source_target = True
+        # Only taking the spectral model information right now.
+        # Should generalize this part
+        spectral_model, _ = read_models_from_asgardpy_config(config_target)
     else:
         for spec in spectrum:
             if spec["@name"] not in ["GalDiffModel", "IsoDiffModel"]:
@@ -277,38 +352,37 @@ def create_source_skymodel(config_target, src, aux_path, lp_is_intrinsic=False):
                 else:
                     spectrum_type_final = f"{spectrum_type}SpectralModel"
 
-                spec_model = SPECTRAL_MODEL_REGISTRY.get_cls(spectrum_type_final)()
-                # spec_model.name = source_name
+                spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(spectrum_type_final)()
+                # spectral_model.name = source_name
                 ebl_atten_pl = False
 
-                if spectrum_type == "LogParabola" and "EblAtten" in src["spectrum"]["@type"]:
+                if spectrum_type == "LogParabola" and "EblAtten" in source["spectrum"]["@type"]:
                     if lp_is_intrinsic:
-                        spec_model = LogParabolaSpectralModel()
+                        spectral_model = LogParabolaSpectralModel()
                     else:
                         ebl_atten_pl = True
-                        spec_model = PowerLawSpectralModel()
+                        spectral_model = PowerLawSpectralModel()
 
         params_list = xml_to_gammapy_model_params(
             spectrum,
-            spectrum_type,
-            is_target=is_src_target,
+            is_target=is_source_target,
             keep_sign=ebl_atten_pl,
             lp_is_intrinsic=lp_is_intrinsic,
         )
-        spec_model.from_parameters(params_list)
+        spectral_model.from_parameters(params_list)
         config_spectral = config_target.components.spectral
         ebl_absorption_included = config_spectral.ebl_abs is not None
 
-        if is_src_target and ebl_absorption_included:
+        if is_source_target and ebl_absorption_included:
             ebl_absorption = config_spectral.ebl_abs
             ebl_model = ebl_absorption.model_name
             ebl_spectral_model = EBLAbsorptionNormSpectralModel.read_builtin(
                 ebl_model, redshift=ebl_absorption.redshift
             )
-            spec_model = spec_model * ebl_spectral_model
+            spectral_model = spectral_model * ebl_spectral_model
 
     # Reading Spatial model from the XML file
-    if src["spatialModel"]["@type"] == "SkyDirFunction":
+    if source["spatialModel"]["@type"] == "SkyDirFunction":
         fk5_frame = SkyCoord(
             f"{spatial_pars[0]['@value']} deg",
             f"{spatial_pars[1]['@value']} deg",
@@ -316,8 +390,8 @@ def create_source_skymodel(config_target, src, aux_path, lp_is_intrinsic=False):
         )
         gal_frame = fk5_frame.transform_to("galactic")
         spatial_model = PointSpatialModel.from_position(gal_frame)
-    elif src["spatialModel"]["@type"] == "SpatialMap":
-        file_name = src["spatialModel"]["@file"].split("/")[-1]
+    elif source["spatialModel"]["@type"] == "SpatialMap":
+        file_name = source["spatialModel"]["@file"].split("/")[-1]
         file_path = aux_path / f"Templates/{file_name}"
 
         spatial_map = Map.read(file_path)
@@ -328,16 +402,18 @@ def create_source_skymodel(config_target, src, aux_path, lp_is_intrinsic=False):
     spatial_model.freeze()
 
     source_sky_model = SkyModel(
-        spectral_model=spec_model,
+        spectral_model=spectral_model,
         spatial_model=spatial_model,
         name=source_name,
     )
 
-    return source_sky_model, is_src_target
+    return source_sky_model, is_source_target
+
 
 def create_iso_diffuse_skymodel(iso_file, key):
     """
-    Create a SkyModel of the Fermi Isotropic Diffuse Model.
+    Create a SkyModel of the Fermi Isotropic Diffuse Model and assigning
+    name as per the observation key.
     """
     diff_iso = create_fermi_isotropic_diffuse_model(
         filename=iso_file, interp_kwargs={"fill_value": None}
@@ -351,6 +427,7 @@ def create_iso_diffuse_skymodel(iso_file, key):
     diff_iso.spectral_model.model2.parameters[0].max = 10
 
     return diff_iso
+
 
 def create_gal_diffuse_skymodel(diff_gal):
     """

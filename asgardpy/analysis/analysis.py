@@ -51,10 +51,7 @@ class AsgardpyAnalysis:
         Set a given Model to the final datasets object.
         """
         self.datasets = set_models(
-            config=self.config.target,
-            datasets=self.datasets,
-            models=models,
-            extend=False
+            config=self.config.target, datasets=self.datasets, models=models, extend=False
         )
 
     @property
@@ -93,17 +90,12 @@ class AsgardpyAnalysis:
                         self.final_model = data.models
                     self.datasets.append(data)
             else:
-                # Running DL4 functions on a given Datasets object
-
-                # Only if multiple datasets are provided.
+                # Running DL4 functions on a given Datasets object.
+                # First confirming the Final Models object for all the datasets.
                 self.datasets = set_models(
-                    config=self.config.target,
-                    datasets=self.datasets,
-                    models=self.final_model
+                    config=self.config.target, datasets=self.datasets, models=self.final_model
                 )
-                analysis_step = AnalysisStep.create(
-                    step, self.config, **kwargs
-                )
+                analysis_step = AnalysisStep.create(step, self.config, **kwargs)
                 analysis_step.run(datasets=self.datasets)
 
     # keep these methods to be backward compatible

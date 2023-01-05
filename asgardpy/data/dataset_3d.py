@@ -35,9 +35,9 @@ from asgardpy.data.reduction import (
     SafeMaskConfig,
 )
 from asgardpy.data.target import (
-    create_source_skymodel,
-    create_iso_diffuse_skymodel,
     create_gal_diffuse_skymodel,
+    create_iso_diffuse_skymodel,
+    create_source_skymodel,
 )
 from asgardpy.io import DL3Files, InputConfig
 
@@ -125,7 +125,7 @@ class Dataset3DGeneration:
         file_list = self.read_to_objects(self.model, self.key_name)
         self.set_energy_dispersion_matrix()
         self.load_events(file_list["events_file"])
-        self.get_src_skycoord()
+        self.get_source_skycoord()
         self._counts_map()
         self._create_exclusion_mask()
         self.add_source_to_exclusion_region()
@@ -166,9 +166,9 @@ class Dataset3DGeneration:
         Need to generalize this as well for all datasets.
         """
         source_position_from_3d = None
-        for src in self.list_sources:
-            if src.name == self.config_target.source_name:
-                source_position_from_3d = src.spatial_model.position.icrs
+        for source in self.list_sources:
+            if source.name == self.config_target.source_name:
+                source_position_from_3d = source.spatial_model.position.icrs
 
         return source_position_from_3d
 
@@ -239,7 +239,7 @@ class Dataset3DGeneration:
             self.event_fits = fits.open(events_file)
             self.events = EventList.read(events_file)
 
-    def get_src_skycoord(self):
+    def get_source_skycoord(self):
         """
         Get the source skycoord from the events file.
         """
@@ -252,7 +252,7 @@ class Dataset3DGeneration:
                 history.split("angsep(RA,DEC,")[1].replace("\n", "").split(")")[0].split(",")
             )
 
-        self.src_pos = SkyCoord(ra_pos, dec_pos, unit="deg", frame="fk5")
+        self.source_pos = SkyCoord(ra_pos, dec_pos, unit="deg", frame="fk5")
 
     def get_list_objects(self, aux_path, xml_file, lp_is_intrinsic=False):
         """
@@ -263,17 +263,17 @@ class Dataset3DGeneration:
 
         with open(xml_file) as f:
             data = xmltodict.parse(f.read())["source_library"]["source"]
-            self.list_of_sources_final = [src["@name"] for src in data]
+            self.list_of_sources_final = [source["@name"] for source in data]
 
-        for src in data:
-            source_name = src["@name"]
+        for source in data:
+            source_name = source["@name"]
             if source_name == "IsoDiffModel":
                 source = self.diff_iso
             elif source_name == "GalDiffModel":
                 source = create_gal_diffuse_skymodel(self.diff_gal)
             else:
                 source, is_target_source = create_source_skymodel(
-                    self.config_target, src, aux_path, lp_is_intrinsic
+                    self.config_target, source, aux_path, lp_is_intrinsic
                 )
             if is_target_source:
                 self.target_full_model = source
@@ -284,7 +284,7 @@ class Dataset3DGeneration:
         Generate the counts Map object and fill it with the events information.
         """
         self.counts_map = Map.create(
-            skydir=self.src_pos,
+            skydir=self.source_pos,
             npix=(self.exposure.geom.npix[0][0], self.exposure.geom.npix[1][0]),
             proj="TAN",
             frame="fk5",
