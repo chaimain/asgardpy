@@ -23,5 +23,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Begin preparations for adding workable scripts by [@chaimain](https://github.com/chaimain).
 - Restructuring pipeline by [@chaimain](https://github.com/chaimain).
 - Work on various Models functions and assignments by [@chaimain](https://github.com/chaimain).
-- Adding plotting functions by [@chaimain](https://github.com/chaimain).
-- 
+- Adding plotting functions and flux-points step by [@chaimain](https://github.com/chaimain).
+-

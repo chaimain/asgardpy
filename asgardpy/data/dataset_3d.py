@@ -91,12 +91,17 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             key_names = self.config_3d_dataset.dataset_info.key
             self.log.info(f"The different keys used: {key_names}")
 
+            # Retrieving a single dataset for each instrument.
+            dataset_instrument = Datasets()
             for key in key_names:
                 generate_3d_dataset = Dataset3DGeneration(
                     self.config_3d_dataset, self.config.target, key
                 )
                 dataset = generate_3d_dataset.run()
-                datasets_3d_final.append(dataset)
+                dataset_instrument.append(dataset)
+            dataset_instrument.stack_reduce(name=self.config_3d_dataset.name)
+
+            datasets_3d_final.append(dataset_instrument[0])
 
         return datasets_3d_final
 

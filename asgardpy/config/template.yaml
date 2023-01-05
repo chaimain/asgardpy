@@ -6,7 +6,7 @@ general:
     level: info
   outdir: /data/magic/users-ifae/cpriyada/lst/
   n_jobs: 1
-  steps: [datasets-3d, datasets-1d, fit]
+  steps: [datasets-3d, datasets-1d, fit, flux-points]
   overwrite: true
 
 # Target settings
@@ -190,6 +190,7 @@ flux_points_params:
   energy:
     min: "100 MeV"
     max: "10 TeV"
+    nbins: 5
   parameters:
     selection_optional: "all"
 

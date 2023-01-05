@@ -6,8 +6,7 @@ from enum import Enum
 from astropy import units as u
 from gammapy.datasets import Datasets
 from gammapy.estimators import FluxPointsEstimator, LightCurveEstimator
-
-# from gammapy.maps import Map
+from gammapy.maps import MapAxis
 from gammapy.modeling import Fit
 
 from asgardpy.data.base import (
@@ -119,20 +118,46 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
         self.flux_points = []
 
         for dataset in self.datasets:
-            self.flux_points.append(self._get_spectral_points(dataset))
+            self._set_fpe(dataset)
+            flux_points = self.fpe.run(datasets=[dataset])
+            self.flux_points.append(flux_points)
 
-    def get_spectral_points(self, datasets):
-        """ """
-        energy_bin_edges = self.config.flux_points_params.energy
+    def _set_fpe(self, dataset):
+        """
+        Setup the Gammapy FluxPointsEstimator function with all the
+        provided parameters.
+        """
+        energy_range = self.config.flux_points_params.energy
+        energy_min = u.Quantity(energy_range.min)
+        energy_max = u.Quantity(energy_range.max)
 
-        fpe_settings = self.config.flux_points_params
-        fpe_settings.pop("energy")
+        # Check with the given energy range of counts of each dataset.
+        dataset_energy = dataset.counts.geom.axes["energy"].edges
+        data_geom_energy_min = dataset_energy[0]
+        data_geom_energy_max = dataset_energy[-1]
 
-        fpe = FluxPointsEstimator(
+        # Fix the energy range to be within the given dataset.
+        if energy_min < data_geom_energy_min:
+            energy_min = data_geom_energy_min
+        if energy_max > data_geom_energy_max:
+            energy_max = data_geom_energy_max
+
+        energy_bin_edges = MapAxis.from_energy_bounds(
+            energy_min=energy_min,
+            energy_max=energy_max,
+            nbin=int(energy_range.nbins),
+            per_decade=True,
+        ).edges
+
+        fpe_settings = self.config.flux_points_params.parameters
+
+        self.fpe = FluxPointsEstimator(
             energy_edges=energy_bin_edges, source=self.config.target.source_name, **fpe_settings
         )
 
-        flux_points = fpe.run(datasets=datasets)
+    def get_spectral_points(self, datasets):
+        """running for a given dataset?"""
+        flux_points = self.fpe.run(datasets=datasets)
 
         return flux_points
 
@@ -147,26 +172,35 @@ class LightCurveAnalysisStep(AnalysisStepBase):
 
     def _run(self):
         self.light_curve = []
+        self._set_lce()
 
         for dataset in self.datasets:
-            self.light_curve.append(self._get_lc_flux_points(dataset))
+            light_curve = self.lce.run(datasets=dataset)
+            print(light_curve)
+            self.light_curve.append(light_curve)
 
-    def get_lc_flux_points(self, datasets=None):
-        """ """
-        energy_range = self.config.light_curve_params.energy_range
+    def _set_lce(self):
+        """
+        Setup the Gammapy FluxPointsEstimator function with all the
+        provided parameters.
+        """
+        energy_range = self.config.light_curve_params.energy
+        energy_bin_edges = [u.Quantity(energy_range.min), u.Quantity(energy_range.max)]
+        # Fix time intervals input
         time_intervals = self.config.light_curve_params.time_intervals
 
-        lc_settings = self.config.light_curve_params
-        lc_settings.pop("energy_range")
-        lc_settings.pop("time_intervals")
+        lce_settings = self.config.light_curve_params.parameters
 
-        lc_flux = LightCurveEstimator(
-            energy_edges=energy_range,
+        self.lce = LightCurveEstimator(
+            energy_edges=energy_bin_edges,
             time_intervals=time_intervals,
             source=self.config.target.source_name,
-            **lc_settings
+            **lce_settings
         )
 
-        light_curve_flux = lc_flux.run(datasets=datasets)
+    def get_lc_flux_points(self, datasets=None):
+        """running for a given dataset?"""
+
+        light_curve_flux = self.lce.run(datasets=datasets)
 
         return light_curve_flux
