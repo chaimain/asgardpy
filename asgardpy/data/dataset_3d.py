@@ -35,9 +35,9 @@ from asgardpy.data.reduction import (
     SafeMaskConfig,
 )
 from asgardpy.data.target import (
-    create_gal_diffuse_skymodel,
-    create_iso_diffuse_skymodel,
     create_source_skymodel,
+    create_iso_diffuse_skymodel,
+    create_gal_diffuse_skymodel,
 )
 from asgardpy.io import DL3Files, InputConfig
 
@@ -91,17 +91,12 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             key_names = self.config_3d_dataset.dataset_info.key
             self.log.info(f"The different keys used: {key_names}")
 
-            datasets_instrument = Datasets()
             for key in key_names:
                 generate_3d_dataset = Dataset3DGeneration(
                     self.config_3d_dataset, self.config.target, key
                 )
                 dataset = generate_3d_dataset.run()
-                datasets_instrument.append(dataset)
                 datasets_3d_final.append(dataset)
-            # To have a stacked dataset for each instrument
-            # datasets_instrument.stack_reduce(name=self.config_3d_dataset.dataset_info.name)
-            # datasets_3d_final.append(datasets_instrument[0])
 
         return datasets_3d_final
 
@@ -401,7 +396,7 @@ class Dataset3DGeneration:
             psf=self.psf,
             edisp=EDispKernelMap.from_edisp_kernel(self.edisp_interp_kernel),
             mask_safe=mask_safe,
-            name="Fermi-LAT_{}".format(key_name),
+            name=f"Fermi-LAT_{key_name}",
         )
 
         return dataset

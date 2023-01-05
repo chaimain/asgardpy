@@ -105,7 +105,11 @@ def set_models(config, datasets, models=None, extend=False):
         another model, maybe a Background Model. Not worked out currently.
     """
     # Have some checks on argument types
-    if config.components:
+    if isinstance(models, Models):
+        print("Assigning the given models to the given datasets")
+    elif isinstance(models, DatasetModels) or isinstance(models, list):  # Essential?
+        models = Models(models)
+    elif config.components:
         spec_model, spat_model = read_models_from_asgardpy_config(config)
         models = Models(
             SkyModel(
@@ -116,10 +120,6 @@ def set_models(config, datasets, models=None, extend=False):
         )
     elif isinstance(models, str):  # Check this condition
         models = Models.from_yaml(models)
-    elif isinstance(models, Models):
-        pass
-    elif isinstance(models, DatasetModels) or isinstance(models, list):  # Essential?
-        models = Models(models)
     else:
         raise TypeError(f"Invalid type: {models!r}")
 
