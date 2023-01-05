@@ -35,9 +35,9 @@ from asgardpy.data.reduction import (
     SafeMaskConfig,
 )
 from asgardpy.data.target import (
-    create_gal_diffuse_skymodel,
-    create_iso_diffuse_skymodel,
     create_source_skymodel,
+    create_iso_diffuse_skymodel,
+    create_gal_diffuse_skymodel,
 )
 from asgardpy.io import DL3Files, InputConfig
 
@@ -170,6 +170,7 @@ class Dataset3DGeneration:
         Introduce the source coordinates from 3D dataset to 1D dataset.
         Need to generalize this as well for all datasets.
         """
+        # Maybe update this into the config file!
         source_position_from_3d = None
         for source in self.list_sources:
             if source.name == self.config_target.source_name:

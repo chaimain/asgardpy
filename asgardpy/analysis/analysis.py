@@ -35,9 +35,9 @@ class AsgardpyAnalysis:
         self.config.set_logging()
         self.datasets = Datasets()
         self.final_model = None
-        # self.fit = Fit()
-        # self.fit_result = None
-        # self.flux_points = None
+        self.fit = None
+        self.fit_result = None
+        self.flux_points = None
 
     @property
     def models(self):
@@ -79,6 +79,7 @@ class AsgardpyAnalysis:
                 overwrite = True
         for step in steps:
             # Always start with 3D datasets. Probably add a check or fail-safe
+            # Should consider a better approach in running the steps in an order.
             if "datasets" in step:
                 analysis_step = AnalysisStep.create(step, self.config, **kwargs)
                 datasets_list = analysis_step.run()
@@ -91,12 +92,20 @@ class AsgardpyAnalysis:
                     self.datasets.append(data)
             else:
                 # Running DL4 functions on a given Datasets object.
-                # First confirming the Final Models object for all the datasets.
-                self.datasets = set_models(
-                    config=self.config.target, datasets=self.datasets, models=self.final_model
-                )
+                if step == "fit":
+                    # Confirming the Final Models object for all the datasets
+                    # for the Fit function.
+                    self.datasets = set_models(
+                        config=self.config.target, datasets=self.datasets, models=self.final_model
+                    )
                 analysis_step = AnalysisStep.create(step, self.config, **kwargs)
                 analysis_step.run(datasets=self.datasets)
+
+                # Update the final data product objects
+                for data_product in ["fit", "fit_result", "flux_points"]:
+                    if hasattr(analysis_step, data_product):
+                        setattr(self, data_product, getattr(analysis_step, data_product))
+
 
     # keep these methods to be backward compatible
     def get_1d_dataset(self):
