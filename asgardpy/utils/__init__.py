@@ -1,4 +1,4 @@
-from asgardpy.utils import (
+from asgardpy.utils.plot import (
     plot_lc,
     plot_model_covariance_correlation,
     plot_parameter_stat_profile,
