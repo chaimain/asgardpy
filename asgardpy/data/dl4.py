@@ -6,6 +6,7 @@ from enum import Enum
 from astropy import units as u
 from gammapy.datasets import Datasets
 from gammapy.estimators import FluxPointsEstimator, LightCurveEstimator
+
 # from gammapy.maps import Map
 from gammapy.modeling import Fit
 

@@ -18,18 +18,11 @@ from gammapy.datasets import Datasets, MapDataset
 from gammapy.irf import EDispKernel, EDispKernelMap, PSFMap
 from gammapy.makers import MapDatasetMaker
 from gammapy.maps import Map, MapAxis
-from gammapy.modeling import Parameters  #, Parameter
 from gammapy.modeling.models import (
-    SPECTRAL_MODEL_REGISTRY,
-    EBLAbsorptionNormSpectralModel,
-    LogParabolaSpectralModel,
     Models,
-    PointSpatialModel,
     PowerLawNormSpectralModel,
-    PowerLawSpectralModel,
     SkyModel,
     TemplateSpatialModel,
-    create_fermi_isotropic_diffuse_model,
 )
 from regions import CircleSkyRegion
 
@@ -40,6 +33,11 @@ from asgardpy.data.reduction import (
     MapSelectionEnum,
     ReductionTypeEnum,
     SafeMaskConfig,
+)
+from asgardpy.data.target import (
+    create_gal_diffuse_skymodel,
+    create_iso_diffuse_skymodel,
+    create_source_skymodel,
 )
 from asgardpy.io import DL3Files, InputConfig
 
@@ -93,17 +91,12 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             key_names = self.config_3d_dataset.dataset_info.key
             self.log.info(f"The different keys used: {key_names}")
 
-            datasets_instrument = Datasets()
             for key in key_names:
                 generate_3d_dataset = Dataset3DGeneration(
                     self.config_3d_dataset, self.config.target, key
                 )
                 dataset = generate_3d_dataset.run()
-                datasets_instrument.append(dataset)
                 datasets_3d_final.append(dataset)
-            # To have a stacked dataset for each instrument
-            # datasets_instrument.stack_reduce(name=self.config_3d_dataset.dataset_info.name)
-            # datasets_3d_final.append(datasets_instrument[0])
 
         return datasets_3d_final
 
@@ -132,7 +125,7 @@ class Dataset3DGeneration:
         file_list = self.read_to_objects(self.model, self.key_name)
         self.set_energy_dispersion_matrix()
         self.load_events(file_list["events_file"])
-        self.get_src_skycoord()
+        self.get_source_skycoord()
         self._counts_map()
         self._create_exclusion_mask()
         self.add_source_to_exclusion_region()
@@ -173,9 +166,9 @@ class Dataset3DGeneration:
         Need to generalize this as well for all datasets.
         """
         source_position_from_3d = None
-        for src in self.list_sources:
-            if src.name == self.config_target.source_name:
-                source_position_from_3d = src.spatial_model.position.icrs
+        for source in self.list_sources:
+            if source.name == self.config_target.source_name:
+                source_position_from_3d = source.spatial_model.position.icrs
 
         return source_position_from_3d
 
@@ -196,7 +189,7 @@ class Dataset3DGeneration:
 
         elif dl3_type.lower() == "lat-aux":
             self.diff_gal = Map.read(file_list["diff_gal_file"])
-            self.diff_iso = self.create_iso_diffuse_skymodel(file_list["iso_file"], key)
+            self.diff_iso = create_iso_diffuse_skymodel(file_list["iso_file"], key)
 
             return file_list, [self.diff_gal, self.diff_iso]
         else:
@@ -246,7 +239,7 @@ class Dataset3DGeneration:
             self.event_fits = fits.open(events_file)
             self.events = EventList.read(events_file)
 
-    def get_src_skycoord(self):
+    def get_source_skycoord(self):
         """
         Get the source skycoord from the events file.
         """
@@ -259,7 +252,7 @@ class Dataset3DGeneration:
                 history.split("angsep(RA,DEC,")[1].replace("\n", "").split(")")[0].split(",")
             )
 
-        self.src_pos = SkyCoord(ra_pos, dec_pos, unit="deg", frame="fk5")
+        self.source_pos = SkyCoord(ra_pos, dec_pos, unit="deg", frame="fk5")
 
     def get_list_objects(self, aux_path, xml_file, lp_is_intrinsic=False):
         """
@@ -270,207 +263,28 @@ class Dataset3DGeneration:
 
         with open(xml_file) as f:
             data = xmltodict.parse(f.read())["source_library"]["source"]
-            self.list_of_sources_final = [src["@name"] for src in data]
+            self.list_of_sources_final = [source["@name"] for source in data]
 
-        for src in data:
-            source_name = src["@name"]
+        for source in data:
+            source_name = source["@name"]
             if source_name == "IsoDiffModel":
                 source = self.diff_iso
             elif source_name == "GalDiffModel":
-                source = self.create_gal_diffuse_skymodel(self.diff_gal)
+                source = create_gal_diffuse_skymodel(self.diff_gal)
             else:
-                source, is_target_source = self.create_source_skymodel(
-                    src, aux_path, lp_is_intrinsic
+                source, is_target_source = create_source_skymodel(
+                    self.config_target, source, aux_path, lp_is_intrinsic
                 )
             if is_target_source:
                 self.target_full_model = source
             self.list_sources.append(source)
-
-    def create_iso_diffuse_skymodel(self, iso_file, key):
-        """
-        Create a SkyModel of the Fermi Isotropic Diffuse Model.
-        """
-        diff_iso = create_fermi_isotropic_diffuse_model(
-            filename=iso_file, interp_kwargs={"fill_value": None}
-        )
-        diff_iso._name = f"{diff_iso.name}-{key}"
-
-        # Parameters' limits generalization?
-        diff_iso.spectral_model.model1.parameters[0].min = 0.001
-        diff_iso.spectral_model.model1.parameters[0].max = 10
-        diff_iso.spectral_model.model2.parameters[0].min = 0
-        diff_iso.spectral_model.model2.parameters[0].max = 10
-
-        return diff_iso
-
-    def create_gal_diffuse_skymodel(self, diff_gal):
-        """
-        Create SkyModel of the Diffuse Galactic sources.
-        Maybe a repeat of code from the _cutout function.
-        """
-        template_diffuse = TemplateSpatialModel(diff_gal, normalize=False)
-        source = SkyModel(
-            spectral_model=PowerLawNormSpectralModel(),
-            spatial_model=template_diffuse,
-            name="diffuse-iem",
-        )
-        source.parameters["norm"].min = 0
-        source.parameters["norm"].max = 10
-        source.parameters["norm"].frozen = False
-
-        return source
-
-    def create_source_skymodel(self, src, aux_path, lp_is_intrinsic=False):
-        """
-        Build SkyModels from a given list of LAT files
-        """
-        source_name = src["@name"]
-        spectrum_type = src["spectrum"]["@type"].split("EblAtten::")[-1]
-        spectrum = src["spectrum"]["parameter"]
-        spatial_pars = src["spatialModel"]["parameter"]
-
-        source_name_red = source_name.replace("_", "").replace(" ", "")
-        target_red = self.config_target.source_name.replace("_", "").replace(" ", "")
-
-        # Check if target_source file exists
-        if source_name_red == target_red:
-            source_name = self.config_target.source_name
-            is_src_target = True
-            # self.log.debug("Detected target source")
-        else:
-            is_src_target = False
-
-        for spec in spectrum:
-            if spec["@name"] not in ["GalDiffModel", "IsoDiffModel"]:
-                if spectrum_type == "PLSuperExpCutoff":
-                    spectrum_type_final = "ExpCutoffPowerLawSpectralModel"
-                elif spectrum_type == "PLSuperExpCutoff4":
-                    spectrum_type_final = "SuperExpCutoffPowerLaw4FGLDR3SpectralModel"
-                else:
-                    spectrum_type_final = f"{spectrum_type}SpectralModel"
-
-                spec_model = SPECTRAL_MODEL_REGISTRY.get_cls(spectrum_type_final)()
-                # spec_model.name = source_name
-                ebl_atten_pl = False
-
-                if spectrum_type == "LogParabola" and "EblAtten" in src["spectrum"]["@type"]:
-                    if lp_is_intrinsic:
-                        spec_model = LogParabolaSpectralModel()
-                    else:
-                        ebl_atten_pl = True
-                        spec_model = PowerLawSpectralModel()
-
-        params_list = self.xml_to_gammapy_model_params(
-            spectrum,
-            spectrum_type,
-            is_target=is_src_target,
-            keep_sign=ebl_atten_pl,
-            lp_is_intrinsic=lp_is_intrinsic,
-        )
-        spec_model.from_parameters(params_list)
-
-        ebl_absorption_included = self.config_target.components.spectral.ebl_abs is not None
-
-        if is_src_target and ebl_absorption_included:
-            ebl_absorption = self.config_target.components.spectral.ebl_abs
-            ebl_model = ebl_absorption.model_name
-            ebl_spectral_model = EBLAbsorptionNormSpectralModel.read_builtin(
-                ebl_model, redshift=ebl_absorption.redshift
-            )
-            spec_model = spec_model * ebl_spectral_model
-
-        if src["spatialModel"]["@type"] == "SkyDirFunction":
-            fk5_frame = SkyCoord(
-                f"{spatial_pars[0]['@value']} deg",
-                f"{spatial_pars[1]['@value']} deg",
-                frame="fk5",
-            )
-            gal_frame = fk5_frame.transform_to("galactic")
-            spatial_model = PointSpatialModel.from_position(gal_frame)
-        elif src["spatialModel"]["@type"] == "SpatialMap":
-            file_name = src["spatialModel"]["@file"].split("/")[-1]
-            file_path = aux_path / f"Templates/{file_name}"
-
-            spatial_map = Map.read(file_path)
-            spatial_map = spatial_map.copy(unit="sr^-1")
-
-            spatial_model = TemplateSpatialModel(spatial_map, filename=file_path)
-
-        spatial_model.freeze()
-        source_sky_model = SkyModel(
-            spectral_model=spec_model,
-            spatial_model=spatial_model,
-            name=source_name,
-        )
-
-        return source_sky_model, is_src_target
-
-    def xml_to_gammapy_model_params(
-        self, params, spectrum_type, is_target=False, keep_sign=False, lp_is_intrinsic=False
-    ):
-        """
-        Make some basic conversions on the spectral model parameters
-        """
-        params_list = []
-        for par in params:
-            new_par = {}
-            # For EBL Attenuated Power Law, it is taken with LogParabola model
-            # and turning beta value off
-            if lp_is_intrinsic and par["@name"] == "beta":
-                continue
-
-            for k in par.keys():
-                # Replacing the "@par_name" information of each parameter without the "@"
-                if k != "@free":
-                    new_par[k[1:].lower()] = par[k]
-                else:
-                    new_par["frozen"] = (par[k] == "0") and not is_target
-                new_par["unit"] = ""
-                new_par["is_norm"] = False
-
-                # Using the nomenclature as used in Gammapy
-                # Make scale = 1, by multiplying it to the value, min and max?
-                if par["@name"].lower() in ["norm", "prefactor", "integral"]:
-                    new_par["name"] = "amplitude"
-                    new_par["unit"] = "cm-2 s-1 MeV-1"
-                    new_par["is_norm"] = True
-                if par["@name"].lower() in ["scale", "eb"]:
-                    new_par["name"] = "reference"
-                    new_par["frozen"] = par[k] == "0"
-                if par["@name"].lower() in ["breakvalue"]:
-                    new_par["name"] = "ebreak"
-                if par["@name"].lower() in ["lowerlimit"]:
-                    new_par["name"] = "emin"
-                if par["@name"].lower() in ["upperlimit"]:
-                    new_par["name"] = "emax"
-                if par["@name"].lower() in ["cutoff"]:
-                    new_par["name"] = "lambda_"
-                    new_par["value"] = 1.0 / new_par["value"]
-                    new_par["min"] = 1.0 / new_par["min"]
-                    new_par["max"] = 1.0 / new_par["max"]
-                    new_par["unit"] = "MeV-1"
-
-            # More modifications:
-            if new_par["name"] in ["reference", "ebreak", "emin", "emax"]:
-                new_par["unit"] = "MeV"
-            if new_par["name"] == "index" and not keep_sign:
-                # Other than EBL Attenuated Power Law
-                new_par["value"] *= -1
-                new_par["min"] *= -1
-                new_par["max"] *= -1
-            new_par["error"] = 0
-            params_list.append(new_par)
-
-        params_final = Parameters.from_dict(params_list)
-
-        return params_final
 
     def _counts_map(self):
         """
         Generate the counts Map object and fill it with the events information.
         """
         self.counts_map = Map.create(
-            skydir=self.src_pos,
+            skydir=self.source_pos,
             npix=(self.exposure.geom.npix[0][0], self.exposure.geom.npix[1][0]),
             proj="TAN",
             frame="fk5",
@@ -582,7 +396,7 @@ class Dataset3DGeneration:
             psf=self.psf,
             edisp=EDispKernelMap.from_edisp_kernel(self.edisp_interp_kernel),
             mask_safe=mask_safe,
-            name="Fermi-LAT_{}".format(key_name),
+            name=f"Fermi-LAT_{key_name}",
         )
 
         return dataset

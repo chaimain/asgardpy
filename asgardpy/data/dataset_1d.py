@@ -233,8 +233,8 @@ class Dataset1DGeneration:
         else:
             excluded_region = None
 
-        ## Needs to be united with other Geometry creation functions, into a separate class
-        ## Also make these geom parameters also part of the config requirements
+        # Needs to be united with other Geometry creation functions, into a separate class
+        # Also make these geom parameters also part of the config requirements
         excluded_geom = WcsGeom.create(
             npix=(125, 125), binsz=0.05, skydir=center_ex, proj="TAN", frame="icrs"
         )

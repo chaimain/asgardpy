@@ -34,6 +34,7 @@ class AsgardpyAnalysis:
         self.config = config
         self.config.set_logging()
         self.datasets = Datasets()
+        self.final_model = None
         # self.fit = Fit()
         # self.fit_result = None
         # self.flux_points = None
@@ -76,39 +77,24 @@ class AsgardpyAnalysis:
         else:
             if overwrite is None:
                 overwrite = True
-
         for step in steps:
             # Always start with 3D datasets. Probably add a check or fail-safe
             if "datasets" in step:
                 analysis_step = AnalysisStep.create(step, self.config, **kwargs)
                 datasets_list = analysis_step.run()
 
-                # Add to the final list of datasets
-                """
-                print(type(datasets_list), datasets_list)
-                check = datasets_list.models == None
-                print(check)
-                if datasets_list.models == None:
-                    print("Trying to add the config based model")
-                    datasets_list = set_models(
-                        config=self.config.target,
-                        datasets=datasets_list
-                    )
-                """
                 for data in datasets_list:
-                    print(data.models)
-                    """
-                    #print("New model:", data)
-                    data = set_models(
-                        config=self.config.target,
-                        datasets=data
-                    )
-                    """
+                    # Make a check to see if all component types of SkyModels
+                    # are present throughout all datasets
+                    if data.models[0].spatial_model:
+                        self.final_model = data.models
                     self.datasets.append(data)
             else:
-                # Running DL4 functions on a given Datasets object
-                print(self.datasets.models)
-                # print(self.datasets.models)
+                # Running DL4 functions on a given Datasets object.
+                # First confirming the Final Models object for all the datasets.
+                self.datasets = set_models(
+                    config=self.config.target, datasets=self.datasets, models=self.final_model
+                )
                 analysis_step = AnalysisStep.create(step, self.config, **kwargs)
                 analysis_step.run(datasets=self.datasets)
 
