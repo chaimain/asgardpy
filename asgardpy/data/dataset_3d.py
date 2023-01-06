@@ -35,9 +35,9 @@ from asgardpy.data.reduction import (
     SafeMaskConfig,
 )
 from asgardpy.data.target import (
-    create_gal_diffuse_skymodel,
-    create_iso_diffuse_skymodel,
     create_source_skymodel,
+    create_iso_diffuse_skymodel,
+    create_gal_diffuse_skymodel,
 )
 from asgardpy.io import DL3Files, InputConfig
 
@@ -91,12 +91,17 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             key_names = self.config_3d_dataset.dataset_info.key
             self.log.info(f"The different keys used: {key_names}")
 
+            # Retrieving a single dataset for each instrument.
+            dataset_instrument = Datasets()
             for key in key_names:
                 generate_3d_dataset = Dataset3DGeneration(
                     self.config_3d_dataset, self.config.target, key
                 )
                 dataset = generate_3d_dataset.run()
-                datasets_3d_final.append(dataset)
+                dataset_instrument.append(dataset)
+            dataset_instrument.stack_reduce(name=self.config_3d_dataset.name)
+
+            datasets_3d_final.append(dataset_instrument[0])
 
         return datasets_3d_final
 
@@ -165,6 +170,7 @@ class Dataset3DGeneration:
         Introduce the source coordinates from 3D dataset to 1D dataset.
         Need to generalize this as well for all datasets.
         """
+        # Maybe update this into the config file!
         source_position_from_3d = None
         for source in self.list_sources:
             if source.name == self.config_target.source_name:

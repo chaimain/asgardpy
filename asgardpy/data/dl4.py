@@ -6,8 +6,7 @@ from enum import Enum
 from astropy import units as u
 from gammapy.datasets import Datasets
 from gammapy.estimators import FluxPointsEstimator, LightCurveEstimator
-
-# from gammapy.maps import Map
+from gammapy.maps import MapAxis
 from gammapy.modeling import Fit
 
 from asgardpy.data.base import (
@@ -119,20 +118,46 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
         self.flux_points = []
 
         for dataset in self.datasets:
-            self.flux_points.append(self._get_spectral_points(dataset))
+            self._set_fpe(dataset)
+            flux_points = self.fpe.run(datasets=[dataset])
+            self.flux_points.append(flux_points)
 
-    def get_spectral_points(self, datasets):
-        """ """
-        energy_bin_edges = self.config.flux_points_params.energy
+    def _set_fpe(self, dataset):
+        """
+        Setup the Gammapy FluxPointsEstimator function with all the
+        provided parameters.
+        """
+        energy_range = self.config.flux_points_params.energy
+        energy_min = u.Quantity(energy_range.min)
+        energy_max = u.Quantity(energy_range.max)
 
-        fpe_settings = self.config.flux_points_params
-        fpe_settings.pop("energy")
+        # Check with the given energy range of counts of each dataset.
+        dataset_energy = dataset.counts.geom.axes["energy"].edges
+        data_geom_energy_min = dataset_energy[0]
+        data_geom_energy_max = dataset_energy[-1]
 
-        fpe = FluxPointsEstimator(
+        # Fix the energy range to be within the given dataset.
+        if energy_min < data_geom_energy_min:
+            energy_min = data_geom_energy_min
+        if energy_max > data_geom_energy_max:
+            energy_max = data_geom_energy_max
+
+        energy_bin_edges = MapAxis.from_energy_bounds(
+            energy_min=energy_min,
+            energy_max=energy_max,
+            nbin=int(energy_range.nbins),
+            per_decade=True,
+        ).edges
+
+        fpe_settings = self.config.flux_points_params.parameters
+
+        self.fpe = FluxPointsEstimator(
             energy_edges=energy_bin_edges, source=self.config.target.source_name, **fpe_settings
         )
 
-        flux_points = fpe.run(datasets=datasets)
+    def get_spectral_points(self, datasets):
+        """running for a given dataset?"""
+        flux_points = self.fpe.run(datasets=datasets)
 
         return flux_points
 
@@ -147,234 +172,35 @@ class LightCurveAnalysisStep(AnalysisStepBase):
 
     def _run(self):
         self.light_curve = []
+        self._set_lce()
 
         for dataset in self.datasets:
-            self.light_curve.append(self._get_lc_flux_points(dataset))
+            light_curve = self.lce.run(datasets=dataset)
+            print(light_curve)
+            self.light_curve.append(light_curve)
 
-    def get_lc_flux_points(self, datasets=None):
-        """ """
-        energy_range = self.config.light_curve_params.energy_range
+    def _set_lce(self):
+        """
+        Setup the Gammapy FluxPointsEstimator function with all the
+        provided parameters.
+        """
+        energy_range = self.config.light_curve_params.energy
+        energy_bin_edges = [u.Quantity(energy_range.min), u.Quantity(energy_range.max)]
+        # Fix time intervals input
         time_intervals = self.config.light_curve_params.time_intervals
 
-        lc_settings = self.config.light_curve_params
-        lc_settings.pop("energy_range")
-        lc_settings.pop("time_intervals")
+        lce_settings = self.config.light_curve_params.parameters
 
-        lc_flux = LightCurveEstimator(
-            energy_edges=energy_range,
+        self.lce = LightCurveEstimator(
+            energy_edges=energy_bin_edges,
             time_intervals=time_intervals,
             source=self.config.target.source_name,
-            **lc_settings
+            **lce_settings
         )
 
-        light_curve_flux = lc_flux.run(datasets=datasets)
+    def get_lc_flux_points(self, datasets=None):
+        """running for a given dataset?"""
+
+        light_curve_flux = self.lce.run(datasets=datasets)
 
         return light_curve_flux
-
-    """
-    def plot_parameter_stat_profile(self, datasets, parameter, axs=None):
-        total_stat = self.result.total_stat
-
-        parameter.scan_n_values = 20
-
-        profile = self.fit.stat_profile(datasets=datasets, parameter=parameter)
-
-        axs.plot(profile[f"{parameter.name}_scan"], profile["stat_scan"] - total_stat)
-        axs.set_xlabel(f"{parameter.unit}")
-        axs.set_ylabel("Delta TS")
-        axs.set_title(
-            f"{parameter.name}: {parameter.value:.2e} +/- {parameter.error:.2e}"
-            + f"\n{parameter.value:.2e}+/- {parameter.error/parameter.value:.2f}"
-        )
-
-        return axs
-
-    def plot_spectrum_fp(self, axs=None, kwargs_fp=None):
-        if kwargs_fp is None:
-            kwargs_fp = {
-                "sed_type": "e2dnde",
-                "color": "black",
-                "mfc": "gray",
-                "marker": "D",
-                "label": "Flux points",
-            }
-        self.flux_points.plot(ax=axs, **kwargs_fp)
-
-        return axs
-
-    def plot_lc(self, axs=None, kwargs=None):
-        if kwargs is None:
-            kwargs = {
-                "sed_type": "flux",
-                "axis_name": "time",
-                "color": "black",
-                "marker": "o",
-                "label": "LC Flux points",
-            }
-        self.light_curve_flux.plot(ax=axs, **kwargs)
-
-        return axs
-
-    def plot_spectrum_model(self, axs=None, is_intrinsic=False, kwargs_model=None):
-        energy_range = Quantity([self.energy_bin_edges[0], self.energy_bin_edges[-1]])
-
-        if kwargs_model is None:
-            kwargs_model = {
-                "sed_type": "e2dnde",
-                "color": "gray",
-            }
-
-        if is_intrinsic:
-            spec = self.target_model.spectral_model.model1
-            if "label" not in kwargs_model.keys():
-                kwargs_model["label"] = "Best fit intrinsic model - EBL deabsorbed"
-            spec.plot(ax=axs, energy_bounds=energy_range, **kwargs_model)
-        else:
-            spec = self.target_model.spectral_model
-            spec.evaluate_error(energy_range)
-
-            kwargs_model_err = kwargs_model.copy()
-            kwargs_model_err.pop("label", None)
-
-            spec.plot_error(ax=axs, energy_bounds=energy_range, **kwargs_model_err)
-            spec.plot(ax=axs, energy_bounds=energy_range, **kwargs_model)
-
-        return axs
-
-    def plot_residuals(self, axs=None, method="diff", kwargs_res=None):
-        self.flux_points_dataset = FluxPointsDataset(
-            data=self.flux_points, models=SkyModel(spectral_model=self.target_model.spectral_model)
-        )
-
-        self.flux_points_dataset.plot_residuals(ax=axs, method=method, **kwargs_res)
-
-        return axs
-
-    def plot_ts_profiles(self, axs=None, add_cbar=True, kwargs_ts=None):
-        if kwargs_ts is None:
-            kwargs_ts = {
-                "sed_type": "e2dnde",
-                "color": "darkorange",
-            }
-        self.flux_points.plot_ts_profiles(ax=axs, add_cbar=add_cbar, **kwargs_ts)
-        self.flux_points.plot(ax=axs, **kwargs_ts)
-
-        return axs
-
-    def plot_model_covariance_correlation(self, axs=None):
-        spec = self.target_model.spectral_model
-        spec.covariance.plot_correlation(ax=axs)
-
-        return axs
-
-    def plot_spectrum_enrico(
-        self, axs=None, kwargs_fp=None, kwargs_model=None, kwargs_model_err=None
-    ):
-        y_mean = self.lat_bute["col2"]
-        y_errs = self.lat_bute["col3"]
-
-        y_errp = y_mean + y_errs
-        y_errn = y_mean - y_errs  # 10**(2*np.log10(y_mean)-np.log10(y_errp))
-
-        if kwargs_fp is None:
-            kwargs_fp = {
-                "marker": "o",
-                "ls": "None",
-                "color": "red",
-                "mfc": "white",
-                "lw": 0.75,
-                "mew": 0.75,
-                "zorder": -10,
-            }
-
-        if kwargs_model is None:
-            kwargs_model = {
-                "color": "red",
-                "lw": 0.75,
-                "mew": 0.75,
-                "zorder": -10,
-            }
-
-        if kwargs_model_err is None:
-            kwargs_model_err = kwargs_model.copy()
-            kwargs_model_err.pop("mew", None)
-            kwargs_model_err["alpha"] = 0.2
-            kwargs_model_err["label"] = "Enrico/Fermitools"
-
-        # Best-Fit model
-        axs.plot(
-            self.lat_bute["col1"] * u.MeV,
-            y_mean * u.Unit("erg/(cm2*s)"),
-            **kwargs_model,
-        )
-        # confidence band
-        axs.fill_between(
-            x=self.lat_bute["col1"] * u.MeV,
-            y1=y_errn * u.Unit("erg/(cm2*s)"),
-            y2=y_errp * u.Unit("erg/(cm2*s)"),
-            **kwargs_model_err,
-        )
-
-        # spectral points
-        # lat_ebin = self.lat_ebin # Copy?
-        isuplim = self.lat_ebin["col5"] == 0
-        self.lat_ebin["col5"][isuplim] = self.lat_ebin["col4"][isuplim] * 0.5
-        kwargs_fp["uplims"] = isuplim
-
-        axs.errorbar(
-            x=self.lat_ebin["col1"] * u.MeV,
-            y=self.lat_ebin["col4"] * u.Unit("erg/(cm2*s)"),
-            xerr=[
-                self.lat_ebin["col1"] * u.MeV - self.lat_ebin["col2"] * u.MeV,
-                self.lat_ebin["col3"] * u.MeV - self.lat_ebin["col1"] * u.MeV,
-            ],
-            yerr=self.lat_ebin["col5"] * u.Unit("erg/(cm2*s)"),
-            **kwargs_fp,
-        )
-
-        axs.set_ylim(
-            [
-                min(self.lat_ebin["col4"] * u.Unit("erg/(cm2*s)")) * 0.2,
-                max(self.lat_ebin["col4"] * u.Unit("erg/(cm2*s)")) * 2,
-            ]
-        )
-
-        return axs
-
-    def plot_spectrum_fold(self, axs=None, fold_file=None, kwargs=None):
-        if not os.path.exists(fold_file):
-            return None
-
-        if kwargs is None:
-            kwargs = {
-                "marker": "o",
-                "ls": "None",
-                "color": "C4",
-                "mfc": "white",
-                "zorder": -10,
-                "label": "MAGIC/Fold",
-                "lw": 0.75,
-                "mew": 0.75,
-                "alpha": 1,
-            }
-
-        fold = uproot.open(fold_file)
-        fold_sed = fold["observed_sed"].tojson()
-
-        f_x = fold_sed["fX"]
-        f_y = fold_sed["fY"]
-        x_err_low = fold_sed["fEXlow"]
-        x_err_high = fold_sed["fEXhigh"]
-        y_err_low = fold_sed["fEYlow"]
-        y_err_high = fold_sed["fEYhigh"]
-
-        axs.errorbar(
-            x=f_x * u.GeV,
-            y=f_y * u.Unit("TeV/(cm2 * s)"),
-            xerr=[x_err_low * u.GeV, x_err_high * u.GeV],
-            yerr=[y_err_low * u.Unit("TeV/(cm2 * s)"), y_err_high * u.Unit("TeV/(cm2 * s)")],
-            **kwargs,
-        )
-
-        return axs
-    """
