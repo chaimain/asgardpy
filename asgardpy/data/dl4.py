@@ -177,22 +177,37 @@ class LightCurveAnalysisStep(AnalysisStepBase):
         self.light_curve = []
 
         for dataset in self.datasets:
-            self._set_lce(datasets=dataset)
+            self._set_lce(dataset=dataset)
             light_curve = self.lce.run(datasets=dataset)
             light_curve.name = dataset.name
 
             self.light_curve.append(light_curve)
 
-    def _set_lce(self, datasets=None):
+    def _set_lce(self, dataset=None):
         """
         Setup the Gammapy FluxPointsEstimator function with all the
         provided parameters.
         """
-        if datasets is None:
-            datasets = self.datasets
+        if dataset is None:
+            dataset = self.datasets
 
         energy_range = self.config.light_curve_params.energy_edges
-        energy_bin_edges = [u.Quantity(energy_range.min), u.Quantity(energy_range.max)]
+        # energy_bin_edges = [u.Quantity(energy_range.min), u.Quantity(energy_range.max)]
+        energy_min = u.Quantity(energy_range.min)
+        energy_max = u.Quantity(energy_range.max)
+
+        # Check with the given energy range of counts of each dataset.
+        dataset_energy = dataset.counts.geom.axes["energy"].edges
+        data_geom_energy_min = dataset_energy[0]
+        data_geom_energy_max = dataset_energy[-1]
+
+        # Fix the energy range to be within the given dataset.
+        if energy_min < data_geom_energy_min:
+            energy_min = data_geom_energy_min
+        if energy_max > data_geom_energy_max:
+            energy_max = data_geom_energy_max
+
+        energy_bin_edges = [energy_min, energy_max]
 
         time_intervals_params = self.config.light_curve_params.time_intervals
         if time_intervals_params.intervals[0].start is None:
@@ -207,7 +222,6 @@ class LightCurveAnalysisStep(AnalysisStepBase):
                         Time(interval.stop, format=time_intervals_params.format),
                     ]
                 )
-
         lce_settings = self.config.light_curve_params.parameters
 
         self.lce = LightCurveEstimator(

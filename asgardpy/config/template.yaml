@@ -205,11 +205,17 @@ light_curve_params:
   time_intervals:
     format: "iso"
     intervals:
-    -  start: "2021-04-01"
-       stop: "2021-05-01"
+     -  start: "2021-04-07"
+        stop: "2021-04-08"
+     -  start: "2021-04-08"
+        stop: "2021-04-09"
+     -  start: "2021-04-09"
+        stop: "2021-04-10"
+     -  start: "2021-04-10"
+        stop: "2021-04-11"
   energy_edges:
-    min: "100 GeV"
-    max: "100 TeV"
+    min: "100 MeV"
+    max: "10 TeV"
   parameters:
     selection_optional: "all"
 

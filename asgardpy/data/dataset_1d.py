@@ -93,7 +93,6 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
                 self.config_1d_dataset, self.config.target, self.dataset_3d
             )
             dataset = generate_1d_dataset.run()
-            # for data in dataset:
             dataset = dataset.stack_reduce(name=self.config_1d_dataset.name)
             dataset = set_models(config=self.config.target, datasets=dataset)
             datasets_1d_final.append(dataset)
