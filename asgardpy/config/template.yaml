@@ -6,13 +6,13 @@ general:
     level: info
   outdir: /data/magic/users-ifae/cpriyada/lst/
   n_jobs: 1
-  steps: [datasets-3d, datasets-1d, fit, flux-points, light-curve]
+  steps: [datasets-3d, datasets-1d, fit] #, flux-points, light-curve
   overwrite: true
 
 # Target settings
 target:
   source_name: PG1553+113
-  sky_position: {frame: icrs, lon: 238.92934976 deg, lat: 11.19010155 deg}
+  sky_position: &source_pos {frame: icrs, lon: 238.92934976 deg, lat: 11.19010155 deg}
   use_uniform_position: true
   extended: false
   components:
@@ -83,9 +83,9 @@ dataset3d:
         # map_selection: []
         obs_time:
           format: iso
-          intervals:
+          intervals: &main_time_range
           -  start: "2021-04-01"
-             stop: "2021-05-01"
+             stop: "2022-05-25"
         background:
           # method: reflected
           # exclusion: {}
@@ -106,11 +106,8 @@ dataset3d:
           parameters:
             min: 0.1 GeV
             max: 1 TeV
-        on_region:
-          frame: "icrs"
-          lon: 238.92934976 deg
-          lat: 11.19010155 deg
-          radius: 0.4 deg
+        on_region: *source_pos
+          # radius: 0.4 deg # Have to figure how to use this later
         containment_correction: true
 # - name: HAWC?
 #    ... full description ...
@@ -131,22 +128,17 @@ dataset1d:
           selection:
             offset_max: "2.5 deg"
           axes:
-            energy:
+            energy: &lst_energy
               min: "10 GeV"
               max: "10 TeV"
               nbins: 5
-            energy_true:
-              min: "10 GeV"
-              max: "10 TeV"
-              nbins: 5
+            energy_true: *lst_energy
         observation:
           # obs_ids: []
           # obs_file: None
           obs_time:
             format: iso
-            intervals:
-            -  start: "2021-04-01"
-               stop: "2021-05-01"
+            intervals: *main_time_range
           required_irfs: ["aeff", "edisp", "rad_max"]
         background:
           method: reflected
@@ -169,14 +161,8 @@ dataset1d:
             bias_percent: 10
             fixed_offset: 0.1 deg
             offset_max: 3 deg
-            position:
-              frame: "icrs"
-              lon: 238.92934976 deg
-              lat: 11.19010155 deg
-        on_region:
-          frame: "icrs"
-          lon: 238.92934976 deg
-          lat: 11.19010155 deg
+            position: *source_pos
+        on_region: *source_pos
         containment_correction: false
         map_selection: [counts, exposure, edisp]
 #  - name: MAGIC
@@ -184,7 +170,7 @@ dataset1d:
 
 # Fit parameters
 fit_params:
-  fit_range:
+  fit_range: &spectral_energy_range
     min: "100 MeV"
     max: "10 TeV"
   backend: minuit
