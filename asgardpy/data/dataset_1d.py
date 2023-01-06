@@ -8,6 +8,7 @@ from typing import List
 import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
+from astropy.time import Time
 
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
 from gammapy.data import DataStore
@@ -132,6 +133,21 @@ class Dataset1DGeneration:
         irfs_selected = self.config_1d_dataset_info.observation.required_irfs
         self.observations = self.datastore.get_observations(required_irf=irfs_selected)
 
+        obs_time = self.config_1d_dataset_info.observation.obs_time
+
+        if obs_time.intervals is not None:
+            # self.log.info(f"Obs time range: {obs_time.intervals} with Time format {obs_time.format}")
+            time_intervals = []
+
+            for interval in obs_time.intervals:
+                time_intervals.append(
+                    [
+                        Time(interval.start, format=obs_time.format),
+                        Time(interval.stop, format=obs_time.format),
+                    ]
+                )
+            self.observations.select_time(time_intervals)
+
         self.dataset_template = self.generate_geom()
         self.dataset_maker, self.bkg_maker, self.safe_maker = self.get_reduction_makers()
         datasets = self.generate_dataset()
@@ -148,7 +164,7 @@ class Dataset1DGeneration:
             # Using the same target source position as that used for
             # the 3D datasets analysis. Which one?
             dataset_3d = Dataset3DGeneration(
-                self.dataset_3d_src_pos,  ## Need to fix this
+                self.dataset_3d_src_pos,  # Need to fix this
                 self.config_target,
                 self.dataset_3d_src_pos.dataset_info.key[0],
             )

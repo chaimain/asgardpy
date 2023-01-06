@@ -4,6 +4,7 @@ Classes containing the DL4 products config parameters for the high-level interfa
 from enum import Enum
 
 from astropy import units as u
+from astropy.time import Time
 from gammapy.datasets import Datasets
 from gammapy.estimators import FluxPointsEstimator, LightCurveEstimator
 from gammapy.maps import MapAxis
@@ -14,7 +15,7 @@ from asgardpy.data.base import (
     AngleType,
     BaseConfig,
     EnergyRangeConfig,
-    TimeRangeConfig,
+    TimeIntervalsConfig,
 )
 from asgardpy.data.geom import EnergyAxisConfig
 
@@ -35,7 +36,7 @@ class FluxPointsConfig(BaseConfig):
 
 
 class LightCurveConfig(BaseConfig):
-    time_intervals: TimeRangeConfig = TimeRangeConfig()
+    time_intervals: TimeIntervalsConfig = TimeIntervalsConfig()
     energy_edges: EnergyAxisConfig = EnergyAxisConfig()
     parameters: dict = {"selection_optional": "all"}
 
@@ -120,6 +121,8 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
         for dataset in self.datasets:
             self._set_fpe(dataset)
             flux_points = self.fpe.run(datasets=[dataset])
+            flux_points.name = dataset.name
+
             self.flux_points.append(flux_points)
 
     def _set_fpe(self, dataset):
@@ -172,22 +175,39 @@ class LightCurveAnalysisStep(AnalysisStepBase):
 
     def _run(self):
         self.light_curve = []
-        self._set_lce()
 
         for dataset in self.datasets:
+            self._set_lce(datasets=dataset)
             light_curve = self.lce.run(datasets=dataset)
+            light_curve.name = dataset.name
+
             print(light_curve)
             self.light_curve.append(light_curve)
 
-    def _set_lce(self):
+    def _set_lce(self, datasets=None):
         """
         Setup the Gammapy FluxPointsEstimator function with all the
         provided parameters.
         """
-        energy_range = self.config.light_curve_params.energy
+        if datasets is None:
+            datasets = self.datasets
+
+        energy_range = self.config.light_curve_params.energy_edges
         energy_bin_edges = [u.Quantity(energy_range.min), u.Quantity(energy_range.max)]
-        # Fix time intervals input
-        time_intervals = self.config.light_curve_params.time_intervals
+
+        time_intervals_params = self.config.light_curve_params.time_intervals
+        if time_intervals_params.intervals is None:
+            self.log.info("Time intervals not defined. Extract light curve on datasets GTIs.")
+            time_intervals = None
+        else:
+            time_intervals = []
+            for interval in time_intervals_params.intervals:
+                time_intervals.append(
+                    [
+                        Time(interval.start, format=time_intervals_params.format),
+                        Time(interval.stop, format=time_intervals_params.format),
+                    ]
+                )
 
         lce_settings = self.config.light_curve_params.parameters
 

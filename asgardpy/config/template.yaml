@@ -6,7 +6,7 @@ general:
     level: info
   outdir: /data/magic/users-ifae/cpriyada/lst/
   n_jobs: 1
-  steps: [datasets-3d, datasets-1d, fit, flux-points]
+  steps: [datasets-3d, datasets-1d, fit, flux-points, light-curve]
   overwrite: true
 
 # Target settings
@@ -81,6 +81,11 @@ dataset3d:
         name: Fermi-LAT
         key: ["FRONT", "BACK"]
         # map_selection: []
+        # obs_time: 
+          # format: iso
+          # intervals:
+          # -  start: "2021-04-01"
+          #    stop: "2021-05-01"
         background:
           # method: reflected
           # exclusion: {}
@@ -138,8 +143,10 @@ dataset1d:
           # obs_ids: []
           # obs_file: None
           obs_time:
-            start: "2021-01-01"
-            stop: "2021-03-30"
+            format: iso
+            intervals:
+            -  start: "2021-04-01"
+               stop: "2021-05-01"
           required_irfs: ["aeff", "edisp", "rad_max"]
         background:
           method: reflected
@@ -195,7 +202,11 @@ flux_points_params:
     selection_optional: "all"
 
 light_curve_params:
-  # time_intervals:
+  time_intervals:
+    format: "iso"
+    intervals:
+    -  start: "2021-04-01"
+       stop: "2021-05-01"
   energy_edges:
     min: "100 GeV"
     max: "100 TeV"

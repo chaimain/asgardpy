@@ -11,6 +11,7 @@ import xmltodict
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
+from astropy.time import Time
 
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
 from gammapy.data import EventList
@@ -26,7 +27,7 @@ from gammapy.modeling.models import (
 )
 from regions import CircleSkyRegion
 
-from asgardpy.data.base import AnalysisStepBase, BaseConfig
+from asgardpy.data.base import AnalysisStepBase, BaseConfig, TimeIntervalsConfig
 from asgardpy.data.geom import SpatialCircleConfig
 from asgardpy.data.reduction import (
     BackgroundConfig,
@@ -35,9 +36,9 @@ from asgardpy.data.reduction import (
     SafeMaskConfig,
 )
 from asgardpy.data.target import (
-    create_source_skymodel,
-    create_iso_diffuse_skymodel,
     create_gal_diffuse_skymodel,
+    create_iso_diffuse_skymodel,
+    create_source_skymodel,
 )
 from asgardpy.io import DL3Files, InputConfig
 
@@ -56,6 +57,7 @@ class Dataset3DInfoConfig(BaseConfig):
     name: str = "dataset-name"
     key: List = []
     map_selection: List[MapSelectionEnum] = MapDatasetMaker.available_selection
+    obs_time: TimeIntervalsConfig = TimeIntervalsConfig()
     background: BackgroundConfig = BackgroundConfig()
     safe_mask: SafeMaskConfig = SafeMaskConfig()
     on_region: SpatialCircleConfig = SpatialCircleConfig()
@@ -120,6 +122,7 @@ class Dataset3DGeneration:
 
     def __init__(self, config_3d_dataset, config_target, key_name):
         self.config_3d_dataset_io = config_3d_dataset.io
+        self.config_3d_dataset_info = config_3d_dataset.dataset_info
         self.key_name = key_name
         self.config_target = config_target
         self.model = self.config_target.components.spectral
@@ -244,6 +247,20 @@ class Dataset3DGeneration:
         except Exception:
             self.event_fits = fits.open(events_file)
             self.events = EventList.read(events_file)
+
+        obs_time = self.config_3d_dataset_info.obs_time
+        if obs_time.intervals[0].start is not None:
+            # self.log.info(f"Obs time range: {obs_time.intervals} with Time format {obs_time.format}")
+            time_intervals = []
+
+            for interval in obs_time.intervals:
+                time_intervals.append(
+                    [
+                        Time(interval.start, format=obs_time.format),
+                        Time(interval.stop, format=obs_time.format),
+                    ]
+                )
+            self.events.select_time(time_intervals)
 
     def get_source_skycoord(self):
         """
