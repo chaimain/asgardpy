@@ -11,9 +11,10 @@ import xmltodict
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
+from astropy.time import Time
 
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
-from gammapy.data import EventList
+from gammapy.data import GTI, EventList
 from gammapy.datasets import Datasets, MapDataset
 from gammapy.irf import EDispKernel, EDispKernelMap, PSFMap
 from gammapy.makers import MapDatasetMaker
@@ -26,7 +27,7 @@ from gammapy.modeling.models import (
 )
 from regions import CircleSkyRegion
 
-from asgardpy.data.base import AnalysisStepBase, BaseConfig
+from asgardpy.data.base import AnalysisStepBase, BaseConfig, TimeIntervalsConfig
 from asgardpy.data.geom import SpatialCircleConfig
 from asgardpy.data.reduction import (
     BackgroundConfig,
@@ -35,9 +36,9 @@ from asgardpy.data.reduction import (
     SafeMaskConfig,
 )
 from asgardpy.data.target import (
-    create_source_skymodel,
-    create_iso_diffuse_skymodel,
     create_gal_diffuse_skymodel,
+    create_iso_diffuse_skymodel,
+    create_source_skymodel,
 )
 from asgardpy.io import DL3Files, InputConfig
 
@@ -56,6 +57,7 @@ class Dataset3DInfoConfig(BaseConfig):
     name: str = "dataset-name"
     key: List = []
     map_selection: List[MapSelectionEnum] = MapDatasetMaker.available_selection
+    obs_time: TimeIntervalsConfig = TimeIntervalsConfig()
     background: BackgroundConfig = BackgroundConfig()
     safe_mask: SafeMaskConfig = SafeMaskConfig()
     on_region: SpatialCircleConfig = SpatialCircleConfig()
@@ -120,6 +122,7 @@ class Dataset3DGeneration:
 
     def __init__(self, config_3d_dataset, config_target, key_name):
         self.config_3d_dataset_io = config_3d_dataset.io
+        self.config_3d_dataset_info = config_3d_dataset.dataset_info
         self.key_name = key_name
         self.config_target = config_target
         self.model = self.config_target.components.spectral
@@ -229,6 +232,10 @@ class Dataset3DGeneration:
         """
         Loading the events files for the specific "Key" and saving them to a
         dummy fits file if the original files are gzipped.
+
+        Also get the GTI information.
+        Based on any time intervals selection, filter out the events and gti
+        accordingly.
         """
         # Create a local file (important if gzipped, as sometimes it fails to read)
         # Check again the valididty of gzipping files, and also on the use
@@ -241,9 +248,20 @@ class Dataset3DGeneration:
 
             self.event_fits = fits.open("temp_events.fits")
             self.events = EventList.read("temp_events.fits")
+            self.gti = GTI.read("temp_events.fits")
         except Exception:
             self.event_fits = fits.open(events_file)
             self.events = EventList.read(events_file)
+            self.gti = GTI.read(events_file)
+
+        obs_time = self.config_3d_dataset_info.obs_time
+        if obs_time.intervals[0].start is not None:
+            t_start = Time(obs_time.intervals[0].start, format=obs_time.format)
+            t_stop = Time(obs_time.intervals[0].stop, format=obs_time.format)
+            time_intervals = [t_start, t_stop]
+
+            self.events = self.events.select_time(time_intervals)
+            self.gti = self.gti.select_time(time_intervals)
 
     def get_source_skycoord(self):
         """
@@ -298,7 +316,9 @@ class Dataset3DGeneration:
             axes=[self.energy_axis],
             dtype=float,
         )
-        self.counts_map.fill_by_coord({"skycoord": self.events.radec, "energy": self.events.energy})
+        self.counts_map.fill_by_coord(
+            {"skycoord": self.events.radec, "energy": self.events.energy, "time": self.events.time}
+        )
 
     def _generate_diffuse_background_cutout(self):
         """
@@ -398,6 +418,7 @@ class Dataset3DGeneration:
         dataset = MapDataset(
             models=Models(self.target_full_model),
             counts=self.counts_map,
+            gti=self.gti,
             exposure=self.exposure_interp,
             psf=self.psf,
             edisp=EDispKernelMap.from_edisp_kernel(self.edisp_interp_kernel),

@@ -35,9 +35,10 @@ class AsgardpyAnalysis:
         self.config.set_logging()
         self.datasets = Datasets()
         self.final_model = None
-        self.fit = None
-        self.fit_result = None
-        self.flux_points = None
+        self.final_data_products = ["fit", "fit_result", "flux_points", "light_curve"]
+
+        for data_product in self.final_data_products:
+            setattr(self, data_product, None)
 
     @property
     def models(self):
@@ -102,10 +103,9 @@ class AsgardpyAnalysis:
                 analysis_step.run(datasets=self.datasets)
 
                 # Update the final data product objects
-                for data_product in ["fit", "fit_result", "flux_points"]:
+                for data_product in self.final_data_products:
                     if hasattr(analysis_step, data_product):
                         setattr(self, data_product, getattr(analysis_step, data_product))
-
 
     # keep these methods to be backward compatible
     def get_1d_dataset(self):

@@ -8,6 +8,7 @@ from typing import List
 import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
+from astropy.time import Time
 
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
 from gammapy.data import DataStore
@@ -92,7 +93,6 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
                 self.config_1d_dataset, self.config.target, self.dataset_3d
             )
             dataset = generate_1d_dataset.run()
-            # for data in dataset:
             dataset = dataset.stack_reduce(name=self.config_1d_dataset.name)
             dataset = set_models(config=self.config.target, datasets=dataset)
             datasets_1d_final.append(dataset)
@@ -132,6 +132,15 @@ class Dataset1DGeneration:
         irfs_selected = self.config_1d_dataset_info.observation.required_irfs
         self.observations = self.datastore.get_observations(required_irf=irfs_selected)
 
+        obs_time = self.config_1d_dataset_info.observation.obs_time
+        # Could be generalized along with the same in dataset_3d
+        if obs_time.intervals[0].start is not None:
+            t_start = Time(obs_time.intervals[0].start, format=obs_time.format)
+            t_stop = Time(obs_time.intervals[0].stop, format=obs_time.format)
+            time_intervals = [t_start, t_stop]
+
+            self.observations = self.observations.select_time([time_intervals])
+
         self.dataset_template = self.generate_geom()
         self.dataset_maker, self.bkg_maker, self.safe_maker = self.get_reduction_makers()
         datasets = self.generate_dataset()
@@ -148,7 +157,7 @@ class Dataset1DGeneration:
             # Using the same target source position as that used for
             # the 3D datasets analysis. Which one?
             dataset_3d = Dataset3DGeneration(
-                self.dataset_3d_src_pos,  ## Need to fix this
+                self.dataset_3d_src_pos,  # Need to fix this
                 self.config_target,
                 self.dataset_3d_src_pos.dataset_info.key[0],
             )

@@ -7,7 +7,7 @@ from enum import Enum
 from pathlib import Path
 from typing import List
 
-from asgardpy.data.base import AngleType, BaseConfig, TimeRangeConfig
+from asgardpy.data.base import AngleType, BaseConfig, TimeIntervalsConfig
 
 __all__ = [
     "ReductionTypeEnum",
@@ -42,7 +42,7 @@ class RequiredHDUEnum(str, Enum):
 class ObservationsConfig(BaseConfig):
     obs_ids: List[int] = []
     obs_file: Path = None
-    obs_time: TimeRangeConfig = TimeRangeConfig()
+    obs_time: TimeIntervalsConfig = TimeIntervalsConfig()
     required_irfs: List[RequiredHDUEnum] = ["aeff"]
 
 

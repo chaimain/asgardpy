@@ -3,6 +3,7 @@
 import abc
 import logging
 from enum import Enum
+from typing import List
 
 from astropy.coordinates import Angle
 from astropy.time import Time
@@ -14,10 +15,12 @@ __all__ = [
     "EnergyType",
     "TimeType",
     "FrameEnum",
+    "TimeFormatEnum",
     "AnalysisStepBase",
     "AnalysisStep",
     "BaseConfig",
     "TimeRangeConfig",
+    "TimeIntervalsConfig",
     "EnergyRangeConfig",
 ]
 
@@ -52,12 +55,22 @@ class TimeType(Time):
 
     @classmethod
     def validate(cls, v):
-        return Time(v)
+        return Time(v)  # Improve the validation with format type?
 
 
 class FrameEnum(str, Enum):
     icrs = "icrs"
     galactic = "galactic"
+
+
+class TimeFormatEnum(str, Enum):
+    datetime = "datetime"
+    fits = "fits"
+    iso = "iso"
+    isot = "isot"
+    jd = "jd"
+    mjd = "mjd"
+    unix = "unix"
 
 
 class BaseConfig(BaseModel):
@@ -124,6 +137,11 @@ class AnalysisStepEnum(str, Enum):
 class TimeRangeConfig(BaseConfig):
     start: TimeType = None
     stop: TimeType = None
+
+
+class TimeIntervalsConfig(BaseConfig):
+    format: TimeFormatEnum = "iso"
+    intervals: List[TimeRangeConfig] = [TimeRangeConfig()]
 
 
 class EnergyRangeConfig(BaseConfig):
