@@ -37,6 +37,9 @@ class AsgardpyAnalysis:
         self.final_model = None
         self.final_data_products = ["fit", "fit_result", "flux_points", "light_curve"]
 
+        for data_product in self.final_data_products:
+            setattr(self, data_product, None)
+
     @property
     def models(self):
         if not self.datasets:
@@ -103,8 +106,6 @@ class AsgardpyAnalysis:
                 for data_product in self.final_data_products:
                     if hasattr(analysis_step, data_product):
                         setattr(self, data_product, getattr(analysis_step, data_product))
-                    else:
-                        setattr(self, data_product, None)
 
     # keep these methods to be backward compatible
     def get_1d_dataset(self):

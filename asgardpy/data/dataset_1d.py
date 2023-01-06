@@ -134,19 +134,13 @@ class Dataset1DGeneration:
         self.observations = self.datastore.get_observations(required_irf=irfs_selected)
 
         obs_time = self.config_1d_dataset_info.observation.obs_time
+        # Could be generalized along with the same in dataset_3d
+        if obs_time.intervals[0].start is not None:
+            t_start = Time(obs_time.intervals[0].start, format=obs_time.format)
+            t_stop = Time(obs_time.intervals[0].stop, format=obs_time.format)
+            time_intervals = [t_start, t_stop]
 
-        if obs_time.intervals is not None:
-            # self.log.info(f"Obs time range: {obs_time.intervals} with Time format {obs_time.format}")
-            time_intervals = []
-
-            for interval in obs_time.intervals:
-                time_intervals.append(
-                    [
-                        Time(interval.start, format=obs_time.format),
-                        Time(interval.stop, format=obs_time.format),
-                    ]
-                )
-            self.observations.select_time(time_intervals)
+            self.observations = self.observations.select_time([time_intervals])
 
         self.dataset_template = self.generate_geom()
         self.dataset_maker, self.bkg_maker, self.safe_maker = self.get_reduction_makers()

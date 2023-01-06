@@ -81,11 +81,11 @@ dataset3d:
         name: Fermi-LAT
         key: ["FRONT", "BACK"]
         # map_selection: []
-        # obs_time: 
-          # format: iso
-          # intervals:
-          # -  start: "2021-04-01"
-          #    stop: "2021-05-01"
+        obs_time:
+          format: iso
+          intervals:
+          -  start: "2021-04-01"
+             stop: "2021-05-01"
         background:
           # method: reflected
           # exclusion: {}

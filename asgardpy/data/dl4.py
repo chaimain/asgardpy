@@ -181,7 +181,6 @@ class LightCurveAnalysisStep(AnalysisStepBase):
             light_curve = self.lce.run(datasets=dataset)
             light_curve.name = dataset.name
 
-            print(light_curve)
             self.light_curve.append(light_curve)
 
     def _set_lce(self, datasets=None):
@@ -196,7 +195,7 @@ class LightCurveAnalysisStep(AnalysisStepBase):
         energy_bin_edges = [u.Quantity(energy_range.min), u.Quantity(energy_range.max)]
 
         time_intervals_params = self.config.light_curve_params.time_intervals
-        if time_intervals_params.intervals is None:
+        if time_intervals_params.intervals[0].start is None:
             self.log.info("Time intervals not defined. Extract light curve on datasets GTIs.")
             time_intervals = None
         else:
