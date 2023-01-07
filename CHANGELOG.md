@@ -25,4 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Work on various Models functions and assignments by [@chaimain](https://github.com/chaimain).
 - Adding plotting functions and flux-points step by [@chaimain](https://github.com/chaimain).
 - Start using time intervals and light-curve analysis step by [@chaimain](https://github.com/chaimain).
+- Start adding example notebooks by [@chaimain](https://github.com/chaimain).
+- Start compressing the pipeline to reduce analysis time by [@chaimain](https://github.com/chaimain).
 - 
