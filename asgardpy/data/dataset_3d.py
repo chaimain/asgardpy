@@ -2,7 +2,7 @@
 Generating 3D Datasets from given Instrument DL3 data
 """
 
-import gzip
+# import gzip
 import logging
 from typing import List
 
@@ -14,7 +14,7 @@ from astropy.io import fits
 from astropy.time import Time
 
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
-from gammapy.data import GTI, EventList
+from gammapy.data import EventList, GTI
 from gammapy.datasets import Datasets, MapDataset
 from gammapy.irf import EDispKernel, EDispKernelMap, PSFMap
 from gammapy.makers import MapDatasetMaker
@@ -83,6 +83,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
     tag = "datasets-3d"
 
     def _run(self):
+        # Iterate over all instrument information given:
         instruments_list = self.config.dataset3d.instruments
         self.log.info(f"{len(instruments_list)} number of 3D Datasets given")
 
@@ -97,11 +98,16 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             dataset_instrument = Datasets()
             for key in key_names:
                 generate_3d_dataset = Dataset3DGeneration(
-                    self.config_3d_dataset, self.config.target, key
+                    self.config_3d_dataset, self.config, key  # .target
                 )
                 dataset = generate_3d_dataset.run()
+
                 dataset_instrument.append(dataset)
-            dataset_instrument.stack_reduce(name=self.config_3d_dataset.name)
+            if self.config.general.stacked_dataset:
+                dataset_instrument.stack_reduce(name=self.config_3d_dataset.name)
+            else:
+                for data in dataset_instrument:
+                    print(data.name)
 
             datasets_3d_final.append(dataset_instrument[0])
 
@@ -120,26 +126,40 @@ class Dataset3DGeneration:
     3. Generate the final dataset.
     """
 
-    def __init__(self, config_3d_dataset, config_target, key_name):
+    def __init__(self, config_3d_dataset, config_full, key_name):
         self.config_3d_dataset_io = config_3d_dataset.io
         self.config_3d_dataset_info = config_3d_dataset.dataset_info
         self.key_name = key_name
-        self.config_target = config_target
+
+        # For updating the main config file with target source position
+        # information if necessary.
+        self.config_full = config_full
+        self.config_target = config_full.target
         self.model = self.config_target.components.spectral
+
         self.exclusion_regions = []
         self.target_full_model = None
 
     def run(self):
+        # First check for the given file list if they are readable or not.
         file_list = self.read_to_objects(self.model, self.key_name)
+
+        # Start preparing objects to create the counts map
         self.set_energy_dispersion_matrix()
         self.load_events(file_list["events_file"])
         self.get_source_skycoord()
+
+        # Create the Counts Map
         self._counts_map()
+
+        # Create any dataset reduction makers or mask
         self._create_exclusion_mask()
         self.add_source_to_exclusion_region()
         self._set_edisp_interpolator()
         self._set_exposure_interpolator()
         self._generate_diffuse_background_cutout()
+
+        # Generate the final dataset
         dataset = self.generate_dataset(self.key_name)
 
         return dataset
@@ -165,6 +185,7 @@ class Dataset3DGeneration:
                     cfg, model, key_name, cfg.type, file_list
                 )
                 self.get_list_objects(cfg.input_dir, file_list["xml_file"], lp_is_intrinsic)
+                self.get_source_pos_from_3d_dataset()
 
         return file_list
 
@@ -173,13 +194,21 @@ class Dataset3DGeneration:
         Introduce the source coordinates from 3D dataset to 1D dataset.
         Need to generalize this as well for all datasets.
         """
-        # Maybe update this into the config file!
-        source_position_from_3d = None
-        for source in self.list_sources:
-            if source.name == self.config_target.source_name:
-                source_position_from_3d = source.spatial_model.position.icrs
+        if self.config_target.use_uniform_position:
+            source_position_from_3d = None
+            for source in self.list_sources:
+                if source.name == self.config_target.source_name:
+                    source_position_from_3d = source.spatial_model.position.icrs
 
-        return source_position_from_3d
+                    self.config_full.target.sky_position.lon = str(
+                        u.Quantity(source_position_from_3d.ra)
+                    )
+                    self.config_full.target.sky_position.lat = str(
+                        u.Quantity(source_position_from_3d.dec)
+                    )
+
+                    self.config_full.update(self.config_full)
+                    self.config_target = self.config_full.target
 
     def get_base_objects(self, dl3_dir_dict, model, key, dl3_type, file_list):
         """
@@ -240,19 +269,19 @@ class Dataset3DGeneration:
         # Create a local file (important if gzipped, as sometimes it fails to read)
         # Check again the valididty of gzipping files, and also on the use
         # of EventList, instead of other Gammapy object
-        try:
-            with gzip.open(events_file) as gzfile:
-                with open("temp_events.fits", "wb") as file:
-                    unzipped_file = gzip.decompress(gzfile.read())
-                    file.write(unzipped_file)
+        # try:
+        #    with gzip.open(events_file) as gzfile:
+        #        with open("temp_events.fits", "wb") as file:
+        #            unzipped_file = gzip.decompress(gzfile.read())
+        #            file.write(unzipped_file)
 
-            self.event_fits = fits.open("temp_events.fits")
-            self.events = EventList.read("temp_events.fits")
-            self.gti = GTI.read("temp_events.fits")
-        except Exception:
-            self.event_fits = fits.open(events_file)
-            self.events = EventList.read(events_file)
-            self.gti = GTI.read(events_file)
+        #    self.event_fits = fits.open("temp_events.fits")
+        #    self.events = EventList.read("temp_events.fits")
+        #    self.gti = GTI.read("temp_events.fits")
+        # except Exception:
+        self.event_fits = fits.open(events_file)
+        self.events = EventList.read(events_file)
+        self.gti = GTI.read(events_file)
 
         obs_time = self.config_3d_dataset_info.obs_time
         if obs_time.intervals[0].start is not None:

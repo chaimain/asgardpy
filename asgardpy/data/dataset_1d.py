@@ -24,7 +24,8 @@ from gammapy.maps import MapAxis, RegionGeom, WcsGeom
 from regions import CircleSkyRegion, PointSkyRegion
 
 from asgardpy.data.base import AnalysisStepBase, BaseConfig
-from asgardpy.data.dataset_3d import Dataset3DGeneration
+
+# from asgardpy.data.dataset_3d import Dataset3DGeneration
 from asgardpy.data.geom import GeomConfig, SpatialPointConfig
 from asgardpy.data.reduction import (
     BackgroundConfig,
@@ -81,19 +82,25 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
     def _run(self):
         # Iterate over all instrument information given:
         instruments_list = self.config.dataset1d.instruments
-        self.dataset_3d = self.config.dataset3d.instruments[0]
+        # self.dataset_3d = self.config.dataset3d.instruments[0]
         self.log.info(f"{len(instruments_list)} number of 1D Datasets given")
-
         datasets_1d_final = Datasets()
 
         for i in np.arange(len(instruments_list)):
             self.config_1d_dataset = instruments_list[i]
 
             generate_1d_dataset = Dataset1DGeneration(
-                self.config_1d_dataset, self.config.target, self.dataset_3d
+                self.config_1d_dataset, self.config.target  # , self.dataset_3d
             )
+
             dataset = generate_1d_dataset.run()
-            dataset = dataset.stack_reduce(name=self.config_1d_dataset.name)
+
+            if self.config.general.stacked_dataset:
+                dataset = dataset.stack_reduce(name=self.config_1d_dataset.name)
+            else:
+                for data in dataset:
+                    print(data.name)
+
             dataset = set_models(config=self.config.target, datasets=dataset)
             datasets_1d_final.append(dataset)
 
@@ -112,9 +119,9 @@ class Dataset1DGeneration:
     3. Generate the final dataset.
     """
 
-    def __init__(self, config_1d_dataset, config_target, config_3d_dataset):
+    def __init__(self, config_1d_dataset, config_target):  # , config_3d_dataset
         self.config_1d_dataset_io = config_1d_dataset.io
-        self.dataset_3d_src_pos = config_3d_dataset
+        # self.dataset_3d_src_pos = config_3d_dataset
         self.config_1d_dataset_info = config_1d_dataset.dataset_info
         self.config_target = config_target
         # Only 1 DL3 type of file.
@@ -123,15 +130,19 @@ class Dataset1DGeneration:
         self.model = config_target.components.spectral
 
     def run(self):
+        # First check for the given file list if they are readable or not.
         file_list = {}
         dl3_info = DL3Files(self.dl3_dir_dict, self.model, file_list)
         dl3_info.list_dl3_files()
 
+        # Create a Datastore object to select Observations object
         self.datastore = DataStore.from_dir(self.dl3_dir_dict.input_dir)
 
+        # IRFs selection
         irfs_selected = self.config_1d_dataset_info.observation.required_irfs
         self.observations = self.datastore.get_observations(required_irf=irfs_selected)
 
+        # Observation Time/Runs based selection
         obs_time = self.config_1d_dataset_info.observation.obs_time
         # Could be generalized along with the same in dataset_3d
         if obs_time.intervals[0].start is not None:
@@ -141,8 +152,13 @@ class Dataset1DGeneration:
 
             self.observations = self.observations.select_time([time_intervals])
 
+        # Create the main counts geometry
         self.dataset_template = self.generate_geom()
+
+        # Get all the Dataset reduction makers
         self.dataset_maker, self.bkg_maker, self.safe_maker = self.get_reduction_makers()
+
+        # Produce the final Dataset
         datasets = self.generate_dataset()
 
         return datasets
@@ -153,26 +169,26 @@ class Dataset1DGeneration:
         astropy's SkyCoord object, the geometry of the ON events and the
         axes information on reco energy and true energy, a dataset can be defined.
         """
-        if self.config_target.use_uniform_position:
-            # Using the same target source position as that used for
-            # the 3D datasets analysis. Which one?
-            dataset_3d = Dataset3DGeneration(
-                self.dataset_3d_src_pos,  # Need to fix this
-                self.config_target,
-                self.dataset_3d_src_pos.dataset_info.key[0],
-            )
-            dataset_3d.read_to_objects(self.model, self.dataset_3d_src_pos.dataset_info.key[0])
-            src_pos = dataset_3d.get_source_pos_from_3d_dataset()
+        # if self.config_target.use_uniform_position:
+        #     Using the same target source position as that used for
+        #     the 3D datasets analysis. Which one?
+        #    dataset_3d = Dataset3DGeneration(
+        #        self.dataset_3d_src_pos,  # Need to fix this
+        #        self.config_target,
+        #        self.dataset_3d_src_pos.dataset_info.key[0],
+        #    )
+        #    dataset_3d.read_to_objects(self.model, self.dataset_3d_src_pos.dataset_info.key[0])
+        #    src_pos = dataset_3d.get_source_pos_from_3d_dataset()
+        # else:
+        src_name = self.config_target.source_name
+        if src_name is not None:
+            src_pos = SkyCoord.from_name(src_name)
         else:
-            src_name = self.config_target.source_name
-            if src_name is not None:
-                src_pos = SkyCoord.from_name(src_name)
-            else:
-                src_pos = SkyCoord(
-                    u.Quantity(self.config_target.sky_position.lon),
-                    u.Quantity(self.config_target.sky_position.lat),
-                    frame=self.config_target.sky_position.frame,
-                )
+            src_pos = SkyCoord(
+                u.Quantity(self.config_target.sky_position.lon),
+                u.Quantity(self.config_target.sky_position.lat),
+                frame=self.config_target.sky_position.frame,
+            )
 
         # Defining the ON region's geometry
         given_on_geom = self.config_1d_dataset_info.on_region
