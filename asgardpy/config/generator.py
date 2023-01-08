@@ -43,6 +43,7 @@ class GeneralConfig(BaseConfig):
     n_jobs: int = 1
     steps: List[AnalysisStepEnum] = []
     overwrite: bool = True
+    stacked_dataset: bool = False
 
 
 # Combine everything!
