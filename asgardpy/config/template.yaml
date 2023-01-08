@@ -6,7 +6,7 @@ general:
     level: info
   outdir: /data/magic/users-ifae/cpriyada/lst/
   n_jobs: 1
-  steps: [datasets-1d] #, datasets-1d, fit, flux-points, light-curve]
+  steps: [datasets-3d, datasets-1d, fit, flux-points, light-curve]
   overwrite: true
   stacked_dataset: false
 
@@ -135,7 +135,7 @@ dataset1d:
               nbins: 5
             energy_true: *lst_energy
         observation:
-          # obs_ids: []
+          # obs_ids: [4333, 4343]
           # obs_file: None
           obs_time:
             format: iso
@@ -154,7 +154,7 @@ dataset1d:
               lat: -8.708 deg
             region_radius: 0.5 deg
         safe_mask:
-          methods: [] #["custom-mask"]
+          methods: ["custom-mask"]
           parameters:
             min: "10 GeV"
             max: "10 TeV"

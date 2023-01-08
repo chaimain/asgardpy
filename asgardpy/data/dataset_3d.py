@@ -2,7 +2,6 @@
 Generating 3D Datasets from given Instrument DL3 data
 """
 
-# import gzip
 import logging
 from typing import List
 
@@ -14,7 +13,7 @@ from astropy.io import fits
 from astropy.time import Time
 
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
-from gammapy.data import EventList, GTI
+from gammapy.data import GTI, EventList
 from gammapy.datasets import Datasets, MapDataset
 from gammapy.irf import EDispKernel, EDispKernelMap, PSFMap
 from gammapy.makers import MapDatasetMaker
@@ -98,18 +97,18 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             dataset_instrument = Datasets()
             for key in key_names:
                 generate_3d_dataset = Dataset3DGeneration(
-                    self.config_3d_dataset, self.config, key  # .target
+                    self.log, self.config_3d_dataset, self.config, key
                 )
                 dataset = generate_3d_dataset.run()
 
                 dataset_instrument.append(dataset)
+
             if self.config.general.stacked_dataset:
                 dataset_instrument.stack_reduce(name=self.config_3d_dataset.name)
+                datasets_3d_final.append(dataset_instrument[0])
             else:
                 for data in dataset_instrument:
-                    print(data.name)
-
-            datasets_3d_final.append(dataset_instrument[0])
+                    datasets_3d_final.append(data)
 
         return datasets_3d_final
 
@@ -126,10 +125,11 @@ class Dataset3DGeneration:
     3. Generate the final dataset.
     """
 
-    def __init__(self, config_3d_dataset, config_full, key_name):
+    def __init__(self, log, config_3d_dataset, config_full, key_name):
         self.config_3d_dataset_io = config_3d_dataset.io
         self.config_3d_dataset_info = config_3d_dataset.dataset_info
         self.key_name = key_name
+        self.log = log
 
         # For updating the main config file with target source position
         # information if necessary.
@@ -215,8 +215,8 @@ class Dataset3DGeneration:
         For a DL3 files type and tag of the 'mode of observations' - FRONT or
         BACK, read the files to appropriate Object type for further analysis.
         """
-        temp = DL3Files(dl3_dir_dict, model, file_list)
-        file_list = temp.prepare_lat_files(key, file_list)
+        dl3_info = DL3Files(dl3_dir_dict, model, file_list, log=self.log)
+        file_list = dl3_info.prepare_lat_files(key, file_list)
 
         if dl3_type.lower() == "lat":
             self.exposure = Map.read(file_list["expmap_file"])
@@ -266,19 +266,6 @@ class Dataset3DGeneration:
         Based on any time intervals selection, filter out the events and gti
         accordingly.
         """
-        # Create a local file (important if gzipped, as sometimes it fails to read)
-        # Check again the valididty of gzipping files, and also on the use
-        # of EventList, instead of other Gammapy object
-        # try:
-        #    with gzip.open(events_file) as gzfile:
-        #        with open("temp_events.fits", "wb") as file:
-        #            unzipped_file = gzip.decompress(gzfile.read())
-        #            file.write(unzipped_file)
-
-        #    self.event_fits = fits.open("temp_events.fits")
-        #    self.events = EventList.read("temp_events.fits")
-        #    self.gti = GTI.read("temp_events.fits")
-        # except Exception:
         self.event_fits = fits.open(events_file)
         self.events = EventList.read(events_file)
         self.gti = GTI.read(events_file)
@@ -405,12 +392,12 @@ class Dataset3DGeneration:
         excluded_geom = self.counts_map.geom.copy()
 
         if len(self.exclusion_regions) == 0:
-            # self.log.info("Creating empty/dummy exclusion region")
+            self.log.info("Creating empty/dummy exclusion region")
             pos = SkyCoord(0, 90, unit="deg")
             exclusion_region = CircleSkyRegion(pos, 0.00001 * u.deg)
             self.exclusion_mask = ~excluded_geom.region_mask([exclusion_region])
         else:
-            # self.log.info("Creating exclusion region")
+            self.log.info("Creating exclusion region")
             self.exclusion_mask = ~excluded_geom.region_mask(self.exclusion_regions)
 
     def add_source_to_exclusion_region(self, source_pos=None, radius=0.1 * u.deg):

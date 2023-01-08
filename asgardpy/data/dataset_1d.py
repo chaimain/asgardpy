@@ -88,7 +88,7 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
             self.config_1d_dataset = instruments_list[i]
 
             generate_1d_dataset = Dataset1DGeneration(
-                self.config_1d_dataset, self.config.target
+                self.log, self.config_1d_dataset, self.config.target
             )
 
             dataset = generate_1d_dataset.run()
@@ -100,7 +100,6 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
                 datasets_1d_final.append(dataset)
             else:
                 for data in dataset:
-                    print(data.name)
                     datasets_1d_final.append(data)
 
         return datasets_1d_final
@@ -118,10 +117,12 @@ class Dataset1DGeneration:
     3. Generate the final dataset.
     """
 
-    def __init__(self, config_1d_dataset, config_target):
+    def __init__(self, log, config_1d_dataset, config_target):
         self.config_1d_dataset_io = config_1d_dataset.io
+        self.log = log
         self.config_1d_dataset_info = config_1d_dataset.dataset_info
         self.config_target = config_target
+
         # Only 1 DL3 type of file.
         self.datasets = Datasets()
         self.dl3_dir_dict = self.config_1d_dataset_io[0]
@@ -130,7 +131,7 @@ class Dataset1DGeneration:
     def run(self):
         # First check for the given file list if they are readable or not.
         file_list = {}
-        dl3_info = DL3Files(self.dl3_dir_dict, self.model, file_list)
+        dl3_info = DL3Files(self.dl3_dir_dict, self.model, file_list, log=self.log)
         dl3_info.list_dl3_files()
 
         # Create a Datastore object to select Observations object
@@ -162,6 +163,7 @@ class Dataset1DGeneration:
         obs_table = self.datastore.obs_table.group_by("OBS_ID")
         observation_mask = np.ones(len(obs_table), dtype=bool)
 
+        # Filter using the Time interval range provided
         if obs_time.intervals[0].start is not None:
             t_start = Time(obs_time.intervals[0].start, format=obs_time.format)
             t_stop = Time(obs_time.intervals[0].stop, format=obs_time.format)
@@ -174,21 +176,22 @@ class Dataset1DGeneration:
             time_min_mask = full_time > t_start
             time_max_mask = full_time < t_stop
 
-            observation_mask *= (time_min_mask * time_max_mask)
+            observation_mask *= time_min_mask * time_max_mask
 
-        if len(obs_list) != 0:
-            # obs_min_mask = obs_table["OBS_ID"]
-            print(obs_list)
-            # Check with the earlier masked obs list and create an intersection
         filtered_obs_ids = obs_table[observation_mask]["OBS_ID"].data
+
+        # Filter using the given list of observation ids provided
+        if len(obs_list) != 0:
+            filtered_obs_ids = np.intersect1d(
+                filtered_obs_ids, np.array(obs_list), assume_unique=True
+            )
+        self.log.info(f"Observation ID list selected: {filtered_obs_ids}")
 
         # IRFs selection
         irfs_selected = self.config_1d_dataset_info.observation.required_irfs
         self.observations = self.datastore.get_observations(
-            filtered_obs_ids,
-            required_irf=irfs_selected
+            filtered_obs_ids, required_irf=irfs_selected
         )
-
 
     def generate_geom(self):
         """
@@ -342,6 +345,6 @@ class Dataset1DGeneration:
             elif len(safe_cfg.methods) != 0:
                 dataset_on_off = self.safe_maker.run(dataset_on_off, obs)
             else:
-                print("No safe mask applied")
+                self.log.info(f"No safe mask applied for {obs.obs_id}")
 
         self.datasets.append(dataset_on_off)
