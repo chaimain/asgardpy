@@ -8,7 +8,7 @@ general:
   n_jobs: 1
   steps: [datasets-3d, datasets-1d, fit, flux-points, light-curve]
   overwrite: true
-  stacked_dataset: false
+  stacked_dataset: true
 
 # Target settings
 target:
@@ -86,7 +86,7 @@ dataset3d:
           format: iso
           intervals: &main_time_range
           -  start: "2021-04-01"
-             stop: "2021-04-10"
+             stop: "2022-05-25"
         background:
           # method: reflected
           # exclusion: {}

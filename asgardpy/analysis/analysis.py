@@ -4,6 +4,7 @@ Config-driven high level analysis interface.
 import logging
 
 from gammapy.datasets import Datasets
+from gammapy.modeling.models import Models
 
 from asgardpy.config.generator import AsgardpyConfig
 from asgardpy.data.base import AnalysisStep
@@ -88,8 +89,9 @@ class AsgardpyAnalysis:
                 for data in datasets_list:
                     # Make a check to see if all component types of SkyModels
                     # are present throughout all datasets
-                    if data.models[0].spatial_model:
-                        self.final_model = data.models
+                    if data.models is not None:
+                        if Models(data.models)[0].spatial_model:
+                            self.final_model = Models(data.models)
                     self.datasets.append(data)
             else:
                 # Running DL4 functions on a given Datasets object.
