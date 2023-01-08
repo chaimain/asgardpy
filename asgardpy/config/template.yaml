@@ -6,9 +6,9 @@ general:
     level: info
   outdir: /data/magic/users-ifae/cpriyada/lst/
   n_jobs: 1
-  steps: [datasets-3d, datasets-1d, fit, flux-points, light-curve]
+  steps: [datasets-1d] #, datasets-1d, fit, flux-points, light-curve]
   overwrite: true
-  stacked_dataset: true
+  stacked_dataset: false
 
 # Target settings
 target:
@@ -86,7 +86,7 @@ dataset3d:
           format: iso
           intervals: &main_time_range
           -  start: "2021-04-01"
-             stop: "2022-05-25"
+             stop: "2021-04-10"
         background:
           # method: reflected
           # exclusion: {}
@@ -154,7 +154,7 @@ dataset1d:
               lat: -8.708 deg
             region_radius: 0.5 deg
         safe_mask:
-          methods: ["custom-mask"]
+          methods: [] #["custom-mask"]
           parameters:
             min: "10 GeV"
             max: "10 TeV"

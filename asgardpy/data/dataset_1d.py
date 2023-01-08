@@ -24,8 +24,6 @@ from gammapy.maps import MapAxis, RegionGeom, WcsGeom
 from regions import CircleSkyRegion, PointSkyRegion
 
 from asgardpy.data.base import AnalysisStepBase, BaseConfig
-
-# from asgardpy.data.dataset_3d import Dataset3DGeneration
 from asgardpy.data.geom import GeomConfig, SpatialPointConfig
 from asgardpy.data.reduction import (
     BackgroundConfig,
@@ -82,27 +80,28 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
     def _run(self):
         # Iterate over all instrument information given:
         instruments_list = self.config.dataset1d.instruments
-        # self.dataset_3d = self.config.dataset3d.instruments[0]
         self.log.info(f"{len(instruments_list)} number of 1D Datasets given")
+
         datasets_1d_final = Datasets()
 
         for i in np.arange(len(instruments_list)):
             self.config_1d_dataset = instruments_list[i]
 
             generate_1d_dataset = Dataset1DGeneration(
-                self.config_1d_dataset, self.config.target  # , self.dataset_3d
+                self.config_1d_dataset, self.config.target
             )
 
             dataset = generate_1d_dataset.run()
 
+            dataset = set_models(config=self.config.target, datasets=dataset)
+
             if self.config.general.stacked_dataset:
                 dataset = dataset.stack_reduce(name=self.config_1d_dataset.name)
+                datasets_1d_final.append(dataset)
             else:
                 for data in dataset:
                     print(data.name)
-
-            dataset = set_models(config=self.config.target, datasets=dataset)
-            datasets_1d_final.append(dataset)
+                    datasets_1d_final.append(data)
 
         return datasets_1d_final
 
@@ -119,9 +118,8 @@ class Dataset1DGeneration:
     3. Generate the final dataset.
     """
 
-    def __init__(self, config_1d_dataset, config_target):  # , config_3d_dataset
+    def __init__(self, config_1d_dataset, config_target):
         self.config_1d_dataset_io = config_1d_dataset.io
-        # self.dataset_3d_src_pos = config_3d_dataset
         self.config_1d_dataset_info = config_1d_dataset.dataset_info
         self.config_target = config_target
         # Only 1 DL3 type of file.
@@ -138,19 +136,8 @@ class Dataset1DGeneration:
         # Create a Datastore object to select Observations object
         self.datastore = DataStore.from_dir(self.dl3_dir_dict.input_dir)
 
-        # IRFs selection
-        irfs_selected = self.config_1d_dataset_info.observation.required_irfs
-        self.observations = self.datastore.get_observations(required_irf=irfs_selected)
-
-        # Observation Time/Runs based selection
-        obs_time = self.config_1d_dataset_info.observation.obs_time
-        # Could be generalized along with the same in dataset_3d
-        if obs_time.intervals[0].start is not None:
-            t_start = Time(obs_time.intervals[0].start, format=obs_time.format)
-            t_stop = Time(obs_time.intervals[0].stop, format=obs_time.format)
-            time_intervals = [t_start, t_stop]
-
-            self.observations = self.observations.select_time([time_intervals])
+        # Applying all provided filters to get the Observations object
+        self.get_filtered_observations()
 
         # Create the main counts geometry
         self.dataset_template = self.generate_geom()
@@ -159,9 +146,49 @@ class Dataset1DGeneration:
         self.dataset_maker, self.bkg_maker, self.safe_maker = self.get_reduction_makers()
 
         # Produce the final Dataset
-        datasets = self.generate_dataset()
+        self.generate_dataset()
 
-        return datasets
+        return self.datasets
+
+    def get_filtered_observations(self):
+        """
+        From the Datastores object, apply any observation filters provided in
+        the config file create the Observations object.
+        """
+        # Could be generalized along with the same in dataset_3d
+        obs_time = self.config_1d_dataset_info.observation.obs_time
+        obs_list = self.config_1d_dataset_info.observation.obs_ids
+
+        obs_table = self.datastore.obs_table.group_by("OBS_ID")
+        observation_mask = np.ones(len(obs_table), dtype=bool)
+
+        if obs_time.intervals[0].start is not None:
+            t_start = Time(obs_time.intervals[0].start, format=obs_time.format)
+            t_stop = Time(obs_time.intervals[0].stop, format=obs_time.format)
+
+            full_time = []
+            for obs in obs_table:
+                full_time.append(Time(f"{obs['DATE-OBS']} {obs['TIME-OBS']}", format="iso"))
+            full_time = np.array(full_time)
+
+            time_min_mask = full_time > t_start
+            time_max_mask = full_time < t_stop
+
+            observation_mask *= (time_min_mask * time_max_mask)
+
+        if len(obs_list) != 0:
+            # obs_min_mask = obs_table["OBS_ID"]
+            print(obs_list)
+            # Check with the earlier masked obs list and create an intersection
+        filtered_obs_ids = obs_table[observation_mask]["OBS_ID"].data
+
+        # IRFs selection
+        irfs_selected = self.config_1d_dataset_info.observation.required_irfs
+        self.observations = self.datastore.get_observations(
+            filtered_obs_ids,
+            required_irf=irfs_selected
+        )
+
 
     def generate_geom(self):
         """
@@ -169,17 +196,6 @@ class Dataset1DGeneration:
         astropy's SkyCoord object, the geometry of the ON events and the
         axes information on reco energy and true energy, a dataset can be defined.
         """
-        # if self.config_target.use_uniform_position:
-        #     Using the same target source position as that used for
-        #     the 3D datasets analysis. Which one?
-        #    dataset_3d = Dataset3DGeneration(
-        #        self.dataset_3d_src_pos,  # Need to fix this
-        #        self.config_target,
-        #        self.dataset_3d_src_pos.dataset_info.key[0],
-        #    )
-        #    dataset_3d.read_to_objects(self.model, self.dataset_3d_src_pos.dataset_info.key[0])
-        #    src_pos = dataset_3d.get_source_pos_from_3d_dataset()
-        # else:
         src_name = self.config_target.source_name
         if src_name is not None:
             src_pos = SkyCoord.from_name(src_name)
@@ -231,7 +247,8 @@ class Dataset1DGeneration:
     def get_reduction_makers(self):
         """
         Get Makers for Dataset creation, Background and Safe Energy Mask
-        reduction
+        reduction.
+        Maybe make them into 3 distinct funcrions.
         """
         # Spectrum Dataset Maker
         dataset_maker = SpectrumDatasetMaker(
@@ -281,20 +298,24 @@ class Dataset1DGeneration:
         # Safe Energy Mask Maker
         safe_config = self.config_1d_dataset_info.safe_mask
         pars = safe_config.parameters
-        if "custom-mask" not in safe_config.methods:
-            pos = SkyCoord(
-                u.Quantity(pars.position["lon"]),
-                u.Quantity(pars.position["lat"]),
-                frame=pars.position["frame"],
-            )
-            safe_maker = SafeMaskMaker(
-                methods=safe_config.methods,
-                aeff_percent=pars.aeff_percent,
-                bias_percent=pars.bias_percent,
-                position=pos,
-                fixed_offset=pars.fixed_offset,
-                offset_max=pars.offset_max,
-            )
+
+        if len(safe_config.methods) != 0:
+            if "custom-mask" not in safe_config.methods:
+                pos = SkyCoord(
+                    u.Quantity(pars.position["lon"]),
+                    u.Quantity(pars.position["lat"]),
+                    frame=pars.position["frame"],
+                )
+                safe_maker = SafeMaskMaker(
+                    methods=safe_config.methods,
+                    aeff_percent=pars.aeff_percent,
+                    bias_percent=pars.bias_percent,
+                    position=pos,
+                    fixed_offset=pars.fixed_offset,
+                    offset_max=pars.offset_max,
+                )
+            else:
+                safe_maker = None
         else:
             safe_maker = None
 
@@ -302,11 +323,12 @@ class Dataset1DGeneration:
 
     def generate_dataset(self):
         """
-        From the given Observations and various Makers, produce the Datasets
+        From the given Observation and various Makers, produce the Datasets
         object.
         """
         for obs in self.observations:
             dataset = self.dataset_maker.run(self.dataset_template.copy(name=str(obs.obs_id)), obs)
+
             dataset_on_off = self.bkg_maker.run(dataset, obs)
             # Necessary meta information addition?
             dataset_on_off.meta_table["SOURCE"] = self.config_target.source_name
@@ -317,8 +339,9 @@ class Dataset1DGeneration:
                 dataset_on_off.mask_safe = dataset_on_off.counts.geom.energy_mask(
                     energy_min=u.Quantity(pars["min"]), energy_max=u.Quantity(pars["max"])
                 )
-            else:
+            elif len(safe_cfg.methods) != 0:
                 dataset_on_off = self.safe_maker.run(dataset_on_off, obs)
-            self.datasets.append(dataset_on_off)
+            else:
+                print("No safe mask applied")
 
-        return self.datasets
+        self.datasets.append(dataset_on_off)
