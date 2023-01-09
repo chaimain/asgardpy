@@ -2,7 +2,6 @@
 Generating 3D Datasets from given Instrument DL3 data
 """
 
-import gzip
 import logging
 from typing import List
 
@@ -77,12 +76,13 @@ class Dataset3DConfig(BaseConfig):
 
 class Datasets3DAnalysisStep(AnalysisStepBase):
     """
-    Main class to generate the 3D Dataset for a given Instrument information.
+    From the given config information, prepare the full list of 3D datasets.
     """
 
     tag = "datasets-3d"
 
     def _run(self):
+        # Iterate over all instrument information given:
         instruments_list = self.config.dataset3d.instruments
         self.log.info(f"{len(instruments_list)} number of 3D Datasets given")
 
@@ -97,13 +97,18 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             dataset_instrument = Datasets()
             for key in key_names:
                 generate_3d_dataset = Dataset3DGeneration(
-                    self.config_3d_dataset, self.config.target, key
+                    self.log, self.config_3d_dataset, self.config, key
                 )
                 dataset = generate_3d_dataset.run()
-                dataset_instrument.append(dataset)
-            dataset_instrument.stack_reduce(name=self.config_3d_dataset.name)
 
-            datasets_3d_final.append(dataset_instrument[0])
+                dataset_instrument.append(dataset)
+
+            if self.config.general.stacked_dataset:
+                dataset_instrument.stack_reduce(name=self.config_3d_dataset.name)
+                datasets_3d_final.append(dataset_instrument[0])
+            else:
+                for data in dataset_instrument:
+                    datasets_3d_final.append(data)
 
         return datasets_3d_final
 
@@ -115,31 +120,47 @@ class Dataset3DGeneration:
 
     Runs the following steps:
     1. Read the DL3 files of 3D datasets into gammapy readable objects.
-    2. Prepare standard data reduction using the parameters passed in the config
+    2. Create the base counts Map.
+    3. Prepare standard data reduction using the parameters passed in the config
     for 3D datasets.
-    3. Generate the final dataset.
+    4. Generate the final dataset.
     """
 
-    def __init__(self, config_3d_dataset, config_target, key_name):
+    def __init__(self, log, config_3d_dataset, config_full, key_name):
         self.config_3d_dataset_io = config_3d_dataset.io
         self.config_3d_dataset_info = config_3d_dataset.dataset_info
         self.key_name = key_name
-        self.config_target = config_target
+        self.log = log
+
+        # For updating the main config file with target source position
+        # information if necessary.
+        self.config_full = config_full
+        self.config_target = config_full.target
         self.model = self.config_target.components.spectral
+
         self.exclusion_regions = []
         self.target_full_model = None
 
     def run(self):
+        # First check for the given file list if they are readable or not.
         file_list = self.read_to_objects(self.model, self.key_name)
+
+        # Start preparing objects to create the counts map
         self.set_energy_dispersion_matrix()
         self.load_events(file_list["events_file"])
         self.get_source_skycoord()
+
+        # Create the Counts Map
         self._counts_map()
+
+        # Create any dataset reduction makers or mask
         self._create_exclusion_mask()
         self.add_source_to_exclusion_region()
         self._set_edisp_interpolator()
         self._set_exposure_interpolator()
         self._generate_diffuse_background_cutout()
+
+        # Generate the final dataset
         dataset = self.generate_dataset(self.key_name)
 
         return dataset
@@ -165,29 +186,39 @@ class Dataset3DGeneration:
                     cfg, model, key_name, cfg.type, file_list
                 )
                 self.get_list_objects(cfg.input_dir, file_list["xml_file"], lp_is_intrinsic)
+                self.get_source_pos_from_3d_dataset()
 
         return file_list
 
     def get_source_pos_from_3d_dataset(self):
         """
-        Introduce the source coordinates from 3D dataset to 1D dataset.
-        Need to generalize this as well for all datasets.
+        Introduce the source coordinates from the 3D dataset to be the standard
+        value in the main config file, for further use.
         """
-        # Maybe update this into the config file!
-        source_position_from_3d = None
-        for source in self.list_sources:
-            if source.name == self.config_target.source_name:
-                source_position_from_3d = source.spatial_model.position.icrs
+        if self.config_target.use_uniform_position:
+            source_position_from_3d = None
+            for source in self.list_sources:
+                if source.name == self.config_target.source_name:
+                    source_position_from_3d = source.spatial_model.position.icrs
 
-        return source_position_from_3d
+                    self.config_full.target.sky_position.lon = str(
+                        u.Quantity(source_position_from_3d.ra)
+                    )
+                    self.config_full.target.sky_position.lat = str(
+                        u.Quantity(source_position_from_3d.dec)
+                    )
+
+                    self.config_full.update(self.config_full)
+                    self.config_target = self.config_full.target
 
     def get_base_objects(self, dl3_dir_dict, model, key, dl3_type, file_list):
         """
-        For a DL3 files type and tag of the 'mode of observations' - FRONT or
-        BACK, read the files to appropriate Object type for further analysis.
+        For a DL3 files type and tag of the 'mode of observations' (FRONT or
+        BACK for Fermi-LAT), read the files to appropriate Object type for
+        further analysis.
         """
-        temp = DL3Files(dl3_dir_dict, model, file_list)
-        file_list = temp.prepare_lat_files(key, file_list)
+        dl3_info = DL3Files(dl3_dir_dict, model, file_list, log=self.log)
+        file_list = dl3_info.prepare_lat_files(key, file_list)
 
         if dl3_type.lower() == "lat":
             self.exposure = Map.read(file_list["expmap_file"])
@@ -206,7 +237,7 @@ class Dataset3DGeneration:
 
     def set_energy_axes(self):
         """
-        Get the energy axes from the given DRM file.
+        Get the energy axes from the given Detector Response Matrix file.
         """
         energy_lo = self.drmap["DRM"].data["ENERG_LO"] * u.MeV
         energy_hi = self.drmap["DRM"].data["ENERG_HI"] * u.MeV
@@ -218,7 +249,8 @@ class Dataset3DGeneration:
 
     def set_energy_dispersion_matrix(self):
         """
-        Generate the Energy Dispersion Kernel from the file.
+        Generate the Energy Dispersion Kernel from the given Detector Response
+        Matrix file.
         """
         self.energy_axis, self.energy_axis_true = self.set_energy_axes()
         drm = self.drmap["DRM"].data["MATRIX"]
@@ -230,29 +262,15 @@ class Dataset3DGeneration:
 
     def load_events(self, events_file):
         """
-        Loading the events files for the specific "Key" and saving them to a
-        dummy fits file if the original files are gzipped.
+        Loading the events files for the specific "Key" into an EventList
+        object and the GTI information into a GTI object.
 
-        Also get the GTI information.
         Based on any time intervals selection, filter out the events and gti
         accordingly.
         """
-        # Create a local file (important if gzipped, as sometimes it fails to read)
-        # Check again the valididty of gzipping files, and also on the use
-        # of EventList, instead of other Gammapy object
-        try:
-            with gzip.open(events_file) as gzfile:
-                with open("temp_events.fits", "wb") as file:
-                    unzipped_file = gzip.decompress(gzfile.read())
-                    file.write(unzipped_file)
-
-            self.event_fits = fits.open("temp_events.fits")
-            self.events = EventList.read("temp_events.fits")
-            self.gti = GTI.read("temp_events.fits")
-        except Exception:
-            self.event_fits = fits.open(events_file)
-            self.events = EventList.read(events_file)
-            self.gti = GTI.read(events_file)
+        self.event_fits = fits.open(events_file)
+        self.events = EventList.read(events_file)
+        self.gti = GTI.read(events_file)
 
         obs_time = self.config_3d_dataset_info.obs_time
         if obs_time.intervals[0].start is not None:
@@ -305,7 +323,8 @@ class Dataset3DGeneration:
 
     def _counts_map(self):
         """
-        Generate the counts Map object and fill it with the events information.
+        Generate the counts Map object and fill it with the events' RA-Dec
+        position, Energy and Time information.
         """
         self.counts_map = Map.create(
             skydir=self.source_pos,
@@ -322,8 +341,8 @@ class Dataset3DGeneration:
 
     def _generate_diffuse_background_cutout(self):
         """
-        Doing a cutout of the Diffuse background model with respect to the
-        counts map geom, may improve fitting speed.
+        Perform a cutout of the Diffuse background model with respect to the
+        counts map geom (may improve fitting speed?).
 
         The Template Spatial Model is without normalization currently.
         """
@@ -344,8 +363,8 @@ class Dataset3DGeneration:
 
     def _set_edisp_interpolator(self):
         """
-        Get Energy Dispersion Kernel interpolated along true and reconstructed
-        energy of the real counts.
+        Get the Energy Dispersion Kernel interpolated along true and
+        reconstructed energy of the real counts.
         """
         axis_reco = MapAxis.from_edges(
             self.counts_map.geom.axes["energy"].edges,
@@ -376,12 +395,12 @@ class Dataset3DGeneration:
         excluded_geom = self.counts_map.geom.copy()
 
         if len(self.exclusion_regions) == 0:
-            # self.log.info("Creating empty/dummy exclusion region")
+            self.log.info("Creating empty/dummy exclusion region")
             pos = SkyCoord(0, 90, unit="deg")
             exclusion_region = CircleSkyRegion(pos, 0.00001 * u.deg)
             self.exclusion_mask = ~excluded_geom.region_mask([exclusion_region])
         else:
-            # self.log.info("Creating exclusion region")
+            self.log.info("Creating exclusion region")
             self.exclusion_mask = ~excluded_geom.region_mask(self.exclusion_regions)
 
     def add_source_to_exclusion_region(self, source_pos=None, radius=0.1 * u.deg):
@@ -406,7 +425,8 @@ class Dataset3DGeneration:
 
     def generate_dataset(self, key_name):
         """
-        Generate MapDataset for the given Instrument files.
+        Generate MapDataset for the given Instrument files using the Counts Map,
+        IRFs and Models objects.
         """
         try:
             mask_safe = self.exclusion_mask
