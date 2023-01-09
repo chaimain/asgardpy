@@ -24,7 +24,7 @@ from gammapy.modeling.models import (
     SkyModel,
     TemplateSpatialModel,
 )
-from regions import CircleSkyRegion
+from regions import CircleAnnulusSkyRegion, CircleSkyRegion
 
 from asgardpy.data.base import AnalysisStepBase, BaseConfig, TimeIntervalsConfig
 from asgardpy.data.geom import SpatialCircleConfig
@@ -393,12 +393,33 @@ class Dataset3DGeneration:
         Generate an Exclusion Mask for the final MapDataset
         """
         excluded_geom = self.counts_map.geom.copy()
+        exclusion_params = self.config_3d_dataset_info.background.exclusion
+        excluded_regions_list = []
 
-        if len(self.exclusion_regions) == 0:
+        if len(exclusion_params["regions"]) != 0:
+            self.log.info("Using the background region from config for exclusion mask")
+            for region in exclusion_params["regions"]:
+                if region["name"] == "None":
+                    coord = region["position"]
+                    center_ex = SkyCoord(
+                        u.Quantity(coord["lon"]), u.Quantity(coord["lat"]), frame=coord["frame"]
+                    ).icrs
+                else:
+                    center_ex = SkyCoord.from_name(region["name"])
+                print(region)
+                excluded_region = CircleAnnulusSkyRegion(
+                    center=center_ex,
+                    inner_radius=u.Quantity(region["parameters"]["rad_0"]),
+                    outer_radius=u.Quantity(region["parameters"]["rad_1"]),
+                )
+            excluded_regions_list.append(excluded_region)
+
+        elif len(self.exclusion_regions) == 0:
             self.log.info("Creating empty/dummy exclusion region")
             pos = SkyCoord(0, 90, unit="deg")
             exclusion_region = CircleSkyRegion(pos, 0.00001 * u.deg)
-            self.exclusion_mask = ~excluded_geom.region_mask([exclusion_region])
+            excluded_regions_list.append(exclusion_region)
+            self.exclusion_mask = ~excluded_geom.region_mask(excluded_regions_list)
         else:
             self.log.info("Creating exclusion region")
             self.exclusion_mask = ~excluded_geom.region_mask(self.exclusion_regions)
