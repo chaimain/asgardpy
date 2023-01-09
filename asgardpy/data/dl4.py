@@ -32,7 +32,6 @@ __all__ = [
 
 
 class FluxPointsConfig(BaseConfig):
-    energy: EnergyAxisConfig = EnergyAxisConfig()
     parameters: dict = {"selection_optional": "all"}
 
 

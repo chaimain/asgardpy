@@ -28,4 +28,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Start adding example notebooks by [@chaimain](https://github.com/chaimain).
 - Start compressing the pipeline to reduce analysis time by [@chaimain](https://github.com/chaimain).
 - Fix adding exclusion regions in 3D dataset by [@chaimain](https://github.com/chaimain).
+- Addition of instrument-specific spectral parameters by [@chaimain](https://github.com/chaimain).
 - 

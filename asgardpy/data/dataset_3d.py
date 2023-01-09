@@ -27,7 +27,7 @@ from gammapy.modeling.models import (
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion
 
 from asgardpy.data.base import AnalysisStepBase, BaseConfig, TimeIntervalsConfig
-from asgardpy.data.geom import EnergyAxisConfig, SpatialCircleConfig
+from asgardpy.data.geom import SpatialCircleConfig, EnergyAxisConfig
 from asgardpy.data.reduction import (
     BackgroundConfig,
     MapSelectionEnum,
@@ -122,7 +122,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             ).edges
 
             spectral_energy_ranges.append(energy_bin_edges)
-        print(spectral_energy_ranges)
+
         return datasets_3d_final, spectral_energy_ranges
 
 

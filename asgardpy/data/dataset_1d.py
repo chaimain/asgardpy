@@ -24,7 +24,7 @@ from gammapy.maps import MapAxis, RegionGeom, WcsGeom
 from regions import CircleSkyRegion, PointSkyRegion
 
 from asgardpy.data.base import AnalysisStepBase, BaseConfig
-from asgardpy.data.geom import EnergyAxisConfig, GeomConfig, SpatialPointConfig
+from asgardpy.data.geom import GeomConfig, SpatialPointConfig, EnergyAxisConfig
 from asgardpy.data.reduction import (
     BackgroundConfig,
     MapSelectionEnum,
@@ -113,7 +113,7 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
             ).edges
 
             spectral_energy_ranges.append(energy_bin_edges)
-        print(spectral_energy_ranges)
+
         return datasets_1d_final, spectral_energy_ranges
 
 
