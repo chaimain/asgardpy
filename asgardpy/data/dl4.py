@@ -7,7 +7,8 @@ from astropy import units as u
 from astropy.time import Time
 from gammapy.datasets import Datasets
 from gammapy.estimators import FluxPointsEstimator, LightCurveEstimator
-from gammapy.maps import MapAxis
+
+# from gammapy.maps import MapAxis
 from gammapy.modeling import Fit
 
 from asgardpy.data.base import (
@@ -118,51 +119,23 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
     def _run(self):
         self.flux_points = []
 
-        for dataset in self.datasets:
-            self._set_fpe(dataset)
+        for dataset, energy_edges in zip(self.datasets, self.spectral_energy_ranges):
+            self._set_fpe(dataset, energy_edges)
             flux_points = self.fpe.run(datasets=[dataset])
             flux_points.name = dataset.name
 
             self.flux_points.append(flux_points)
 
-    def _set_fpe(self, dataset):
+    def _set_fpe(self, dataset, energy_bin_edges):
         """
         Setup the Gammapy FluxPointsEstimator function with all the
         provided parameters.
         """
-        energy_range = self.config.flux_points_params.energy
-        energy_min = u.Quantity(energy_range.min)
-        energy_max = u.Quantity(energy_range.max)
-
-        # Check with the given energy range of counts of each dataset.
-        dataset_energy = dataset.counts.geom.axes["energy"].edges
-        data_geom_energy_min = dataset_energy[0]
-        data_geom_energy_max = dataset_energy[-1]
-
-        # Fix the energy range to be within the given dataset.
-        if energy_min < data_geom_energy_min:
-            energy_min = data_geom_energy_min
-        if energy_max > data_geom_energy_max:
-            energy_max = data_geom_energy_max
-
-        energy_bin_edges = MapAxis.from_energy_bounds(
-            energy_min=energy_min,
-            energy_max=energy_max,
-            nbin=int(energy_range.nbins),
-            per_decade=True,
-        ).edges
-
         fpe_settings = self.config.flux_points_params.parameters
 
         self.fpe = FluxPointsEstimator(
             energy_edges=energy_bin_edges, source=self.config.target.source_name, **fpe_settings
         )
-
-    def get_spectral_points(self, datasets):
-        """running for a given dataset?"""
-        flux_points = self.fpe.run(datasets=datasets)
-
-        return flux_points
 
 
 class LightCurveAnalysisStep(AnalysisStepBase):
@@ -230,10 +203,3 @@ class LightCurveAnalysisStep(AnalysisStepBase):
             source=self.config.target.source_name,
             **lce_settings
         )
-
-    def get_lc_flux_points(self, datasets=None):
-        """running for a given dataset?"""
-
-        light_curve_flux = self.lce.run(datasets=datasets)
-
-        return light_curve_flux

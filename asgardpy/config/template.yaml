@@ -6,7 +6,7 @@ general:
     level: info
   outdir: /data/magic/users-ifae/cpriyada/lst/
   n_jobs: 1
-  steps: [datasets-3d, datasets-1d, fit, flux-points, light-curve]
+  steps: [datasets-3d, datasets-1d, fit, flux-points] #, light-curve]
   overwrite: true
   stacked_dataset: true
 
@@ -107,6 +107,10 @@ dataset3d:
         on_region: *source_pos
           # radius: 0.4 deg # Have to figure how to use this later
         containment_correction: true
+        spectral_energy_range: &lat_energy_range
+          min: 100 MeV
+          max: 1 TeV
+          nbins: 2
 # - name: HAWC?
 #    ... full description ...
 
@@ -163,6 +167,7 @@ dataset1d:
         on_region: *source_pos
         containment_correction: false
         map_selection: [counts, exposure, edisp]
+        spectral_energy_range: *lst_energy
 #  - name: MAGIC
 #      ... full description ...
 

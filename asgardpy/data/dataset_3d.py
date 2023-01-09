@@ -27,7 +27,7 @@ from gammapy.modeling.models import (
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion
 
 from asgardpy.data.base import AnalysisStepBase, BaseConfig, TimeIntervalsConfig
-from asgardpy.data.geom import SpatialCircleConfig
+from asgardpy.data.geom import EnergyAxisConfig, SpatialCircleConfig
 from asgardpy.data.reduction import (
     BackgroundConfig,
     MapSelectionEnum,
@@ -61,6 +61,7 @@ class Dataset3DInfoConfig(BaseConfig):
     safe_mask: SafeMaskConfig = SafeMaskConfig()
     on_region: SpatialCircleConfig = SpatialCircleConfig()
     containment_correction: bool = True
+    spectral_energy_range: EnergyAxisConfig = EnergyAxisConfig()
 
 
 class Dataset3DBaseConfig(BaseConfig):
@@ -87,6 +88,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
         self.log.info(f"{len(instruments_list)} number of 3D Datasets given")
 
         datasets_3d_final = Datasets()
+        spectral_energy_ranges = []
 
         for i in np.arange(len(instruments_list)):
             self.config_3d_dataset = instruments_list[i]
@@ -110,7 +112,18 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                 for data in dataset_instrument:
                     datasets_3d_final.append(data)
 
-        return datasets_3d_final
+            # Get the spectral energy information for each Instrument Dataset
+            energy_range = self.config_3d_dataset.dataset_info.spectral_energy_range
+            energy_bin_edges = MapAxis.from_energy_bounds(
+                energy_min=u.Quantity(energy_range.min),
+                energy_max=u.Quantity(energy_range.max),
+                nbin=int(energy_range.nbins),
+                per_decade=True,
+            ).edges
+
+            spectral_energy_ranges.append(energy_bin_edges)
+        print(spectral_energy_ranges)
+        return datasets_3d_final, spectral_energy_ranges
 
 
 class Dataset3DGeneration:
@@ -406,7 +419,6 @@ class Dataset3DGeneration:
                     ).icrs
                 else:
                     center_ex = SkyCoord.from_name(region["name"])
-                print(region)
                 excluded_region = CircleAnnulusSkyRegion(
                     center=center_ex,
                     inner_radius=u.Quantity(region["parameters"]["rad_0"]),

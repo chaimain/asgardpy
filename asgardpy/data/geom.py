@@ -2,6 +2,8 @@
 Classes containing the Geometry config parameters for the high-level interface
 """
 
+from typing import List
+
 from asgardpy.data.base import AngleType, BaseConfig, EnergyType, FrameEnum
 
 __all__ = [
@@ -9,6 +11,7 @@ __all__ = [
     "SpatialPointConfig",
     "EnergyAxisConfig",
     "EnergyAxesConfig",
+    "EnergyEdgesCustomConfig",
     "SelectionConfig",
     "FinalFrameConfig",
     "SkyCoordConfig",
@@ -34,6 +37,10 @@ class EnergyAxisConfig(BaseConfig):
     min: EnergyType = None
     max: EnergyType = None
     nbins: int = None
+
+
+class EnergyEdgesCustomConfig(BaseConfig):
+    edges: List[EnergyType] = []
 
 
 class EnergyAxesConfig(BaseConfig):
