@@ -107,6 +107,10 @@ dataset3d:
         on_region: *source_pos
           # radius: 0.4 deg # Have to figure how to use this later
         containment_correction: true
+        spectral_energy_range: &lat_energy_range
+          min: 100 MeV
+          max: 1 TeV
+          nbins: 2
 # - name: HAWC?
 #    ... full description ...
 
@@ -163,6 +167,7 @@ dataset1d:
         on_region: *source_pos
         containment_correction: false
         map_selection: [counts, exposure, edisp]
+        spectral_energy_range: *lst_energy
 #  - name: MAGIC
 #      ... full description ...
 
@@ -178,10 +183,6 @@ fit_params:
   store_trace: true
 
 flux_points_params:
-  energy:
-    min: "100 MeV"
-    max: "10 TeV"
-    nbins: 5
   parameters:
     selection_optional: "all"
 

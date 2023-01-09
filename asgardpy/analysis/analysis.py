@@ -36,6 +36,7 @@ class AsgardpyAnalysis:
         self.config = config
         self.config.set_logging()
         self.datasets = Datasets()
+        self.spectral_energy_ranges = []
         self.final_model = None
         self.final_data_products = ["fit", "fit_result", "flux_points", "light_curve"]
 
@@ -85,7 +86,7 @@ class AsgardpyAnalysis:
             # Should consider a better approach in running the steps in an order.
             if "datasets" in step:
                 analysis_step = AnalysisStep.create(step, self.config, **kwargs)
-                datasets_list = analysis_step.run()
+                datasets_list, energy_edges = analysis_step.run()
 
                 for data in datasets_list:
                     # Make a check to see if all component types of SkyModels
@@ -95,6 +96,8 @@ class AsgardpyAnalysis:
                             self.final_model = Models(data.models)
                             self.log.info(f"The final model used is {self.final_model}")
                     self.datasets.append(data)
+                for edges in energy_edges:
+                    self.spectral_energy_ranges.append(edges)
             else:
                 # Running DL4 functions on a given Datasets object.
                 if step == "fit":
@@ -104,7 +107,7 @@ class AsgardpyAnalysis:
                         config=self.config.target, datasets=self.datasets, models=self.final_model
                     )
                 analysis_step = AnalysisStep.create(step, self.config, **kwargs)
-                analysis_step.run(datasets=self.datasets)
+                analysis_step.run(datasets=self.datasets, energy_ranges=self.spectral_energy_ranges)
 
                 # Update the final data product objects
                 for data_product in self.final_data_products:

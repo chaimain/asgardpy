@@ -400,7 +400,6 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
         spatial_model = TemplateSpatialModel(spatial_map, filename=file_path)
 
     spatial_model.freeze()
-
     source_sky_model = SkyModel(
         spectral_model=spectral_model,
         spatial_model=spatial_model,

@@ -27,6 +27,7 @@ from asgardpy.data.dl4 import (
 from asgardpy.data.geom import (
     EnergyAxesConfig,
     EnergyAxisConfig,
+    EnergyEdgesCustomConfig,
     FinalFrameConfig,
     GeomConfig,
     SelectionConfig,
@@ -88,6 +89,7 @@ __all__ = [
     "SpatialPointConfig",
     "EnergyAxisConfig",
     "EnergyAxesConfig",
+    "EnergyEdgesCustomConfig",
     "SelectionConfig",
     "FinalFrameConfig",
     "SkyCoordConfig",

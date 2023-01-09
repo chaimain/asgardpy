@@ -24,7 +24,7 @@ from gammapy.maps import MapAxis, RegionGeom, WcsGeom
 from regions import CircleSkyRegion, PointSkyRegion
 
 from asgardpy.data.base import AnalysisStepBase, BaseConfig
-from asgardpy.data.geom import GeomConfig, SpatialPointConfig
+from asgardpy.data.geom import EnergyAxisConfig, GeomConfig, SpatialPointConfig
 from asgardpy.data.reduction import (
     BackgroundConfig,
     MapSelectionEnum,
@@ -55,6 +55,7 @@ class Dataset1DInfoConfig(BaseConfig):
     on_region: SpatialPointConfig = SpatialPointConfig()
     containment_correction: bool = True
     map_selection: List[MapSelectionEnum] = []
+    spectral_energy_range: EnergyAxisConfig = EnergyAxisConfig()
 
 
 class Dataset1DBaseConfig(BaseConfig):
@@ -82,6 +83,7 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
         self.log.info(f"{len(instruments_list)} number of 1D Datasets given")
 
         datasets_1d_final = Datasets()
+        spectral_energy_ranges = []
 
         for i in np.arange(len(instruments_list)):
             self.config_1d_dataset = instruments_list[i]
@@ -94,14 +96,25 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
 
             dataset = set_models(config=self.config.target, datasets=dataset)
 
+            # Get the spectral energy information for each Instrument Dataset
+            energy_range = self.config_1d_dataset.dataset_info.spectral_energy_range
+            energy_bin_edges = MapAxis.from_energy_bounds(
+                energy_min=u.Quantity(energy_range.min),
+                energy_max=u.Quantity(energy_range.max),
+                nbin=int(energy_range.nbins),
+                per_decade=True,
+            ).edges
+
             if self.config.general.stacked_dataset:
                 dataset = dataset.stack_reduce(name=self.config_1d_dataset.name)
                 datasets_1d_final.append(dataset)
+                spectral_energy_ranges.append(energy_bin_edges)
             else:
                 for data in dataset:
                     datasets_1d_final.append(data)
+                    spectral_energy_ranges.append(energy_bin_edges)
 
-        return datasets_1d_final
+        return datasets_1d_final, spectral_energy_ranges
 
 
 class Dataset1DGeneration:
