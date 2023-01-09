@@ -71,8 +71,7 @@ class Dataset1DConfig(BaseConfig):
 
 class Datasets1DAnalysisStep(AnalysisStepBase):
     """
-    Using the Datastore and Observations generated after reading the DL3 files,
-    and the various data reduction makers, generate 1D Datasets.
+    From the given config information, prepare the full list of 1D datasets.
     """
 
     tag = "datasets-1d"
@@ -112,9 +111,11 @@ class Dataset1DGeneration:
 
     Runs the following steps:
     1. Read the DL3 files of 1D datasets into gammapy readable objects.
-    2. Prepare standard data reduction using the parameters passed in the config
+    2. Perform any Observation selection.
+    3. Create the base dataset template, including the main counts geometry.
+    4. Prepare standard data reduction using the parameters passed in the config
     for 1D datasets.
-    3. Generate the final dataset.
+    5. Generate the final dataset.
     """
 
     def __init__(self, log, config_1d_dataset, config_target):
@@ -195,9 +196,9 @@ class Dataset1DGeneration:
 
     def generate_geom(self):
         """
-        From a given or corrected target source position, provided in
-        astropy's SkyCoord object, the geometry of the ON events and the
-        axes information on reco energy and true energy, a dataset can be defined.
+        Generate from a given or target source position, provided in astropy's
+        SkyCoord readable values, the geometry of the ON events and the axes
+        information on reco energy and true energy, a dataset can be defined.
         """
         src_name = self.config_target.source_name
         if src_name is not None:
@@ -326,8 +327,8 @@ class Dataset1DGeneration:
 
     def generate_dataset(self):
         """
-        From the given Observation and various Makers, produce the Datasets
-        object.
+        From the given Observations and various Makers, produce the
+        DatasetOnOff object and append it to the final Datasets object.
         """
         for obs in self.observations:
             dataset = self.dataset_maker.run(self.dataset_template.copy(name=str(obs.obs_id)), obs)
@@ -347,4 +348,4 @@ class Dataset1DGeneration:
             else:
                 self.log.info(f"No safe mask applied for {obs.obs_id}")
 
-        self.datasets.append(dataset_on_off)
+            self.datasets.append(dataset_on_off)
