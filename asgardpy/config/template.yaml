@@ -89,19 +89,16 @@ dataset3d:
              stop: "2022-05-25"
         background:
           # method: reflected
-          # exclusion: {}
-          parameters:
+          # parameters:
+          exclusion:
             target_source: true
             regions:
             -   type: CircleAnnulusSkyRegion
                 name: None
-                position:
-                  frame: galactic
-                  lon: 120 deg
-                  lat: 20 deg
+                position: *source_pos
                 parameters:
-                -   rad_0: 1 deg
-                -   rad_1: 2 deg
+                  rad_0: 8 deg
+                  rad_1: 30 deg
         safe_mask:
           methods: []
           parameters:
