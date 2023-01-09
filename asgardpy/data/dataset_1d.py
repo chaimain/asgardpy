@@ -96,13 +96,6 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
 
             dataset = set_models(config=self.config.target, datasets=dataset)
 
-            if self.config.general.stacked_dataset:
-                dataset = dataset.stack_reduce(name=self.config_1d_dataset.name)
-                datasets_1d_final.append(dataset)
-            else:
-                for data in dataset:
-                    datasets_1d_final.append(data)
-
             # Get the spectral energy information for each Instrument Dataset
             energy_range = self.config_1d_dataset.dataset_info.spectral_energy_range
             energy_bin_edges = MapAxis.from_energy_bounds(
@@ -112,7 +105,14 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
                 per_decade=True,
             ).edges
 
-            spectral_energy_ranges.append(energy_bin_edges)
+            if self.config.general.stacked_dataset:
+                dataset = dataset.stack_reduce(name=self.config_1d_dataset.name)
+                datasets_1d_final.append(dataset)
+                spectral_energy_ranges.append(energy_bin_edges)
+            else:
+                for data in dataset:
+                    datasets_1d_final.append(data)
+                    spectral_energy_ranges.append(energy_bin_edges)
 
         return datasets_1d_final, spectral_energy_ranges
 
