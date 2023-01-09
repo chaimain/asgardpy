@@ -19,10 +19,11 @@ class AsgardpyAnalysis:
     """
     Config-driven high level analysis interface.
 
-    It is initialized by default with a set of configuration parameters and values declared in
-    an internal high level interface model, though the user can also provide configuration
-    parameters passed as a nested dictionary at the moment of instantiation. In that case these
-    parameters will overwrite the default values of those present in the configuration file.
+    It is initialized by default with a set of configuration parameters and
+    values declared in an internal high level interface model, though the user
+    can also provide configuration parameters passed as a nested dictionary at
+    the moment of instantiation. In that case these parameters will overwrite
+    the default values of those present in the configuration file.
 
     Parameters
     ----------
@@ -92,6 +93,7 @@ class AsgardpyAnalysis:
                     if data.models is not None:
                         if Models(data.models)[0].spatial_model:
                             self.final_model = Models(data.models)
+                            self.log.info(f"The final model used is {self.final_model}")
                     self.datasets.append(data)
             else:
                 # Running DL4 functions on a given Datasets object.

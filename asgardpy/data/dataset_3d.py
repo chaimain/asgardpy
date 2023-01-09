@@ -76,7 +76,7 @@ class Dataset3DConfig(BaseConfig):
 
 class Datasets3DAnalysisStep(AnalysisStepBase):
     """
-    Main class to generate the 3D Dataset for a given Instrument information.
+    From the given config information, prepare the full list of 3D datasets.
     """
 
     tag = "datasets-3d"
@@ -120,9 +120,10 @@ class Dataset3DGeneration:
 
     Runs the following steps:
     1. Read the DL3 files of 3D datasets into gammapy readable objects.
-    2. Prepare standard data reduction using the parameters passed in the config
+    2. Create the base counts Map.
+    3. Prepare standard data reduction using the parameters passed in the config
     for 3D datasets.
-    3. Generate the final dataset.
+    4. Generate the final dataset.
     """
 
     def __init__(self, log, config_3d_dataset, config_full, key_name):
@@ -191,8 +192,8 @@ class Dataset3DGeneration:
 
     def get_source_pos_from_3d_dataset(self):
         """
-        Introduce the source coordinates from 3D dataset to 1D dataset.
-        Need to generalize this as well for all datasets.
+        Introduce the source coordinates from the 3D dataset to be the standard
+        value in the main config file, for further use.
         """
         if self.config_target.use_uniform_position:
             source_position_from_3d = None
@@ -212,8 +213,9 @@ class Dataset3DGeneration:
 
     def get_base_objects(self, dl3_dir_dict, model, key, dl3_type, file_list):
         """
-        For a DL3 files type and tag of the 'mode of observations' - FRONT or
-        BACK, read the files to appropriate Object type for further analysis.
+        For a DL3 files type and tag of the 'mode of observations' (FRONT or
+        BACK for Fermi-LAT), read the files to appropriate Object type for
+        further analysis.
         """
         dl3_info = DL3Files(dl3_dir_dict, model, file_list, log=self.log)
         file_list = dl3_info.prepare_lat_files(key, file_list)
@@ -235,7 +237,7 @@ class Dataset3DGeneration:
 
     def set_energy_axes(self):
         """
-        Get the energy axes from the given DRM file.
+        Get the energy axes from the given Detector Response Matrix file.
         """
         energy_lo = self.drmap["DRM"].data["ENERG_LO"] * u.MeV
         energy_hi = self.drmap["DRM"].data["ENERG_HI"] * u.MeV
@@ -247,7 +249,8 @@ class Dataset3DGeneration:
 
     def set_energy_dispersion_matrix(self):
         """
-        Generate the Energy Dispersion Kernel from the file.
+        Generate the Energy Dispersion Kernel from the given Detector Response
+        Matrix file.
         """
         self.energy_axis, self.energy_axis_true = self.set_energy_axes()
         drm = self.drmap["DRM"].data["MATRIX"]
@@ -259,10 +262,9 @@ class Dataset3DGeneration:
 
     def load_events(self, events_file):
         """
-        Loading the events files for the specific "Key" and saving them to a
-        dummy fits file if the original files are gzipped.
+        Loading the events files for the specific "Key" into an EventList
+        object and the GTI information into a GTI object.
 
-        Also get the GTI information.
         Based on any time intervals selection, filter out the events and gti
         accordingly.
         """
@@ -321,7 +323,8 @@ class Dataset3DGeneration:
 
     def _counts_map(self):
         """
-        Generate the counts Map object and fill it with the events information.
+        Generate the counts Map object and fill it with the events' RA-Dec
+        position, Energy and Time information.
         """
         self.counts_map = Map.create(
             skydir=self.source_pos,
@@ -338,8 +341,8 @@ class Dataset3DGeneration:
 
     def _generate_diffuse_background_cutout(self):
         """
-        Doing a cutout of the Diffuse background model with respect to the
-        counts map geom, may improve fitting speed.
+        Perform a cutout of the Diffuse background model with respect to the
+        counts map geom (may improve fitting speed?).
 
         The Template Spatial Model is without normalization currently.
         """
@@ -360,8 +363,8 @@ class Dataset3DGeneration:
 
     def _set_edisp_interpolator(self):
         """
-        Get Energy Dispersion Kernel interpolated along true and reconstructed
-        energy of the real counts.
+        Get the Energy Dispersion Kernel interpolated along true and
+        reconstructed energy of the real counts.
         """
         axis_reco = MapAxis.from_edges(
             self.counts_map.geom.axes["energy"].edges,
@@ -422,7 +425,8 @@ class Dataset3DGeneration:
 
     def generate_dataset(self, key_name):
         """
-        Generate MapDataset for the given Instrument files.
+        Generate MapDataset for the given Instrument files using the Counts Map,
+        IRFs and Models objects.
         """
         try:
             mask_safe = self.exclusion_mask
