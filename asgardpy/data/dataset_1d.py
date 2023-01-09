@@ -24,7 +24,7 @@ from gammapy.maps import MapAxis, RegionGeom, WcsGeom
 from regions import CircleSkyRegion, PointSkyRegion
 
 from asgardpy.data.base import AnalysisStepBase, BaseConfig
-from asgardpy.data.geom import GeomConfig, SpatialPointConfig, EnergyAxisConfig
+from asgardpy.data.geom import EnergyAxisConfig, GeomConfig, SpatialPointConfig
 from asgardpy.data.reduction import (
     BackgroundConfig,
     MapSelectionEnum,
