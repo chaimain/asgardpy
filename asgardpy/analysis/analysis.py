@@ -131,17 +131,22 @@ class AsgardpyAnalysis:
                         print("After enlisting from a 1D dataset", self.dataset_name_list)
                         # self.dataset_name_list.append(target_source_model.names)
 
-                        if self.final_model is not None:
-                            #print("Assining the (full?) final model to a dataset without any spatial model...")
-                            #data.models = self.final_model #[self.config.target.source_name]
-                            #data = set_models(self.config.target, data, self.final_model)
-                            print("Checking if assigned or not...", data.models, self.final_model)
-                            print(data)
-                        else:
+                        #else:
                             # Looking up models from the config info, and assigning it to these datasets.
-                            data = set_models(self.config.target, data)
+                        #    data = set_models(self.config.target, data)
 
-                        # Finally, simply update the final datasets list
+                    if self.final_model is not None:
+                        #print("Assining the (full?) final model to a dataset without any spatial model...")
+                        print(data.models, type(data.models))
+                        print(data.models[0].spatial_model)
+                        # Assinging only spatial model.
+                        data.models[0].spatial_model = self.final_model[self.config.target.source_name].spatial_model
+                        #data = set_models(self.config.target, data, self.final_model)
+                        print("Checking if assigned or not...", data.models, type(data.models), self.final_model[self.config.target.source_name])
+                        print(data)
+
+                    # Finally, simply update the final datasets list
+                    for data in datasets_list:
                         self.datasets.append(data)
 
                         #self.dataset_name_list = np.unique(np.array(self.dataset_name_list))
@@ -162,21 +167,29 @@ class AsgardpyAnalysis:
                 if step == "fit":
                     # Confirming the Final Models object for all the datasets
                     # for the Fit function.
-                    self.log.info(f"Full final models list is {self.final_model}")
+                    #self.log.info(f"Full final models list is {self.final_model}")
                     self.log.info(f"The final model for target source, used is {self.final_model[self.config.target.source_name]}")
                     self.log.info(f"The full list of dataset names is {self.dataset_name_list}")
                     self.final_model[self.config.target.source_name].datasets_names = self.dataset_name_list
                     self.log.info("Final model for target source is updated with the full datasets list")
+                    self.log.info(f"The final model for target source, used is {self.final_model[self.config.target.source_name]}")
 
-                    self.datasets = set_models(
-                        config=self.config.target, datasets=self.datasets, models=self.final_model
-                    )
+                    #self.datasets = set_models(
+                    #    config=self.config.target, datasets=self.datasets, models=self.final_model
+                    #)
                     print(self.datasets.names)
                     for data in self.datasets:
-                        print(data)
-                        print(data.models)
+                        #print(data)
+                        print(data.models.names)
+                        if data.models.names == [self.config.target.source_name]:
+                            print(data.models[0].datasets_names)
+                            data.models[0].datasets_names = self.dataset_name_list
+                            print(data.models[0].datasets_names)
+                        else:
+                            data.models[self.config.target.source_name].datasets_names = self.dataset_name_list
                     #    data.models[self.config.target.source_name] = self.final_model[self.config.target.source_name]
-
+                    for data in self.datasets:
+                        print(data.models)
                     #for m in self.datasets.models:
                     #    print(m.datasets_names)
 

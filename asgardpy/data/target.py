@@ -148,7 +148,7 @@ def set_models(config, datasets, models=None, extend=False):
     for m in models:
         # Assignment based on the type of Models type of m element?
         print(m.name, m.datasets_names)
-        #m.names = datasets_names
+        m.datasets_names = datasets_names
 
     #print("The type of datasets models is ", type(datasets.models))
     datasets.models = models

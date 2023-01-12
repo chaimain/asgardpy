@@ -106,11 +106,12 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
 
             if self.config.general.stacked_dataset:
                 dataset = dataset.stack_reduce(name=self.config_1d_dataset.name)
-                print(dataset.name)
+                print(dataset)
                 print(dataset.models, type(dataset.models))
-                dataset.models = Models(models=None)
-                #dataset = set_models(config=self.config.target, datasets=dataset)
-                #print(dataset.models.names)
+                #dataset.models = Models(models=None)
+                dataset = set_models(config=self.config.target, datasets=dataset)
+                print(dataset)
+                print(dataset.models.names)
                 #print(dataset.models.datasets_names)
                 datasets_1d_final.append(dataset)
                 spectral_energy_ranges.append(energy_bin_edges)
