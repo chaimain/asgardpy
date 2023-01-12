@@ -117,6 +117,7 @@ def set_models(config, datasets, models=None, extend=False):
         print("Assigning the given models to the given datasets")
     elif isinstance(models, DatasetModels) or isinstance(models, list):
         models = Models(models)
+        print("models was a DatasetModels type, but now is ", type(models))
     elif config.components:
         spectral_model, spatial_model = read_models_from_asgardpy_config(config)
         models = Models(
@@ -134,8 +135,24 @@ def set_models(config, datasets, models=None, extend=False):
     # if extend:
     # For extending a Background Model
     #    Models(models).extend(self.bkg_models)
+    if hasattr(datasets, "name"):
+        print(datasets.name, type(datasets))
+        datasets_names = datasets.name
+    elif hasattr(datasets, "names"):
+        print(datasets.names, type(datasets))
+        datasets_names = datasets.names
+    else:
+        print(f"{datasets} or type {type(datasets)} does not have any naming attribute")
+        datasets_names = None
 
+    for m in models:
+        # Assignment based on the type of Models type of m element?
+        print(m.name, m.datasets_names)
+        #m.names = datasets_names
+
+    #print("The type of datasets models is ", type(datasets.models))
     datasets.models = models
+    print(datasets.models, "To check if it is not None")
 
     return datasets
 

@@ -72,10 +72,13 @@ class FitAnalysisStep(AnalysisStepBase):
         self.fit_params = self.config.fit_params
 
         self._setup_fit()
+        self.log.info("Fit setup done")
         final_dataset = self._set_datasets()
+        self.log.info("Fit energy mask, applied to the whole dataset")
         self.fit_result = self.fit.run(datasets=final_dataset)
-        best_fit_model = final_dataset.models.to_dict()
         self.log.info(self.fit_result)
+        self.log.info(final_dataset.models)
+        best_fit_model = final_dataset.models.to_dict()
         self.log.info(best_fit_model)
 
     def _setup_fit(self):

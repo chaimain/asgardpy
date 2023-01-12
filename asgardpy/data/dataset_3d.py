@@ -103,6 +103,11 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                 )
                 dataset = generate_3d_dataset.run()
 
+                for m in dataset.models:
+                    print(m.name)
+                    m.datasets_names = f"{self.config_3d_dataset.name}_{key}"
+                    print(m.datasets_names)
+
                 dataset_instrument.append(dataset)
 
             # Get the spectral energy information for each Instrument Dataset
@@ -115,8 +120,27 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             ).edges
 
             if self.config.general.stacked_dataset:
+                # Add a condition on appending names of models for different keys,
+                # except when it is key specific like the diffuse iso models
+                for d in dataset_instrument:
+                    for m in d.models:
+                        print(m.name)
+                        if "diffuse-iso" in m.name:
+                            print(f"Got the special diffuse Iso model with name {m.name}")
+                            print(m.datasets_names)
+                            # Trying to keep the 2 diffuse models not be stacked together under the same datasets name, by keeping is a list
+                            m.datasets_names = [m.datasets_names]
+                        else:
+                            m.datasets_names = [f"{self.config_3d_dataset.name}_{key}" for key in key_names]
+                            print(m.datasets_names)
+
                 dataset_instrument.stack_reduce(name=self.config_3d_dataset.name)
-                datasets_3d_final.append(dataset_instrument[0])
+                print(dataset_instrument)
+
+                for data in dataset_instrument:
+                    # Check each models' datasets names to confirm
+                    print(data.models)
+                    datasets_3d_final.append(data)
                 spectral_energy_ranges.append(energy_bin_edges)
             else:
                 for data in dataset_instrument:
@@ -140,6 +164,7 @@ class Dataset3DGeneration:
     """
 
     def __init__(self, log, config_3d_dataset, config_full, key_name):
+        self.instrument_name = config_3d_dataset.name
         self.config_3d_dataset_io = config_3d_dataset.io
         self.config_3d_dataset_info = config_3d_dataset.dataset_info
         self.key_name = key_name
@@ -174,7 +199,7 @@ class Dataset3DGeneration:
         self._generate_diffuse_background_cutout()
 
         # Generate the final dataset
-        dataset = self.generate_dataset(self.key_name)
+        dataset = self.generate_dataset() #self.key_name
 
         return dataset
 
@@ -456,11 +481,12 @@ class Dataset3DGeneration:
             )
         self.exclusion_regions.append(exclusion_region)
 
-    def generate_dataset(self, key_name):
+    def generate_dataset(self): #, key_name
         """
         Generate MapDataset for the given Instrument files using the Counts Map,
         IRFs and Models objects.
         """
+
         try:
             mask_safe = self.exclusion_mask
         except Exception:
@@ -468,15 +494,21 @@ class Dataset3DGeneration:
             mask_safe = Map.from_geom(self.counts_map.geom, mask_bool)
             mask_safe.data = np.asarray(mask_safe.data == 0, dtype=bool)
 
+        edisp = EDispKernelMap.from_edisp_kernel(self.edisp_interp_kernel)
+
+        #for model in self.list_sources:
+        #    print(model.names)
+        #    model.datasets_names = [f"Fermi-LAT_{key_name}"]
+
         dataset = MapDataset(
-            models=Models(self.target_full_model),
+            models=self.list_sources, #Models(self.target_full_model),
             counts=self.counts_map,
             gti=self.gti,
             exposure=self.exposure_interp,
             psf=self.psf,
-            edisp=EDispKernelMap.from_edisp_kernel(self.edisp_interp_kernel),
+            edisp=edisp,
             mask_safe=mask_safe,
-            name=f"Fermi-LAT_{key_name}",
+            name=f"{self.instrument_name}_{self.key_name}",
         )
 
         return dataset

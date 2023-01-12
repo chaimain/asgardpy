@@ -2,6 +2,7 @@
 Config-driven high level analysis interface.
 """
 import logging
+import numpy as np
 
 from gammapy.datasets import Datasets
 from gammapy.modeling.models import Models
@@ -37,6 +38,8 @@ class AsgardpyAnalysis:
         self.config.set_logging()
         self.datasets = Datasets()
         self.spectral_energy_ranges = []
+        self.dataset_name_list = []
+
         self.final_model = None
         self.final_data_products = ["fit", "fit_result", "flux_points", "light_curve"]
 
@@ -88,24 +91,95 @@ class AsgardpyAnalysis:
                 analysis_step = AnalysisStep.create(step, self.config, **kwargs)
                 datasets_list, energy_edges = analysis_step.run()
 
-                for data in datasets_list:
+                if step == "datasets-3d":
+                    # Get the final model only from a complete 3D dataset, to use it for other 1D datasets.
+                    for data in datasets_list:
                     # Make a check to see if all component types of SkyModels
                     # are present throughout all datasets
-                    if data.models is not None:
-                        if Models(data.models)[0].spatial_model:
-                            self.final_model = Models(data.models)
-                            self.log.info(f"The final model used is {self.final_model}")
-                    self.datasets.append(data)
+
+                    #if data.models is not None:
+                        target_source_model = data.models[self.config.target.source_name]
+                        print("Dataset names in the target model are:", target_source_model.datasets_names)
+
+                        if target_source_model.spatial_model:
+                            # If the target source has Spatial model included, only then (?) get all the models as final_model
+                            self.final_model = data.models
+
+                        if target_source_model.datasets_names: # Models object and not DatasetModels
+                            # To get all datasets_names from the target source model only.
+                            for names in target_source_model.datasets_names:
+                                print("Included for the target source is dataset of name:", names)
+                                if names not in self.dataset_name_list:
+                                    # Only update the list if a new name is found.
+                                    self.dataset_name_list.append(names)
+                        else:
+                            print("Check if there are no other way dataset names are stored in target model :", target_source_model)
+                        # Finally, simply update the final datasets list
+                        self.datasets.append(data)
+
+                if step == "datasets-1d":
+                    for data in datasets_list:
+                        #if data.models:
+                        #target_source_model = data.models[self.config.target.source_name]
+                        #print("Dataset names in the target model are:", target_source_model.datasets_names)
+                        # for names in target_source_model.names, ie, when it is not an Models object
+                        # This is for 1D Datasets for now.
+                        #print("Checking the models object in the data of type", type(data), " has models attribute as", data.models, "with type", type(data.models))
+                        print("Before enlisting from a 1D dataset", self.dataset_name_list)
+                        if data.name not in self.dataset_name_list:
+                            self.dataset_name_list.append(data.name)
+                        print("After enlisting from a 1D dataset", self.dataset_name_list)
+                        # self.dataset_name_list.append(target_source_model.names)
+
+                        if self.final_model is not None:
+                            #print("Assining the (full?) final model to a dataset without any spatial model...")
+                            #data.models = self.final_model #[self.config.target.source_name]
+                            #data = set_models(self.config.target, data, self.final_model)
+                            print("Checking if assigned or not...", data.models, self.final_model)
+                            print(data)
+                        else:
+                            # Looking up models from the config info, and assigning it to these datasets.
+                            data = set_models(self.config.target, data)
+
+                        # Finally, simply update the final datasets list
+                        self.datasets.append(data)
+
+                        #self.dataset_name_list = np.unique(np.array(self.dataset_name_list))
+                    #else:
+                        # For 1D Datasets
+
+                        #data = set_models(
+                        #    config=self.config.target, datasets=self.datasets, models=self.final_model
+                        #)
+
+                    #if self.final_model is not None:
+                        # Setting the datasets name for the target source.
                 for edges in energy_edges:
+                    # Update the spectral energy ranges for each dataset.
                     self.spectral_energy_ranges.append(edges)
             else:
                 # Running DL4 functions on a given Datasets object.
                 if step == "fit":
                     # Confirming the Final Models object for all the datasets
                     # for the Fit function.
+                    self.log.info(f"Full final models list is {self.final_model}")
+                    self.log.info(f"The final model for target source, used is {self.final_model[self.config.target.source_name]}")
+                    self.log.info(f"The full list of dataset names is {self.dataset_name_list}")
+                    self.final_model[self.config.target.source_name].datasets_names = self.dataset_name_list
+                    self.log.info("Final model for target source is updated with the full datasets list")
+
                     self.datasets = set_models(
                         config=self.config.target, datasets=self.datasets, models=self.final_model
                     )
+                    print(self.datasets.names)
+                    for data in self.datasets:
+                        print(data)
+                        print(data.models)
+                    #    data.models[self.config.target.source_name] = self.final_model[self.config.target.source_name]
+
+                    #for m in self.datasets.models:
+                    #    print(m.datasets_names)
+
                 analysis_step = AnalysisStep.create(step, self.config, **kwargs)
                 analysis_step.run(datasets=self.datasets, energy_ranges=self.spectral_energy_ranges)
 
