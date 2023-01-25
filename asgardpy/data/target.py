@@ -8,7 +8,7 @@ from typing import List
 
 from astropy.coordinates import SkyCoord
 from gammapy.maps import Map
-from gammapy.modeling import Parameters
+from gammapy.modeling import Parameters, Parameter
 from gammapy.modeling.models import (
     SPATIAL_MODEL_REGISTRY,
     SPECTRAL_MODEL_REGISTRY,
@@ -145,11 +145,11 @@ def set_models(config, datasets, models=None, extend=False):
         print(f"{datasets} or type {type(datasets)} does not have any naming attribute")
         datasets_names = None
 
-    for m in models:
+    # for m in models:
         # Assignment based on the type of Models type of m element?
-        print(m.name, m.datasets_names)
-        m.datasets_names = datasets_names
-
+        # print(m.name, m.datasets_names)
+        #m.datasets_names = datasets_names
+    print(datasets_names)
     #print("The type of datasets models is ", type(datasets.models))
     datasets.models = models
     print(datasets.models, "To check if it is not None")
@@ -243,6 +243,10 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
     """
     Convert the Models information from XML model of FermiTools to Gammapy
     standards and return Parameters list.
+    Details of the XML model can be seen at
+    https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/source_models.html
+    and with examples at
+    https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/xml_model_defs.html
 
     Parameters
     ----------
@@ -263,7 +267,8 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
     params_final: `gammapy.modeling.Parameters`
         Final list of gammapy Parameter object
     """
-    params_list = []
+    # params_list = []
+    new_params = []
     for par in params:
         new_par = {}
         # For EBL Attenuated Power Law, it is taken with LogParabola model
@@ -311,11 +316,21 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
             new_par["min"] *= -1
             new_par["max"] *= -1
         new_par["error"] = 0
-        params_list.append(new_par)
+        #print(new_par)
+        new_param = Parameter(name=new_par["name"], value=new_par["value"])
+        new_param.min = new_par["min"]
+        new_param.max = new_par["max"]
+        new_param.unit = new_par["unit"]
+        new_param.frozen = new_par["frozen"]
+        new_param._is_norm = new_par["is_norm"]
+        #params_list.append(new_par)
+        new_params.append(new_param)
 
-    params_final = Parameters.from_dict(params_list)
+    #params_final = Parameters.from_dict(params_list)
+    params_final2 = Parameters(new_params)
+    #print(params_final2)
 
-    return params_final
+    return params_final2 #params_final
 
 
 def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=False):
@@ -355,10 +370,12 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
     is_source_target = False
     if source_name_check == target_check:
         source_name = config_target.source_name
-        is_source_target = True
+        is_source_target = True # Only role for now.
+
         # Only taking the spectral model information right now.
-        # Should generalize this part
-        spectral_model, _ = read_models_from_asgardpy_config(config_target)
+        # Should generalize this part --- Only use the config model if this is false
+        if not config_target.from_fermi:
+            spectral_model, _ = read_models_from_asgardpy_config(config_target)
     else:
         for spec in spectrum:
             if spec["@name"] not in ["GalDiffModel", "IsoDiffModel"]:
@@ -379,14 +396,18 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
                     else:
                         ebl_atten_pl = True
                         spectral_model = PowerLawSpectralModel()
-
+        #print(source_name)
         params_list = xml_to_gammapy_model_params(
             spectrum,
             is_target=is_source_target,
             keep_sign=ebl_atten_pl,
             lp_is_intrinsic=lp_is_intrinsic,
         )
-        spectral_model.from_parameters(params_list)
+        #print(params_list)
+        #spectral_model.from_dict(params_list)
+        for p in params_list:
+            setattr(spectral_model, p.name, p)
+        #print(spectral_model)
         config_spectral = config_target.components.spectral
         ebl_absorption_included = config_spectral.ebl_abs is not None
 
@@ -431,9 +452,11 @@ def create_iso_diffuse_skymodel(iso_file, key):
     Create a SkyModel of the Fermi Isotropic Diffuse Model and assigning
     name as per the observation key.
     """
+    print(iso_file)
     diff_iso = create_fermi_isotropic_diffuse_model(
         filename=iso_file, interp_kwargs={"fill_value": None}
     )
+    print(diff_iso)
     diff_iso._name = f"{diff_iso.name}-{key}"
 
     # Parameters' limits generalization?
@@ -441,6 +464,7 @@ def create_iso_diffuse_skymodel(iso_file, key):
     diff_iso.spectral_model.model1.parameters[0].max = 10
     diff_iso.spectral_model.model2.parameters[0].min = 0
     diff_iso.spectral_model.model2.parameters[0].max = 10
+    print(diff_iso)
 
     return diff_iso
 

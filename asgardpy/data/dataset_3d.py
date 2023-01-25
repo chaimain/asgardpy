@@ -88,6 +88,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
         self.log.info(f"{len(instruments_list)} number of 3D Datasets given")
 
         datasets_3d_final = Datasets()
+        models_final = Models()
         spectral_energy_ranges = []
 
         for i in np.arange(len(instruments_list)):
@@ -101,12 +102,21 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                 generate_3d_dataset = Dataset3DGeneration(
                     self.log, self.config_3d_dataset, self.config, key
                 )
-                dataset = generate_3d_dataset.run()
+                dataset, models = generate_3d_dataset.run()
 
-                for m in dataset.models:
-                    print(m.name)
-                    m.datasets_names = f"{self.config_3d_dataset.name}_{key}"
+                for m in models:
+                    # Assigning datasets_names
+                    #if m.name != self.config.target.source_name:
+                    m.datasets_names = [f"{self.config_3d_dataset.name}_{key}"]
                     print(m.datasets_names)
+                    if m.name in models_final.names:
+                        print(models_final[m.name].datasets_names, "before any change", type(models_final[m.name].datasets_names))
+                        models_final[m.name].datasets_names.append(m.datasets_names[0])
+                        print(models_final[m.name].datasets_names, "after any change", type(models_final[m.name].datasets_names))
+                    else:
+                        print(m, "is new model to be added")
+                        models_final.append(m)
+                print(models_final)
 
                 dataset_instrument.append(dataset)
 
@@ -122,32 +132,35 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             if self.config.general.stacked_dataset:
                 # Add a condition on appending names of models for different keys,
                 # except when it is key specific like the diffuse iso models
+                """
                 for d in dataset_instrument:
                     for m in d.models:
                         print(m.name)
                         if "diffuse-iso" in m.name:
                             print(f"Got the special diffuse Iso model with name {m.name}")
                             print(m.datasets_names)
+                            #print("The second component of the spectral model is", m.spectral_model.model2)
                             # Trying to keep the 2 diffuse models not be stacked together under the same datasets name, by keeping is a list
-                            m.datasets_names = [m.datasets_names]
+                            #m.datasets_names = [m.datasets_names]
                         else:
-                            m.datasets_names = [f"{self.config_3d_dataset.name}_{key}" for key in key_names]
+                            #m.datasets_names = [f"{self.config_3d_dataset.name}_{key}" for key in key_names]
                             print(m.datasets_names)
-
+                """
                 dataset_instrument.stack_reduce(name=self.config_3d_dataset.name)
                 print(dataset_instrument)
 
                 for data in dataset_instrument:
                     # Check each models' datasets names to confirm
-                    print(data.models)
+                    #print(data.models)
                     datasets_3d_final.append(data)
+                #datasets_3d_final.append(data)
                 spectral_energy_ranges.append(energy_bin_edges)
             else:
                 for data in dataset_instrument:
                     datasets_3d_final.append(data)
                     spectral_energy_ranges.append(energy_bin_edges)
 
-        return datasets_3d_final, spectral_energy_ranges
+        return datasets_3d_final, models_final, spectral_energy_ranges #return dataset, models and sed energy edges
 
 
 class Dataset3DGeneration:
@@ -201,7 +214,7 @@ class Dataset3DGeneration:
         # Generate the final dataset
         dataset = self.generate_dataset() #self.key_name
 
-        return dataset
+        return dataset, self.list_sources # return MapDataset and list of models - target + bkg
 
     def read_to_objects(self, model, key_name):
         """
@@ -357,7 +370,9 @@ class Dataset3DGeneration:
                 )
             if is_target_source:
                 self.target_full_model = source
-            self.list_sources.append(source)
+                self.list_sources.insert(0, source)
+            else:
+                self.list_sources.append(source)
 
     def _counts_map(self):
         """
@@ -398,6 +413,11 @@ class Dataset3DGeneration:
         self.diff_gal_cutout.parameters["norm"].min = 0
         self.diff_gal_cutout.parameters["norm"].max = 10
         self.diff_gal_cutout.parameters["norm"].frozen = False
+        #self.list_sources.append(self.diff_gal_cutout)
+        for k, m in enumerate(self.list_sources):
+            if m.name == "diffuse-iem":
+                self.list_sources[k] = self.diff_gal_cutout
+        print(Models(self.list_sources)["diffuse-iem"])
 
     def _set_edisp_interpolator(self):
         """
@@ -501,7 +521,7 @@ class Dataset3DGeneration:
         #    model.datasets_names = [f"Fermi-LAT_{key_name}"]
 
         dataset = MapDataset(
-            models=self.list_sources, #Models(self.target_full_model),
+            #models=None, #Models(self.target_full_model),
             counts=self.counts_map,
             gti=self.gti,
             exposure=self.exposure_interp,

@@ -78,7 +78,7 @@ class FitAnalysisStep(AnalysisStepBase):
         self.fit_result = self.fit.run(datasets=final_dataset)
         self.log.info(self.fit_result)
         self.log.info(final_dataset.models)
-        best_fit_model = final_dataset.models.to_dict()
+        best_fit_model = final_dataset.models[0].to_dict()
         self.log.info(best_fit_model)
 
     def _setup_fit(self):

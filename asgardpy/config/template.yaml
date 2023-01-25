@@ -6,7 +6,7 @@ general:
     level: info
   outdir: /data/magic/users-ifae/cpriyada/lst/
   n_jobs: 1
-  steps: [datasets-3d, datasets-1d, fit , flux-points] #, light-curve]
+  steps: [datasets-3d, fit] #, flux-points, light-curve] datasets-1d # 
   overwrite: true
   stacked_dataset: true
 
@@ -24,28 +24,28 @@ target:
       type: LogParabolaSpectralModel # For Gammapy Model registry search
       parameters:
       -   name: amplitude
-          value: 1e-07
+          value: 1e-05
           unit: cm-2 s-1 TeV-1
-          error: 1.5e-09
+          error: 1.5e-06
           min: 1e-13
           max: 0.01
           frozen: false
       -   name: reference
-          value: 0.001
-          unit: TeV
+          value: 1.5
+          unit: GeV
           error: 0.0
           min: 0.001
           max: 100.0
           frozen: true
       -   name: alpha
-          value: 2
+          value: 1.5
           unit: ''
           error: 0.1
           min: 0.5
           max: 5.0
           frozen: false
       -   name: beta
-          value: 0.15
+          value: 0.1
           unit: ''
           error: 0.01
           min: 1e-6
