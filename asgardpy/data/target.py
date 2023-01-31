@@ -273,8 +273,8 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
         new_par = {}
         # For EBL Attenuated Power Law, it is taken with LogParabola model
         # and turning beta value off
-        if lp_is_intrinsic and par["@name"] == "beta":
-            continue
+        #if lp_is_intrinsic and par["@name"] == "beta":
+        #    continue
 
         for k in par.keys():
             # Replacing the "@par_name" information of each parameter without the "@"
@@ -293,7 +293,7 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
                 new_par["is_norm"] = True
             if par["@name"].lower() in ["scale", "eb"]:
                 new_par["name"] = "reference"
-                new_par["frozen"] = par[k] == "0"
+                #new_par["frozen"] = par[k] == "0"
             if par["@name"].lower() in ["breakvalue"]:
                 new_par["name"] = "ebreak"
             if par["@name"].lower() in ["lowerlimit"]:
@@ -306,15 +306,21 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
                 new_par["min"] = 1.0 / new_par["min"]
                 new_par["max"] = 1.0 / new_par["max"]
                 new_par["unit"] = "MeV-1"
+            if par["@name"].lower() in ["index"]:
+                new_par["name"] = "index"
 
+            #if par["@free"] == "0"
         # More modifications:
         if new_par["name"] in ["reference", "ebreak", "emin", "emax"]:
             new_par["unit"] = "MeV"
         if new_par["name"] == "index" and not keep_sign:
+            #print(new_par)
             # Other than EBL Attenuated Power Law
-            new_par["value"] *= -1
-            new_par["min"] *= -1
-            new_par["max"] *= -1
+            new_par["value"] = -1 * float(new_par["value"])
+            new_par["min"] = -1 * float(new_par["min"])
+            new_par["max"] = -1 * float(new_par["max"])
+            #print(new_par, keep_sign)
+
         new_par["error"] = 0
         #print(new_par)
         new_param = Parameter(name=new_par["name"], value=new_par["value"])
@@ -325,7 +331,8 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
         new_param._is_norm = new_par["is_norm"]
         #params_list.append(new_par)
         new_params.append(new_param)
-
+        #print(new_par["name"], new_par["frozen"])
+    #print(new_params)
     #params_final = Parameters.from_dict(params_list)
     params_final2 = Parameters(new_params)
     #print(params_final2)
@@ -358,6 +365,7 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
     is_source_target: bool
         Boolean to check if the Models belong to the target source.
     """
+    #print(f"Is LP the intrinsic model: {lp_is_intrinsic}")
     source_name = source["@name"]
     spectrum_type = source["spectrum"]["@type"].split("EblAtten::")[-1]
     spectrum = source["spectrum"]["parameter"]
@@ -368,6 +376,7 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
 
     # Check if target_source file exists
     is_source_target = False
+    ebl_atten_pl = False
     if source_name_check == target_check:
         source_name = config_target.source_name
         is_source_target = True # Only role for now.
@@ -388,7 +397,6 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
 
                 spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(spectrum_type_final)()
                 # spectral_model.name = source_name
-                ebl_atten_pl = False
 
                 if spectrum_type == "LogParabola" and "EblAtten" in source["spectrum"]["@type"]:
                     if lp_is_intrinsic:
@@ -396,7 +404,7 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
                     else:
                         ebl_atten_pl = True
                         spectral_model = PowerLawSpectralModel()
-        #print(source_name)
+        #print(source_name, ebl_atten_pl)
         params_list = xml_to_gammapy_model_params(
             spectrum,
             is_target=is_source_target,
@@ -452,11 +460,9 @@ def create_iso_diffuse_skymodel(iso_file, key):
     Create a SkyModel of the Fermi Isotropic Diffuse Model and assigning
     name as per the observation key.
     """
-    print(iso_file)
     diff_iso = create_fermi_isotropic_diffuse_model(
         filename=iso_file, interp_kwargs={"fill_value": None}
     )
-    print(diff_iso)
     diff_iso._name = f"{diff_iso.name}-{key}"
 
     # Parameters' limits generalization?
@@ -464,7 +470,6 @@ def create_iso_diffuse_skymodel(iso_file, key):
     diff_iso.spectral_model.model1.parameters[0].max = 10
     diff_iso.spectral_model.model2.parameters[0].min = 0
     diff_iso.spectral_model.model2.parameters[0].max = 10
-    print(diff_iso)
 
     return diff_iso
 

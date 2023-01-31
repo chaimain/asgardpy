@@ -5,7 +5,7 @@ import logging
 # import numpy as np
 
 from gammapy.datasets import Datasets
-# from gammapy.modeling.models import Models
+from gammapy.modeling.models import Models
 
 from asgardpy.config.generator import AsgardpyConfig
 from asgardpy.data.base import AnalysisStep
@@ -102,13 +102,16 @@ class AsgardpyAnalysis:
 
                     #if data.models is not None
                     #for models in models_list:
+                    models_list = Models(models_list)
                     print(models_list, "is the model list")
                     target_source_model = models_list[self.config.target.source_name]
                     print("Dataset names in the target model are:", target_source_model.datasets_names)
 
                     if target_source_model.spatial_model: ## Re-evaluate
                         # If the target source has Spatial model included, only then (?) get all the models as final_model
-                        self.final_model.append(models_list)
+                        for m in models_list:
+                            print(m.name)
+                            self.final_model.append(m)
                     else:
                         print("The target source only has spectral model:", target_source_model)
 
@@ -181,20 +184,45 @@ class AsgardpyAnalysis:
                 if step == "fit":
                     # Confirming the Final Models object for all the datasets
                     # for the Fit function.
-                    self.log.info(f"Full final models list is {self.final_model[0]}")
+                    self.final_model = Models(self.final_model) #[0]
+                    self.log.info(f"Full final models list is {self.final_model}")
                     #self.final_model = Models(self.final_model[0])
-                    self.log.info(f"Full final models list is {self.final_model[0]}")
+                    #self.log.info(f"Full final models list is {self.final_model}")
                     #self.log.info(f"The final model for target source, used is {self.final_model[self.config.target.source_name]}")
                     #self.log.info(f"The full list of dataset names is {self.dataset_name_list}")
-                    self.log.info(f"The full dataset is {self.datasets}")
-                    #self.final_model[self.config.target.source_name].datasets_names = self.dataset_name_list
-                    self.log.info(f"The final model for target source, used is {self.final_model[0][self.config.target.source_name]}")
-                    self.datasets.models = self.final_model[0]
+                    #self.log.info(f"The full dataset is:")
+                    #for data in self.datasets:
+                    #    print(data)
+                    self.final_model[self.config.target.source_name].datasets_names = self.dataset_name_list
+                    self.log.info(f"The final model for target source, used is {self.final_model[self.config.target.source_name]}")
+                    for data in self.datasets:
+                        print("Before model assignment", data)
+                        #mask_safe = data.mask_safe
+                        #data.models = self.final_model[self.config.target.source_name]
+                        print(data.npred().data.sum())
+                        #mask_fit = data.mask_fit
+                        data.models = self.final_model
+                        #data.mask_fit = mask_fit
+                        #print(data.npred().data.sum())
+                        """
+                        for m in self.final_model:
+                            if "diffuse" not in m.name:
+                                sig = data.npred_signal(model_name=m.name).data.sum()
+                                print("For model of", m.name, "predicted signal is", sig)
+                            #if m.name == self.config.target.source_name:
+                            #    data.npred_signal() = data.npred_signal(model_name=m.name)
+                            #    print("After trying to assign npred_signal value, the total npred of the dataset is:", data.npred().data.sum())
+                        #data.npred()
+                        #print(data.npred_signal(model_name=self.config.target.source_name).data.sum())
+                        print(data.npred().data.sum())
+                        #data.mask_safe = mask_safe
+                        """
+                        print("After model assignment", data)
                     self.log.info(f"After models assignment, the full dataset is {self.datasets}")
                     self.log.info("Final model for target source is updated with the full datasets list")
 
-                    for data in self.datasets:
-                        print(data)
+                    #for data in self.datasets:
+                    #    print(data)
                     #self.datasets = set_models(
                     #    config=self.config.target, datasets=self.datasets, models=self.final_model
                     #)

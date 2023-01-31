@@ -102,23 +102,33 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                 generate_3d_dataset = Dataset3DGeneration(
                     self.log, self.config_3d_dataset, self.config, key
                 )
-                dataset, models = generate_3d_dataset.run()
-
+                dataset, models, mask_exclusion = generate_3d_dataset.run()
+                print(mask_exclusion)
                 for m in models:
                     # Assigning datasets_names
                     #if m.name != self.config.target.source_name:
                     m.datasets_names = [f"{self.config_3d_dataset.name}_{key}"]
                     print(m.datasets_names)
                     if m.name in models_final.names:
-                        print(models_final[m.name].datasets_names, "before any change", type(models_final[m.name].datasets_names))
+                        #print(models_final[m.name].datasets_names, "before any change", type(models_final[m.name].datasets_names))
                         models_final[m.name].datasets_names.append(m.datasets_names[0])
-                        print(models_final[m.name].datasets_names, "after any change", type(models_final[m.name].datasets_names))
+                        #print(models_final[m.name].datasets_names, "after any change", type(models_final[m.name].datasets_names))
                     else:
-                        print(m, "is new model to be added")
+                        #print(m, "is new model to be added")
                         models_final.append(m)
-                print(models_final)
+                #print(models_final)
 
                 dataset_instrument.append(dataset)
+            diffuse_models_names = []
+            for m in models_final.names:
+                if "diffuse-iso" in m:
+                    diffuse_models_names.append(m)
+            if len(diffuse_models_names)>1:
+                for n in diffuse_models_names[1:]:
+                    #print(models_final[diffuse_models_names[0]].spectral_model.model2, models_final[n].spectral_model.model2)
+                    models_final[diffuse_models_names[0]].spectral_model.model2 = models_final[n].spectral_model.model2
+            #print(models_final)
+
 
             # Get the spectral energy information for each Instrument Dataset
             energy_range = self.config_3d_dataset.dataset_info.spectral_energy_range
@@ -205,23 +215,27 @@ class Dataset3DGeneration:
         self._counts_map()
 
         # Create any dataset reduction makers or mask
+        #self.add_source_to_exclusion_region()
         self._create_exclusion_mask()
-        self.add_source_to_exclusion_region()
         self._set_edisp_interpolator()
         self._set_exposure_interpolator()
         self._generate_diffuse_background_cutout()
 
         # Generate the final dataset
         dataset = self.generate_dataset() #self.key_name
+        #self.log.info(f"Npred signal for the dataset {dataset.npred_signal().data.sum()}")
+        #self.log.info(f"Mask image {dataset.mask_image}")
+        #self.log.info(f"_Geom of the dataset {dataset._geom}")
 
-        return dataset, self.list_sources # return MapDataset and list of models - target + bkg
+        return dataset, self.list_sources, self.exclusion_mask # return MapDataset and list of models - target + bkg
 
     def read_to_objects(self, model, key_name):
         """
         For each key type of files, read the files to get the required
         Gammapy objects for further analyses.
         """
-        lp_is_intrinsic = model == "LogParabola"
+        lp_is_intrinsic = model.model_name == "LogParabola"
+        #self.log.info(f"Is the model with intrinisic LP?: {model.model_name}, {lp_is_intrinsic}")
         file_list = {}
 
         for cfg in self.config_3d_dataset_io:
@@ -417,7 +431,7 @@ class Dataset3DGeneration:
         for k, m in enumerate(self.list_sources):
             if m.name == "diffuse-iem":
                 self.list_sources[k] = self.diff_gal_cutout
-        print(Models(self.list_sources)["diffuse-iem"])
+        #print(Models(self.list_sources)["diffuse-iem"])
 
     def _set_edisp_interpolator(self):
         """
@@ -448,28 +462,42 @@ class Dataset3DGeneration:
 
     def _create_exclusion_mask(self):
         """
-        Generate an Exclusion Mask for the final MapDataset
+        Generate an Exclusion Mask for the final MapDataset and also select
+        the region for the list of Models using the excluded regions.
         """
         excluded_geom = self.counts_map.geom.copy()
         exclusion_params = self.config_3d_dataset_info.background.exclusion
         excluded_regions_list = []
+        selected_regions_list = []
 
         if len(exclusion_params["regions"]) != 0:
             self.log.info("Using the background region from config for exclusion mask")
             for region in exclusion_params["regions"]:
-                if region["name"] == "None":
+                if region["name"] != "None":
                     coord = region["position"]
+                    #print(coord)
                     center_ex = SkyCoord(
                         u.Quantity(coord["lon"]), u.Quantity(coord["lat"]), frame=coord["frame"]
                     ).icrs
                 else:
+                    #print(region["name"])
                     center_ex = SkyCoord.from_name(region["name"])
+                #print(center_ex, region["parameters"]["rad_0"], region["parameters"]["rad_1"])
+
+                # Generalize?
                 excluded_region = CircleAnnulusSkyRegion(
                     center=center_ex,
                     inner_radius=u.Quantity(region["parameters"]["rad_0"]),
                     outer_radius=u.Quantity(region["parameters"]["rad_1"]),
                 )
-            excluded_regions_list.append(excluded_region)
+                selected_region = CircleSkyRegion(
+                    center=center_ex,
+                    radius=u.Quantity(region["parameters"]["rad_0"])
+                )
+                excluded_regions_list.append(excluded_region)
+                selected_regions_list.append(selected_region)
+            #print(excluded_regions_list, selected_regions_list)
+            self.exclusion_mask = ~excluded_geom.region_mask(excluded_regions_list)
 
         elif len(self.exclusion_regions) == 0:
             self.log.info("Creating empty/dummy exclusion region")
@@ -480,6 +508,28 @@ class Dataset3DGeneration:
         else:
             self.log.info("Creating exclusion region")
             self.exclusion_mask = ~excluded_geom.region_mask(self.exclusion_regions)
+        #print("Excluded regions:", self.exclusion_regions)
+        #print(selected_regions_list)
+        #print("Radius of circular region around the selected center", selected_regions_list[0].radius)
+        self.list_sources = Models(self.list_sources)
+        new_models = []
+        for m in self.list_sources:
+            if "diffuse" not in m.name:
+                sep = m.position.separation(center_ex)
+                print(m.name, sep)
+                if sep < selected_regions_list[0].radius:
+                    new_models.append(m)
+                else:
+                    m.freeze()
+                    new_models.append(m)
+            else:
+                new_models.append(m)
+        new_models = Models(new_models)
+        #print(new_models, new_models.names)
+        #print("Models within the selected regions: ", self.list_sources.select_region(selected_regions_list))
+        print("Separation of models location from selected center", new_models.positions.separation(center_ex))
+        self.list_sources = new_models
+        #self.list_sources = Models(self.list_sources).select_region(selected_regions_list[0])
 
     def add_source_to_exclusion_region(self, source_pos=None, radius=0.1 * u.deg):
         """
@@ -509,19 +559,22 @@ class Dataset3DGeneration:
 
         try:
             mask_safe = self.exclusion_mask
+            print("Using the exclusion mask to create a safe mask")
         except Exception:
+            print("Other method of creating safe mask")
             mask_bool = np.zeros(self.counts_map.geom.data_shape).astype("bool")
             mask_safe = Map.from_geom(self.counts_map.geom, mask_bool)
             mask_safe.data = np.asarray(mask_safe.data == 0, dtype=bool)
 
         edisp = EDispKernelMap.from_edisp_kernel(self.edisp_interp_kernel)
-
+        #print(mask_safe)
+        #self.list_sources = Models(self.list_sources)
         #for model in self.list_sources:
         #    print(model.names)
         #    model.datasets_names = [f"Fermi-LAT_{key_name}"]
-
+        #self.log.info(f"List of models being added {self.list_sources}")
         dataset = MapDataset(
-            #models=None, #Models(self.target_full_model),
+            #models=self.list_sources,
             counts=self.counts_map,
             gti=self.gti,
             exposure=self.exposure_interp,
@@ -530,5 +583,4 @@ class Dataset3DGeneration:
             mask_safe=mask_safe,
             name=f"{self.instrument_name}_{self.key_name}",
         )
-
         return dataset

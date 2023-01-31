@@ -6,7 +6,7 @@ general:
     level: info
   outdir: /data/magic/users-ifae/cpriyada/lst/
   n_jobs: 1
-  steps: [datasets-3d, fit] #, flux-points, light-curve] datasets-1d # 
+  steps: [datasets-3d, fit] #, flux-points, light-curve] # datasets-1d,
   overwrite: true
   stacked_dataset: true
 
