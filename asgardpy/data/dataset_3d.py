@@ -473,7 +473,7 @@ class Dataset3DGeneration:
         if len(exclusion_params["regions"]) != 0:
             self.log.info("Using the background region from config for exclusion mask")
             for region in exclusion_params["regions"]:
-                if region["name"] != "None":
+                if region["name"] == "None":
                     coord = region["position"]
                     #print(coord)
                     center_ex = SkyCoord(
