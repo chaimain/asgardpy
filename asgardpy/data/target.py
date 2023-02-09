@@ -8,7 +8,7 @@ from typing import List
 
 from astropy.coordinates import SkyCoord
 from gammapy.maps import Map
-from gammapy.modeling import Parameters
+from gammapy.modeling import Parameter, Parameters
 from gammapy.modeling.models import (
     SPATIAL_MODEL_REGISTRY,
     SPECTRAL_MODEL_REGISTRY,
@@ -117,6 +117,7 @@ def set_models(config, datasets, models=None, extend=False):
         print("Assigning the given models to the given datasets")
     elif isinstance(models, DatasetModels) or isinstance(models, list):
         models = Models(models)
+        print("models was a DatasetModels type, but now is ", type(models))
     elif config.components:
         spectral_model, spatial_model = read_models_from_asgardpy_config(config)
         models = Models(
@@ -134,8 +135,24 @@ def set_models(config, datasets, models=None, extend=False):
     # if extend:
     # For extending a Background Model
     #    Models(models).extend(self.bkg_models)
+    if hasattr(datasets, "name"):
+        print(datasets.name, type(datasets))
+        datasets_names = datasets.name
+    elif hasattr(datasets, "names"):
+        print(datasets.names, type(datasets))
+        datasets_names = datasets.names
+    else:
+        print(f"{datasets} or type {type(datasets)} does not have any naming attribute")
+        datasets_names = None
 
+    # for m in models:
+    # Assignment based on the type of Models type of m element?
+    # print(m.name, m.datasets_names)
+    # m.datasets_names = datasets_names
+    print(datasets_names)
+    # print("The type of datasets models is ", type(datasets.models))
     datasets.models = models
+    print(datasets.models, "To check if it is not None")
 
     return datasets
 
@@ -226,6 +243,10 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
     """
     Convert the Models information from XML model of FermiTools to Gammapy
     standards and return Parameters list.
+    Details of the XML model can be seen at
+    https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/source_models.html
+    and with examples at
+    https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/xml_model_defs.html
 
     Parameters
     ----------
@@ -246,13 +267,10 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
     params_final: `gammapy.modeling.Parameters`
         Final list of gammapy Parameter object
     """
-    params_list = []
+    # params_list = []
+    new_params = []
     for par in params:
         new_par = {}
-        # For EBL Attenuated Power Law, it is taken with LogParabola model
-        # and turning beta value off
-        if lp_is_intrinsic and par["@name"] == "beta":
-            continue
 
         for k in par.keys():
             # Replacing the "@par_name" information of each parameter without the "@"
@@ -267,11 +285,10 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
             # Making scale = 1, by multiplying it to the value, min and max
             if par["@name"].lower() in ["norm", "prefactor", "integral"]:
                 new_par["name"] = "amplitude"
-                new_par["unit"] = "cm-2 s-1 MeV-1"
+                new_par["unit"] = "cm-2 s-1 TeV-1"
                 new_par["is_norm"] = True
             if par["@name"].lower() in ["scale", "eb"]:
                 new_par["name"] = "reference"
-                new_par["frozen"] = par[k] == "0"
             if par["@name"].lower() in ["breakvalue"]:
                 new_par["name"] = "ebreak"
             if par["@name"].lower() in ["lowerlimit"]:
@@ -283,22 +300,40 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
                 new_par["value"] = 1.0 / new_par["value"]
                 new_par["min"] = 1.0 / new_par["min"]
                 new_par["max"] = 1.0 / new_par["max"]
-                new_par["unit"] = "MeV-1"
+                new_par["unit"] = "TeV-1"
+            if par["@name"].lower() in ["index"]:
+                new_par["name"] = "index"
 
         # More modifications:
         if new_par["name"] in ["reference", "ebreak", "emin", "emax"]:
-            new_par["unit"] = "MeV"
+            new_par["unit"] = "TeV"
+            new_par["value"] = float(new_par["value"]) * float(new_par["scale"]) * 1e-6
+            new_par["min"] = float(new_par["min"]) * float(new_par["scale"]) * 1e-6
+            new_par["max"] = float(new_par["max"]) * float(new_par["scale"]) * 1e-6
+        if new_par["name"] in ["amplitude"]:
+            new_par["value"] = float(new_par["value"]) * float(new_par["scale"]) * 1e6
+            new_par["min"] = float(new_par["min"]) * float(new_par["scale"]) * 1e6
+            new_par["max"] = float(new_par["max"]) * float(new_par["scale"]) * 1e6
         if new_par["name"] == "index" and not keep_sign:
             # Other than EBL Attenuated Power Law
-            new_par["value"] *= -1
-            new_par["min"] *= -1
-            new_par["max"] *= -1
+            new_par["value"] = -1 * float(new_par["value"])
+            new_par["min"] = -1 * float(new_par["min"])
+            new_par["max"] = -1 * float(new_par["max"])
+
         new_par["error"] = 0
-        params_list.append(new_par)
+        new_param = Parameter(name=new_par["name"], value=new_par["value"])
+        new_param.min = new_par["min"]
+        new_param.max = new_par["max"]
+        new_param.unit = new_par["unit"]
+        new_param.frozen = new_par["frozen"]
+        new_param._is_norm = new_par["is_norm"]
+        # params_list.append(new_par)
+        new_params.append(new_param)
 
-    params_final = Parameters.from_dict(params_list)
+    # params_final = Parameters.from_dict(params_list)
+    params_final2 = Parameters(new_params)
 
-    return params_final
+    return params_final2
 
 
 def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=False):
@@ -336,12 +371,15 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
 
     # Check if target_source file exists
     is_source_target = False
+    ebl_atten_pl = False
     if source_name_check == target_check:
         source_name = config_target.source_name
-        is_source_target = True
+        is_source_target = True  # Only role for now.
+
         # Only taking the spectral model information right now.
-        # Should generalize this part
-        spectral_model, _ = read_models_from_asgardpy_config(config_target)
+        # Should generalize this part --- Only use the config model if this is false
+        if not config_target.from_fermi:
+            spectral_model, _ = read_models_from_asgardpy_config(config_target)
     else:
         for spec in spectrum:
             if spec["@name"] not in ["GalDiffModel", "IsoDiffModel"]:
@@ -354,7 +392,6 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
 
                 spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(spectrum_type_final)()
                 # spectral_model.name = source_name
-                ebl_atten_pl = False
 
                 if spectrum_type == "LogParabola" and "EblAtten" in source["spectrum"]["@type"]:
                     if lp_is_intrinsic:
@@ -362,14 +399,15 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
                     else:
                         ebl_atten_pl = True
                         spectral_model = PowerLawSpectralModel()
-
         params_list = xml_to_gammapy_model_params(
             spectrum,
             is_target=is_source_target,
             keep_sign=ebl_atten_pl,
             lp_is_intrinsic=lp_is_intrinsic,
         )
-        spectral_model.from_parameters(params_list)
+        # spectral_model.from_dict(params_list)
+        for p in params_list:
+            setattr(spectral_model, p.name, p)
         config_spectral = config_target.components.spectral
         ebl_absorption_included = config_spectral.ebl_abs is not None
 
