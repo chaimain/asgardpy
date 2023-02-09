@@ -134,7 +134,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             if self.config.general.stacked_dataset:
                 # Add a condition on appending names of models for different keys,
                 # except when it is key specific like the diffuse iso models
-
+                """
                 for d in dataset_instrument:
                     for m in d.models:
                         print(m.name)
@@ -147,7 +147,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                         else:
                             #m.datasets_names = [f"{self.config_3d_dataset.name}_{key}" for key in key_names]
                             print(m.datasets_names)
-
+                """
                 dataset_instrument.stack_reduce(name=self.config_3d_dataset.name)
                 # print(dataset_instrument)
 
