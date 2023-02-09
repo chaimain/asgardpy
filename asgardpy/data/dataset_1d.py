@@ -21,6 +21,7 @@ from gammapy.makers import (
     WobbleRegionsFinder,
 )
 from gammapy.maps import MapAxis, RegionGeom, WcsGeom
+
 # from gammapy.modeling.models import Models
 from regions import CircleSkyRegion, PointSkyRegion
 
@@ -33,6 +34,7 @@ from asgardpy.data.reduction import (
     ReductionTypeEnum,
     SafeMaskConfig,
 )
+
 # from asgardpy.data.target import set_models
 from asgardpy.io.io import DL3Files, InputConfig
 
@@ -107,19 +109,23 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
             if self.config.general.stacked_dataset:
                 dataset = dataset.stack_reduce(name=self.config_1d_dataset.name)
                 print(dataset)
-                #print(dataset.models, type(dataset.models))
-                #dataset.models = Models(models=None)
-                #dataset = set_models(config=self.config.target, datasets=dataset)
-                #print(dataset.models.datasets_names)
+                # print(dataset.models, type(dataset.models))
+                # dataset.models = Models(models=None)
+                # dataset = set_models(config=self.config.target, datasets=dataset)
+                # print(dataset.models.datasets_names)
                 datasets_1d_final.append(dataset)
                 spectral_energy_ranges.append(energy_bin_edges)
             else:
                 for data in dataset:
-                    #print(data.models.names, f"{self.config_1d_dataset.name} {data.models.names[0]}")
+                    # print(data.models.names, f"{self.config_1d_dataset.name} {data.models.names[0]}")
                     datasets_1d_final.append(data)
                     spectral_energy_ranges.append(energy_bin_edges)
 
-        return datasets_1d_final, None, spectral_energy_ranges #return dataset, models and sed energy edges
+        return (
+            datasets_1d_final,
+            None,
+            spectral_energy_ranges,
+        )  # return dataset, models and sed energy edges
 
 
 class Dataset1DGeneration:

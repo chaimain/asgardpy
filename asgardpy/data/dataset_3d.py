@@ -90,7 +90,6 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
         datasets_3d_final = Datasets()
         models_final = Models()
         spectral_energy_ranges = []
-        #mask_exclusions = []
 
         for i in np.arange(len(instruments_list)):
             self.config_3d_dataset = instruments_list[i]
@@ -107,20 +106,23 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                 for m in models:
                     # Assigning datasets_names
                     m.datasets_names = [f"{self.config_3d_dataset.name}_{key}"]
-                    # print(m.datasets_names)
+
                     if m.name in models_final.names:
                         models_final[m.name].datasets_names.append(m.datasets_names[0])
                     else:
                         models_final.append(m)
 
                 dataset_instrument.append(dataset)
+            # Linking the spectral model of the diffuse model for each key - need to generalize
             diffuse_models_names = []
             for m in models_final.names:
                 if "diffuse-iso" in m:
                     diffuse_models_names.append(m)
-            if len(diffuse_models_names)>1:
+            if len(diffuse_models_names) > 1:
                 for n in diffuse_models_names[1:]:
-                    models_final[diffuse_models_names[0]].spectral_model.model2 = models_final[n].spectral_model.model2
+                    models_final[diffuse_models_names[0]].spectral_model.model2 = models_final[
+                        n
+                    ].spectral_model.model2
 
             # Get the spectral energy information for each Instrument Dataset
             energy_range = self.config_3d_dataset.dataset_info.spectral_energy_range
@@ -134,28 +136,10 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             if self.config.general.stacked_dataset:
                 # Add a condition on appending names of models for different keys,
                 # except when it is key specific like the diffuse iso models
-                """
-                for d in dataset_instrument:
-                    for m in d.models:
-                        print(m.name)
-                        if "diffuse-iso" in m.name:
-                            print(f"Got the special diffuse Iso model with name {m.name}")
-                            print(m.datasets_names)
-                            #print("The second component of the spectral model is", m.spectral_model.model2)
-                            # Trying to keep the 2 diffuse models not be stacked together under the same datasets name, by keeping is a list
-                            #m.datasets_names = [m.datasets_names]
-                        else:
-                            #m.datasets_names = [f"{self.config_3d_dataset.name}_{key}" for key in key_names]
-                            print(m.datasets_names)
-                """
                 dataset_instrument.stack_reduce(name=self.config_3d_dataset.name)
-                # print(dataset_instrument)
 
                 for data in dataset_instrument:
-                    # Check each models' datasets names to confirm
-                    #print(data.models)
                     datasets_3d_final.append(data)
-                #datasets_3d_final.append(data)
                 spectral_energy_ranges.append(energy_bin_edges)
             else:
                 for data in dataset_instrument:
@@ -235,7 +219,6 @@ class Dataset3DGeneration:
                     self.exposure,
                     self.psf,
                     self.drmap,
-                    # self.edisp_kernel, # Need not do this here.
                 ] = self.get_base_objects(cfg, model, key_name, cfg.type, file_list)
             if cfg.type == "lat-aux":
                 file_list, [self.diff_gal, self.diff_iso] = self.get_base_objects(
@@ -280,8 +263,8 @@ class Dataset3DGeneration:
             self.exposure = Map.read(file_list["expmap_file"])
             self.psf = PSFMap.read(file_list["psf_file"], format="gtpsf")
             self.drmap = fits.open(file_list["edrm_file"])
-            # self.edisp_kernel = self.set_energy_dispersion_matrix() # Can remove this from here and let the main run function call this function.
-            return file_list, [self.exposure, self.psf, self.drmap]  # , self.edisp_kernel]
+
+            return file_list, [self.exposure, self.psf, self.drmap]
 
         elif dl3_type.lower() == "lat-aux":
             self.diff_gal = Map.read(file_list["diff_gal_file"])
@@ -389,7 +372,7 @@ class Dataset3DGeneration:
             npix=(self.exposure.geom.npix[0][0], self.exposure.geom.npix[1][0]),
             proj="TAN",
             frame="fk5",
-            binsz=(self.exposure.geom.pixel_scales)[0],
+            binsz=self.exposure.geom.pixel_scales[0],
             axes=[self.energy_axis],
             dtype=float,
         )
@@ -419,6 +402,7 @@ class Dataset3DGeneration:
         self.diff_gal_cutout.parameters["norm"].max = 10
         self.diff_gal_cutout.parameters["norm"].frozen = False
 
+        # Update the model in self.list_sources
         for k, m in enumerate(self.list_sources):
             if m.name == "diffuse-iem":
                 self.list_sources[k] = self.diff_gal_cutout
@@ -457,7 +441,7 @@ class Dataset3DGeneration:
         """
         excluded_geom = self.counts_map.geom.copy()
         exclusion_params = self.config_3d_dataset_info.background.exclusion
-        excluded_regions_list = []
+        # excluded_regions_list = []
 
         if len(exclusion_params["regions"]) != 0:
             self.log.info("Using the background region from config for exclusion mask")
@@ -477,15 +461,16 @@ class Dataset3DGeneration:
                     outer_radius=u.Quantity(region["parameters"]["rad_1"]),
                 )
                 self.exclusion_regions.append(excluded_region)
-                excluded_regions_list.append(excluded_region)
+                # excluded_regions_list.append(excluded_region)
             self.exclusion_mask = ~excluded_geom.region_mask(self.exclusion_regions)
 
         elif len(self.exclusion_regions) == 0:
             self.log.info("Creating empty/dummy exclusion region")
             pos = SkyCoord(0, 90, unit="deg")
             exclusion_region = CircleSkyRegion(pos, 0.00001 * u.deg)
-            excluded_regions_list.append(exclusion_region)
-            self.exclusion_mask = ~excluded_geom.region_mask(excluded_regions_list)
+            self.exclusion_regions.append(exclusion_region)
+            # excluded_regions_list.append(exclusion_region)
+            self.exclusion_mask = ~excluded_geom.region_mask(self.exclusion_regions)
         else:
             self.log.info("Creating exclusion region")
             self.exclusion_mask = ~excluded_geom.region_mask(self.exclusion_regions)
@@ -513,9 +498,8 @@ class Dataset3DGeneration:
     def generate_dataset(self):
         """
         Generate MapDataset for the given Instrument files using the Counts Map,
-        IRFs and Models objects.
+        and IRFs objects.
         """
-
         try:
             mask_safe = self.exclusion_mask
             print("Using the exclusion mask to create a safe mask")
@@ -528,7 +512,7 @@ class Dataset3DGeneration:
         edisp = EDispKernelMap.from_edisp_kernel(self.edisp_interp_kernel)
 
         dataset = MapDataset(
-            #models=self.list_sources,
+            # models=self.list_sources,
             counts=self.counts_map,
             gti=self.gti,
             exposure=self.exposure_interp,

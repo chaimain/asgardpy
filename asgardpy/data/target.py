@@ -8,7 +8,7 @@ from typing import List
 
 from astropy.coordinates import SkyCoord
 from gammapy.maps import Map
-from gammapy.modeling import Parameters, Parameter
+from gammapy.modeling import Parameter, Parameters
 from gammapy.modeling.models import (
     SPATIAL_MODEL_REGISTRY,
     SPECTRAL_MODEL_REGISTRY,
@@ -146,11 +146,11 @@ def set_models(config, datasets, models=None, extend=False):
         datasets_names = None
 
     # for m in models:
-        # Assignment based on the type of Models type of m element?
-        # print(m.name, m.datasets_names)
-        #m.datasets_names = datasets_names
+    # Assignment based on the type of Models type of m element?
+    # print(m.name, m.datasets_names)
+    # m.datasets_names = datasets_names
     print(datasets_names)
-    #print("The type of datasets models is ", type(datasets.models))
+    # print("The type of datasets models is ", type(datasets.models))
     datasets.models = models
     print(datasets.models, "To check if it is not None")
 
@@ -273,7 +273,6 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
         new_par = {}
 
         for k in par.keys():
-            # print(k, par[k])
             # Replacing the "@par_name" information of each parameter without the "@"
             if k != "@free":
                 new_par[k[1:].lower()] = par[k]
@@ -320,7 +319,6 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
             new_par["value"] = -1 * float(new_par["value"])
             new_par["min"] = -1 * float(new_par["min"])
             new_par["max"] = -1 * float(new_par["max"])
-            #print(new_par, keep_sign)
 
         new_par["error"] = 0
         new_param = Parameter(name=new_par["name"], value=new_par["value"])
@@ -330,10 +328,9 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
         new_param.frozen = new_par["frozen"]
         new_param._is_norm = new_par["is_norm"]
         # params_list.append(new_par)
-        # print(new_param, new_par)
         new_params.append(new_param)
 
-    #params_final = Parameters.from_dict(params_list)
+    # params_final = Parameters.from_dict(params_list)
     params_final2 = Parameters(new_params)
 
     return params_final2
@@ -364,7 +361,6 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
     is_source_target: bool
         Boolean to check if the Models belong to the target source.
     """
-    #print(f"Is LP the intrinsic model: {lp_is_intrinsic}")
     source_name = source["@name"]
     spectrum_type = source["spectrum"]["@type"].split("EblAtten::")[-1]
     spectrum = source["spectrum"]["parameter"]
@@ -378,7 +374,7 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
     ebl_atten_pl = False
     if source_name_check == target_check:
         source_name = config_target.source_name
-        is_source_target = True # Only role for now.
+        is_source_target = True  # Only role for now.
 
         # Only taking the spectral model information right now.
         # Should generalize this part --- Only use the config model if this is false
@@ -403,18 +399,15 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
                     else:
                         ebl_atten_pl = True
                         spectral_model = PowerLawSpectralModel()
-        #print(source_name, ebl_atten_pl)
         params_list = xml_to_gammapy_model_params(
             spectrum,
             is_target=is_source_target,
             keep_sign=ebl_atten_pl,
             lp_is_intrinsic=lp_is_intrinsic,
         )
-        #print(params_list)
-        #spectral_model.from_dict(params_list)
+        # spectral_model.from_dict(params_list)
         for p in params_list:
             setattr(spectral_model, p.name, p)
-        #print(spectral_model)
         config_spectral = config_target.components.spectral
         ebl_absorption_included = config_spectral.ebl_abs is not None
 
