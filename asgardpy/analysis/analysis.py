@@ -102,21 +102,15 @@ class AsgardpyAnalysis:
                     # Make a check to see if all component types of SkyModels
                     # are present throughout all datasets
 
-                    # if data.models is not None
-                    # for models in models_list:
                     models_list = Models(models_list)
-                    # print(models_list, "is the model list")
                     target_source_model = models_list[self.config.target.source_name]
                     print(
                         "Dataset names in the target model are:", target_source_model.datasets_names
                     )
 
-                    # for m in mask:
-                    #    self.ex_masks.append(m)
                     if target_source_model.spatial_model:  ## Re-evaluate
                         # If the target source has Spatial model included, only then (?) get all the models as final_model
                         for m in models_list:
-                            # print(m.name)
                             self.final_model.append(m)
                     else:
                         print("The target source only has spectral model:", target_source_model)
@@ -136,6 +130,10 @@ class AsgardpyAnalysis:
                     # Finally, simply update the final datasets list
                     for data in datasets_list:
                         self.datasets.append(data)
+
+                    for edges in energy_edges:
+                        # Update the spectral energy ranges for each dataset.
+                        self.spectral_energy_ranges.append(edges)
 
                 if step == "datasets-1d":
                     for data in datasets_list:
