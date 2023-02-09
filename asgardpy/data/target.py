@@ -271,12 +271,9 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
     new_params = []
     for par in params:
         new_par = {}
-        # For EBL Attenuated Power Law, it is taken with LogParabola model
-        # and turning beta value off
-        #if lp_is_intrinsic and par["@name"] == "beta":
-        #    continue
 
         for k in par.keys():
+            # print(k, par[k])
             # Replacing the "@par_name" information of each parameter without the "@"
             if k != "@free":
                 new_par[k[1:].lower()] = par[k]
@@ -289,11 +286,10 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
             # Making scale = 1, by multiplying it to the value, min and max
             if par["@name"].lower() in ["norm", "prefactor", "integral"]:
                 new_par["name"] = "amplitude"
-                new_par["unit"] = "cm-2 s-1 MeV-1"
+                new_par["unit"] = "cm-2 s-1 TeV-1"
                 new_par["is_norm"] = True
             if par["@name"].lower() in ["scale", "eb"]:
                 new_par["name"] = "reference"
-                #new_par["frozen"] = par[k] == "0"
             if par["@name"].lower() in ["breakvalue"]:
                 new_par["name"] = "ebreak"
             if par["@name"].lower() in ["lowerlimit"]:
@@ -305,16 +301,21 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
                 new_par["value"] = 1.0 / new_par["value"]
                 new_par["min"] = 1.0 / new_par["min"]
                 new_par["max"] = 1.0 / new_par["max"]
-                new_par["unit"] = "MeV-1"
+                new_par["unit"] = "TeV-1"
             if par["@name"].lower() in ["index"]:
                 new_par["name"] = "index"
 
-            #if par["@free"] == "0"
         # More modifications:
         if new_par["name"] in ["reference", "ebreak", "emin", "emax"]:
-            new_par["unit"] = "MeV"
+            new_par["unit"] = "TeV"
+            new_par["value"] = float(new_par["value"]) * float(new_par["scale"]) * 1e-6
+            new_par["min"] = float(new_par["min"]) * float(new_par["scale"]) * 1e-6
+            new_par["max"] = float(new_par["max"]) * float(new_par["scale"]) * 1e-6
+        if new_par["name"] in ["amplitude"]:
+            new_par["value"] = float(new_par["value"]) * float(new_par["scale"]) * 1e6
+            new_par["min"] = float(new_par["min"]) * float(new_par["scale"]) * 1e6
+            new_par["max"] = float(new_par["max"]) * float(new_par["scale"]) * 1e6
         if new_par["name"] == "index" and not keep_sign:
-            #print(new_par)
             # Other than EBL Attenuated Power Law
             new_par["value"] = -1 * float(new_par["value"])
             new_par["min"] = -1 * float(new_par["min"])
@@ -322,22 +323,20 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
             #print(new_par, keep_sign)
 
         new_par["error"] = 0
-        #print(new_par)
         new_param = Parameter(name=new_par["name"], value=new_par["value"])
         new_param.min = new_par["min"]
         new_param.max = new_par["max"]
         new_param.unit = new_par["unit"]
         new_param.frozen = new_par["frozen"]
         new_param._is_norm = new_par["is_norm"]
-        #params_list.append(new_par)
+        # params_list.append(new_par)
+        # print(new_param, new_par)
         new_params.append(new_param)
-        #print(new_par["name"], new_par["frozen"])
-    #print(new_params)
+
     #params_final = Parameters.from_dict(params_list)
     params_final2 = Parameters(new_params)
-    #print(params_final2)
 
-    return params_final2 #params_final
+    return params_final2
 
 
 def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=False):

@@ -103,14 +103,16 @@ class AsgardpyAnalysis:
                     #if data.models is not None
                     #for models in models_list:
                     models_list = Models(models_list)
-                    print(models_list, "is the model list")
+                    # print(models_list, "is the model list")
                     target_source_model = models_list[self.config.target.source_name]
                     print("Dataset names in the target model are:", target_source_model.datasets_names)
 
+                    #for m in mask:
+                    #    self.ex_masks.append(m)
                     if target_source_model.spatial_model: ## Re-evaluate
                         # If the target source has Spatial model included, only then (?) get all the models as final_model
                         for m in models_list:
-                            print(m.name)
+                            # print(m.name)
                             self.final_model.append(m)
                     else:
                         print("The target source only has spectral model:", target_source_model)
@@ -184,7 +186,7 @@ class AsgardpyAnalysis:
                 if step == "fit":
                     # Confirming the Final Models object for all the datasets
                     # for the Fit function.
-                    self.final_model = Models(self.final_model) #[0]
+                    self.final_model = Models(self.final_model)
                     self.log.info(f"Full final models list is {self.final_model}")
                     #self.final_model = Models(self.final_model[0])
                     #self.log.info(f"Full final models list is {self.final_model}")
@@ -197,13 +199,8 @@ class AsgardpyAnalysis:
                     self.log.info(f"The final model for target source, used is {self.final_model[self.config.target.source_name]}")
                     for data in self.datasets:
                         print("Before model assignment", data)
-                        #mask_safe = data.mask_safe
-                        #data.models = self.final_model[self.config.target.source_name]
-                        print(data.npred().data.sum())
-                        #mask_fit = data.mask_fit
+
                         data.models = self.final_model
-                        #data.mask_fit = mask_fit
-                        #print(data.npred().data.sum())
                         """
                         for m in self.final_model:
                             if "diffuse" not in m.name:

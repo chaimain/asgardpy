@@ -31,10 +31,10 @@ target:
           max: 0.01
           frozen: false
       -   name: reference
-          value: 1.5
-          unit: GeV
+          value: 0.0015
+          unit: TeV
           error: 0.0
-          min: 0.001
+          min: 0.0001
           max: 100.0
           frozen: true
       -   name: alpha
@@ -84,6 +84,7 @@ dataset3d:
         # map_selection: []
         obs_time:
           format: iso
+          bin_size: 1
           intervals: &main_time_range
           -  start: "2021-04-01"
              stop: "2022-05-25"
@@ -102,7 +103,7 @@ dataset3d:
         safe_mask:
           methods: []
           parameters:
-            min: 0.1 GeV
+            min: 0.001 TeV
             max: 1 TeV
         on_region: *source_pos
           # radius: 0.4 deg # Have to figure how to use this later
