@@ -353,6 +353,7 @@ class Dataset3DGeneration:
             if is_target_source:
                 self.target_full_model = source
                 self.list_sources.insert(0, source)
+                is_target_source = False  # To not let it repeat
             else:
                 self.list_sources.append(source)
 
@@ -437,23 +438,30 @@ class Dataset3DGeneration:
         exclusion_params = self.config_3d_dataset_info.background.exclusion
         # excluded_regions_list = []
 
-        if len(exclusion_params["regions"]) != 0:
+        if len(exclusion_params.regions) != 0:
             self.log.info("Using the background region from config for exclusion mask")
-            for region in exclusion_params["regions"]:
-                if region["name"] == "None":
-                    coord = region["position"]
+            for region in exclusion_params.regions:
+                if region.name == "None":
+                    coord = region.position
                     center_ex = SkyCoord(
-                        u.Quantity(coord["lon"]), u.Quantity(coord["lat"]), frame=coord["frame"]
+                        u.Quantity(coord.lon), u.Quantity(coord.lat), frame=coord.frame
                     ).icrs
                 else:
-                    center_ex = SkyCoord.from_name(region["name"])
+                    center_ex = SkyCoord.from_name(region.name)
 
                 # Generalize?
-                excluded_region = CircleAnnulusSkyRegion(
-                    center=center_ex,
-                    inner_radius=u.Quantity(region["parameters"]["rad_0"]),
-                    outer_radius=u.Quantity(region["parameters"]["rad_1"]),
-                )
+                if region.type == "CircleAnnulusSkyRegion":
+                    excluded_region = CircleAnnulusSkyRegion(
+                        center=center_ex,
+                        inner_radius=u.Quantity(region.parameters["rad_0"]),
+                        outer_radius=u.Quantity(region.parameters["rad_1"]),
+                    )
+                elif region.type == "CircleSkyRegion":
+                    excluded_region = CircleSkyRegion(
+                        center=center_ex, radius=u.Quantity(region.parameters["region_radius"])
+                    )
+                else:
+                    self.log.error(f"Unknown type of region passed {region.type}")
                 self.exclusion_regions.append(excluded_region)
                 # excluded_regions_list.append(excluded_region)
             self.exclusion_mask = ~excluded_geom.region_mask(self.exclusion_regions)

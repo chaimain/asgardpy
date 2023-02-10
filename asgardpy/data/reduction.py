@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import List
 
 from asgardpy.data.base import AngleType, BaseConfig, TimeIntervalsConfig
+from asgardpy.data.geom import SkyCoordConfig
 
 __all__ = [
     "ReductionTypeEnum",
@@ -17,6 +18,8 @@ __all__ = [
     "ReflectedRegionFinderConfig",
     "WobbleRegionsFinderConfig",
     "BackgroundMethodEnum",
+    "ExclusionRegionsConfig",
+    "RegionsConfig",
     "SafeMaskMethodsEnum",
     "MapSelectionEnum",
     "BackgroundConfig",
@@ -70,6 +73,18 @@ class WobbleRegionsFinderConfig(BaseConfig):
     binsz: AngleType = None
 
 
+class RegionsConfig(BaseConfig):
+    type: str = None
+    name: str = None
+    position: SkyCoordConfig = SkyCoordConfig()
+    parameters: dict = {}
+
+
+class ExclusionRegionsConfig(BaseConfig):
+    target_source: bool = True
+    regions: List[RegionsConfig] = []
+
+
 class SafeMaskMethodsEnum(str, Enum):
     aeff_default = "aeff-default"
     aeff_max = "aeff-max"
@@ -92,7 +107,7 @@ class BackgroundConfig(BaseConfig):
     method: BackgroundMethodEnum = None
     region_finder_method: BackgroundRegionFinderMethodEnum = None
     parameters: dict = {}
-    exclusion: dict = {}
+    exclusion: ExclusionRegionsConfig = ExclusionRegionsConfig()
 
 
 class SafeMaskConfig(BaseConfig):
