@@ -148,12 +148,15 @@ dataset1d:
           parameters:
             n_off_regions: 1
           exclusion:
-            name: None
-            position:
-              frame: galactic
-              lon: 183.604 deg
-              lat: -8.708 deg
-            region_radius: 0.5 deg
+            regions:
+            -  type: CircleSkyRegion
+               name: None
+               position:
+                 frame: galactic
+                 lon: 183.604 deg
+                 lat: -8.708 deg
+               parameters:
+                 region_radius: 0.5 deg
         safe_mask:
           methods: ["custom-mask"]
           parameters:

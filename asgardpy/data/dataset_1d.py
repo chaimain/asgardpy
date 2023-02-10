@@ -141,6 +141,7 @@ class Dataset1DGeneration:
         self.log = log
         self.config_1d_dataset_info = config_1d_dataset.dataset_info
         self.config_target = config_target
+        self.exclusion_regions = []
 
         # Only 1 DL3 type of file.
         self.datasets = Datasets()
@@ -280,29 +281,35 @@ class Dataset1DGeneration:
 
         # Background reduction maker
         bkg_config = self.config_1d_dataset_info.background
+        exclusion_params = bkg_config.exclusion
 
         # Exclusion mask
-        if bkg_config.exclusion:
-            if bkg_config.exclusion["name"] == "None":
-                coord = bkg_config.exclusion["position"]
-                center_ex = SkyCoord(
-                    u.Quantity(coord["lon"]), u.Quantity(coord["lat"]), frame=coord["frame"]
-                ).icrs
-            else:
-                center_ex = SkyCoord.from_name(bkg_config.exclusion["name"])
+        if len(exclusion_params.regions) != 0:
+            for region in exclusion_params.regions:
+                if region.name == "None":
+                    coord = region.position
+                    center_ex = SkyCoord(
+                        u.Quantity(coord.lon), u.Quantity(coord.lat), frame=coord.frame
+                    ).icrs
+                else:
+                    center_ex = SkyCoord.from_name(region.name)
 
-            excluded_region = CircleSkyRegion(
-                center=center_ex, radius=u.Quantity(bkg_config.exclusion["region_radius"])
-            )
+                if region.type == "CircleSkyRegion":
+                    excluded_region = CircleSkyRegion(
+                        center=center_ex, radius=u.Quantity(region.parameters["region_radius"])
+                    )
+                else:
+                    self.log.error(f"Unknown type of region passed {region.type}")
+                self.exclusion_regions.append(excluded_region)
         else:
-            excluded_region = None
+            self.exclusion_regions = [None]
 
         # Needs to be united with other Geometry creation functions, into a separate class
         # Also make these geom parameters also part of the config requirements
         excluded_geom = WcsGeom.create(
             npix=(125, 125), binsz=0.05, skydir=center_ex, proj="TAN", frame="icrs"
         )
-        exclusion_mask = ~excluded_geom.region_mask([excluded_region])
+        exclusion_mask = ~excluded_geom.region_mask(self.exclusion_regions)
 
         # Background reduction maker. Need to generalize further.
         if bkg_config.method == "reflected":
