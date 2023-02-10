@@ -120,13 +120,45 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
 
     def _run(self):
         self.flux_points = []
+        datasets, energy_edges = self._sort_datasets_info()
 
-        for dataset, energy_edges in zip(self.datasets, self.spectral_energy_ranges):
+        for dataset, energy_edges in zip(datasets, energy_edges):
             self._set_fpe(dataset, energy_edges)
-            flux_points = self.fpe.run(datasets=[dataset])
-            flux_points.name = dataset.name
+            flux_points = self.fpe.run(datasets=dataset)
+            flux_points.name = dataset.names
 
             self.flux_points.append(flux_points)
+
+    def _sort_datasets_info(self):
+        """
+        The given list of datasets may contain sub-instrument level datasets.
+        With the help of the dict information for instrument specific name and
+        spectral energy edges, this function, sorts the datasets and returns
+        them to be passed to the Flux Points Estimator function.
+
+        Returns
+        -------
+        sorted_datasets: List of Datasets object.
+        sorted_energy_edges: List of energy edges for flux points estimation
+            for respective instruments' datasets
+        """
+        dataset_name_list = self.datasets.names
+        sorted_datasets = []
+        sorted_energy_edges = []
+
+        for i, name in enumerate(self.instrument_spectral_info["name"]):
+            dataset_list = []
+            for j, dataset_names in enumerate(dataset_name_list):
+                if name in dataset_names:
+                    dataset_list.append(self.datasets[j])
+            if len(dataset_list) != 0:
+                sorted_energy_edges.append(
+                    self.instrument_spectral_info["spectral_energy_ranges"][i]
+                )
+                dataset_list = Datasets(dataset_list)
+                sorted_datasets.append(dataset_list)
+
+        return sorted_datasets, sorted_energy_edges
 
     def _set_fpe(self, dataset, energy_bin_edges):
         """

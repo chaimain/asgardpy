@@ -6,7 +6,7 @@ general:
     level: info
   outdir: /data/magic/users-ifae/cpriyada/lst/
   n_jobs: 1
-  steps: [datasets-3d, fit] #, flux-points, light-curve] # datasets-1d,
+  steps: [datasets-3d, datasets-1d, fit, flux-points, light-curve]
   overwrite: true
   stacked_dataset: true
 
@@ -84,7 +84,6 @@ dataset3d:
         # map_selection: []
         obs_time:
           format: iso
-          bin_size: 1
           intervals: &main_time_range
           -  start: "2021-04-01"
              stop: "2022-05-25"

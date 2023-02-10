@@ -89,10 +89,12 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
 
         datasets_3d_final = Datasets()
         models_final = Models()
-        spectral_energy_ranges = []
+        instrument_spectral_info = {"name": [], "spectral_energy_ranges": []}
 
         for i in np.arange(len(instruments_list)):
             self.config_3d_dataset = instruments_list[i]
+            instrument_spectral_info["name"].append(self.config_3d_dataset.name)
+
             key_names = self.config_3d_dataset.dataset_info.key
             self.log.info(f"The different keys used: {key_names}")
 
@@ -113,6 +115,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                         models_final.append(m)
 
                 dataset_instrument.append(dataset)
+
             # Linking the spectral model of the diffuse model for each key - need to generalize
             diffuse_models_names = []
             for m in models_final.names:
@@ -132,21 +135,12 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                 nbin=int(energy_range.nbins),
                 per_decade=True,
             ).edges
+            instrument_spectral_info["spectral_energy_ranges"].append(energy_bin_edges)
 
-            if self.config.general.stacked_dataset:
-                # Add a condition on appending names of models for different keys,
-                # except when it is key specific like the diffuse iso models
-                dataset_instrument.stack_reduce(name=self.config_3d_dataset.name)
+            for data in dataset_instrument:
+                datasets_3d_final.append(data)
 
-                for data in dataset_instrument:
-                    datasets_3d_final.append(data)
-                spectral_energy_ranges.append(energy_bin_edges)
-            else:
-                for data in dataset_instrument:
-                    datasets_3d_final.append(data)
-                    spectral_energy_ranges.append(energy_bin_edges)
-
-        return datasets_3d_final, models_final, spectral_energy_ranges
+        return datasets_3d_final, models_final, instrument_spectral_info
 
 
 class Dataset3DGeneration:

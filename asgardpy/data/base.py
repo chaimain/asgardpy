@@ -101,10 +101,10 @@ class AnalysisStepBase(abc.ABC):
     # def name(self):
     #    return self._name
 
-    def run(self, datasets=None, energy_ranges=None):
+    def run(self, datasets=None, instrument_spectral_info=None):
         # Need to generalize this better.
         self.datasets = datasets
-        self.spectral_energy_ranges = energy_ranges
+        self.instrument_spectral_info = instrument_spectral_info
 
         final_product = self._run()
         self.log.info(f"Analysis Step {self.tag} completed")
