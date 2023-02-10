@@ -82,7 +82,7 @@ class RegionsConfig(BaseConfig):
 
 class ExclusionRegionsConfig(BaseConfig):
     target_source: bool = True
-    regions: List[RegionsConfig] = [RegionsConfig()]
+    regions: List[RegionsConfig] = []
 
 
 class SafeMaskMethodsEnum(str, Enum):
