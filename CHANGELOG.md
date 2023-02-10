@@ -31,3 +31,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Addition of instrument-specific spectral parameters by [@chaimain](https://github.com/chaimain).
 - Fixing assignment of Dataset models by [@chaimain](https://github.com/chaimain).
 - Add more notebooks testing each analysis step by [@chaimain](https://github.com/chaimain).
+- Fixing Flux Points Analysis step, to get instrument-specific flux points by [@chaimain](https://github.com/chaimain).
+- 
