@@ -86,10 +86,11 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
         self.log.info(f"{len(instruments_list)} number of 1D Datasets given")
 
         datasets_1d_final = Datasets()
-        spectral_energy_ranges = []
+        instrument_spectral_info = {"name": [], "spectral_energy_ranges": []}
 
         for i in np.arange(len(instruments_list)):
             self.config_1d_dataset = instruments_list[i]
+            instrument_spectral_info["name"].append(self.config_1d_dataset.name)
 
             generate_1d_dataset = Dataset1DGeneration(
                 self.log, self.config_1d_dataset, self.config.target
@@ -105,27 +106,20 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
                 nbin=int(energy_range.nbins),
                 per_decade=True,
             ).edges
+            instrument_spectral_info["spectral_energy_ranges"].append(energy_bin_edges)
 
             if self.config.general.stacked_dataset:
                 dataset = dataset.stack_reduce(name=self.config_1d_dataset.name)
-                print(dataset)
-                # print(dataset.models, type(dataset.models))
-                # dataset.models = Models(models=None)
-                # dataset = set_models(config=self.config.target, datasets=dataset)
-                # print(dataset.models.datasets_names)
                 datasets_1d_final.append(dataset)
-                spectral_energy_ranges.append(energy_bin_edges)
             else:
                 for data in dataset:
-                    # print(data.models.names, f"{self.config_1d_dataset.name} {data.models.names[0]}")
                     datasets_1d_final.append(data)
-                    spectral_energy_ranges.append(energy_bin_edges)
 
         return (
             datasets_1d_final,
             None,
-            spectral_energy_ranges,
-        )  # return dataset, models and sed energy edges
+            instrument_spectral_info,
+        )
 
 
 class Dataset1DGeneration:
