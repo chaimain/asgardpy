@@ -353,6 +353,7 @@ class Dataset3DGeneration:
             if is_target_source:
                 self.target_full_model = source
                 self.list_sources.insert(0, source)
+                is_target_source = False  # To not let it repeat
             else:
                 self.list_sources.append(source)
 
