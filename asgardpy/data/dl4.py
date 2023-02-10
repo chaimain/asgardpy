@@ -156,10 +156,7 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
                     self.instrument_spectral_info["spectral_energy_ranges"][i]
                 )
                 dataset_list = Datasets(dataset_list)
-                dataset_list.names = name
                 sorted_datasets.append(dataset_list)
-        print(sorted_datasets, type(sorted_datasets))
-        print(sorted_energy_edges)
 
         return sorted_datasets, sorted_energy_edges
 
