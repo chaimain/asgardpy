@@ -338,7 +338,6 @@ class Dataset3DGeneration:
 
         with open(xml_file) as f:
             data = xmltodict.parse(f.read())["source_library"]["source"]
-            self.list_of_sources_final = [source["@name"] for source in data]
 
         for source in data:
             source_name = source["@name"]

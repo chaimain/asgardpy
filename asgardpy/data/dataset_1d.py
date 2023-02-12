@@ -21,8 +21,6 @@ from gammapy.makers import (
     WobbleRegionsFinder,
 )
 from gammapy.maps import MapAxis, RegionGeom, WcsGeom
-
-# from gammapy.modeling.models import Models
 from regions import CircleSkyRegion, PointSkyRegion
 
 from asgardpy.data.base import AnalysisStepBase, BaseConfig
@@ -34,8 +32,6 @@ from asgardpy.data.reduction import (
     ReductionTypeEnum,
     SafeMaskConfig,
 )
-
-# from asgardpy.data.target import set_models
 from asgardpy.io.io import DL3Files, InputConfig
 
 __all__ = [
