@@ -91,7 +91,10 @@ class Target(BaseConfig):
 
 
 # Models section
-def set_models(config, datasets, models=None, extend=False):
+def set_models(
+    config, datasets, datasets_name_list = None, models=None,
+    target_source_name=None, extend=False
+):
     """
     Set models on given Datasets.
 
@@ -135,24 +138,23 @@ def set_models(config, datasets, models=None, extend=False):
     # if extend:
     # For extending a Background Model
     #    Models(models).extend(self.bkg_models)
-    if hasattr(datasets, "name"):
-        print(datasets.name, type(datasets))
-        datasets_names = datasets.name
-    elif hasattr(datasets, "names"):
-        print(datasets.names, type(datasets))
-        datasets_names = datasets.names
-    else:
-        print(f"{datasets} or type {type(datasets)} does not have any naming attribute")
-        datasets_names = None
 
     # for m in models:
     # Assignment based on the type of Models type of m element?
     # print(m.name, m.datasets_names)
     # m.datasets_names = datasets_names
-    print(datasets_names)
+    if datasets_name_list is None:
+        datasets_name_list = datasets.names
+        # print(datasets.names)
+    # print(datasets_name_list)
     # print("The type of datasets models is ", type(datasets.models))
+    if target_source_name is not None:
+        models[target_source_name].datasets_names = datasets_name_list
+    # else:
+
     datasets.models = models
-    print(datasets.models, "To check if it is not None")
+    # print("To check if it is not None")
+    # print(datasets)
 
     return datasets
 
@@ -267,7 +269,6 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
     params_final: `gammapy.modeling.Parameters`
         Final list of gammapy Parameter object
     """
-    # params_list = []
     new_params = []
     for par in params:
         new_par = {}
@@ -327,10 +328,9 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
         new_param.unit = new_par["unit"]
         new_param.frozen = new_par["frozen"]
         new_param._is_norm = new_par["is_norm"]
-        # params_list.append(new_par)
+
         new_params.append(new_param)
 
-    # params_final = Parameters.from_dict(params_list)
     params_final2 = Parameters(new_params)
 
     return params_final2
@@ -391,7 +391,6 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
                     spectrum_type_final = f"{spectrum_type}SpectralModel"
 
                 spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(spectrum_type_final)()
-                # spectral_model.name = source_name
 
                 if spectrum_type == "LogParabola" and "EblAtten" in source["spectrum"]["@type"]:
                     if lp_is_intrinsic:
@@ -405,7 +404,7 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
             keep_sign=ebl_atten_pl,
             lp_is_intrinsic=lp_is_intrinsic,
         )
-        # spectral_model.from_dict(params_list)
+
         for p in params_list:
             setattr(spectral_model, p.name, p)
         config_spectral = config_target.components.spectral
