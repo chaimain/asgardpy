@@ -144,7 +144,10 @@ def set_models(
     if target_source_name is None:
         target_source_name = config.source_name
 
-    models[target_source_name].datasets_names = datasets_name_list
+    if len(models) > 1:
+        models[target_source_name].datasets_names = datasets_name_list
+    else:
+        models.datasets_names = datasets_name_list
 
     datasets.models = models
 

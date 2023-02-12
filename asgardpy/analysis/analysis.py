@@ -155,13 +155,23 @@ class AsgardpyAnalysis:
                     # Confirming the Final Models object for all the datasets
                     # for the Fit function.
                     self.log.info(f"Full final models list is {self.final_model}")
-                    self.datasets = set_models(
-                        self.config.target,
-                        self.datasets,
-                        self.dataset_name_list,
-                        models=self.final_model,
-                        target_source_name=self.config.target.source_name,
-                    )
+                    if len(self.final_model) > 1:
+                        self.datasets = set_models(
+                            self.config.target,
+                            self.datasets,
+                            self.dataset_name_list,
+                            models=self.final_model,
+                            target_source_name=self.config.target.source_name,
+                        )
+                    else:
+                        self.datasets = set_models(
+                            self.config.target,
+                            self.datasets,
+                            self.dataset_name_list,
+                            models=None,
+                            target_source_name=self.config.target.source_name,
+                        )
+
                     self.log.info(f"After models assignment, the full dataset is {self.datasets}")
 
                 analysis_step = AnalysisStep.create(step, self.config, **kwargs)
