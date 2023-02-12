@@ -21,7 +21,6 @@ from gammapy.makers import (
     WobbleRegionsFinder,
 )
 from gammapy.maps import MapAxis, RegionGeom, WcsGeom
-
 from regions import CircleSkyRegion, PointSkyRegion
 
 from asgardpy.data.base import AnalysisStepBase, BaseConfig
@@ -33,7 +32,6 @@ from asgardpy.data.reduction import (
     ReductionTypeEnum,
     SafeMaskConfig,
 )
-
 from asgardpy.io.io import DL3Files, InputConfig
 
 __all__ = [
@@ -294,8 +292,7 @@ class Dataset1DGeneration:
 
                 if region.type == "CircleSkyRegion":
                     excluded_region = CircleSkyRegion(
-                        center=center_ex,
-                        radius=u.Quantity(region.parameters["region_radius"])
+                        center=center_ex, radius=u.Quantity(region.parameters["region_radius"])
                     )
                 else:
                     self.log.error(f"Unknown type of region passed {region.type}")

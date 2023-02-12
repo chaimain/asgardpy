@@ -92,8 +92,7 @@ class Target(BaseConfig):
 
 # Models section
 def set_models(
-    config, datasets, datasets_name_list = None, models=None,
-    target_source_name=None, extend=False
+    config, datasets, datasets_name_list=None, models=None, target_source_name=None, extend=False
 ):
     """
     Set models on given Datasets.
@@ -139,22 +138,15 @@ def set_models(
     # For extending a Background Model
     #    Models(models).extend(self.bkg_models)
 
-    # for m in models:
-    # Assignment based on the type of Models type of m element?
-    # print(m.name, m.datasets_names)
-    # m.datasets_names = datasets_names
     if datasets_name_list is None:
         datasets_name_list = datasets.names
-        # print(datasets.names)
-    # print(datasets_name_list)
-    # print("The type of datasets models is ", type(datasets.models))
-    if target_source_name is not None:
-        models[target_source_name].datasets_names = datasets_name_list
-    # else:
+
+    if target_source_name is None:
+        target_source_name = config.source_name
+
+    models[target_source_name].datasets_names = datasets_name_list
 
     datasets.models = models
-    # print("To check if it is not None")
-    # print(datasets)
 
     return datasets
 

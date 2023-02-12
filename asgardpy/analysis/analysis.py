@@ -10,7 +10,6 @@ from asgardpy.config.generator import AsgardpyConfig
 from asgardpy.data.base import AnalysisStep
 from asgardpy.data.target import set_models
 
-
 log = logging.getLogger(__name__)
 
 __all__ = ["AsgardpyAnalysis"]
@@ -115,7 +114,9 @@ class AsgardpyAnalysis:
                         for m in models_list:
                             self.final_model.append(m)
                     else:
-                        self.log.info(f"The target source only has spectral model:{target_source_model}")
+                        self.log.info(
+                            f"The target source only has spectral model:{target_source_model}"
+                        )
 
                     if target_source_model.datasets_names:
                         # To get all datasets_names from the target source model only.
@@ -136,7 +137,9 @@ class AsgardpyAnalysis:
                     for data in datasets_list:
                         if data.name not in self.dataset_name_list:
                             self.dataset_name_list.append(data.name)
-                        self.log.info(f"The list of names of selected datasets are: {self.dataset_name_list}")
+                        self.log.info(
+                            f"The list of names of selected datasets are: {self.dataset_name_list}"
+                        )
                         self.datasets.append(data)
 
                 # Update the name and spectral energy ranges for each
@@ -153,18 +156,17 @@ class AsgardpyAnalysis:
                     # for the Fit function.
                     self.log.info(f"Full final models list is {self.final_model}")
                     self.datasets = set_models(
-                        self.config.target, self.datasets, self.dataset_name_list,
+                        self.config.target,
+                        self.datasets,
+                        self.dataset_name_list,
                         models=self.final_model,
                         target_source_name=self.config.target.source_name,
                     )
-                    self.log.info(
-                        f"After models assignment, the full dataset is {self.datasets}"
-                    )
+                    self.log.info(f"After models assignment, the full dataset is {self.datasets}")
 
                 analysis_step = AnalysisStep.create(step, self.config, **kwargs)
                 analysis_step.run(
-                    datasets=self.datasets,
-                    instrument_spectral_info=self.instrument_spectral_info
+                    datasets=self.datasets, instrument_spectral_info=self.instrument_spectral_info
                 )
 
                 # Update the final data product objects
