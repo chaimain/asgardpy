@@ -368,19 +368,25 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
 
     source_name_check = source_name.replace("_", "").replace(" ", "")
     target_check = config_target.source_name.replace("_", "").replace(" ", "")
+    # initialized to check for the case if target spectral model is to be taken from Config file
+    spectral_model = None
 
     # Check if target_source file exists
     is_source_target = False
     ebl_atten_pl = False
+
+    # If Target source model's spectral component is to be taken from Config
+    # and not from Fermi.
     if source_name_check == target_check:
         source_name = config_target.source_name
-        is_source_target = True  # Only role for now.
+        is_source_target = True
 
         # Only taking the spectral model information right now.
-        # Should generalize this part --- Only use the config model if this is false
         if not config_target.from_fermi:
             spectral_model, _ = read_models_from_asgardpy_config(config_target)
-    else:
+
+    if spectral_model is None:
+        # Define the Spectral Model type for Gammapy
         for spec in spectrum:
             if spec["@name"] not in ["GalDiffModel", "IsoDiffModel"]:
                 if spectrum_type == "PLSuperExpCutoff":
@@ -398,6 +404,8 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
                     else:
                         ebl_atten_pl = True
                         spectral_model = PowerLawSpectralModel()
+
+        # Read the parameter values from XML file to create SpectralModel
         params_list = xml_to_gammapy_model_params(
             spectrum,
             is_target=is_source_target,
