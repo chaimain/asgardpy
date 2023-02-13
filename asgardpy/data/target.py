@@ -294,8 +294,8 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
             if par["@name"].lower() in ["cutoff"]:
                 new_par["name"] = "lambda_"
                 new_par["value"] = 1.0 / new_par["value"]
-                new_par["min"] = 1.0 / new_par["min"]
-                new_par["max"] = 1.0 / new_par["max"]
+                new_par["min"] = 1.0 / new_par["max"]
+                new_par["max"] = 1.0 / new_par["min"]
                 new_par["unit"] = "TeV-1"
             if par["@name"].lower() in ["index"]:
                 new_par["name"] = "index"
@@ -313,8 +313,11 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
         if new_par["name"] == "index" and not keep_sign:
             # Other than EBL Attenuated Power Law
             new_par["value"] = -1 * float(new_par["value"])
-            new_par["min"] = -1 * float(new_par["min"])
-            new_par["max"] = -1 * float(new_par["max"])
+            # Reverse the limits while changing the sign
+            min_ = float(new_par["min"]) 
+            max_ = float(new_par["max"])
+            new_par["min"] = -1 * max_
+            new_par["max"] = -1 * min_
 
         new_par["error"] = 0
         new_param = Parameter(name=new_par["name"], value=new_par["value"])
