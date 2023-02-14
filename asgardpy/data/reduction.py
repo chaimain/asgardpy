@@ -7,6 +7,8 @@ from enum import Enum
 from pathlib import Path
 from typing import List
 
+from astropy import units as u
+
 from asgardpy.data.base import AngleType, BaseConfig, TimeIntervalsConfig
 from asgardpy.data.geom import SkyCoordConfig
 
@@ -45,9 +47,9 @@ class RequiredHDUEnum(str, Enum):
 
 class ObservationsConfig(BaseConfig):
     obs_ids: List[int] = []
-    obs_file: Path = None
+    obs_file: Path = Path(".")
     obs_time: TimeIntervalsConfig = TimeIntervalsConfig()
-    required_irfs: List[RequiredHDUEnum] = ["aeff"]
+    required_irfs: List[RequiredHDUEnum] = [RequiredHDUEnum.aeff]
 
 
 class BackgroundMethodEnum(str, Enum):
@@ -62,21 +64,21 @@ class BackgroundRegionFinderMethodEnum(str, Enum):
 
 
 class ReflectedRegionFinderConfig(BaseConfig):
-    angle_increment: AngleType = None
-    min_distance: AngleType = None
-    min_distance_input: AngleType = None
+    angle_increment: AngleType = 0.01 * u.deg
+    min_distance: AngleType = 0.1 * u.deg
+    min_distance_input: AngleType = 0.1 * u.deg
     max_region_number: int = 10000
-    binsz: AngleType = None
+    binsz: AngleType = 0.05 * u.deg
 
 
 class WobbleRegionsFinderConfig(BaseConfig):
     n_off_regions: int = 1
-    binsz: AngleType = None
+    binsz: AngleType = 0.05 * u.deg
 
 
 class RegionsConfig(BaseConfig):
-    type: str = None
-    name: str = None
+    type: str = ""
+    name: str = ""
     position: SkyCoordConfig = SkyCoordConfig()
     parameters: dict = {}
 
@@ -105,8 +107,8 @@ class MapSelectionEnum(str, Enum):
 
 # Dataset Reduction Makers config
 class BackgroundConfig(BaseConfig):
-    method: BackgroundMethodEnum = None
-    region_finder_method: BackgroundRegionFinderMethodEnum = None
+    method: BackgroundMethodEnum = BackgroundMethodEnum.reflected
+    region_finder_method: BackgroundRegionFinderMethodEnum = BackgroundRegionFinderMethodEnum.wobble
     parameters: dict = {}
     exclusion: ExclusionRegionsConfig = ExclusionRegionsConfig()
 

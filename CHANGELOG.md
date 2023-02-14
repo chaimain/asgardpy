@@ -7,8 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-## [v0.1.0](https://github.com/mireianievas/asgardpy/releases/tag/v0.1.0) - 2022-11-23
-
 ### Added
 
 - Start adding requirements and dependencies by [@chaimain](https://github.com/chaimain).
@@ -35,4 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve the scope to add multiple exclusion regions by [@chaimain](https://github.com/chaimain).
 - Optimize Models section of the pipeline by [@chaimain](https://github.com/chaimain).
 - Cleaning of logging information and updating doc-strings by [@chaimain](https://github.com/chaimain).
+- Fix mypy check errors in default variable assignments by [@chaimain](https://github.com/chaimain).
 -
+
+## [v0.1.0](https://github.com/mireianievas/asgardpy/releases/tag/v0.1.0) - 2022-11-23

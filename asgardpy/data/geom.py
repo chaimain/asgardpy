@@ -4,6 +4,8 @@ Classes containing the Geometry config parameters for the high-level interface.
 
 from typing import List
 
+from astropy import units as u
+
 from asgardpy.data.base import AngleType, BaseConfig, EnergyType, FrameEnum
 
 __all__ = [
@@ -22,22 +24,22 @@ __all__ = [
 
 # Basic Components to define the main GeomConfig
 class SpatialCircleConfig(BaseConfig):
-    frame: FrameEnum = None
-    lon: AngleType = None
-    lat: AngleType = None
-    radius: AngleType = None
+    frame: FrameEnum = FrameEnum.icrs
+    lon: AngleType = 0 * u.deg
+    lat: AngleType = 0 * u.deg
+    radius: AngleType = 0.1 * u.rad
 
 
 class SpatialPointConfig(BaseConfig):
-    frame: FrameEnum = None
-    lon: AngleType = None
-    lat: AngleType = None
+    frame: FrameEnum = FrameEnum.icrs
+    lon: AngleType = 0 * u.deg
+    lat: AngleType = 0 * u.deg
 
 
 class EnergyAxisConfig(BaseConfig):
-    min: EnergyType = None
-    max: EnergyType = None
-    nbins: int = None
+    min: EnergyType = 1 * u.GeV
+    max: EnergyType = 1 * u.TeV
+    nbins: int = 5
 
 
 class EnergyEdgesCustomConfig(BaseConfig):
@@ -45,30 +47,30 @@ class EnergyEdgesCustomConfig(BaseConfig):
 
 
 class EnergyAxesConfig(BaseConfig):
-    energy: EnergyAxisConfig = EnergyAxisConfig(min="1 TeV", max="10 TeV", nbins=5)
-    energy_true: EnergyAxisConfig = EnergyAxisConfig(min="0.5 TeV", max="20 TeV", nbins=16)
+    energy: EnergyAxisConfig = EnergyAxisConfig(min=1 * u.TeV, max=10 * u.TeV, nbins=5)
+    energy_true: EnergyAxisConfig = EnergyAxisConfig(min=0.5 * u.TeV, max=20 * u.TeV, nbins=16)
 
 
 class SelectionConfig(BaseConfig):
-    offset_max: AngleType = "2.5 deg"
+    offset_max: AngleType = 2.5 * u.deg
 
 
 class FinalFrameConfig(BaseConfig):
-    width: AngleType = "5 deg"
-    height: AngleType = "5 deg"
+    width: AngleType = 5 * u.deg
+    height: AngleType = 5 * u.deg
 
 
 class SkyCoordConfig(BaseConfig):
-    frame: FrameEnum = None
-    lon: AngleType = None
-    lat: AngleType = None
+    frame: FrameEnum = FrameEnum.icrs
+    lon: AngleType = 0 * u.deg
+    lat: AngleType = 0 * u.deg
 
 
 class WcsConfig(BaseConfig):
     skydir: SkyCoordConfig = SkyCoordConfig()
-    binsize: AngleType = "0.02 deg"
+    binsize: AngleType = 0.02 * u.deg
     final_frame: FinalFrameConfig = FinalFrameConfig()
-    binsize_irf: AngleType = "0.2 deg"
+    binsize_irf: AngleType = 0.2 * u.deg
 
 
 class GeomConfig(BaseConfig):

@@ -38,7 +38,7 @@ class BackendEnum(str, Enum):
 
 class FitConfig(BaseConfig):
     fit_range: EnergyRangeConfig = EnergyRangeConfig()
-    backend: BackendEnum = None
+    backend: BackendEnum = BackendEnum.minuit
     optimize_opts: dict = {}
     covariance_opts: dict = {}
     confidence_opts: dict = {}
@@ -56,7 +56,7 @@ class LightCurveConfig(BaseConfig):
 
 
 class ExcessMapConfig(BaseConfig):
-    correlation_radius: AngleType = "0.1 deg"
+    correlation_radius: AngleType = 0.1 * u.deg
     parameters: dict = {}
     energy_edges: EnergyAxisConfig = EnergyAxisConfig()
 

@@ -29,10 +29,10 @@ log = logging.getLogger(__name__)
 # Other general config params
 class LogConfig(BaseConfig):
     level: str = "info"
-    filename: Path = None
-    filemode: str = None
-    format: str = None
-    datefmt: str = None
+    filename: Path = Path(".")
+    filemode: str = ""
+    format: str = ""
+    datefmt: str = ""
 
 
 class GeneralConfig(BaseConfig):

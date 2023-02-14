@@ -7,9 +7,9 @@ import logging
 from enum import Enum
 from typing import List
 
+from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.time import Time
-from astropy.units import Quantity
 from pydantic import BaseModel
 
 __all__ = [
@@ -38,14 +38,14 @@ class AngleType(Angle):
         return Angle(v)
 
 
-class EnergyType(Quantity):
+class EnergyType(u.Quantity):
     @classmethod
     def __get_validators__(cls):
         yield cls.validate
 
     @classmethod
     def validate(cls, v):
-        v = Quantity(v)
+        v = u.Quantity(v)
         if v.unit.physical_type != "energy":
             raise ValueError(f"Invalid unit for energy: {v.unit!r}")
         return v
@@ -83,7 +83,7 @@ class BaseConfig(BaseModel):
         extra = "forbid"
         json_encoders = {
             Angle: lambda v: f"{v.value} {v.unit}",
-            Quantity: lambda v: f"{v.value} {v.unit}",
+            u.Quantity: lambda v: f"{v.value} {v.unit}",
             Time: lambda v: f"{v.value}",
         }
 
@@ -139,15 +139,15 @@ class AnalysisStepEnum(str, Enum):
 
 # Basic Quantity ranges Type for building the Config
 class TimeRangeConfig(BaseConfig):
-    start: TimeType = None
-    stop: TimeType = None
+    start: TimeType = Time("2000-01-01", format="iso")
+    stop: TimeType = Time("2001-01-01", format="iso")
 
 
 class TimeIntervalsConfig(BaseConfig):
-    format: TimeFormatEnum = "iso"
+    format: TimeFormatEnum = TimeFormatEnum.iso
     intervals: List[TimeRangeConfig] = [TimeRangeConfig()]
 
 
 class EnergyRangeConfig(BaseConfig):
-    min: EnergyType = None
-    max: EnergyType = None
+    min: EnergyType = 1 * u.GeV
+    max: EnergyType = 1 * u.TeV
