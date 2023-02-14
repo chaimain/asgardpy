@@ -84,6 +84,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
     iterating over all the Instruments' information by running the
     Dataset3DGeneration function.
     """
+
     tag = "datasets-3d"
 
     def _run(self):
@@ -108,9 +109,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
 
             # Retrieving a single dataset for each instrument.
             for key in key_names:
-                generate_3d_dataset = Dataset3DGeneration(
-                    self.log, config_3d_dataset, self.config
-                )
+                generate_3d_dataset = Dataset3DGeneration(self.log, config_3d_dataset, self.config)
                 dataset, models = generate_3d_dataset.run(key)
 
                 # Assigning datasets_names and including them in the final
@@ -119,9 +118,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                     model_.datasets_names = [f"{config_3d_dataset.name}_{key}"]
 
                     if model_.name in models_final.names:
-                        models_final[model_.name].datasets_names.append(
-                            model_.datasets_names[0]
-                        )
+                        models_final[model_.name].datasets_names.append(model_.datasets_names[0])
                     else:
                         models_final.append(model_)
 
@@ -180,19 +177,10 @@ class Dataset3DGeneration:
             "edisp": None,
             "edisp_kernel": None,
             "edisp_interp_kernel": None,
-            "exposure_interp": None
+            "exposure_interp": None,
         }
-        self.events = {
-            "events": None,
-            "event_fits": None,
-            "gti": None,
-            "counts_map": None
-        }
-        self.diffuse_models = {
-            "diff_gal": None,
-            "diff_iso": None,
-            "diff_gal_cutout": None
-        }
+        self.events = {"events": None, "event_fits": None, "gti": None, "counts_map": None}
+        self.diffuse_models = {"diff_gal": None, "diff_iso": None, "diff_gal_cutout": None}
         self.list_sources = []
 
         # For updating the main config file with target source position
@@ -202,10 +190,7 @@ class Dataset3DGeneration:
 
     def run(self, key_name):
         # First check for the given file list if they are readable or not.
-        file_list = self.read_to_objects(
-            self.config_target.components.spectral,
-            key_name
-        )
+        file_list = self.read_to_objects(self.config_target.components.spectral, key_name)
 
         # Start preparing objects to create the counts map
         self.set_energy_dispersion_matrix()
@@ -246,16 +231,12 @@ class Dataset3DGeneration:
                     self.irfs["exposure"],
                     self.irfs["psf"],
                     self.irfs["edisp"],
-                ] = self.get_base_objects(
-                    cfg, model, key_name, cfg.type, file_list
-                )
+                ] = self.get_base_objects(cfg, model, key_name, cfg.type, file_list)
             if cfg.type == "lat-aux":
                 file_list, [
                     self.diffuse_models["diff_gal"],
-                    self.diffuse_models["diff_iso"]
-                ] = self.get_base_objects(
-                    cfg, model, key_name, cfg.type, file_list
-                )
+                    self.diffuse_models["diff_iso"],
+                ] = self.get_base_objects(cfg, model, key_name, cfg.type, file_list)
                 self.get_list_objects(cfg.input_dir, file_list["xml_file"], lp_is_intrinsic)
                 self.get_source_pos_from_3d_dataset()
 
@@ -402,10 +383,7 @@ class Dataset3DGeneration:
         energy_axis, _ = self.set_energy_axes()
         self.events["counts_map"] = Map.create(
             skydir=source_pos,
-            npix=(
-                self.irfs["exposure"].geom.npix[0][0],
-                self.irfs["exposure"].geom.npix[1][0]
-            ),
+            npix=(self.irfs["exposure"].geom.npix[0][0], self.irfs["exposure"].geom.npix[1][0]),
             proj="TAN",
             frame="fk5",
             binsz=self.irfs["exposure"].geom.pixel_scales[0],
@@ -416,7 +394,7 @@ class Dataset3DGeneration:
             {
                 "skycoord": self.events["events"].radec,
                 "energy": self.events["events"].energy,
-                "time": self.events["events"].time
+                "time": self.events["events"].time,
             }
         )
 
@@ -429,8 +407,7 @@ class Dataset3DGeneration:
         The Template Spatial Model is without normalization currently.
         """
         diffuse_cutout = self.diffuse_models["diff_gal"].cutout(
-            self.events["counts_map"].geom.center_skydir,
-            self.events["counts_map"].geom.width[0]
+            self.events["counts_map"].geom.center_skydir, self.events["counts_map"].geom.width[0]
         )
 
         template_diffuse = TemplateSpatialModel(diffuse_cutout, normalize=False)
@@ -464,8 +441,7 @@ class Dataset3DGeneration:
         energy_reco, energy_true = np.meshgrid(axis_true.center, axis_reco.center)
 
         drm_interp = self.irfs["edisp_kernel"].evaluate(
-            "linear",
-            **{"energy": energy_reco, "energy_true": energy_true}
+            "linear", **{"energy": energy_reco, "energy_true": energy_true}
         )
         self.irfs["edisp_interp_kernel"] = EDispKernel(
             axes=[axis_true, axis_reco], data=np.asarray(drm_interp)
@@ -493,9 +469,7 @@ class Dataset3DGeneration:
                 if region.name == "None":
                     coord = region.position
                     center_ex = SkyCoord(
-                        u.Quantity(coord.lon),
-                        u.Quantity(coord.lat),
-                        frame=coord.frame
+                        u.Quantity(coord.lon), u.Quantity(coord.lat), frame=coord.frame
                     ).icrs
                 else:
                     center_ex = SkyCoord.from_name(region.name)
@@ -508,8 +482,7 @@ class Dataset3DGeneration:
                     )
                 elif region.type == "CircleSkyRegion":
                     excluded_region = CircleSkyRegion(
-                        center=center_ex,
-                        radius=u.Quantity(region.parameters["region_radius"])
+                        center=center_ex, radius=u.Quantity(region.parameters["region_radius"])
                     )
                 else:
                     self.log.error(f"Unknown type of region passed {region.type}")
@@ -543,9 +516,7 @@ class Dataset3DGeneration:
         else:
             sky_pos = self.config_target.sky_position
             source_pos = SkyCoord(
-                u.Quantity(sky_pos.lon),
-                u.Quantity(sky_pos.lat),
-                frame=sky_pos.frame
+                u.Quantity(sky_pos.lon), u.Quantity(sky_pos.lat), frame=sky_pos.frame
             )
             exclusion_region = CircleSkyRegion(
                 center=source_pos.galactic,
@@ -565,9 +536,7 @@ class Dataset3DGeneration:
             self.log.info("Using the exclusion mask to create a safe mask")
         except ValueError:
             self.log.info("Using counts_map to create safe mask")
-            mask_bool = np.zeros(
-                self.events["counts_map"].geom.data_shape
-            ).astype("bool")
+            mask_bool = np.zeros(self.events["counts_map"].geom.data_shape).astype("bool")
             mask_safe = Map.from_geom(self.events["counts_map"].geom, mask_bool)
             mask_safe.data = np.asarray(mask_safe.data == 0, dtype=bool)
 

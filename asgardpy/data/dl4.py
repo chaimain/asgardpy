@@ -67,6 +67,7 @@ class FitAnalysisStep(AnalysisStepBase):
     Using the Fitting parameters as defined in the Config, with the given
     datasets perform the fit of the models to the updated list of datasets.
     """
+
     tag = "fit"
 
     def _run(self):
@@ -77,7 +78,6 @@ class FitAnalysisStep(AnalysisStepBase):
         self.fit_result = self.fit.run(datasets=final_dataset)
 
         self.log.info(self.fit_result)
-        best_fit_model = final_dataset.models[0].to_dict()
 
     def _setup_fit(self):
         """
@@ -115,6 +115,7 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
     datasets and instrument_spectral_info perform the Flux Points Estimation
     and store the result in a list of flux points for each dataset.
     """
+
     tag = "flux-points"
 
     def _run(self):
@@ -177,6 +178,7 @@ class LightCurveAnalysisStep(AnalysisStepBase):
     datasets and instrument_spectral_info perform the Light Curve Estimation
     and store the result in a list of flux points for each dataset.
     """
+
     tag = "light-curve"
 
     def _run(self):

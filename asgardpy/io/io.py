@@ -14,7 +14,6 @@ from gammapy.modeling.models import SPECTRAL_MODEL_REGISTRY, Models
 
 from asgardpy.data.base import BaseConfig
 
-
 __all__ = ["InputFilePatterns", "InputConfig", "DL3Files", "DL4Files"]
 
 EXPECTED_DL3_RANGE = ["lst-1", "lat", "lat-aux"]

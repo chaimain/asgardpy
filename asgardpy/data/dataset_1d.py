@@ -77,6 +77,7 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
     iterating over all the Instruments' information by running the
     Dataset1DGeneration function.
     """
+
     tag = "datasets-1d"
 
     def _run(self):
@@ -150,7 +151,7 @@ class Dataset1DGeneration:
             self.config_1d_dataset_io[0],
             self.config_target.components.spectral,
             file_list,
-            log=self.log
+            log=self.log,
         )
         dl3_info.list_dl3_files()
 
@@ -172,13 +173,7 @@ class Dataset1DGeneration:
         safe_maker = self.get_safe_mask_maker()
 
         # Produce the final Dataset
-        self.generate_dataset(
-            observations,
-            dataset_template,
-            dataset_maker,
-            bkg_maker,
-            safe_maker
-        )
+        self.generate_dataset(observations, dataset_template, dataset_maker, bkg_maker, safe_maker)
 
         return self.datasets
 
@@ -220,9 +215,7 @@ class Dataset1DGeneration:
 
         # IRFs selection
         irfs_selected = self.config_1d_dataset_info.observation.required_irfs
-        observations = datastore.get_observations(
-            filtered_obs_ids, required_irf=irfs_selected
-        )
+        observations = datastore.get_observations(filtered_obs_ids, required_irf=irfs_selected)
 
         return observations
 
@@ -278,10 +271,7 @@ class Dataset1DGeneration:
 
         # Main geom and template Spectrum Dataset
         geom = RegionGeom.create(region=on_region, axes=[energy_axis])
-        dataset_template = SpectrumDataset.create(
-            geom=geom,
-            energy_axis_true=true_energy_axis
-        )
+        dataset_template = SpectrumDataset.create(geom=geom, energy_axis_true=true_energy_axis)
 
         return dataset_template
 
@@ -299,17 +289,14 @@ class Dataset1DGeneration:
                 if region.name == "None":
                     coord = region.position
                     center_ex = SkyCoord(
-                        u.Quantity(coord.lon),
-                        u.Quantity(coord.lat),
-                        frame=coord.frame
+                        u.Quantity(coord.lon), u.Quantity(coord.lat), frame=coord.frame
                     ).icrs
                 else:
                     center_ex = SkyCoord.from_name(region.name)
 
                 if region.type == "CircleSkyRegion":
                     excluded_region = CircleSkyRegion(
-                        center=center_ex,
-                        radius=u.Quantity(region.parameters["region_radius"])
+                        center=center_ex, radius=u.Quantity(region.parameters["region_radius"])
                     )
                 else:
                     self.log.error(f"Unknown type of region passed {region.type}")
@@ -370,18 +357,14 @@ class Dataset1DGeneration:
         return safe_maker
 
     def generate_dataset(
-        self, observations, dataset_template,
-        dataset_maker, bkg_maker, safe_maker
+        self, observations, dataset_template, dataset_maker, bkg_maker, safe_maker
     ):
         """
         From the given Observations, Dataset Template and various Makers,
         produce the DatasetOnOff object and append it to the Datasets object.
         """
         for obs in observations:
-            dataset = dataset_maker.run(
-                dataset_template.copy(name=str(obs.obs_id)),
-                obs
-            )
+            dataset = dataset_maker.run(dataset_template.copy(name=str(obs.obs_id)), obs)
 
             dataset_on_off = bkg_maker.run(dataset, obs)
 

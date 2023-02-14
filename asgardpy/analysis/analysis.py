@@ -153,13 +153,12 @@ class AsgardpyAnalysis:
                         models=self.final_model,
                         target_source_name=self.config.target.source_name,
                     )
-                    if self.final_model == None:
+                    if self.final_model is None:
                         self.final_model = self.datasets.models
 
                 analysis_step = AnalysisStep.create(step, self.config, **kwargs)
                 analysis_step.run(
-                    datasets=self.datasets,
-                    instrument_spectral_info=self.instrument_spectral_info
+                    datasets=self.datasets, instrument_spectral_info=self.instrument_spectral_info
                 )
 
                 # Update the final data product objects

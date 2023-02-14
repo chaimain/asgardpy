@@ -93,8 +93,7 @@ class Target(BaseConfig):
 
 # Function for Models assignment
 def set_models(
-    config, datasets, datasets_name_list=None, models=None,
-    target_source_name=None, extend=False
+    config, datasets, datasets_name_list=None, models=None, target_source_name=None, extend=False
 ):
     """
     Set models on given Datasets.
@@ -242,9 +241,7 @@ def config_to_dict(model_config):
     return model_dict
 
 
-def xml_to_gammapy_model_params(
-    params, is_target=False, keep_sign=False, lp_is_intrinsic=False
-):
+def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_intrinsic=False):
     """
     Convert the Models information from XML model of FermiTools to Gammapy
     standards and return Parameters list.
