@@ -1,6 +1,6 @@
 """
 Classes containing the Dataset Reduction config parameters for the high-level
-interface
+interface.
 """
 
 from enum import Enum
@@ -27,6 +27,7 @@ __all__ = [
 ]
 
 
+# Basic Components to define the various Dataset Reduction Maker Config
 class ReductionTypeEnum(str, Enum):
     spectrum = "1d"
     cube = "3d"

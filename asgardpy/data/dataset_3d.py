@@ -1,5 +1,6 @@
 """
-Generating 3D Datasets from given Instrument DL3 data
+Main classes to define 3D Dataset Config, 3D Dataset Analysis Step and
+to generate 3D Datasets from given Instruments' DL3 data from the config.
 """
 
 import logging
@@ -52,6 +53,7 @@ __all__ = [
 log = logging.getLogger(__name__)
 
 
+# Defining various components of 3D Dataset Config section
 class Dataset3DInfoConfig(BaseConfig):
     name: str = "dataset-name"
     key: List = []
@@ -75,15 +77,16 @@ class Dataset3DConfig(BaseConfig):
     instruments: List[Dataset3DBaseConfig] = [Dataset3DBaseConfig()]
 
 
+# The main Analysis Step
 class Datasets3DAnalysisStep(AnalysisStepBase):
     """
-    From the given config information, prepare the full list of 3D datasets.
+    From the given config information, prepare the full list of 3D datasets,
+    iterating over all the Instruments' information by running the
+    Dataset3DGeneration function.
     """
-
     tag = "datasets-3d"
 
     def _run(self):
-        # Iterate over all instrument information given:
         instruments_list = self.config.dataset3d.instruments
         self.log.info(f"{len(instruments_list)} number of 3D Datasets given")
 
@@ -91,50 +94,60 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
         models_final = Models()
         instrument_spectral_info = {"name": [], "spectral_energy_ranges": []}
 
+        # Iterate over all instrument information given:
         for i in np.arange(len(instruments_list)):
-            self.config_3d_dataset = instruments_list[i]
-            instrument_spectral_info["name"].append(self.config_3d_dataset.name)
+            config_3d_dataset = instruments_list[i]
+            instrument_spectral_info["name"].append(config_3d_dataset.name)
 
-            key_names = self.config_3d_dataset.dataset_info.key
+            key_names = config_3d_dataset.dataset_info.key
             self.log.info(f"The different keys used: {key_names}")
 
-            # Retrieving a single dataset for each instrument.
+            # Extra Datasets object to differentiate between datasets obtained
+            # from various "keys" of each instrument.
             dataset_instrument = Datasets()
+
+            # Retrieving a single dataset for each instrument.
             for key in key_names:
                 generate_3d_dataset = Dataset3DGeneration(
-                    self.log, self.config_3d_dataset, self.config, key
+                    self.log, config_3d_dataset, self.config
                 )
-                dataset, models = generate_3d_dataset.run()
-                for m in models:
-                    # Assigning datasets_names
-                    m.datasets_names = [f"{self.config_3d_dataset.name}_{key}"]
+                dataset, models = generate_3d_dataset.run(key)
 
-                    if m.name in models_final.names:
-                        models_final[m.name].datasets_names.append(m.datasets_names[0])
+                # Assigning datasets_names and including them in the final
+                # model list
+                for model_ in models:
+                    model_.datasets_names = [f"{config_3d_dataset.name}_{key}"]
+
+                    if model_.name in models_final.names:
+                        models_final[model_.name].datasets_names.append(
+                            model_.datasets_names[0]
+                        )
                     else:
-                        models_final.append(m)
+                        models_final.append(model_)
 
                 dataset_instrument.append(dataset)
 
-            # Linking the spectral model of the diffuse model for each key - need to generalize
+            # Linking the spectral model of the diffuse model for each key
             diffuse_models_names = []
-            for m in models_final.names:
-                if "diffuse-iso" in m:
-                    diffuse_models_names.append(m)
+            for model_name in models_final.names:
+                if "diffuse-iso" in model_name:
+                    diffuse_models_names.append(model_name)
+
             if len(diffuse_models_names) > 1:
-                for n in diffuse_models_names[1:]:
+                for model_name in diffuse_models_names[1:]:
                     models_final[diffuse_models_names[0]].spectral_model.model2 = models_final[
-                        n
+                        model_name
                     ].spectral_model.model2
 
             # Get the spectral energy information for each Instrument Dataset
-            energy_range = self.config_3d_dataset.dataset_info.spectral_energy_range
+            energy_range = config_3d_dataset.dataset_info.spectral_energy_range
             energy_bin_edges = MapAxis.from_energy_bounds(
                 energy_min=u.Quantity(energy_range.min),
                 energy_max=u.Quantity(energy_range.max),
                 nbin=int(energy_range.nbins),
                 per_decade=True,
             ).edges
+
             instrument_spectral_info["spectral_energy_ranges"].append(energy_bin_edges)
 
             for data in dataset_instrument:
@@ -145,57 +158,74 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
 
 class Dataset3DGeneration:
     """
-    Separate class on 3D dataset creation based on the config or
-    AsgardpyConfig information provided on the 3D dataset and the target source.
+    Class for 3D dataset creation based on the config or AsgardpyConfig
+    information provided on the 3D dataset and the target source.
 
     Runs the following steps:
-    1. Read the DL3 files of 3D datasets into gammapy readable objects.
+    1. Read the DL3 files of 3D datasets into gammapy readable objects and
+        perform any selection of events in a given time interval.
     2. Create the base counts Map.
-    3. Prepare standard data reduction using the parameters passed in the config
-    for 3D datasets.
+    3. Prepare standard data reduction makers using the parameters passed in
+        the config.
     4. Generate the final dataset.
     """
 
-    def __init__(self, log, config_3d_dataset, config_full, key_name):
-        self.instrument_name = config_3d_dataset.name
-        self.config_3d_dataset_io = config_3d_dataset.io
-        self.config_3d_dataset_info = config_3d_dataset.dataset_info
-        self.key_name = key_name
+    def __init__(self, log, config_3d_dataset, config_full):
+        self.config_3d_dataset = config_3d_dataset
         self.log = log
+        self.exclusion_mask = None
+        self.irfs = {
+            "exposure": None,
+            "psf": None,
+            "edisp": None,
+            "edisp_kernel": None,
+            "edisp_interp_kernel": None,
+            "exposure_interp": None
+        }
+        self.events = {
+            "events": None,
+            "event_fits": None,
+            "gti": None,
+            "counts_map": None
+        }
+        self.diffuse_models = {
+            "diff_gal": None,
+            "diff_iso": None,
+            "diff_gal_cutout": None
+        }
+        self.list_sources = []
 
         # For updating the main config file with target source position
         # information if necessary.
         self.config_full = config_full
         self.config_target = config_full.target
-        self.model = self.config_target.components.spectral
 
-        self.exclusion_regions = []
-        self.target_full_model = None
-
-    def run(self):
+    def run(self, key_name):
         # First check for the given file list if they are readable or not.
-        file_list = self.read_to_objects(self.model, self.key_name)
+        file_list = self.read_to_objects(
+            self.config_target.components.spectral,
+            key_name
+        )
 
         # Start preparing objects to create the counts map
         self.set_energy_dispersion_matrix()
         self.load_events(file_list["events_file"])
-        self.get_source_skycoord()
+
+        source_pos = self.get_source_skycoord()
 
         # Create the Counts Map
-        self._counts_map()
+        self._counts_map(source_pos)
 
         # Create any dataset reduction makers or mask
         self._generate_diffuse_background_cutout()
-        # self.add_source_to_exclusion_region()
+
         self._set_edisp_interpolator()
         self._set_exposure_interpolator()
-
-        dataset = self.generate_dataset()
 
         self._create_exclusion_mask()
 
         # Generate the final dataset
-        dataset = self.generate_dataset()
+        dataset = self.generate_dataset(key_name)
 
         return dataset, self.list_sources
 
@@ -203,19 +233,27 @@ class Dataset3DGeneration:
         """
         For each key type of files, read the files to get the required
         Gammapy objects for further analyses.
+
+        Model name is to check for scenario when an intrinsic LogParabola
+        model is saved as an EBL Attenuated Power Law model in LAT models.
         """
         lp_is_intrinsic = model.model_name == "LogParabola"
         file_list = {}
 
-        for cfg in self.config_3d_dataset_io:
+        for cfg in self.config_3d_dataset.io:
             if cfg.type == "lat":
                 file_list, [
-                    self.exposure,
-                    self.psf,
-                    self.drmap,
-                ] = self.get_base_objects(cfg, model, key_name, cfg.type, file_list)
+                    self.irfs["exposure"],
+                    self.irfs["psf"],
+                    self.irfs["edisp"],
+                ] = self.get_base_objects(
+                    cfg, model, key_name, cfg.type, file_list
+                )
             if cfg.type == "lat-aux":
-                file_list, [self.diff_gal, self.diff_iso] = self.get_base_objects(
+                file_list, [
+                    self.diffuse_models["diff_gal"],
+                    self.diffuse_models["diff_iso"]
+                ] = self.get_base_objects(
                     cfg, model, key_name, cfg.type, file_list
                 )
                 self.get_list_objects(cfg.input_dir, file_list["xml_file"], lp_is_intrinsic)
@@ -230,6 +268,7 @@ class Dataset3DGeneration:
         """
         if self.config_target.use_uniform_position:
             source_position_from_3d = None
+
             for source in self.list_sources:
                 if source.name == self.config_target.source_name:
                     source_position_from_3d = source.spatial_model.position.icrs
@@ -246,34 +285,33 @@ class Dataset3DGeneration:
 
     def get_base_objects(self, dl3_dir_dict, model, key, dl3_type, file_list):
         """
-        For a DL3 files type and tag of the 'mode of observations' (FRONT or
-        BACK for Fermi-LAT), read the files to appropriate Object type for
-        further analysis.
+        For a DL3 files type and tag of the 'mode of observations' or key
+        (FRONT or BACK for Fermi-LAT), read the files to appropriate Object
+        type for further analysis.
         """
         dl3_info = DL3Files(dl3_dir_dict, model, file_list, log=self.log)
         file_list = dl3_info.prepare_lat_files(key, file_list)
+        object_list = []
 
         if dl3_type.lower() == "lat":
-            self.exposure = Map.read(file_list["expmap_file"])
-            self.psf = PSFMap.read(file_list["psf_file"], format="gtpsf")
-            self.drmap = fits.open(file_list["edrm_file"])
+            exposure = Map.read(file_list["expmap_file"])
+            psf = PSFMap.read(file_list["psf_file"], format="gtpsf")
+            drmap = fits.open(file_list["edrm_file"])
+            object_list = [exposure, psf, drmap]
 
-            return file_list, [self.exposure, self.psf, self.drmap]
+        if dl3_type.lower() == "lat-aux":
+            diff_gal = Map.read(file_list["diff_gal_file"])
+            diff_iso = create_iso_diffuse_skymodel(file_list["iso_file"], key)
+            object_list = [diff_gal, diff_iso]
 
-        elif dl3_type.lower() == "lat-aux":
-            self.diff_gal = Map.read(file_list["diff_gal_file"])
-            self.diff_iso = create_iso_diffuse_skymodel(file_list["iso_file"], key)
-
-            return file_list, [self.diff_gal, self.diff_iso]
-        else:
-            return file_list, []
+        return file_list, object_list
 
     def set_energy_axes(self):
         """
         Get the energy axes from the given Detector Response Matrix file.
         """
-        energy_lo = self.drmap["DRM"].data["ENERG_LO"] * u.MeV
-        energy_hi = self.drmap["DRM"].data["ENERG_HI"] * u.MeV
+        energy_lo = self.irfs["edisp"]["DRM"].data["ENERG_LO"] * u.MeV
+        energy_hi = self.irfs["edisp"]["DRM"].data["ENERG_HI"] * u.MeV
 
         energy_axis = MapAxis.from_energy_edges(np.append(energy_lo[0], energy_hi))
         energy_axis_true = energy_axis.copy(name="energy_true")
@@ -285,12 +323,12 @@ class Dataset3DGeneration:
         Generate the Energy Dispersion Kernel from the given Detector Response
         Matrix file.
         """
-        self.energy_axis, self.energy_axis_true = self.set_energy_axes()
-        drm = self.drmap["DRM"].data["MATRIX"]
+        energy_axis, energy_axis_true = self.set_energy_axes()
+        drm = self.irfs["edisp"]["DRM"].data["MATRIX"]
         drm_matrix = np.array(list(drm))
 
-        self.edisp_kernel = EDispKernel(
-            axes=[self.energy_axis_true, self.energy_axis], data=drm_matrix
+        self.irfs["edisp_kernel"] = EDispKernel(
+            axes=[energy_axis_true, energy_axis], data=drm_matrix
         )
 
     def load_events(self, events_file):
@@ -301,105 +339,115 @@ class Dataset3DGeneration:
         Based on any time intervals selection, filter out the events and gti
         accordingly.
         """
-        self.event_fits = fits.open(events_file)
-        self.events = EventList.read(events_file)
-        self.gti = GTI.read(events_file)
+        self.events["event_fits"] = fits.open(events_file)
+        self.events["events"] = EventList.read(events_file)
+        self.events["gti"] = GTI.read(events_file)
 
-        obs_time = self.config_3d_dataset_info.obs_time
+        obs_time = self.config_3d_dataset.dataset_info.obs_time
         if obs_time.intervals[0].start is not None:
             t_start = Time(obs_time.intervals[0].start, format=obs_time.format)
             t_stop = Time(obs_time.intervals[0].stop, format=obs_time.format)
             time_intervals = [t_start, t_stop]
 
-            self.events = self.events.select_time(time_intervals)
-            self.gti = self.gti.select_time(time_intervals)
+            self.events["events"] = self.events["events"].select_time(time_intervals)
+            self.events["gti"] = self.events["gti"].select_time(time_intervals)
+            self.log.info(f"Events selected in time intervals: {time_intervals}")
 
     def get_source_skycoord(self):
         """
         Get the source skycoord from the events file.
         """
         try:
-            dsval2 = self.event_fits[1].header["DSVAL2"]
+            dsval2 = self.events["event_fits"][1].header["DSVAL2"]
             ra_pos, dec_pos = [float(k) for k in dsval2.split("(")[1].split(",")[0:2]]
         except IndexError:
-            history = str(self.event_fits[1].header["HISTORY"])
+            history = str(self.events["event_fits"][1].header["HISTORY"])
             ra_pos, dec_pos = (
                 history.split("angsep(RA,DEC,")[1].replace("\n", "").split(")")[0].split(",")
             )
 
-        self.source_pos = SkyCoord(ra_pos, dec_pos, unit="deg", frame="fk5")
+        source_pos = SkyCoord(ra_pos, dec_pos, unit="deg", frame="fk5")
+
+        return source_pos
 
     def get_list_objects(self, aux_path, xml_file, lp_is_intrinsic=False):
         """
         Read from the XML file to enlist the various objects and get their
         SkyModels
         """
-        self.list_sources = []
-
-        with open(xml_file) as f:
-            data = xmltodict.parse(f.read())["source_library"]["source"]
+        with open(xml_file) as file:
+            data = xmltodict.parse(file.read())["source_library"]["source"]
 
         for source in data:
             source_name = source["@name"]
             if source_name == "IsoDiffModel":
-                source = self.diff_iso
+                source = self.diffuse_models["diff_iso"]
             elif source_name == "GalDiffModel":
-                source = create_gal_diffuse_skymodel(self.diff_gal)
+                source = create_gal_diffuse_skymodel(self.diffuse_models["diff_gal"])
             else:
                 source, is_target_source = create_source_skymodel(
                     self.config_target, source, aux_path, lp_is_intrinsic
                 )
             if is_target_source:
-                self.target_full_model = source
                 self.list_sources.insert(0, source)
                 is_target_source = False  # To not let it repeat
             else:
                 self.list_sources.append(source)
 
-    def _counts_map(self):
+    def _counts_map(self, source_pos):
         """
         Generate the counts Map object and fill it with the events' RA-Dec
         position, Energy and Time information.
         """
-        self.counts_map = Map.create(
-            skydir=self.source_pos,
-            npix=(self.exposure.geom.npix[0][0], self.exposure.geom.npix[1][0]),
+        energy_axis, _ = self.set_energy_axes()
+        self.events["counts_map"] = Map.create(
+            skydir=source_pos,
+            npix=(
+                self.irfs["exposure"].geom.npix[0][0],
+                self.irfs["exposure"].geom.npix[1][0]
+            ),
             proj="TAN",
             frame="fk5",
-            binsz=self.exposure.geom.pixel_scales[0],
-            axes=[self.energy_axis],
+            binsz=self.irfs["exposure"].geom.pixel_scales[0],
+            axes=[energy_axis],
             dtype=float,
         )
-        self.counts_map.fill_by_coord(
-            {"skycoord": self.events.radec, "energy": self.events.energy, "time": self.events.time}
+        self.events["counts_map"].fill_by_coord(
+            {
+                "skycoord": self.events["events"].radec,
+                "energy": self.events["events"].energy,
+                "time": self.events["events"].time
+            }
         )
 
     def _generate_diffuse_background_cutout(self):
         """
         Perform a cutout of the Diffuse background model with respect to the
-        counts map geom (may improve fitting speed?).
+        counts map geom (may improve fitting speed?) and update the main list
+        of models.
 
         The Template Spatial Model is without normalization currently.
         """
-        self.diffuse_cutout = self.diff_gal.cutout(
-            self.counts_map.geom.center_skydir, self.counts_map.geom.width[0]
+        diffuse_cutout = self.diffuse_models["diff_gal"].cutout(
+            self.events["counts_map"].geom.center_skydir,
+            self.events["counts_map"].geom.width[0]
         )
 
-        self.template_diffuse = TemplateSpatialModel(self.diffuse_cutout, normalize=False)
+        template_diffuse = TemplateSpatialModel(diffuse_cutout, normalize=False)
 
-        self.diff_gal_cutout = SkyModel(
+        self.diffuse_models["diff_gal_cutout"] = SkyModel(
             spectral_model=PowerLawNormSpectralModel(),
-            spatial_model=self.template_diffuse,
+            spatial_model=template_diffuse,
             name="diffuse-iem",
         )
-        self.diff_gal_cutout.parameters["norm"].min = 0
-        self.diff_gal_cutout.parameters["norm"].max = 10
-        self.diff_gal_cutout.parameters["norm"].frozen = False
+        self.diffuse_models["diff_gal_cutout"].parameters["norm"].min = 0
+        self.diffuse_models["diff_gal_cutout"].parameters["norm"].max = 10
+        self.diffuse_models["diff_gal_cutout"].parameters["norm"].frozen = False
 
         # Update the model in self.list_sources
-        for k, m in enumerate(self.list_sources):
-            if m.name == "diffuse-iem":
-                self.list_sources[k] = self.diff_gal_cutout
+        for k, model_ in enumerate(self.list_sources):
+            if model_.name == "diffuse-iem":
+                self.list_sources[k] = self.diffuse_models["diff_gal_cutout"]
 
     def _set_edisp_interpolator(self):
         """
@@ -407,7 +455,7 @@ class Dataset3DGeneration:
         reconstructed energy of the real counts.
         """
         axis_reco = MapAxis.from_edges(
-            self.counts_map.geom.axes["energy"].edges,
+            self.events["counts_map"].geom.axes["energy"].edges,
             name="energy",
             unit="MeV",
             interp="log",
@@ -415,10 +463,11 @@ class Dataset3DGeneration:
         axis_true = axis_reco.copy(name="energy_true")
         energy_reco, energy_true = np.meshgrid(axis_true.center, axis_reco.center)
 
-        drm_interp = self.edisp_kernel.evaluate(
-            "linear", **{"energy": energy_reco, "energy_true": energy_true}
+        drm_interp = self.irfs["edisp_kernel"].evaluate(
+            "linear",
+            **{"energy": energy_reco, "energy_true": energy_true}
         )
-        self.edisp_interp_kernel = EDispKernel(
+        self.irfs["edisp_interp_kernel"] = EDispKernel(
             axes=[axis_true, axis_reco], data=np.asarray(drm_interp)
         )
 
@@ -426,29 +475,31 @@ class Dataset3DGeneration:
         """
         Set Exposure interpolated along energy axis of real counts.
         """
-        self.exposure_interp = self.exposure.interp_to_geom(self.counts_map.geom.as_energy_true)
+        self.irfs["exposure_interp"] = self.irfs["exposure"].interp_to_geom(
+            self.events["counts_map"].geom.as_energy_true
+        )
 
     def _create_exclusion_mask(self):
         """
         Generate an Exclusion Mask for the final MapDataset and also select
         the region for the list of Models using the excluded regions.
         """
-        excluded_geom = self.counts_map.geom.copy()
-        exclusion_params = self.config_3d_dataset_info.background.exclusion
-        # excluded_regions_list = []
+        exclusion_regions = []
+        excluded_geom = self.events["counts_map"].geom.copy()
+        exclusion_params = self.config_3d_dataset.dataset_info.background.exclusion
 
         if len(exclusion_params.regions) != 0:
-            self.log.info("Using the background region from config for exclusion mask")
             for region in exclusion_params.regions:
                 if region.name == "None":
                     coord = region.position
                     center_ex = SkyCoord(
-                        u.Quantity(coord.lon), u.Quantity(coord.lat), frame=coord.frame
+                        u.Quantity(coord.lon),
+                        u.Quantity(coord.lat),
+                        frame=coord.frame
                     ).icrs
                 else:
                     center_ex = SkyCoord.from_name(region.name)
 
-                # Generalize?
                 if region.type == "CircleAnnulusSkyRegion":
                     excluded_region = CircleAnnulusSkyRegion(
                         center=center_ex,
@@ -457,69 +508,79 @@ class Dataset3DGeneration:
                     )
                 elif region.type == "CircleSkyRegion":
                     excluded_region = CircleSkyRegion(
-                        center=center_ex, radius=u.Quantity(region.parameters["region_radius"])
+                        center=center_ex,
+                        radius=u.Quantity(region.parameters["region_radius"])
                     )
                 else:
                     self.log.error(f"Unknown type of region passed {region.type}")
-                self.exclusion_regions.append(excluded_region)
-                # excluded_regions_list.append(excluded_region)
-            self.exclusion_mask = ~excluded_geom.region_mask(self.exclusion_regions)
+                exclusion_regions.append(excluded_region)
+            self.exclusion_mask = ~excluded_geom.region_mask(exclusion_regions)
 
-        elif len(self.exclusion_regions) == 0:
+        elif len(exclusion_regions) == 0:
             self.log.info("Creating empty/dummy exclusion region")
             pos = SkyCoord(0, 90, unit="deg")
             exclusion_region = CircleSkyRegion(pos, 0.00001 * u.deg)
-            self.exclusion_regions.append(exclusion_region)
-            # excluded_regions_list.append(exclusion_region)
-            self.exclusion_mask = ~excluded_geom.region_mask(self.exclusion_regions)
+
+            exclusion_regions.append(exclusion_region)
+            self.exclusion_mask = ~excluded_geom.region_mask(exclusion_regions)
         else:
             self.log.info("Creating exclusion region")
-            self.exclusion_mask = ~excluded_geom.region_mask(self.exclusion_regions)
+            self.exclusion_mask = ~excluded_geom.region_mask(exclusion_regions)
 
-    def add_source_to_exclusion_region(self, source_pos=None, radius=0.1 * u.deg):
+    def add_source_to_exclusion_region(
+        self, exclusion_regions, source_pos=None, radius=0.1 * u.deg
+    ):
         """
         Add to an existing exclusion_regions list, the source region.
+
+        Check if this function is necessary.
         """
         if source_pos is not None:
             exclusion_region = CircleSkyRegion(
                 center=source_pos.galactic,
-                radius=radius,  # Generalize frame or ask from user.
+                radius=radius,
             )
         else:
             sky_pos = self.config_target.sky_position
             source_pos = SkyCoord(
-                u.Quantity(sky_pos.lon), u.Quantity(sky_pos.lat), frame=sky_pos.frame
+                u.Quantity(sky_pos.lon),
+                u.Quantity(sky_pos.lat),
+                frame=sky_pos.frame
             )
             exclusion_region = CircleSkyRegion(
                 center=source_pos.galactic,
                 radius=radius,
             )
-        self.exclusion_regions.append(exclusion_region)
+        exclusion_regions.append(exclusion_region)
 
-    def generate_dataset(self):
+        return exclusion_regions
+
+    def generate_dataset(self, key_name):
         """
         Generate MapDataset for the given Instrument files using the Counts Map,
         and IRFs objects.
         """
         try:
             mask_safe = self.exclusion_mask
-            print("Using the exclusion mask to create a safe mask")
-        except Exception:
-            print("Other method of creating safe mask")
-            mask_bool = np.zeros(self.counts_map.geom.data_shape).astype("bool")
-            mask_safe = Map.from_geom(self.counts_map.geom, mask_bool)
+            self.log.info("Using the exclusion mask to create a safe mask")
+        except ValueError:
+            self.log.info("Using counts_map to create safe mask")
+            mask_bool = np.zeros(
+                self.events["counts_map"].geom.data_shape
+            ).astype("bool")
+            mask_safe = Map.from_geom(self.events["counts_map"].geom, mask_bool)
             mask_safe.data = np.asarray(mask_safe.data == 0, dtype=bool)
 
-        edisp = EDispKernelMap.from_edisp_kernel(self.edisp_interp_kernel)
+        edisp = EDispKernelMap.from_edisp_kernel(self.irfs["edisp_interp_kernel"])
 
         dataset = MapDataset(
-            # models=self.list_sources,
-            counts=self.counts_map,
-            gti=self.gti,
-            exposure=self.exposure_interp,
-            psf=self.psf,
+            counts=self.events["counts_map"],
+            gti=self.events["gti"],
+            exposure=self.irfs["exposure_interp"],
+            psf=self.irfs["psf"],
             edisp=edisp,
             mask_safe=mask_safe,
-            name=f"{self.instrument_name}_{self.key_name}",
+            name=f"{self.config_3d_dataset.name}_{key_name}",
         )
+
         return dataset

@@ -1,5 +1,6 @@
 """
-Generating 1D Datasets from given Instrument DL3 data
+Main classes to define 1D Dataset Config, 1D Dataset Analysis Step and
+to generate 1D Datasets from given Instruments' DL3 data from the config.
 """
 
 import logging
@@ -45,6 +46,7 @@ __all__ = [
 log = logging.getLogger(__name__)
 
 
+# Defining various components of 1D Dataset Config section
 class Dataset1DInfoConfig(BaseConfig):
     name: str = "dataset-name"
     geom: GeomConfig = GeomConfig()
@@ -58,7 +60,6 @@ class Dataset1DInfoConfig(BaseConfig):
 
 
 class Dataset1DBaseConfig(BaseConfig):
-    # stack: bool = True
     name: str = "Instrument-name"
     io: List[InputConfig] = [InputConfig()]
     dataset_info: Dataset1DInfoConfig = Dataset1DInfoConfig()
@@ -69,33 +70,34 @@ class Dataset1DConfig(BaseConfig):
     instruments: List[Dataset1DBaseConfig] = [Dataset1DBaseConfig()]
 
 
+# The main Analysis Step
 class Datasets1DAnalysisStep(AnalysisStepBase):
     """
-    From the given config information, prepare the full list of 1D datasets.
+    From the given config information, prepare the full list of 1D datasets,
+    iterating over all the Instruments' information by running the
+    Dataset1DGeneration function.
     """
-
     tag = "datasets-1d"
 
     def _run(self):
-        # Iterate over all instrument information given:
         instruments_list = self.config.dataset1d.instruments
         self.log.info(f"{len(instruments_list)} number of 1D Datasets given")
 
         datasets_1d_final = Datasets()
         instrument_spectral_info = {"name": [], "spectral_energy_ranges": []}
 
+        # Iterate over all instrument information given:
         for i in np.arange(len(instruments_list)):
-            self.config_1d_dataset = instruments_list[i]
-            instrument_spectral_info["name"].append(self.config_1d_dataset.name)
+            config_1d_dataset = instruments_list[i]
+            instrument_spectral_info["name"].append(config_1d_dataset.name)
 
             generate_1d_dataset = Dataset1DGeneration(
-                self.log, self.config_1d_dataset, self.config.target
+                self.log, config_1d_dataset, self.config.target
             )
-
             dataset = generate_1d_dataset.run()
 
             # Get the spectral energy information for each Instrument Dataset
-            energy_range = self.config_1d_dataset.dataset_info.spectral_energy_range
+            energy_range = config_1d_dataset.dataset_info.spectral_energy_range
             energy_bin_edges = MapAxis.from_energy_bounds(
                 energy_min=u.Quantity(energy_range.min),
                 energy_max=u.Quantity(energy_range.max),
@@ -105,7 +107,7 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
             instrument_spectral_info["spectral_energy_ranges"].append(energy_bin_edges)
 
             if self.config.general.stacked_dataset:
-                dataset = dataset.stack_reduce(name=self.config_1d_dataset.name)
+                dataset = dataset.stack_reduce(name=config_1d_dataset.name)
                 datasets_1d_final.append(dataset)
             else:
                 for data in dataset:
@@ -120,15 +122,16 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
 
 class Dataset1DGeneration:
     """
-    Separate class on 1D dataset creation based on the config or
-    AsgardpyConfig information provided on the 1D dataset and the target source.
+    Class for 1D dataset creation based on the config or AsgardpyConfig
+    information provided on the 1D dataset and the target source.
 
     Runs the following steps:
-    1. Read the DL3 files of 1D datasets into gammapy readable objects.
-    2. Perform any Observation selection.
+    1. Read the DL3 files of 1D datasets into DataStore object.
+    2. Perform any Observation selection, based on Observation IDs or
+        time intervals.
     3. Create the base dataset template, including the main counts geometry.
-    4. Prepare standard data reduction using the parameters passed in the config
-    for 1D datasets.
+    4. Prepare standard data reduction makers using the parameters passed in
+        the config.
     5. Generate the final dataset.
     """
 
@@ -138,45 +141,57 @@ class Dataset1DGeneration:
         self.config_1d_dataset_info = config_1d_dataset.dataset_info
         self.config_target = config_target
         self.exclusion_regions = []
-
-        # Only 1 DL3 type of file.
         self.datasets = Datasets()
-        self.dl3_dir_dict = self.config_1d_dataset_io[0]
-        self.model = config_target.components.spectral
 
     def run(self):
         # First check for the given file list if they are readable or not.
         file_list = {}
-        dl3_info = DL3Files(self.dl3_dir_dict, self.model, file_list, log=self.log)
+        dl3_info = DL3Files(
+            self.config_1d_dataset_io[0],
+            self.config_target.components.spectral,
+            file_list,
+            log=self.log
+        )
         dl3_info.list_dl3_files()
 
         # Create a Datastore object to select Observations object
-        self.datastore = DataStore.from_dir(self.dl3_dir_dict.input_dir)
+        datastore = DataStore.from_dir(self.config_1d_dataset_io[0].input_dir)
 
         # Applying all provided filters to get the Observations object
-        self.get_filtered_observations()
+        observations = self.get_filtered_observations(datastore)
 
         # Create the main counts geometry
-        self.dataset_template = self.generate_geom()
+        dataset_template = self.generate_geom()
 
         # Get all the Dataset reduction makers
-        self.dataset_maker, self.bkg_maker, self.safe_maker = self.get_reduction_makers()
+        dataset_maker = SpectrumDatasetMaker(
+            containment_correction=self.config_1d_dataset_info.containment_correction,
+            selection=self.config_1d_dataset_info.map_selection,
+        )
+        bkg_maker = self.get_bkg_maker()
+        safe_maker = self.get_safe_mask_maker()
 
         # Produce the final Dataset
-        self.generate_dataset()
+        self.generate_dataset(
+            observations,
+            dataset_template,
+            dataset_maker,
+            bkg_maker,
+            safe_maker
+        )
 
         return self.datasets
 
-    def get_filtered_observations(self):
+    def get_filtered_observations(self, datastore):
         """
-        From the Datastores object, apply any observation filters provided in
-        the config file create the Observations object.
+        From the DataStore object, apply any observation filters provided in
+        the config file to create and return an Observations object.
         """
         # Could be generalized along with the same in dataset_3d
         obs_time = self.config_1d_dataset_info.observation.obs_time
         obs_list = self.config_1d_dataset_info.observation.obs_ids
 
-        obs_table = self.datastore.obs_table.group_by("OBS_ID")
+        obs_table = datastore.obs_table.group_by("OBS_ID")
         observation_mask = np.ones(len(obs_table), dtype=bool)
 
         # Filter using the Time interval range provided
@@ -205,16 +220,19 @@ class Dataset1DGeneration:
 
         # IRFs selection
         irfs_selected = self.config_1d_dataset_info.observation.required_irfs
-        self.observations = self.datastore.get_observations(
+        observations = datastore.get_observations(
             filtered_obs_ids, required_irf=irfs_selected
         )
 
+        return observations
+
     def generate_geom(self):
         """
-        Generate from a given or target source position, provided in astropy's
-        SkyCoord readable values, the geometry of the ON events and the axes
-        information on reco energy and true energy, a dataset can be defined.
+        Generate from a given target source position, the geometry of the ON
+        events and the axes information on reco energy and true energy,
+        for which the 1D dataset can be defined.
         """
+        # Get source position as astropy SkyCoord object
         src_name = self.config_target.source_name
         if src_name is not None:
             src_pos = SkyCoord.from_name(src_name)
@@ -248,6 +266,7 @@ class Dataset1DGeneration:
             per_decade=True,
             name="energy",
         )
+
         true_energy_from_config = self.config_1d_dataset_info.geom.axes.energy_true
         true_energy_axis = MapAxis.from_energy_bounds(
             energy_min=u.Quantity(true_energy_from_config.min),
@@ -259,23 +278,18 @@ class Dataset1DGeneration:
 
         # Main geom and template Spectrum Dataset
         geom = RegionGeom.create(region=on_region, axes=[energy_axis])
-        dataset_template = SpectrumDataset.create(geom=geom, energy_axis_true=true_energy_axis)
+        dataset_template = SpectrumDataset.create(
+            geom=geom,
+            energy_axis_true=true_energy_axis
+        )
 
         return dataset_template
 
-    def get_reduction_makers(self):
+    def get_bkg_maker(self):
         """
-        Get Makers for Dataset creation, Background and Safe Energy Mask
-        reduction.
-        Maybe make them into 3 distinct funcrions.
+        Generate Background reduction maker by including an Exclusion mask
+        with any exclusion regions' information provided in the config.
         """
-        # Spectrum Dataset Maker
-        dataset_maker = SpectrumDatasetMaker(
-            containment_correction=self.config_1d_dataset_info.containment_correction,
-            selection=self.config_1d_dataset_info.map_selection,
-        )
-
-        # Background reduction maker
         bkg_config = self.config_1d_dataset_info.background
         exclusion_params = bkg_config.exclusion
 
@@ -285,14 +299,17 @@ class Dataset1DGeneration:
                 if region.name == "None":
                     coord = region.position
                     center_ex = SkyCoord(
-                        u.Quantity(coord.lon), u.Quantity(coord.lat), frame=coord.frame
+                        u.Quantity(coord.lon),
+                        u.Quantity(coord.lat),
+                        frame=coord.frame
                     ).icrs
                 else:
                     center_ex = SkyCoord.from_name(region.name)
 
                 if region.type == "CircleSkyRegion":
                     excluded_region = CircleSkyRegion(
-                        center=center_ex, radius=u.Quantity(region.parameters["region_radius"])
+                        center=center_ex,
+                        radius=u.Quantity(region.parameters["region_radius"])
                     )
                 else:
                     self.log.error(f"Unknown type of region passed {region.type}")
@@ -320,7 +337,13 @@ class Dataset1DGeneration:
         else:
             bkg_maker = None
 
-        # Safe Energy Mask Maker
+        return bkg_maker
+
+    def get_safe_mask_maker(self):
+        """
+        Generate Safe mask reduction maker as per the selections provided in
+        the config.
+        """
         safe_config = self.config_1d_dataset_info.safe_mask
         pars = safe_config.parameters
 
@@ -344,19 +367,23 @@ class Dataset1DGeneration:
         else:
             safe_maker = None
 
-        return dataset_maker, bkg_maker, safe_maker
+        return safe_maker
 
-    def generate_dataset(self):
+    def generate_dataset(
+        self, observations, dataset_template,
+        dataset_maker, bkg_maker, safe_maker
+    ):
         """
-        From the given Observations and various Makers, produce the
-        DatasetOnOff object and append it to the final Datasets object.
+        From the given Observations, Dataset Template and various Makers,
+        produce the DatasetOnOff object and append it to the Datasets object.
         """
-        for obs in self.observations:
-            dataset = self.dataset_maker.run(self.dataset_template.copy(name=str(obs.obs_id)), obs)
+        for obs in observations:
+            dataset = dataset_maker.run(
+                dataset_template.copy(name=str(obs.obs_id)),
+                obs
+            )
 
-            dataset_on_off = self.bkg_maker.run(dataset, obs)
-            # Necessary meta information addition?
-            dataset_on_off.meta_table["SOURCE"] = self.config_target.source_name
+            dataset_on_off = bkg_maker.run(dataset, obs)
 
             safe_cfg = self.config_1d_dataset_info.safe_mask
             if "custom-mask" in safe_cfg.methods:
@@ -365,7 +392,7 @@ class Dataset1DGeneration:
                     energy_min=u.Quantity(pars["min"]), energy_max=u.Quantity(pars["max"])
                 )
             elif len(safe_cfg.methods) != 0:
-                dataset_on_off = self.safe_maker.run(dataset_on_off, obs)
+                dataset_on_off = safe_maker.run(dataset_on_off, obs)
             else:
                 self.log.info(f"No safe mask applied for {obs.obs_id}")
 

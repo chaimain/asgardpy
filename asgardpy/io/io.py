@@ -1,6 +1,9 @@
 """
-Base I/O functions
+Basic classes defining Input Config for DL3 files and some functions to
+retrieve the DL3 files information. Also contains a class for I/O functions
+for DL4/5 products.
 """
+
 import logging
 from pathlib import Path
 
@@ -10,8 +13,6 @@ from gammapy.estimators import FluxPoints
 from gammapy.modeling.models import SPECTRAL_MODEL_REGISTRY, Models
 
 from asgardpy.data.base import BaseConfig
-
-# from typing import List
 
 
 __all__ = ["InputFilePatterns", "InputConfig", "DL3Files", "DL4Files"]
@@ -31,6 +32,7 @@ glob_dict_std = {
 }
 
 
+# Basic Components for the Input Config
 class InputFilePatterns(BaseConfig):
     events: str = "*events.fits*"
     edisp: str = "*DRM.fits*"
@@ -49,6 +51,7 @@ class InputConfig(BaseConfig):
     glob_pattern: dict = {}
 
 
+# Main Classes for I/O
 class DL3Files:
     """
     A general class to retrieve information from given DL3 files, along with
@@ -172,31 +175,31 @@ class DL3Files:
         """
         if self.dl3_type.lower() == "lat":
             self.events_files = sorted(list(self.dl3_path.glob(self.glob_dict["events"])))
-            self.log.info(f"The list of DL3 event files for LAT selected: {self.events_files}")
+            # self.log.info(f"The list of DL3 event files for LAT selected: {self.events_files}")
             self.edrm_files = sorted(list(self.dl3_path.glob(self.glob_dict["edisp"])))
-            self.log.info(
-                f"The list of Detector Response Matrix files for LAT selected: {self.edrm_files}"
-            )
+            # self.log.info(
+            #    f"The list of Detector Response Matrix files for LAT selected: {self.edrm_files}"
+            # )
             self.xml_files = sorted(list(self.dl3_path.glob(self.glob_dict["xml_model"])))
-            self.log.info(f"The list of XML files for LAT selected: {self.xml_files}")
+            # self.log.info(f"The list of XML files for LAT selected: {self.xml_files}")
             self.expmap_files = sorted(list(self.dl3_path.glob(self.glob_dict["exposure"])))
-            self.log.info(f"The list of Exposure Map files for LAT selected: {self.expmap_files}")
+            # self.log.info(f"The list of Exposure Map files for LAT selected: {self.expmap_files}")
             self.psf_files = sorted(list(self.dl3_path.glob(self.glob_dict["psf"])))
-            self.log.info(f"The list of PSF files for LAT selected: {self.psf_files}")
+            # self.log.info(f"The list of PSF files for LAT selected: {self.psf_files}")
 
         if self.dl3_type.lower() == "lat-aux":
             self.diff_gal_files = sorted(list(self.dl3_path.glob(self.glob_dict["diffuse"])))
-            self.log.info(
-                f"The list of Diffuse Galactic sources for LAT-Aux selected: {self.diff_gal_files}"
-            )
+            # self.log.info(
+            #    f"The list of Diffuse Galactic sources for LAT-Aux selected: {self.diff_gal_files}"
+            # )
             self.iso_files = sorted(list(self.dl3_path.glob(self.glob_dict["iso"])))
-            self.log.info(
-                f"The list of Isotropic Diffuse model files for LAT-Aux selected: {self.iso_files}"
-            )
+            # self.log.info(
+            #    f"The list of Isotropic Diffuse model files for LAT-Aux selected: {self.iso_files}"
+            # )
 
         if self.dl3_type.lower() == "lst-1":
             self.event_files = sorted(list(self.dl3_path.glob(self.glob_dict["dl3"])))
-            self.log.info(f"The list of DL3 files for LST-1 selected: {self.event_files}")
+            # self.log.info(f"The list of DL3 files for LST-1 selected: {self.event_files}")
 
     def get_lat_spectra_results(self):
         """
@@ -218,7 +221,7 @@ class DL3Files:
 
 class DL4Files:
     """
-    Standard class to read and write DL4 products like the SED, LC and the
+    Base class to read and write DL4/5 products like the Datasets, SED, LC and the
     final Fitted Model to common file formats.
     """
 
@@ -227,7 +230,8 @@ class DL4Files:
             self.dl4_path = Path(dl4_path)
         else:
             self.log.error(f"{dl4_path} does not exist")
-        # Check the object type? and take apprpriate measures
+
+        # Check the object type and take apprpriate measures
         self.model = Models(model)
         self.flux_points = flux_points
 

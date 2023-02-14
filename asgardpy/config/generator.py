@@ -1,7 +1,6 @@
 import json
 import logging
 
-# from collections import defaultdict
 from pathlib import Path
 from typing import List
 
@@ -51,7 +50,6 @@ class AsgardpyConfig(BaseConfig):
     """
     Asgardpy analysis configuration, based on Gammapy Analysis Config.
     """
-
     general: GeneralConfig = GeneralConfig()
 
     target: Target = Target()

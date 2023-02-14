@@ -1,6 +1,6 @@
 """
-Classes containing the Target config parameters for the high-level interface.
-Also contains some functions for setting various SkyModels for datasets.
+Classes containing the Target config parameters for the high-level interface and
+also the functions involving Models generation and assignment to datasets.
 """
 
 from pathlib import Path
@@ -42,6 +42,7 @@ __all__ = [
 ]
 
 
+# Basic components to define the Target Config and any Models Config
 class EBLAbsorptionModel(BaseConfig):
     model_name: str = "dominguez"
     type: str = "EBLAbsorptionNormSpectralModel"
@@ -90,9 +91,10 @@ class Target(BaseConfig):
     from_fermi: bool = False
 
 
-# Models section
+# Function for Models assignment
 def set_models(
-    config, datasets, datasets_name_list=None, models=None, target_source_name=None, extend=False
+    config, datasets, datasets_name_list=None, models=None,
+    target_source_name=None, extend=False
 ):
     """
     Set models on given Datasets.
@@ -103,8 +105,14 @@ def set_models(
         AsgardpyConfig containing target information.
     datasets: `gammapy.datasets.Datasets`
         Datasets object
+    dataset_name_list: List
+        List of datasets_names to be used on the Models, before assigning them
+        to the given datasets.
     models : `~gammapy.modeling.models.Models` or str
         Models object or YAML models string
+    target_source_name: str
+        Name of the Target source, to use to update only that Model's
+        datasets_names, when a list of more than 1 models are provided.
     extend : bool
         Extend the existing models on the datasets or replace them with
         another model, maybe a Background Model. Not worked out currently.
@@ -115,11 +123,8 @@ def set_models(
         Datasets object with Models assigned.
     """
     # Have some checks on argument types
-    if isinstance(models, Models):
-        print("Assigning the given models to the given datasets")
-    elif isinstance(models, DatasetModels) or isinstance(models, list):
+    if isinstance(models, DatasetModels) or isinstance(models, list):
         models = Models(models)
-        print("models was a DatasetModels type, but now is ", type(models))
     elif config.components:
         spectral_model, spatial_model = read_models_from_asgardpy_config(config)
         models = Models(
@@ -132,7 +137,7 @@ def set_models(
     elif isinstance(models, str):  # Check this condition
         models = Models.from_yaml(models)
     else:
-        raise TypeError(f"Invalid type: {models!r}")
+        raise TypeError(f"Invalid type: {type(models)}")
 
     # if extend:
     # For extending a Background Model
@@ -154,6 +159,7 @@ def set_models(
     return datasets
 
 
+# Functions for Models generation
 def read_models_from_asgardpy_config(config):
     """
     Reading Models information from AsgardpyConfig and return Spectral and
@@ -236,7 +242,9 @@ def config_to_dict(model_config):
     return model_dict
 
 
-def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_intrinsic=False):
+def xml_to_gammapy_model_params(
+    params, is_target=False, keep_sign=False, lp_is_intrinsic=False
+):
     """
     Convert the Models information from XML model of FermiTools to Gammapy
     standards and return Parameters list.
@@ -268,12 +276,12 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
     for par in params:
         new_par = {}
 
-        for k in par.keys():
-            # Replacing the "@par_name" information of each parameter without the "@"
-            if k != "@free":
-                new_par[k[1:].lower()] = par[k]
+        for key_ in par.keys():
+            # Getting the "@par_name" for each parameter without the "@"
+            if key_ != "@free":
+                new_par[key_[1:].lower()] = par[key_]
             else:
-                new_par["frozen"] = (par[k] == "0") and not is_target
+                new_par["frozen"] = (par[key_] == "0") and not is_target
             new_par["unit"] = ""
             new_par["is_norm"] = False
 
@@ -300,7 +308,7 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
             if par["@name"].lower() in ["index"]:
                 new_par["name"] = "index"
 
-        # More modifications:
+        # Some modifications:
         if new_par["name"] in ["reference", "ebreak", "emin", "emax"]:
             new_par["unit"] = "TeV"
             new_par["value"] = float(new_par["value"]) * float(new_par["scale"]) * 1e-6
@@ -313,8 +321,9 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
         if new_par["name"] == "index" and not keep_sign:
             # Other than EBL Attenuated Power Law
             new_par["value"] = -1 * float(new_par["value"])
+
             # Reverse the limits while changing the sign
-            min_ = float(new_par["min"]) 
+            min_ = float(new_par["min"])
             max_ = float(new_par["max"])
             new_par["min"] = -1 * max_
             new_par["max"] = -1 * min_
@@ -366,7 +375,9 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
 
     source_name_check = source_name.replace("_", "").replace(" ", "")
     target_check = config_target.source_name.replace("_", "").replace(" ", "")
-    # initialized to check for the case if target spectral model is to be taken from Config file
+
+    # initialized to check for the case if target spectral model information
+    # is to be taken from the Config
     spectral_model = None
 
     # Check if target_source file exists
@@ -411,8 +422,8 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
             lp_is_intrinsic=lp_is_intrinsic,
         )
 
-        for p in params_list:
-            setattr(spectral_model, p.name, p)
+        for param_ in params_list:
+            setattr(spectral_model, param_.name, param_)
         config_spectral = config_target.components.spectral
         ebl_absorption_included = config_spectral.ebl_abs is not None
 
@@ -462,7 +473,7 @@ def create_iso_diffuse_skymodel(iso_file, key):
     )
     diff_iso._name = f"{diff_iso.name}-{key}"
 
-    # Parameters' limits generalization?
+    # Parameters' limits
     diff_iso.spectral_model.model1.parameters[0].min = 0.001
     diff_iso.spectral_model.model1.parameters[0].max = 10
     diff_iso.spectral_model.model2.parameters[0].min = 0
@@ -474,7 +485,6 @@ def create_iso_diffuse_skymodel(iso_file, key):
 def create_gal_diffuse_skymodel(diff_gal):
     """
     Create SkyModel of the Diffuse Galactic sources.
-    Maybe a repeat of code from the _cutout function.
     """
     template_diffuse = TemplateSpatialModel(diff_gal, normalize=False)
     source = SkyModel(
