@@ -1,7 +1,5 @@
 import json
 import logging
-
-# from collections import defaultdict
 from pathlib import Path
 from typing import List
 

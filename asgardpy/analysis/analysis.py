@@ -52,6 +52,8 @@ class AsgardpyAnalysis:
         return self.datasets.models
 
     """
+    Not sure if this should be removed completely or returned back
+
     @models.setter
     def models(self, models):
 
@@ -89,28 +91,17 @@ class AsgardpyAnalysis:
             if overwrite is None:
                 overwrite = True
         for step in steps:
-            # Always start with 3D datasets. Probably add a check or fail-safe
-            # Should consider a better approach in running the steps in an order.
             if "datasets" in step:
                 analysis_step = AnalysisStep.create(step, self.config, **kwargs)
                 datasets_list, models_list, instrument_spectral_info = analysis_step.run()
 
                 if step == "datasets-3d":
-                    # Get the final model only from a complete 3D dataset,
-                    # to use it for other 1D datasets.
-
-                    # New: Read each models list, to get all datasets_names, and
-                    # then in a separate step, unify the models to be attached
-                    # to the final joint datasets object
-
-                    # Make a check to see if all component types of SkyModels
-                    # are present throughout all datasets
-
                     target_source_model = models_list[self.config.target.source_name]
 
-                    if target_source_model.spatial_model:  # Re-evaluate
+                    if target_source_model.spatial_model:
                         # If the target source has Spatial model included,
-                        # only then (?) get all the models as final_model
+                        # only then (?) get all the models as final_model.
+                        # Needs reconsideration.
                         for m in models_list:
                             self.final_model.append(m)
                     else:
@@ -118,17 +109,13 @@ class AsgardpyAnalysis:
                             f"The target source only has spectral model:{target_source_model}"
                         )
 
+                    # To get all datasets_names from the target source model.
                     if target_source_model.datasets_names:
-                        # To get all datasets_names from the target source model only.
                         for names in target_source_model.datasets_names:
+                            # Only update the list if a new name is found.
                             if names not in self.dataset_name_list:
-                                # Only update the list if a new name is found.
                                 self.dataset_name_list.append(names)
-                    else:
-                        self.log.info(
-                            "Check if there are no other way, the dataset names"
-                            f"are stored in target model :{target_source_model}"
-                        )
+
                     # Finally, simply update the final datasets list
                     for data in datasets_list:
                         self.datasets.append(data)
@@ -137,42 +124,37 @@ class AsgardpyAnalysis:
                     for data in datasets_list:
                         if data.name not in self.dataset_name_list:
                             self.dataset_name_list.append(data.name)
-                        self.log.info(
-                            f"The list of names of selected datasets are: {self.dataset_name_list}"
-                        )
                         self.datasets.append(data)
 
                 # Update the name and spectral energy ranges for each
                 # instrument Datasets, to be used for the FluxPointsAnalysisStep.
                 for name in instrument_spectral_info["name"]:
                     self.instrument_spectral_info["name"].append(name)
+
                 for edges in instrument_spectral_info["spectral_energy_ranges"]:
                     self.instrument_spectral_info["spectral_energy_ranges"].append(edges)
 
             else:
-                # Running DL4 functions on a given Datasets object.
+                # Running DL5 functions on a given Datasets object.
                 if step == "fit":
                     # Confirming the Final Models object for all the datasets
                     # for the Fit function.
-                    self.log.info(f"Full final models list is {self.final_model}")
-                    if len(self.final_model) > 1:
-                        self.datasets = set_models(
-                            self.config.target,
-                            self.datasets,
-                            self.dataset_name_list,
-                            models=self.final_model,
-                            target_source_name=self.config.target.source_name,
-                        )
-                    else:
-                        self.datasets = set_models(
-                            self.config.target,
-                            self.datasets,
-                            self.dataset_name_list,
-                            models=None,
-                            target_source_name=self.config.target.source_name,
-                        )
 
-                    self.log.info(f"After models assignment, the full dataset is {self.datasets}")
+                    # In case of only 1D dataset being selected, Model is read
+                    # from the config information, by passing None as value.
+                    # It should be reinitialized again with the DatasetModels.
+                    if len(self.final_model) == 0:
+                        self.final_model = None
+
+                    self.datasets = set_models(
+                        self.config.target,
+                        self.datasets,
+                        self.dataset_name_list,
+                        models=self.final_model,
+                        target_source_name=self.config.target.source_name,
+                    )
+                    if self.final_model is None:
+                        self.final_model = self.datasets.models
 
                 analysis_step = AnalysisStep.create(step, self.config, **kwargs)
                 analysis_step.run(

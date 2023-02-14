@@ -1,4 +1,6 @@
-"""classes containing the analysis steps supported by the high level interface"""
+"""
+Classes containing the Base for the Analysis steps and some Basic Config types.
+"""
 
 import abc
 import logging
@@ -25,6 +27,7 @@ __all__ = [
 ]
 
 
+# Basic Quantities Type for building the Config
 class AngleType(Angle):
     @classmethod
     def __get_validators__(cls):
@@ -55,7 +58,7 @@ class TimeType(Time):
 
     @classmethod
     def validate(cls, v):
-        return Time(v)  # Improve the validation with format type?
+        return Time(v)
 
 
 class FrameEnum(str, Enum):
@@ -88,21 +91,19 @@ class BaseConfig(BaseModel):
 class AnalysisStepBase(abc.ABC):
     tag = "analysis-step"
 
-    def __init__(self, config, log=None, overwrite=True):  # name=None,
+    def __init__(self, config, log=None, overwrite=True):
         self.config = config
         self.overwrite = overwrite
-        # self._name = make_name(name)
 
         if log is None:
             log = logging.getLogger(__name__)
             self.log = log
 
-    # @property
-    # def name(self):
-    #    return self._name
-
     def run(self, datasets=None, instrument_spectral_info=None):
-        # Need to generalize this better.
+        """
+        One can provide datasets and instrument_spectral_info to be used,
+        especially for the High-level Analysis steps.
+        """
         self.datasets = datasets
         self.instrument_spectral_info = instrument_spectral_info
 
@@ -136,6 +137,7 @@ class AnalysisStepEnum(str, Enum):
     light_curve = "light-curve"
 
 
+# Basic Quantity ranges Type for building the Config
 class TimeRangeConfig(BaseConfig):
     start: TimeType = None
     stop: TimeType = None

@@ -1,14 +1,13 @@
 """
-Classes containing the DL4 products config parameters for the high-level interface
+Main classes to define High-level Analysis Config and the Analysis Steps.
 """
+
 from enum import Enum
 
 from astropy import units as u
 from astropy.time import Time
 from gammapy.datasets import Datasets
 from gammapy.estimators import FluxPointsEstimator, LightCurveEstimator
-
-# from gammapy.maps import MapAxis
 from gammapy.modeling import Fit
 
 from asgardpy.data.base import (
@@ -31,16 +30,7 @@ __all__ = [
 ]
 
 
-class FluxPointsConfig(BaseConfig):
-    parameters: dict = {"selection_optional": "all"}
-
-
-class LightCurveConfig(BaseConfig):
-    time_intervals: TimeIntervalsConfig = TimeIntervalsConfig()
-    energy_edges: EnergyAxisConfig = EnergyAxisConfig()
-    parameters: dict = {"selection_optional": "all"}
-
-
+# Defining various components of High-level Analysis Config
 class BackendEnum(str, Enum):
     minuit = "minuit"
     scipy = "scipy"
@@ -55,15 +45,27 @@ class FitConfig(BaseConfig):
     store_trace: bool = True
 
 
+class FluxPointsConfig(BaseConfig):
+    parameters: dict = {"selection_optional": "all"}
+
+
+class LightCurveConfig(BaseConfig):
+    time_intervals: TimeIntervalsConfig = TimeIntervalsConfig()
+    energy_edges: EnergyAxisConfig = EnergyAxisConfig()
+    parameters: dict = {"selection_optional": "all"}
+
+
 class ExcessMapConfig(BaseConfig):
     correlation_radius: AngleType = "0.1 deg"
     parameters: dict = {}
     energy_edges: EnergyAxisConfig = EnergyAxisConfig()
 
 
+# The main Analysis Steps
 class FitAnalysisStep(AnalysisStepBase):
     """
-    Fit the target model to the updated list of datasets.
+    Using the Fitting parameters as defined in the Config, with the given
+    datasets perform the fit of the models to the updated list of datasets.
     """
 
     tag = "fit"
@@ -72,18 +74,15 @@ class FitAnalysisStep(AnalysisStepBase):
         self.fit_params = self.config.fit_params
 
         self._setup_fit()
-        self.log.info("Fit setup done")
         final_dataset = self._set_datasets()
-        self.log.info("Fit energy mask, applied to the whole dataset")
         self.fit_result = self.fit.run(datasets=final_dataset)
+
         self.log.info(self.fit_result)
-        self.log.info(final_dataset.models)
-        best_fit_model = final_dataset.models[0].to_dict()
-        self.log.info(best_fit_model)
 
     def _setup_fit(self):
         """
-        Setup the Gammapy Fit function with all the provided parameters
+        Setup the Gammapy Fit function with all the provided parameters from
+        the config.
         """
         self.fit = Fit(
             backend=self.fit_params.backend,
@@ -112,8 +111,9 @@ class FitAnalysisStep(AnalysisStepBase):
 
 class FluxPointsAnalysisStep(AnalysisStepBase):
     """
-    Retrieve flux points for a given dataset.
-    Currently getting flux points for ALL datasets and storing them in a list.
+    Using the Flux Points Estimator parameters in the config, and the given
+    datasets and instrument_spectral_info perform the Flux Points Estimation
+    and store the result in a list of flux points for each dataset.
     """
 
     tag = "flux-points"
@@ -128,6 +128,17 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
             flux_points.name = dataset.names
 
             self.flux_points.append(flux_points)
+
+    def _set_fpe(self, dataset, energy_bin_edges):
+        """
+        Setup the Gammapy FluxPointsEstimator function with all the
+        provided parameters.
+        """
+        fpe_settings = self.config.flux_points_params.parameters
+
+        self.fpe = FluxPointsEstimator(
+            energy_edges=energy_bin_edges, source=self.config.target.source_name, **fpe_settings
+        )
 
     def _sort_datasets_info(self):
         """
@@ -160,22 +171,12 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
 
         return sorted_datasets, sorted_energy_edges
 
-    def _set_fpe(self, dataset, energy_bin_edges):
-        """
-        Setup the Gammapy FluxPointsEstimator function with all the
-        provided parameters.
-        """
-        fpe_settings = self.config.flux_points_params.parameters
-
-        self.fpe = FluxPointsEstimator(
-            energy_edges=energy_bin_edges, source=self.config.target.source_name, **fpe_settings
-        )
-
 
 class LightCurveAnalysisStep(AnalysisStepBase):
     """
-    Retrieve light curve flux points for a given dataset.
-    Currently getting flux points for ALL datasets and storing them in a list.
+    Using the Light Curve Estimator parameters in the config, and the given
+    datasets and instrument_spectral_info perform the Light Curve Estimation
+    and store the result in a list of flux points for each dataset.
     """
 
     tag = "light-curve"
@@ -192,14 +193,13 @@ class LightCurveAnalysisStep(AnalysisStepBase):
 
     def _set_lce(self, dataset=None):
         """
-        Setup the Gammapy FluxPointsEstimator function with all the
+        Setup the Gammapy LightCurveEstimator function with all the
         provided parameters.
         """
         if dataset is None:
             dataset = self.datasets
 
         energy_range = self.config.light_curve_params.energy_edges
-        # energy_bin_edges = [u.Quantity(energy_range.min), u.Quantity(energy_range.max)]
         energy_min = u.Quantity(energy_range.min)
         energy_max = u.Quantity(energy_range.max)
 

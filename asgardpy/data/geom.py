@@ -1,5 +1,5 @@
 """
-Classes containing the Geometry config parameters for the high-level interface
+Classes containing the Geometry config parameters for the high-level interface.
 """
 
 from typing import List
@@ -20,6 +20,7 @@ __all__ = [
 ]
 
 
+# Basic Components to define the main GeomConfig
 class SpatialCircleConfig(BaseConfig):
     frame: FrameEnum = None
     lon: AngleType = None
