@@ -51,43 +51,43 @@ class EBLAbsorptionModel(BaseConfig):
 
 
 class ModelParams(BaseConfig):
-    name: str = None
-    value: float = None
-    unit: str = None
-    error: float = None
-    min: float = None
-    max: float = None
+    name: str = ""
+    value: float = 1
+    unit: str = " "
+    error: float = 0.1
+    min: float = 0.1
+    max: float = 10
     frozen: bool = True
 
 
 class SpectralModelConfig(BaseConfig):
-    model_name: str = None
-    type: str = None
+    model_name: str = ""
+    type: str = ""
     parameters: List[ModelParams] = [ModelParams()]
     ebl_abs: EBLAbsorptionModel = EBLAbsorptionModel()
 
 
 class SpatialModelConfig(BaseConfig):
-    model_name: str = None
-    type: str = None
+    model_name: str = ""
+    type: str = ""
     parameters: List[ModelParams] = [ModelParams()]
 
 
 class SkyModelComponent(BaseConfig):
-    name: str = None
+    name: str = ""
     type: str = "SkyModel"
     spectral: SpectralModelConfig = SpectralModelConfig()
     spatial: SpatialModelConfig = SpatialModelConfig()
 
 
 class Target(BaseConfig):
-    source_name: str = None
+    source_name: str = ""
     sky_position: SkyCoordConfig = SkyCoordConfig()
     use_uniform_position: bool = True
-    models_file: Path = None
+    models_file: Path = Path(".")
     extended: bool = False
     components: SkyModelComponent = SkyModelComponent()
-    covariance: str = None
+    covariance: str = ""
     from_fermi: bool = False
 
 
