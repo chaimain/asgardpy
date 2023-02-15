@@ -29,8 +29,8 @@ log = logging.getLogger(__name__)
 # Other general config params
 class LogConfig(BaseConfig):
     level: str = "info"
-    filename: PathType = PathType(".")
-    filemode: str = ""
+    filename: str = ""
+    filemode: str = "w"
     format: str = ""
     datefmt: str = ""
 

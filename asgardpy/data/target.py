@@ -179,7 +179,7 @@ def read_models_from_asgardpy_config(config):
     model_config = config.components
 
     # Spectral Model
-    if model_config.spectral.ebl_abs.model_name is not None:
+    if model_config.spectral.ebl_abs.model_name != "":
         model1 = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
             {"spectral": config_to_dict(model_config.spectral)}
         )
@@ -198,7 +198,7 @@ def read_models_from_asgardpy_config(config):
     spectral_model.name = config.source_name
 
     # Spatial model if provided
-    if model_config.spatial.model_name is not None:
+    if model_config.spatial.model_name != "":
         spatial_model = SPATIAL_MODEL_REGISTRY.get_cls(model_config.spatial.type)().from_dict(
             {"spatial": config_to_dict(model_config.spatial)}
         )

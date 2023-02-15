@@ -4,7 +4,11 @@
 general:
   log:
     level: info
-  outdir: /data/magic/users-ifae/cpriyada/lst/
+    filename: filename.log
+    filemode: a
+    format: "%(asctime)s - %(message)s"
+    datefmt: "%d-%b-%y %H:%M:%S"
+  outdir: /fefs/aswg/workspace/chaitanya.priyadarshi/
   n_jobs: 1
   steps: [datasets-3d, datasets-1d, fit, flux-points, light-curve]
   overwrite: true

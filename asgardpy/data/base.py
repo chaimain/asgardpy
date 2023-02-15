@@ -72,7 +72,12 @@ class PathType(str):
         if v == "None":
             return Path(".")
         else:
-            if Path(v).resolve().exists():
+            path_ = Path(v).resolve()
+            # Only check if the file location or directory path exists
+            if path_.is_file():
+                path_ = path_.parent()
+
+            if path_.exists():
                 return Path(v)
             else:
                 raise ValueError(f"Path {v} does not exist")
