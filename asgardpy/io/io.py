@@ -12,7 +12,7 @@ from gammapy.datasets import FluxPointsDataset
 from gammapy.estimators import FluxPoints
 from gammapy.modeling.models import SPECTRAL_MODEL_REGISTRY, Models
 
-from asgardpy.data.base import BaseConfig
+from asgardpy.data.base import BaseConfig, PathType
 
 __all__ = ["InputFilePatterns", "InputConfig", "DL3Files", "DL4Files"]
 
@@ -46,7 +46,7 @@ class InputFilePatterns(BaseConfig):
 
 class InputConfig(BaseConfig):
     type: str = "type"
-    input_dir: str = "."
+    input_dir: PathType = PathType(".")
     glob_pattern: dict = {}
 
 

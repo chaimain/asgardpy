@@ -5,6 +5,7 @@ Classes containing the Base for the Analysis steps and some Basic Config types.
 import abc
 import logging
 from enum import Enum
+from pathlib import Path
 from typing import List
 
 from astropy import units as u
@@ -61,6 +62,22 @@ class TimeType(Time):
         return Time(v)
 
 
+class PathType(str):
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v):
+        if v == "None":
+            return Path(".")
+        else:
+            if Path(v).resolve().exists():
+                return Path(v)
+            else:
+                raise ValueError(f"Path {v} does not exist")
+
+
 class FrameEnum(str, Enum):
     icrs = "icrs"
     galactic = "galactic"
@@ -85,6 +102,7 @@ class BaseConfig(BaseModel):
             Angle: lambda v: f"{v.value} {v.unit}",
             u.Quantity: lambda v: f"{v.value} {v.unit}",
             Time: lambda v: f"{v.value}",
+            Path: lambda v: Path(v),
         }
 
 

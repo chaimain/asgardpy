@@ -24,7 +24,7 @@ from gammapy.modeling.models import (
     create_fermi_isotropic_diffuse_model,
 )
 
-from asgardpy.data.base import BaseConfig
+from asgardpy.data.base import BaseConfig, PathType
 from asgardpy.data.geom import SkyCoordConfig
 
 __all__ = [
@@ -84,7 +84,7 @@ class Target(BaseConfig):
     source_name: str = ""
     sky_position: SkyCoordConfig = SkyCoordConfig()
     use_uniform_position: bool = True
-    models_file: str = "."
+    models_file: PathType = PathType(".")
     extended: bool = False
     components: SkyModelComponent = SkyModelComponent()
     covariance: str = ""
