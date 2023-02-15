@@ -162,8 +162,8 @@ class AnalysisStepEnum(str, Enum):
 
 # Basic Quantity ranges Type for building the Config
 class TimeRangeConfig(BaseConfig):
-    start: TimeType = Time("2000-01-01", format="iso")
-    stop: TimeType = Time("2001-01-01", format="iso")
+    start: TimeType = Time("0", format="mjd")
+    stop: TimeType = Time("0", format="mjd")
 
 
 class TimeIntervalsConfig(BaseConfig):

@@ -8,7 +8,7 @@ from typing import List
 
 from astropy import units as u
 
-from asgardpy.data.base import AngleType, BaseConfig, TimeIntervalsConfig, PathType
+from asgardpy.data.base import AngleType, BaseConfig, PathType, TimeIntervalsConfig
 from asgardpy.data.geom import SkyCoordConfig
 
 __all__ = [
