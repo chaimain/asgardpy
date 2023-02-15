@@ -4,7 +4,6 @@ interface.
 """
 
 from enum import Enum
-from pathlib import Path
 from typing import List
 
 from astropy import units as u
@@ -47,7 +46,7 @@ class RequiredHDUEnum(str, Enum):
 
 class ObservationsConfig(BaseConfig):
     obs_ids: List[int] = []
-    obs_file: Path = Path(".")
+    obs_file: str = "."
     obs_time: TimeIntervalsConfig = TimeIntervalsConfig()
     required_irfs: List[RequiredHDUEnum] = [RequiredHDUEnum.aeff]
 

@@ -3,7 +3,7 @@ Classes containing the Target config parameters for the high-level interface and
 also the functions involving Models generation and assignment to datasets.
 """
 
-from pathlib import Path
+# from pathlib import Path
 from typing import List
 
 from astropy.coordinates import SkyCoord
@@ -84,7 +84,7 @@ class Target(BaseConfig):
     source_name: str = ""
     sky_position: SkyCoordConfig = SkyCoordConfig()
     use_uniform_position: bool = True
-    models_file: Path = Path(".")
+    models_file: str = "."
     extended: bool = False
     components: SkyModelComponent = SkyModelComponent()
     covariance: str = ""

@@ -46,7 +46,7 @@ class InputFilePatterns(BaseConfig):
 
 class InputConfig(BaseConfig):
     type: str = "type"
-    input_dir: Path = Path(".")
+    input_dir: str = "."
     glob_pattern: dict = {}
 
 
