@@ -8,7 +8,7 @@ general:
     filemode: a
     format: "%(asctime)s - %(message)s"
     datefmt: "%d-%b-%y %H:%M:%S"
-  outdir: /fefs/aswg/workspace/chaitanya.priyadarshi/
+  outdir: .
   n_jobs: 1
   steps: [datasets-3d, datasets-1d, fit, flux-points, light-curve]
   overwrite: true
@@ -70,7 +70,7 @@ dataset3d:
   -   name: Fermi-LAT
       io:
       -   type: lat
-          input_dir: /data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/LAT/Analysis1/EBL/LogParabola/
+          input_dir: "."
           glob_pattern:
             events: "*MkTime.fits*"
             edisp: "*eDRM.fits*"
@@ -78,7 +78,7 @@ dataset3d:
             exposure: "*BinnedMap.fits*"
             psf: "*psf.fits*"
       -   type: lat-aux
-          input_dir: /data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/LAT/diffuse_models/
+          input_dir: "."
           glob_pattern:
             diffuse: "gll_iem_v07.fits*"
             iso: "iso_P8R3_SOURCE_V3_*.txt"
@@ -86,11 +86,7 @@ dataset3d:
         name: Fermi-LAT
         key: ["FRONT", "BACK"]
         # map_selection: []
-        obs_time:
-          format: iso
-          intervals: &main_time_range
-          -  start: "2021-04-01"
-             stop: "2022-05-25"
+        # obs_time:
         background:
           # method: reflected
           # parameters:
@@ -109,13 +105,13 @@ dataset3d:
             min: 0.001 TeV
             max: 1 TeV
         on_region: *source_pos
-          # radius: 0.4 deg # Have to figure how to use this later
+          # radius: 0.4 deg 
         containment_correction: true
         spectral_energy_range: &lat_energy_range
           min: 100 MeV
           max: 1 TeV
           nbins: 2
-# - name: HAWC?
+# - name: CTA
 #    ... full description ...
 
 # Instrument datasets with 1D info
@@ -125,9 +121,9 @@ dataset1d:
   -   name: LST-1
       io:
       -   type: lst-1
-          input_dir: "/data/magic/users-ifae/cpriyada/lst/DL3_all/AGN/PG1553/v09x/tailcut84/DL3/real/interp_irf_en_dep/no_tuning/geff_80/teff_80/20220511_dec931/"
+          input_dir: "."
           glob_pattern:
-            dl3: "202*/dl3*fits"
+            dl3: ""
       dataset_info:
         name: LST-1
         geom:
@@ -140,27 +136,16 @@ dataset1d:
               nbins: 5
             energy_true: *lst_energy
         observation:
-          # obs_ids: [4333, 4343]
+          # obs_ids: []
           # obs_file: None
-          obs_time:
-            format: iso
-            intervals: *main_time_range
+          # obs_time:
           required_irfs: ["aeff", "edisp", "rad_max"]
         background:
           method: reflected
           region_finder_method: wobble
           parameters:
             n_off_regions: 1
-          exclusion:
-            regions:
-            -  type: CircleSkyRegion
-               name: None
-               position:
-                 frame: galactic
-                 lon: 183.604 deg
-                 lat: -8.708 deg
-               parameters:
-                 region_radius: 0.5 deg
+          # exclusion:
         safe_mask:
           methods: ["custom-mask"]
           parameters:
@@ -196,15 +181,7 @@ flux_points_params:
 light_curve_params:
   time_intervals:
     format: "iso"
-    intervals:
-     -  start: "2021-04-07"
-        stop: "2021-04-08"
-     -  start: "2021-04-08"
-        stop: "2021-04-09"
-     -  start: "2021-04-09"
-        stop: "2021-04-10"
-     -  start: "2021-04-10"
-        stop: "2021-04-11"
+    # intervals:
   energy_edges:
     min: "100 MeV"
     max: "10 TeV"
