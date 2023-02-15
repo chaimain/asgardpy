@@ -5,6 +5,7 @@ Classes containing the Base for the Analysis steps and some Basic Config types.
 import abc
 import logging
 from enum import Enum
+from pathlib import Path
 from typing import List
 
 from astropy import units as u
@@ -61,6 +62,27 @@ class TimeType(Time):
         return Time(v)
 
 
+class PathType(str):
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v):
+        if v == "None":
+            return Path(".")
+        else:
+            path_ = Path(v).resolve()
+            # Only check if the file location or directory path exists
+            if path_.is_file():
+                path_ = path_.parent()
+
+            if path_.exists():
+                return Path(v)
+            else:
+                raise ValueError(f"Path {v} does not exist")
+
+
 class FrameEnum(str, Enum):
     icrs = "icrs"
     galactic = "galactic"
@@ -85,6 +107,7 @@ class BaseConfig(BaseModel):
             Angle: lambda v: f"{v.value} {v.unit}",
             u.Quantity: lambda v: f"{v.value} {v.unit}",
             Time: lambda v: f"{v.value}",
+            Path: lambda v: Path(v),
         }
 
 
@@ -139,8 +162,8 @@ class AnalysisStepEnum(str, Enum):
 
 # Basic Quantity ranges Type for building the Config
 class TimeRangeConfig(BaseConfig):
-    start: TimeType = Time("2000-01-01", format="iso")
-    stop: TimeType = Time("2001-01-01", format="iso")
+    start: TimeType = Time("0", format="mjd")
+    stop: TimeType = Time("0", format="mjd")
 
 
 class TimeIntervalsConfig(BaseConfig):

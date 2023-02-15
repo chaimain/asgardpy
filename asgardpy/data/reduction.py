@@ -4,12 +4,11 @@ interface.
 """
 
 from enum import Enum
-from pathlib import Path
 from typing import List
 
 from astropy import units as u
 
-from asgardpy.data.base import AngleType, BaseConfig, TimeIntervalsConfig
+from asgardpy.data.base import AngleType, BaseConfig, PathType, TimeIntervalsConfig
 from asgardpy.data.geom import SkyCoordConfig
 
 __all__ = [
@@ -47,7 +46,7 @@ class RequiredHDUEnum(str, Enum):
 
 class ObservationsConfig(BaseConfig):
     obs_ids: List[int] = []
-    obs_file: Path = Path(".")
+    obs_file: PathType = PathType(".")
     obs_time: TimeIntervalsConfig = TimeIntervalsConfig()
     required_irfs: List[RequiredHDUEnum] = [RequiredHDUEnum.aeff]
 

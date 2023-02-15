@@ -3,7 +3,7 @@ Classes containing the Target config parameters for the high-level interface and
 also the functions involving Models generation and assignment to datasets.
 """
 
-from pathlib import Path
+# from pathlib import Path
 from typing import List
 
 from astropy.coordinates import SkyCoord
@@ -24,7 +24,7 @@ from gammapy.modeling.models import (
     create_fermi_isotropic_diffuse_model,
 )
 
-from asgardpy.data.base import BaseConfig
+from asgardpy.data.base import BaseConfig, PathType
 from asgardpy.data.geom import SkyCoordConfig
 
 __all__ = [
@@ -84,7 +84,7 @@ class Target(BaseConfig):
     source_name: str = ""
     sky_position: SkyCoordConfig = SkyCoordConfig()
     use_uniform_position: bool = True
-    models_file: Path = Path(".")
+    models_file: PathType = PathType(".")
     extended: bool = False
     components: SkyModelComponent = SkyModelComponent()
     covariance: str = ""
@@ -179,7 +179,7 @@ def read_models_from_asgardpy_config(config):
     model_config = config.components
 
     # Spectral Model
-    if model_config.spectral.ebl_abs.model_name is not None:
+    if model_config.spectral.ebl_abs.model_name != "":
         model1 = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
             {"spectral": config_to_dict(model_config.spectral)}
         )
@@ -198,7 +198,7 @@ def read_models_from_asgardpy_config(config):
     spectral_model.name = config.source_name
 
     # Spatial model if provided
-    if model_config.spatial.model_name is not None:
+    if model_config.spatial.model_name != "":
         spatial_model = SPATIAL_MODEL_REGISTRY.get_cls(model_config.spatial.type)().from_dict(
             {"spatial": config_to_dict(model_config.spatial)}
         )

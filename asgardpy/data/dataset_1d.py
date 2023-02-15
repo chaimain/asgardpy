@@ -190,7 +190,7 @@ class Dataset1DGeneration:
         observation_mask = np.ones(len(obs_table), dtype=bool)
 
         # Filter using the Time interval range provided
-        if obs_time.intervals[0].start is not None:
+        if obs_time.intervals[0].start != Time("0", format="mjd"):
             t_start = Time(obs_time.intervals[0].start, format=obs_time.format)
             t_stop = Time(obs_time.intervals[0].stop, format=obs_time.format)
 

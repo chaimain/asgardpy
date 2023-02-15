@@ -7,7 +7,7 @@ import yaml
 from gammapy.utils.scripts import make_path, read_yaml
 from pydantic.utils import deep_update
 
-from asgardpy.data.base import AnalysisStepEnum, BaseConfig
+from asgardpy.data.base import AnalysisStepEnum, BaseConfig, PathType
 from asgardpy.data.dataset_1d import Dataset1DConfig
 from asgardpy.data.dataset_3d import Dataset3DConfig
 from asgardpy.data.dl4 import (
@@ -29,15 +29,15 @@ log = logging.getLogger(__name__)
 # Other general config params
 class LogConfig(BaseConfig):
     level: str = "info"
-    filename: Path = Path(".")
-    filemode: str = ""
+    filename: str = ""
+    filemode: str = "w"
     format: str = ""
     datefmt: str = ""
 
 
 class GeneralConfig(BaseConfig):
     log: LogConfig = LogConfig()
-    outdir: str = "."
+    outdir: PathType = PathType(".")
     n_jobs: int = 1
     steps: List[AnalysisStepEnum] = []
     overwrite: bool = True

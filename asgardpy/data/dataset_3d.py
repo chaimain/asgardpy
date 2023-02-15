@@ -325,7 +325,7 @@ class Dataset3DGeneration:
         self.events["gti"] = GTI.read(events_file)
 
         obs_time = self.config_3d_dataset.dataset_info.obs_time
-        if obs_time.intervals[0].start is not None:
+        if obs_time.intervals[0].start != Time("0", format="mjd"):
             t_start = Time(obs_time.intervals[0].start, format=obs_time.format)
             t_stop = Time(obs_time.intervals[0].stop, format=obs_time.format)
             time_intervals = [t_start, t_stop]
