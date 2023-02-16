@@ -36,5 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix mypy check errors in default variable assignments by [@chaimain](https://github.com/chaimain).
 - Fix variable assignment issue from pervious PR by [@chaimain](https://github.com/chaimain).
 - Clean pipeline by [@chaimain](https://github.com/chaimain).
+- Updating Model parameters to read from XML file by [@chaimain](https://github.com/chaimain).
 
 ## [v0.1.0](https://github.com/mireianievas/asgardpy/releases/tag/v0.1.0) - 2022-11-23
