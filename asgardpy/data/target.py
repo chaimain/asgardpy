@@ -341,7 +341,7 @@ def xml_to_gammapy_model_params(
                 new_par["error"] = float(new_par["error"]) * float(new_par["scale"]) * 1e6
             new_par["min"] = float(new_par["min"]) * float(new_par["scale"]) * 1e6
             new_par["max"] = float(new_par["max"]) * float(new_par["scale"]) * 1e6
-        if new_par["name"] in ["index", "index_1", "index_2"] and not keep_sign:
+        if new_par["name"] in ["index", "index_1"] and not keep_sign:
             # Other than EBL Attenuated Power Law.
             # Maybe try using abs function to get always positive value
             new_par["value"] = -1 * float(new_par["value"])
