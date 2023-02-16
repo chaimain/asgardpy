@@ -363,7 +363,6 @@ def xml_to_gammapy_model_params(
         if new_par["name"] == "alpha" and spectrum_type == "PLSuperExpCutoff":
             new_par["frozen"] = par["@free"] == "0"
 
-        # new_par["error"] = 0
         new_param = Parameter(name=new_par["name"], value=new_par["value"])
         if "error" in new_par:
             new_param.error = new_par["error"]
