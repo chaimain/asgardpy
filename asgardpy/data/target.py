@@ -241,7 +241,9 @@ def config_to_dict(model_config):
     return model_dict
 
 
-def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_intrinsic=False):
+def xml_to_gammapy_model_params(
+    params, spectrum_type, is_target=False, keep_sign=False, lp_is_intrinsic=False
+):
     """
     Convert the Models information from XML model of FermiTools to Gammapy
     standards and return Parameters list.
@@ -254,6 +256,9 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
     ----------
     params: `gammapy.modeling.Parameters`
         List of gammapy Parameter object of a particular Model
+    spectrum_type: str
+        Spectrum type as defined in XML. To be used only for special cases like
+        PLSuperExpCutoff and PLSuperExpCutoff4
     is_target: bool
         Boolean to check if the given list of Parameters belong to the target
         source model or not.
@@ -278,7 +283,11 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
             if key_ != "@free":
                 new_par[key_[1:].lower()] = par[key_]
             else:
-                new_par["frozen"] = (par[key_] == "0") and not is_target
+                if par["@name"].lower() not in ["scale", "eb"]:
+                    new_par["frozen"] = (par[key_] == "0") and not is_target
+                else:
+                    # Never change frozen status of Reference Energy
+                    new_par["frozen"] = par[key_] == "0"
             new_par["unit"] = ""
             new_par["is_norm"] = False
 
@@ -298,25 +307,43 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
                 new_par["name"] = "emax"
             if par["@name"].lower() in ["cutoff"]:
                 new_par["name"] = "lambda_"
-                new_par["value"] = 1.0 / new_par["value"]
-                new_par["min"] = 1.0 / new_par["max"]
-                new_par["max"] = 1.0 / new_par["min"]
                 new_par["unit"] = "TeV-1"
             if par["@name"].lower() in ["index"]:
                 new_par["name"] = "index"
+            if par["@name"].lower() in ["index1"]:
+                if spectrum_type == "PLSuperExpCutoff":
+                    new_par["name"] = "index"
+                else:
+                    new_par["name"] = "index1"  # For spectrum_type == "BrokenPowerLaw"
+            if par["@name"].lower() in ["indexs"]:
+                new_par["name"] = "index_1"  # For spectrum_type == "PLSuperExpCutoff4"
+            if par["@name"].lower() in ["index2"]:
+                if spectrum_type == "PLSuperExpCutoff4":
+                    new_par["name"] = "index_2"
+                elif spectrum_type == "PLSuperExpCutoff":
+                    new_par["name"] = "alpha"
+                else:
+                    new_par["name"] = "index2"  # For spectrum_type == "BrokenPowerLaw"
+            if par["@name"].lower() in ["expfactors"]:
+                new_par["name"] = "expfactor"
 
         # Some modifications:
         if new_par["name"] in ["reference", "ebreak", "emin", "emax"]:
             new_par["unit"] = "TeV"
             new_par["value"] = float(new_par["value"]) * float(new_par["scale"]) * 1e-6
+            if "error" in new_par:
+                new_par["error"] = float(new_par["error"]) * float(new_par["scale"]) * 1e-6
             new_par["min"] = float(new_par["min"]) * float(new_par["scale"]) * 1e-6
             new_par["max"] = float(new_par["max"]) * float(new_par["scale"]) * 1e-6
         if new_par["name"] in ["amplitude"]:
             new_par["value"] = float(new_par["value"]) * float(new_par["scale"]) * 1e6
+            if "error" in new_par:
+                new_par["error"] = float(new_par["error"]) * float(new_par["scale"]) * 1e6
             new_par["min"] = float(new_par["min"]) * float(new_par["scale"]) * 1e6
             new_par["max"] = float(new_par["max"]) * float(new_par["scale"]) * 1e6
-        if new_par["name"] == "index" and not keep_sign:
-            # Other than EBL Attenuated Power Law
+        if new_par["name"] in ["index", "index_1", "index_2"] and not keep_sign:
+            # Other than EBL Attenuated Power Law.
+            # Maybe try using abs function to get always positive value
             new_par["value"] = -1 * float(new_par["value"])
 
             # Reverse the limits while changing the sign
@@ -324,9 +351,22 @@ def xml_to_gammapy_model_params(params, is_target=False, keep_sign=False, lp_is_
             max_ = float(new_par["max"])
             new_par["min"] = -1 * max_
             new_par["max"] = -1 * min_
+        if new_par["name"] in ["lambda_"]:
+            val_ = float(new_par["value"])
+            new_par["value"] = 1e6 / val_
+            if "error" in new_par:
+                new_par["error"] = 1e6 * float(new_par["error"]) / (val_**2)
+            min_ = float(new_par["min"])
+            max_ = float(new_par["max"])
+            new_par["min"] = 1e6 / max_
+            new_par["max"] = 1e6 / min_
+        if new_par["name"] == "alpha" and spectrum_type == "PLSuperExpCutoff":
+            new_par["frozen"] = par["@free"] == "0"
 
-        new_par["error"] = 0
+        # new_par["error"] = 0
         new_param = Parameter(name=new_par["name"], value=new_par["value"])
+        if "error" in new_par:
+            new_param.error = new_par["error"]
         new_param.min = new_par["min"]
         new_param.max = new_par["max"]
         new_param.unit = new_par["unit"]
@@ -414,6 +454,7 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
         # Read the parameter values from XML file to create SpectralModel
         params_list = xml_to_gammapy_model_params(
             spectrum,
+            spectrum_type,
             is_target=is_source_target,
             keep_sign=ebl_atten_pl,
             lp_is_intrinsic=lp_is_intrinsic,
