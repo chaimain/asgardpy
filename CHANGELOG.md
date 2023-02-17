@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update documentation by [@chaimain](https://github.com/chaimain).
 
-## [v0.1](https://github.com/chaimain/asgardpy/releases/tag/v0.1) - 2023-02-16
+## [0.1](https://github.com/chaimain/asgardpy/releases/tag/v0.1) - 2023-02-16
 
 ### Added
 
@@ -43,3 +43,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix variable assignment issue from pervious PR by [@chaimain](https://github.com/chaimain).
 - Clean pipeline by [@chaimain](https://github.com/chaimain).
 - Updating Model parameters to read from XML file by [@chaimain](https://github.com/chaimain).
+
+[Unreleased]: https://github.com/chaimain/keep-a-changelog/compare/v0.1...HEAD
+[0.1]: https://github.com/chaimain/asgardpy/releases/tag/0.1
