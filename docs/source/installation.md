@@ -13,10 +13,10 @@ pip install asgardpy
 
 ## Installing from source
 
-To install **asgardpy** from source, first clone [the repository](https://github.com/mireianievas/asgardpy):
+To install **asgardpy** from source, first clone [the repository](https://github.com/chaimain/asgardpy):
 
 ```bash
-git clone https://github.com/mireianievas/asgardpy.git
+git clone https://github.com/chaimain/asgardpy.git
 cd asgardpy
 ```
 

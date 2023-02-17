@@ -159,11 +159,13 @@ class Dataset3DGeneration:
     information provided on the 3D dataset and the target source.
 
     Runs the following steps:
-    1. Read the DL3 files of 3D datasets into gammapy readable objects and
-        perform any selection of events in a given time interval.
+    1. Read the DL3 files of 3D datasets into gammapy readable objects and perform any
+    selection of events in a given time interval.
+
     2. Create the base counts Map.
-    3. Prepare standard data reduction makers using the parameters passed in
-        the config.
+
+    3. Prepare standard data reduction makers using the parameters passed in the config.
+
     4. Generate the final dataset.
     """
 

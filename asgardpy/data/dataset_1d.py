@@ -128,11 +128,13 @@ class Dataset1DGeneration:
 
     Runs the following steps:
     1. Read the DL3 files of 1D datasets into DataStore object.
-    2. Perform any Observation selection, based on Observation IDs or
-        time intervals.
+
+    2. Perform any Observation selection, based on Observation IDs or time intervals.
+
     3. Create the base dataset template, including the main counts geometry.
-    4. Prepare standard data reduction makers using the parameters passed in
-        the config.
+
+    4. Prepare standard data reduction makers using the parameters passed in the config.
+
     5. Generate the final dataset.
     """
 

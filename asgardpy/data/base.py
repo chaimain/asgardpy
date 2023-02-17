@@ -141,7 +141,9 @@ class AnalysisStepBase(abc.ABC):
 
 
 class AnalysisStep:
-    "Create one of the analysis step class listed in the registry"
+    """
+    Create one of the Analysis Step class listed in the Registry.
+    """
 
     @staticmethod
     def create(tag, config, **kwargs):
