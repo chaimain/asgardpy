@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Update documentation by [@chaimain](https://github.com/chaimain).
 
 ## [v0.1](https://github.com/chaimain/asgardpy/releases/tag/v0.1) - 2023-02-16
 
