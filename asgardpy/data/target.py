@@ -242,7 +242,7 @@ def config_to_dict(model_config):
 
 
 def xml_to_gammapy_model_params(
-    params, spectrum_type, is_target=False, keep_sign=False, lp_is_intrinsic=False
+    params, spectrum_type, is_target=False, keep_sign=False
 ):
     """
     Convert the Models information from XML model of FermiTools to Gammapy
@@ -264,10 +264,6 @@ def xml_to_gammapy_model_params(
         source model or not.
     keep_sign: bool
         Boolean to keep the same sign on the parameter values or not.
-    lp_is_intrinsic: bool
-        Boolean to check if the given Model assumes an intrinsic spectrum of
-        Log Parabola type, but uses Power Law and then adds EBL attenuation
-        for characterizing the curvature.
 
     Returns
     -------
