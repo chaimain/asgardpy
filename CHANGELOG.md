@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Update documentation by [@chaimain](https://github.com/chaimain).
+- Remove dependency of hard-coded LAT files structure by [@chaimain](https://github.com/chaimain).
 
 ## [0.1](https://github.com/chaimain/asgardpy/releases/tag/v0.1) - 2023-02-16
 

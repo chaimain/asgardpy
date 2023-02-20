@@ -26,7 +26,7 @@ Contents
    :hidden:
    :caption: Development
 
-   License <https://github.com/chaimain/asgardpy/main/LICENSE>
+   License <https://github.com/chaimain/asgardpy/blob/main/LICENSE>
    CONTRIBUTING
    GitHub Repository <https://github.com/chaimain/asgardpy>
 

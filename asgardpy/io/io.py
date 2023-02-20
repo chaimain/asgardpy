@@ -10,9 +10,9 @@ from pathlib import Path
 from astropy.io import fits
 from gammapy.datasets import FluxPointsDataset
 from gammapy.estimators import FluxPoints
-from gammapy.modeling.models import SPECTRAL_MODEL_REGISTRY, Models
+from gammapy.modeling.models import Models
 
-from asgardpy.data.base import BaseConfig, PathType
+from asgardpy.data.base import BaseConfig
 
 __all__ = ["InputFilePatterns", "InputConfig", "DL3Files", "DL4Files"]
 
@@ -46,7 +46,7 @@ class InputFilePatterns(BaseConfig):
 
 class InputConfig(BaseConfig):
     type: str = "type"
-    input_dir: PathType = PathType(".")
+    input_dir: Path = Path(".")
     glob_pattern: dict = {}
 
 
@@ -54,10 +54,10 @@ class InputConfig(BaseConfig):
 class DL3Files:
     """
     A general class to retrieve information from given DL3 files, along with
-    Models and other auxillary files for neighbouring sources, if provided.
+    other auxillary files for neighbouring sources, if provided.
     """
 
-    def __init__(self, dir_dict, source_model, file_list, log=None):
+    def __init__(self, dir_dict, file_list, log=None):
         dl3_path = dir_dict.input_dir
         dl3_type = dir_dict.type
         glob_dict = dir_dict.glob_pattern
@@ -71,14 +71,12 @@ class DL3Files:
             self.dl3_path = Path(dl3_path)
         else:
             self.log.error(f"{dl3_path} is not a valid file location")
-        self.model = source_model
         self.dl3_type = dl3_type
 
         if glob_dict is None:
             self.glob_dict = glob_dict_std
         else:
             self.glob_dict = glob_dict
-        self._check_model()
         self._check_dl3_type()
 
         self.events_files = None
@@ -101,14 +99,6 @@ class DL3Files:
         self.log = logging.getLogger(__name__)
         self.log.setLevel(logging.INFO)
 
-    def _check_model(self):
-        try:
-            SPECTRAL_MODEL_REGISTRY.get_cls(self.model.type)
-        except Exception:
-            self.log.error(
-                f"{self.model.type} is not a proper Spectral Model recognized by Gammapy"
-            )
-
     def _check_dl3_type(self):
         if self.dl3_type.lower() not in EXPECTED_DL3_RANGE:
             self.log.error(f"{self.dl3_type} is not in the expected range for DL3 files")
@@ -130,6 +120,8 @@ class DL3Files:
         Select Unique files from all of the provided LAT files, as per the
         given key.
         """
+        # Have to make more checks or add conditions on selecting only select
+        # files instead from the glob-searched lists.
         if self.dl3_type.lower() == "lat":
             var_list = [
                 "events_files",
@@ -137,11 +129,7 @@ class DL3Files:
                 "expmap_files",
                 "psf_files",
             ]
-            if isinstance(self.xml_files, list):
-                self.xml_f = [f for f in self.xml_files if self.model.model_name in str(f)][0]
-            else:
-                self.xml_f = self.xml_files
-            file_list["xml_file"] = self.xml_f
+            file_list["xml_file"] = self.xml_files[0]
 
         if self.dl3_type.lower() == "lat-aux":
             var_list = [
