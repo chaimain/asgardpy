@@ -1,7 +1,7 @@
 Installation
 ============
 
-**asgardpy** supports Python >= 3.7.
+**asgardpy** supports Python >= 3.8.
 
 ## Installing with `pip`
 

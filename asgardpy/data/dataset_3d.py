@@ -159,6 +159,7 @@ class Dataset3DGeneration:
     information provided on the 3D dataset and the target source.
 
     Runs the following steps:
+
     1. Read the DL3 files of 3D datasets into gammapy readable objects and perform any
     selection of events in a given time interval.
 
