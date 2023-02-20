@@ -192,7 +192,7 @@ class Dataset3DGeneration:
 
     def run(self, key_name):
         # First check for the given file list if they are readable or not.
-        file_list = self.read_to_objects(self.config_target.components.spectral, key_name)
+        file_list = self.read_to_objects(key_name)
 
         # Start preparing objects to create the counts map
         self.set_energy_dispersion_matrix()
@@ -218,7 +218,7 @@ class Dataset3DGeneration:
 
         return dataset, self.list_sources
 
-    def read_to_objects(self, model, key_name):
+    def read_to_objects(self, key_name):
         """
         For each key type of files, read the files to get the required
         Gammapy objects for further analyses.
@@ -226,7 +226,8 @@ class Dataset3DGeneration:
         Model name is to check for scenario when an intrinsic LogParabola
         model is saved as an EBL Attenuated Power Law model in LAT models.
         """
-        lp_is_intrinsic = model.model_name == "LogParabola"
+        # lp_is_intrinsic = model.model_name == "LogParabola"
+
         file_list = {}
 
         for cfg in self.config_3d_dataset.io:
@@ -235,13 +236,13 @@ class Dataset3DGeneration:
                     self.irfs["exposure"],
                     self.irfs["psf"],
                     self.irfs["edisp"],
-                ] = self.get_base_objects(cfg, model, key_name, cfg.type, file_list)
+                ] = self.get_base_objects(cfg, key_name, cfg.type, file_list)
             if cfg.type == "lat-aux":
                 file_list, [
                     self.diffuse_models["diff_gal"],
                     self.diffuse_models["diff_iso"],
-                ] = self.get_base_objects(cfg, model, key_name, cfg.type, file_list)
-                self.get_list_objects(cfg.input_dir, file_list["xml_file"], lp_is_intrinsic)
+                ] = self.get_base_objects(cfg, key_name, cfg.type, file_list)
+                self.get_list_objects(cfg.input_dir, file_list["xml_file"])
                 self.get_source_pos_from_3d_dataset()
 
         return file_list
@@ -268,13 +269,13 @@ class Dataset3DGeneration:
                     self.config_full.update(self.config_full)
                     self.config_target = self.config_full.target
 
-    def get_base_objects(self, dl3_dir_dict, model, key, dl3_type, file_list):
+    def get_base_objects(self, dl3_dir_dict, key, dl3_type, file_list):
         """
         For a DL3 files type and tag of the 'mode of observations' or key
         (FRONT or BACK for Fermi-LAT), read the files to appropriate Object
         type for further analysis.
         """
-        dl3_info = DL3Files(dl3_dir_dict, model, file_list, log=self.log)
+        dl3_info = DL3Files(dl3_dir_dict, file_list, log=self.log)
         file_list = dl3_info.prepare_lat_files(key, file_list)
         object_list = []
 
@@ -355,7 +356,7 @@ class Dataset3DGeneration:
 
         return source_pos
 
-    def get_list_objects(self, aux_path, xml_file, lp_is_intrinsic=False):
+    def get_list_objects(self, aux_path, xml_file):
         """
         Read from the XML file to enlist the various objects and get their
         SkyModels
@@ -371,7 +372,7 @@ class Dataset3DGeneration:
                 source = create_gal_diffuse_skymodel(self.diffuse_models["diff_gal"])
             else:
                 source, is_target_source = create_source_skymodel(
-                    self.config_target, source, aux_path, lp_is_intrinsic
+                    self.config_target, source, aux_path
                 )
             if is_target_source:
                 self.list_sources.insert(0, source)

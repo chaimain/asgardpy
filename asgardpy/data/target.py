@@ -341,7 +341,7 @@ def xml_to_gammapy_model_params(
                 new_par["error"] = float(new_par["error"]) * float(new_par["scale"]) * 1e6
             new_par["min"] = float(new_par["min"]) * float(new_par["scale"]) * 1e6
             new_par["max"] = float(new_par["max"]) * float(new_par["scale"]) * 1e6
-        if new_par["name"] in ["index", "index_1"] and not keep_sign:
+        if new_par["name"] in ["index", "index_1", "index_2"] and not keep_sign:
             # Other than EBL Attenuated Power Law.
             # Maybe try using abs function to get always positive value
             new_par["value"] = -1 * float(new_par["value"])
@@ -363,6 +363,7 @@ def xml_to_gammapy_model_params(
         if new_par["name"] == "alpha" and spectrum_type == "PLSuperExpCutoff":
             new_par["frozen"] = par["@free"] == "0"
 
+        # new_par["error"] = 0
         new_param = Parameter(name=new_par["name"], value=new_par["value"])
         if "error" in new_par:
             new_param.error = new_par["error"]
@@ -379,7 +380,7 @@ def xml_to_gammapy_model_params(
     return params_final2
 
 
-def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=False):
+def create_source_skymodel(config_target, source, aux_path):
     """
     Build SkyModels from a given AsgardpyConfig section of the target
     source information, list of LAT files and other relevant information.
@@ -392,10 +393,6 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
         Dictionary containing the source models infromation from XML file.
     aux_path: str
         Path location of the LAT auxillary files.
-    lp_is_intrinsic: bool
-        Boolean to check if the given Model assumes an intrinsic spectrum of
-        Log Parabola type, but uses Power Law and then adds EBL attenuation
-        for characterizing the curvature.
 
     Returns
     -------
@@ -443,8 +440,8 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
 
                 spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(spectrum_type_final)()
 
-                if spectrum_type == "LogParabola" and "EblAtten" in source["spectrum"]["@type"]:
-                    if lp_is_intrinsic:
+                if spectrum_type == "LogParabola":
+                    if "EblAtten" in source["spectrum"]["@type"]:
                         spectral_model = LogParabolaSpectralModel()
                     else:
                         ebl_atten_pl = True
@@ -456,7 +453,6 @@ def create_source_skymodel(config_target, source, aux_path, lp_is_intrinsic=Fals
             spectrum_type,
             is_target=is_source_target,
             keep_sign=ebl_atten_pl,
-            lp_is_intrinsic=lp_is_intrinsic,
         )
 
         for param_ in params_list:

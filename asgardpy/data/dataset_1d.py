@@ -22,7 +22,7 @@ from gammapy.makers import (
     WobbleRegionsFinder,
 )
 from gammapy.maps import MapAxis, RegionGeom, WcsGeom
-from regions import CircleSkyRegion, PointSkyRegion
+from regions import CircleAnnulusSkyRegion, CircleSkyRegion, PointSkyRegion
 
 from asgardpy.data.base import AnalysisStepBase, BaseConfig
 from asgardpy.data.geom import EnergyAxisConfig, GeomConfig, SpatialPointConfig
@@ -151,7 +151,6 @@ class Dataset1DGeneration:
         file_list = {}
         dl3_info = DL3Files(
             self.config_1d_dataset_io[0],
-            self.config_target.components.spectral,
             file_list,
             log=self.log,
         )
@@ -288,7 +287,7 @@ class Dataset1DGeneration:
         # Exclusion mask
         if len(exclusion_params.regions) != 0:
             for region in exclusion_params.regions:
-                if region.name == "None":
+                if region.name == "":
                     coord = region.position
                     center_ex = SkyCoord(
                         u.Quantity(coord.lon), u.Quantity(coord.lat), frame=coord.frame
@@ -296,7 +295,13 @@ class Dataset1DGeneration:
                 else:
                     center_ex = SkyCoord.from_name(region.name)
 
-                if region.type == "CircleSkyRegion":
+                if region.type == "CircleAnnulusSkyRegion":
+                    excluded_region = CircleAnnulusSkyRegion(
+                        center=center_ex,
+                        inner_radius=u.Quantity(region.parameters["rad_0"]),
+                        outer_radius=u.Quantity(region.parameters["rad_1"]),
+                    )
+                elif region.type == "CircleSkyRegion":
                     excluded_region = CircleSkyRegion(
                         center=center_ex, radius=u.Quantity(region.parameters["region_radius"])
                     )
@@ -304,14 +309,22 @@ class Dataset1DGeneration:
                     self.log.error(f"Unknown type of region passed {region.type}")
                 self.exclusion_regions.append(excluded_region)
         else:
-            self.exclusion_regions = [None]
+            center_ex = SkyCoord(
+                u.Quantity(self.config_target.sky_position.lon),
+                u.Quantity(self.config_target.sky_position.lat),
+                frame=self.config_target.sky_position.frame,
+            )
+            self.exclusion_regions = []
 
         # Needs to be united with other Geometry creation functions, into a separate class
         # Also make these geom parameters also part of the config requirements
         excluded_geom = WcsGeom.create(
             npix=(125, 125), binsz=0.05, skydir=center_ex, proj="TAN", frame="icrs"
         )
-        exclusion_mask = ~excluded_geom.region_mask(self.exclusion_regions)
+        if len(self.exclusion_regions) > 0:
+            exclusion_mask = ~excluded_geom.region_mask(self.exclusion_regions)
+        else:
+            exclusion_mask = ~excluded_geom
 
         # Background reduction maker. Need to generalize further.
         if bkg_config.method == "reflected":
