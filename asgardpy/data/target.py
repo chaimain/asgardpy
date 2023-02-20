@@ -241,9 +241,7 @@ def config_to_dict(model_config):
     return model_dict
 
 
-def xml_to_gammapy_model_params(
-    params, spectrum_type, is_target=False, keep_sign=False
-):
+def xml_to_gammapy_model_params(params, spectrum_type, is_target=False, keep_sign=False):
     """
     Convert the Models information from XML model of FermiTools to Gammapy
     standards and return Parameters list.
