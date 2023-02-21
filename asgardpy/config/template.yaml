@@ -20,48 +20,48 @@ target:
   sky_position: &source_pos {frame: icrs, lon: 238.92934976 deg, lat: 11.19010155 deg}
   use_uniform_position: true
   extended: false
+  models_file: "model_template.yaml"
   components:
-    name: PG1553+113
-    type: SkyModel
-    spectral:
-      model_name: LogParabola
-      type: LogParabolaSpectralModel # For Gammapy Model registry search
-      parameters:
-      -   name: amplitude
-          value: 1e-05
-          unit: cm-2 s-1 TeV-1
-          error: 1.5e-06
-          min: 1e-13
-          max: 0.01
-          frozen: false
-      -   name: reference
-          value: 0.0015
-          unit: TeV
-          error: 0.0
-          min: 0.0001
-          max: 100.0
-          frozen: true
-      -   name: alpha
-          value: 1.5
-          unit: ''
-          error: 0.1
-          min: 0.5
-          max: 5.0
-          frozen: false
-      -   name: beta
-          value: 0.1
-          unit: ''
-          error: 0.01
-          min: 1e-6
-          max: 1.0
-          frozen: false
-      ebl_abs:
-        model_name: dominguez
-        type: EBLAbsorptionNormSpectralModel # For Gammapy Model registry search
-        redshift: 0.433
-        alpha_norm: 1.0
+  -   name: PG1553+113
+      type: SkyModel
+      spectral:
+          type: LogParabolaSpectralModel # For Gammapy Model registry search
+          parameters:
+          -   name: amplitude
+              value: 1e-05
+              unit: cm-2 s-1 TeV-1
+              error: 1.5e-06
+              min: 1e-13
+              max: 0.01
+              frozen: false
+          -   name: reference
+              value: 0.0015
+              unit: TeV
+              error: 0.0
+              min: 0.0001
+              max: 100.0
+              frozen: true
+          -   name: alpha
+              value: 1.5
+              unit: ''
+              error: 0.1
+              min: 0.5
+              max: 5.0
+              frozen: false
+          -   name: beta
+              value: 0.1
+              unit: ''
+              error: 0.01
+              min: 1e-6
+              max: 1.0
+              frozen: false
+          ebl_abs:
+            reference: dominguez
+            type: EBLAbsorptionNormSpectralModel # For Gammapy Model registry search
+            redshift: 0.433
+            alpha_norm: 1.0
   covariance: None
-  from_fermi: false
+  from_3d: false
 
 # Instrument datasets with 3D info
 dataset3d:
@@ -105,7 +105,7 @@ dataset3d:
             min: 0.001 TeV
             max: 1 TeV
         on_region: *source_pos
-          # radius: 0.4 deg 
+          # radius: 0.4 deg
         containment_correction: true
         spectral_energy_range: &lat_energy_range
           min: 100 MeV

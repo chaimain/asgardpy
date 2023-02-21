@@ -75,7 +75,7 @@ class PathType(str):
             path_ = Path(v).resolve()
             # Only check if the file location or directory path exists
             if path_.is_file():
-                path_ = path_.parent()
+                path_ = path_.parent
 
             if path_.exists():
                 return Path(v)

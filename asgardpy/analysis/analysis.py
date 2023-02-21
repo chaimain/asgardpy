@@ -25,6 +25,11 @@ class AsgardpyAnalysis:
     the moment of instantiation. In that case these parameters will overwrite
     the default values of those present in the configuration file.
 
+    A specific example of an upgrade of the configuration parameters is when
+    the Target Models information is provided as a path to a separate yaml file,
+    which is readable with AsgardpyConfig. In this case, the configuration used
+    in AsgardpyAnalysis is updated in the initialization step itself.
+
     Parameters
     ----------
     config : dict or `AsgardpyConfig`
@@ -34,6 +39,11 @@ class AsgardpyAnalysis:
     def __init__(self, config):
         self.log = log
         self.config = config
+
+        if self.config.target.models_file.is_file():
+            other_config = AsgardpyConfig.read(self.config.target.models_file)
+            self.config = self.config.update(other_config)
+
         self.config.set_logging()
         self.datasets = Datasets()
         self.instrument_spectral_info = {"name": [], "spectral_energy_ranges": []}

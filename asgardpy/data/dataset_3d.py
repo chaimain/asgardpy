@@ -223,12 +223,7 @@ class Dataset3DGeneration:
         """
         For each key type of files, read the files to get the required
         Gammapy objects for further analyses.
-
-        Model name is to check for scenario when an intrinsic LogParabola
-        model is saved as an EBL Attenuated Power Law model in LAT models.
         """
-        # lp_is_intrinsic = model.model_name == "LogParabola"
-
         file_list = {}
 
         for cfg in self.config_3d_dataset.io:
