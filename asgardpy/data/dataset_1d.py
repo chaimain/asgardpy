@@ -127,6 +127,7 @@ class Dataset1DGeneration:
     information provided on the 1D dataset and the target source.
 
     Runs the following steps:
+
     1. Read the DL3 files of 1D datasets into DataStore object.
 
     2. Perform any Observation selection, based on Observation IDs or time intervals.

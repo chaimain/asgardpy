@@ -125,7 +125,7 @@ def set_models(
         print(type(models))
         models = Models.read(models)
         print(type(models))
-    elif config.components:
+    elif len(config.components) > 0:
         spectral_model, spatial_model = read_models_from_asgardpy_config(config)
         models = Models(
             SkyModel(
@@ -175,7 +175,7 @@ def read_models_from_asgardpy_config(config):
     spatial_model: `gammapy.modeling.models.SpatialModel`
         Spatial Model components of a gammapy SkyModel object.
     """
-    model_config = config.components
+    model_config = config.components[0]
 
     # Spectral Model
     if model_config.spectral.ebl_abs.reference != "":
@@ -418,11 +418,7 @@ def create_source_skymodel(config_target, source, aux_path):
 
         # Only taking the spectral model information right now.
         if not config_target.from_3d:
-            if config_target.models_file.is_file():
-                models = Models.read(config_target.models_file)
-                spectral_model = models[0].spectral_model
-            else:
-                spectral_model, _ = read_models_from_asgardpy_config(config_target)
+            spectral_model, _ = read_models_from_asgardpy_config(config_target)
 
     if spectral_model is None:
         # Define the Spectral Model type for Gammapy
