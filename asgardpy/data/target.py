@@ -3,7 +3,6 @@ Classes containing the Target config parameters for the high-level interface and
 also the functions involving Models generation and assignment to datasets.
 """
 
-# from pathlib import Path
 from typing import List
 
 from astropy.coordinates import SkyCoord
@@ -44,7 +43,7 @@ __all__ = [
 
 # Basic components to define the Target Config and any Models Config
 class EBLAbsorptionModel(BaseConfig):
-    model_name: str = "dominguez"
+    reference: str = "dominguez"
     type: str = "EBLAbsorptionNormSpectralModel"
     redshift: float = 0.4
     alpha_norm: float = 1.0
@@ -61,14 +60,12 @@ class ModelParams(BaseConfig):
 
 
 class SpectralModelConfig(BaseConfig):
-    model_name: str = ""
     type: str = ""
     parameters: List[ModelParams] = [ModelParams()]
     ebl_abs: EBLAbsorptionModel = EBLAbsorptionModel()
 
 
 class SpatialModelConfig(BaseConfig):
-    model_name: str = ""
     type: str = ""
     parameters: List[ModelParams] = [ModelParams()]
 
@@ -86,9 +83,9 @@ class Target(BaseConfig):
     use_uniform_position: bool = True
     models_file: PathType = PathType(".")
     extended: bool = False
-    components: SkyModelComponent = SkyModelComponent()
+    components: List[SkyModelComponent] = [SkyModelComponent()]
     covariance: str = ""
-    from_fermi: bool = False
+    from_3d: bool = False
 
 
 # Function for Models assignment
@@ -124,6 +121,10 @@ def set_models(
     # Have some checks on argument types
     if isinstance(models, DatasetModels) or isinstance(models, list):
         models = Models(models)
+    elif isinstance(models, PathType):  # Check this condition
+        print(type(models))
+        models = Models.read(models)
+        print(type(models))
     elif config.components:
         spectral_model, spatial_model = read_models_from_asgardpy_config(config)
         models = Models(
@@ -133,8 +134,6 @@ def set_models(
                 name=config.source_name,
             )
         )
-    elif isinstance(models, str):  # Check this condition
-        models = Models.from_yaml(models)
     else:
         raise TypeError(f"Invalid type: {type(models)}")
 
@@ -179,14 +178,14 @@ def read_models_from_asgardpy_config(config):
     model_config = config.components
 
     # Spectral Model
-    if model_config.spectral.ebl_abs.model_name != "":
+    if model_config.spectral.ebl_abs.reference != "":
         model1 = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
             {"spectral": config_to_dict(model_config.spectral)}
         )
 
         ebl_model = model_config.spectral.ebl_abs
         model2 = EBLAbsorptionNormSpectralModel.read_builtin(
-            ebl_model.model_name, redshift=ebl_model.redshift
+            ebl_model.reference, redshift=ebl_model.redshift
         )
         if ebl_model.alpha_norm:
             model2.alpha_norm.value = ebl_model.alpha_norm
@@ -198,7 +197,7 @@ def read_models_from_asgardpy_config(config):
     spectral_model.name = config.source_name
 
     # Spatial model if provided
-    if model_config.spatial.model_name != "":
+    if model_config.spatial.type != "":
         spatial_model = SPATIAL_MODEL_REGISTRY.get_cls(model_config.spatial.type)().from_dict(
             {"spatial": config_to_dict(model_config.spatial)}
         )
@@ -412,14 +411,18 @@ def create_source_skymodel(config_target, source, aux_path):
     ebl_atten_pl = False
 
     # If Target source model's spectral component is to be taken from Config
-    # and not from Fermi.
+    # and not from 3D dataset.
     if source_name_check == target_check:
         source_name = config_target.source_name
         is_source_target = True
 
         # Only taking the spectral model information right now.
-        if not config_target.from_fermi:
-            spectral_model, _ = read_models_from_asgardpy_config(config_target)
+        if not config_target.from_3d:
+            if config_target.models_file.is_file():
+                models = Models.read(config_target.models_file)
+                spectral_model = models[0].spectral_model
+            else:
+                spectral_model, _ = read_models_from_asgardpy_config(config_target)
 
     if spectral_model is None:
         # Define the Spectral Model type for Gammapy
@@ -451,12 +454,12 @@ def create_source_skymodel(config_target, source, aux_path):
 
         for param_ in params_list:
             setattr(spectral_model, param_.name, param_)
-        config_spectral = config_target.components.spectral
+        config_spectral = config_target.components[0].spectral
         ebl_absorption_included = config_spectral.ebl_abs is not None
 
         if is_source_target and ebl_absorption_included:
             ebl_absorption = config_spectral.ebl_abs
-            ebl_model = ebl_absorption.model_name
+            ebl_model = ebl_absorption.reference
             ebl_spectral_model = EBLAbsorptionNormSpectralModel.read_builtin(
                 ebl_model, redshift=ebl_absorption.redshift
             )
