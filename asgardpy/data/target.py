@@ -114,17 +114,15 @@ def set_models(
         another model, maybe a Background Model. Not worked out currently.
 
     Returns
-    ------
+    -------
     datasets: `gammapy.datasets.Datasets`
         Datasets object with Models assigned.
     """
     # Have some checks on argument types
     if isinstance(models, DatasetModels) or isinstance(models, list):
         models = Models(models)
-    elif isinstance(models, PathType):  # Check this condition
-        print(type(models))
+    elif isinstance(models, PathType):
         models = Models.read(models)
-        print(type(models))
     elif len(config.components) > 0:
         spectral_model, spatial_model = read_models_from_asgardpy_config(config)
         models = Models(
@@ -163,8 +161,8 @@ def read_models_from_asgardpy_config(config):
     Reading Models information from AsgardpyConfig and return Spectral and
     Spatial Models object to be combined later into SkyModels/Models object.
 
-    Parameters
-    ----------
+    Parameter
+    ---------
     config: `AsgardpyConfig`
         Config section containing Target source information
 
@@ -217,8 +215,8 @@ def config_to_dict(model_config):
     model_config: `AsgardpyConfig`
         Config section containg Target Model SkyModel components only.
 
-    Return
-    ------
+    Returns
+    -------
     model_dict: dict
         dictionary of the particular model.
     """
