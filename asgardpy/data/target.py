@@ -4,8 +4,8 @@ also the functions involving Models generation and assignment to datasets.
 """
 
 from typing import List
-
 import numpy as np
+
 from astropy.coordinates import SkyCoord
 from gammapy.maps import Map
 from gammapy.modeling import Parameter, Parameters
@@ -123,6 +123,7 @@ class ExpCutoffLogParabolaSpectralModel(SpectralModel):
     alpha_1 = Parameter("alpha_1", -2)
     alpha_2 = Parameter("alpha_2", 1, frozen=True)
     beta = Parameter("beta", 1)
+    lambda_ = Parameter("lambda_", "0.1 TeV-1")
 
     @staticmethod
     def evaluate(energy, amplitude, reference, alpha_1, beta, lambda_, alpha_2):
@@ -254,9 +255,9 @@ def read_models_from_asgardpy_config(config):
                 {"spectral": config_to_dict(model_config.spectral)}
             )
         else:
-            spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(
-                model_config.spectral.type
-            )().from_dict({"spectral": config_to_dict(model_config.spectral)})
+            spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
+                {"spectral": config_to_dict(model_config.spectral)}
+            )
     spectral_model.name = config.source_name
 
     # Spatial model if provided
