@@ -34,6 +34,7 @@ components:
             frozen: false
         ebl_abs:
           reference: dominguez
+          # filename: /path/to/custom_ebl_model.fits.gz
           type: EBLAbsorptionNormSpectralModel
           redshift: 0.4
           alpha_norm: 1.0
