@@ -43,6 +43,7 @@ __all__ = [
 
 # Basic components to define the Target Config and any Models Config
 class EBLAbsorptionModel(BaseConfig):
+    filename: PathType = PathType(".")
     reference: str = "dominguez"
     type: str = "EBLAbsorptionNormSpectralModel"
     redshift: float = 0.4
@@ -182,9 +183,18 @@ def read_models_from_asgardpy_config(config):
         )
 
         ebl_model = model_config.spectral.ebl_abs
-        model2 = EBLAbsorptionNormSpectralModel.read_builtin(
-            ebl_model.reference, redshift=ebl_model.redshift
-        )
+
+        # First check for filename of a custom EBL model
+        if ebl_model.filename.is_file():
+            model2 = EBLAbsorptionNormSpectralModel.read(
+                str(ebl_model.filename), redshift=ebl_model.redshift
+            )
+            # Update the reference name when using the custom EBL model for logging
+            ebl_model.reference = ebl_model.filename.name[:-8].replace("-", "_")
+        else:
+            model2 = EBLAbsorptionNormSpectralModel.read_builtin(
+                ebl_model.reference, redshift=ebl_model.redshift
+            )
         if ebl_model.alpha_norm:
             model2.alpha_norm.value = ebl_model.alpha_norm
         spectral_model = model1 * model2
@@ -452,11 +462,17 @@ def create_source_skymodel(config_target, source, aux_path):
         ebl_absorption_included = config_spectral.ebl_abs is not None
 
         if is_source_target and ebl_absorption_included:
-            ebl_absorption = config_spectral.ebl_abs
-            ebl_model = ebl_absorption.reference
-            ebl_spectral_model = EBLAbsorptionNormSpectralModel.read_builtin(
-                ebl_model, redshift=ebl_absorption.redshift
-            )
+            ebl_model = config_spectral.ebl_abs
+
+            if ebl_model.filename.is_file():
+                ebl_spectral_model = EBLAbsorptionNormSpectralModel.read(
+                    str(ebl_model.filename), redshift=ebl_model.redshift
+                )
+                ebl_model.reference = ebl_model.filename.name[:-8].replace("-", "_")
+            else:
+                ebl_spectral_model = EBLAbsorptionNormSpectralModel.read_builtin(
+                    ebl_model.reference, redshift=ebl_model.redshift
+                )
             spectral_model = spectral_model * ebl_spectral_model
 
     # Reading Spatial model from the XML file
