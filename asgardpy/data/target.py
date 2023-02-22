@@ -189,6 +189,8 @@ def read_models_from_asgardpy_config(config):
             model2 = EBLAbsorptionNormSpectralModel.read(
                 str(ebl_model.filename), redshift=ebl_model.redshift
             )
+            # Update the reference name when using the custom EBL model for logging
+            ebl_model.reference = ebl_model.filename.name[:-8].replace("-", "_")
         else:
             model2 = EBLAbsorptionNormSpectralModel.read_builtin(
                 ebl_model.reference, redshift=ebl_model.redshift
@@ -466,6 +468,7 @@ def create_source_skymodel(config_target, source, aux_path):
                 ebl_spectral_model = EBLAbsorptionNormSpectralModel.read(
                     str(ebl_model.filename), redshift=ebl_model.redshift
                 )
+                ebl_model.reference = ebl_model.filename.name[:-8].replace("-", "_")
             else:
                 ebl_spectral_model = EBLAbsorptionNormSpectralModel.read_builtin(
                     ebl_model.reference, redshift=ebl_model.redshift
