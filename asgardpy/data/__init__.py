@@ -48,6 +48,7 @@ from asgardpy.data.reduction import (
     SafeMaskMethodsEnum,
 )
 from asgardpy.data.target import (
+    ExpCutoffLogParabolaSpectralModel,
     Target,
     config_to_dict,
     create_gal_diffuse_skymodel,
@@ -81,6 +82,7 @@ __all__ = [
     "TimeIntervalsConfig",
     "EnergyRangeConfig",
     "Target",
+    "ExpCutoffLogParabolaSpectralModel",
     "set_models",
     "config_to_dict",
     "xml_to_gammapy_model_params",
