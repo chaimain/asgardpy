@@ -233,6 +233,8 @@ class Dataset3DGeneration:
                     self.irfs["psf"],
                     self.irfs["edisp"],
                 ] = self.get_base_objects(cfg, key_name, cfg.type, file_list)
+            ## Maybe add an option for fermipy files, to use this AFTER reading from XML file and fetching the names of these files...
+            ## Or first use get_list_objects and then get_base_objects
             if cfg.type == "lat-aux":
                 file_list, [
                     self.diffuse_models["diff_gal"],
@@ -292,6 +294,7 @@ class Dataset3DGeneration:
         """
         Get the energy axes from the given Detector Response Matrix file.
         """
+        ## Name generalization for +fermipy files
         energy_lo = self.irfs["edisp"]["DRM"].data["ENERG_LO"] * u.MeV
         energy_hi = self.irfs["edisp"]["DRM"].data["ENERG_HI"] * u.MeV
 
@@ -306,7 +309,9 @@ class Dataset3DGeneration:
         Matrix file.
         """
         energy_axis, energy_axis_true = self.set_energy_axes()
+        ## Name generalization for +fermipy files
         drm = self.irfs["edisp"]["DRM"].data["MATRIX"]
+        ## Name generalization for +fermipy files
         drm_matrix = np.array(list(drm))
 
         self.irfs["edisp_kernel"] = EDispKernel(
@@ -362,9 +367,11 @@ class Dataset3DGeneration:
 
         for source in data:
             source_name = source["@name"]
-            if source_name == "IsoDiffModel":
+            ## Name generalization for +fermipy files
+            if source_name in ["IsoDiffModel", "isodiff"]:
                 source = self.diffuse_models["diff_iso"]
-            elif source_name == "GalDiffModel":
+            ## Name generalization for +fermipy files
+            elif source_name in ["GalDiffModel", "galdiff"]:
                 source = create_gal_diffuse_skymodel(self.diffuse_models["diff_gal"])
             else:
                 source, is_target_source = create_source_skymodel(
