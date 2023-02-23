@@ -5,6 +5,7 @@ also the functions involving Models generation and assignment to datasets.
 
 from typing import List
 
+import numpy as np
 from astropy.coordinates import SkyCoord
 from gammapy.maps import Map
 from gammapy.modeling import Parameter, Parameters
@@ -19,6 +20,7 @@ from gammapy.modeling.models import (
     PowerLawNormSpectralModel,
     PowerLawSpectralModel,
     SkyModel,
+    SpectralModel,
     TemplateSpatialModel,
     create_fermi_isotropic_diffuse_model,
 )
@@ -31,6 +33,7 @@ __all__ = [
     "SpectralModelConfig",
     "SpatialModelConfig",
     "Target",
+    "ExpCutoffLogParabolaSpectralModel",
     "set_models",
     "config_to_dict",
     "read_models_from_asgardpy_config",
@@ -87,6 +90,51 @@ class Target(BaseConfig):
     components: List[SkyModelComponent] = [SkyModelComponent()]
     covariance: str = ""
     from_3d: bool = False
+
+
+class ExpCutoffLogParabolaSpectralModel(SpectralModel):
+    r"""Spectral Exponential Cutoff Log Parabola model.
+
+    Using a simple template from Gammapy.
+
+    Parameters
+    ----------
+    amplitude : `~astropy.units.Quantity`
+        :math:`\phi_0`
+    reference : `~astropy.units.Quantity`
+        :math:`E_0`
+    alpha_1 : `~astropy.units.Quantity`
+        :math:`\alpha_1`
+    beta : `~astropy.units.Quantity`
+        :math:`\beta`
+    lambda_ : `~astropy.units.Quantity`
+        :math:`\lambda`
+    alpha_2 : `~astropy.units.Quantity`
+        :math:`\alpha_2`
+    """
+    tag = ["ExpCutoffLogParabolaSpectralModel", "ECLP"]
+
+    amplitude = Parameter(
+        "amplitude",
+        "1e-12 cm-2 s-1 TeV-1",
+        scale_method="scale10",
+        interp="log",
+        is_norm=True,
+    )
+    reference = Parameter("reference", "1 TeV", frozen=True)
+    alpha_1 = Parameter("alpha_1", -2)
+    alpha_2 = Parameter("alpha_2", 1, frozen=True)
+    beta = Parameter("beta", 1)
+    lambda_ = Parameter("lambda_", "0.1 TeV-1")
+
+    @staticmethod
+    def evaluate(energy, amplitude, reference, alpha_1, beta, lambda_, alpha_2):
+        """Evaluate the model (static function)."""
+        xx = energy / reference
+        exponent = -alpha_1 - beta * np.log(xx)
+        cutoff = np.exp(-np.power(energy * lambda_, alpha_2))
+
+        return amplitude * np.power(xx, exponent) * cutoff
 
 
 # Function for Models assignment
@@ -178,9 +226,14 @@ def read_models_from_asgardpy_config(config):
 
     # Spectral Model
     if model_config.spectral.ebl_abs.reference != "":
-        model1 = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
-            {"spectral": config_to_dict(model_config.spectral)}
-        )
+        if model_config.spectral.type == "ExpCutoffLogParabolaSpectralModel":
+            model1 = ExpCutoffLogParabolaSpectralModel().from_dict(
+                {"spectral": config_to_dict(model_config.spectral)}
+            )
+        else:
+            model1 = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
+                {"spectral": config_to_dict(model_config.spectral)}
+            )
 
         ebl_model = model_config.spectral.ebl_abs
 
@@ -199,9 +252,14 @@ def read_models_from_asgardpy_config(config):
             model2.alpha_norm.value = ebl_model.alpha_norm
         spectral_model = model1 * model2
     else:
-        spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
-            {"spectral": config_to_dict(model_config.spectral)}
-        )
+        if model_config.spectral.type == "ExpCutoffLogParabolaSpectralModel":
+            spectral_model = ExpCutoffLogParabolaSpectralModel().from_dict(
+                {"spectral": config_to_dict(model_config.spectral)}
+            )
+        else:
+            spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(
+                model_config.spectral.type
+            )().from_dict({"spectral": config_to_dict(model_config.spectral)})
     spectral_model.name = config.source_name
 
     # Spatial model if provided
