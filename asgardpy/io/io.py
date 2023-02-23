@@ -33,6 +33,7 @@ glob_dict_std = {
 
 # Basic Components for the Input Config
 class InputFilePatterns(BaseConfig):
+    ## Name generalization for +fermipy files
     events: str = "*events.fits*"
     edisp: str = "*DRM.fits*"
     exposure: str = "*BinnedMap.fits*"
@@ -195,7 +196,7 @@ class DL3Files:
         """
         self.lat_bute_file = []
         self.lat_ebin_file = []
-
+        ## Name generalization for +fermipy files
         if self.dl3_type.lower() == "lat":
             self.lat_spectra = self.dl3_path.glob(self.glob_dict["spectrum"])
             self.lat_bute_file = [
