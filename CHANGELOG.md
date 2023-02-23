@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Using separate yaml file for Target source by [@chaimain](https://github.com/chaimain).
 - Using custom EBL models from fits files by [@chaimain](https://github.com/chaimain).
 - Build some custom SpectralModel classes by [@chaimain](https://github.com/chaimain).
+- Remove unnecessary features by [@chaimain](https://github.com/chaimain).
 
 ## [0.1](https://github.com/chaimain/asgardpy/releases/tag/v0.1) - 2023-02-16
 

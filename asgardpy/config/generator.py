@@ -10,12 +10,7 @@ from pydantic.utils import deep_update
 from asgardpy.data.base import AnalysisStepEnum, BaseConfig, PathType
 from asgardpy.data.dataset_1d import Dataset1DConfig
 from asgardpy.data.dataset_3d import Dataset3DConfig
-from asgardpy.data.dl4 import (
-    ExcessMapConfig,
-    FitConfig,
-    FluxPointsConfig,
-    LightCurveConfig,
-)
+from asgardpy.data.dl4 import FitConfig, FluxPointsConfig
 from asgardpy.data.target import Target
 
 __all__ = ["AsgardpyConfig"]
@@ -59,8 +54,6 @@ class AsgardpyConfig(BaseConfig):
 
     fit_params: FitConfig = FitConfig()
     flux_points_params: FluxPointsConfig = FluxPointsConfig()
-    excess_map_params: ExcessMapConfig = ExcessMapConfig()
-    light_curve_params: LightCurveConfig = LightCurveConfig()
 
     def __str__(self):
         """
