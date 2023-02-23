@@ -50,7 +50,7 @@ class AsgardpyAnalysis:
         self.dataset_name_list = []
 
         self.final_model = Models()
-        self.final_data_products = ["fit", "fit_result", "flux_points", "light_curve"]
+        self.final_data_products = ["fit", "fit_result", "flux_points"]
 
         for data_product in self.final_data_products:
             setattr(self, data_product, None)
@@ -192,14 +192,6 @@ class AsgardpyAnalysis:
     def get_flux_points(self):
         """Calculate flux points for a specific model component."""
         self.run(steps=["flux-points"])
-
-    def get_excess_map(self):
-        """Calculate excess map with respect to the current model."""
-        self.run(steps=["excess-map"])
-
-    def get_light_curve(self):
-        """Calculate light curve for a specific model component."""
-        self.run(steps=["light-curve"])
 
     def update_config(self, config):
         self.config = self.config.update(config=config)

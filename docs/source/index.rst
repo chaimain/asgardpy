@@ -6,6 +6,9 @@
 **asgardpy package**
 ====================
 
+Gammapy-based package to support high-level analysis for multi-instruments joint datasets.
+
+
 Main structure
 --------------
 
@@ -29,8 +32,6 @@ The steps are:
 3. fit
 
 4. flux-points
-
-5. light-curve
 
 The main purpose of this pipeline is accomplished before the "fit" step, which is to compile a Gammapy Datasets object
 containing multiple types of datasets from multiple gamma-ray astronomical instruments, update them with appropriate
