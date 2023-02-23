@@ -177,20 +177,3 @@ fit_params:
 flux_points_params:
   parameters:
     selection_optional: "all"
-
-light_curve_params:
-  time_intervals:
-    format: "iso"
-    # intervals:
-  energy_edges:
-    min: "100 MeV"
-    max: "10 TeV"
-  parameters:
-    selection_optional: "all"
-
-excess_map_params:
-  energy_edges:
-    min: "100 MeV"
-    max: "10 TeV"
-  correlation_radius: 0.1 deg
-  # parameters:
