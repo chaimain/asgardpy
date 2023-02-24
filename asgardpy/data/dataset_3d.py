@@ -250,16 +250,16 @@ class Dataset3DGeneration:
                     io_ = self.update_aux_info_from_xml(
                         io_, file_list["xml_file"], fetch_iso_diff=True
                     )
-                elif io_.glob_pattern["gal_diffuse"] == "":
+                if io_.glob_pattern["gal_diffuse"] == "":
                     io_ = self.update_aux_info_from_xml(
                         io_, file_list["xml_file"], fetch_gal_diff=True
                     )
-                else:
-                    file_list, [
-                        self.diffuse_models["gal_diffuse"],
-                        self.diffuse_models["iso_diffuse"],
-                    ] = self.get_base_objects(io_, key_name, file_list)
-                    self.get_list_objects(io_.input_dir, file_list["xml_file"])
+
+                file_list, [
+                    self.diffuse_models["gal_diffuse"],
+                    self.diffuse_models["iso_diffuse"],
+                ] = self.get_base_objects(io_, key_name, file_list)
+                self.get_list_objects(io_.input_dir, file_list["xml_file"])
 
         return file_list
 
@@ -285,7 +285,6 @@ class Dataset3DGeneration:
                     file_path = source["spatialModel"]["@file"]
                     file_name = file_path.split("/")[-1]
                     io_dict.glob_pattern["gal_diffuse"] = file_name
-
         return io_dict
 
     def get_base_objects(self, dl3_dir_dict, key, file_list):
@@ -319,7 +318,6 @@ class Dataset3DGeneration:
         with open(xml_file) as file:
             data = xmltodict.parse(file.read())["source_library"]["source"]
 
-        # Fetch the FERMI_DIFFUSE_DIR from diffuse_models spectrum or spatialModels info
         for source in data:
             source_name = source["@name"]
             if source_name in ["IsoDiffModel", "isodiff"]:

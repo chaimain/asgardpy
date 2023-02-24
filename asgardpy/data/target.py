@@ -14,6 +14,7 @@ from gammapy.modeling.models import (
     SPECTRAL_MODEL_REGISTRY,
     DatasetModels,
     EBLAbsorptionNormSpectralModel,
+    GaussianSpatialModel,
     LogParabolaSpectralModel,
     Models,
     PointSpatialModel,
@@ -321,7 +322,7 @@ def xml_to_gammapy_model_params(params, spectrum_type, is_target=False, keep_sig
         List of gammapy Parameter object of a particular Model
     spectrum_type: str
         Spectrum type as defined in XML. To be used only for special cases like
-        PLSuperExpCutoff and PLSuperExpCutoff4
+        PLSuperExpCutoff, PLSuperExpCutoff2 and PLSuperExpCutoff4
     is_target: bool
         Boolean to check if the given list of Parameters belong to the target
         source model or not.
@@ -370,7 +371,7 @@ def xml_to_gammapy_model_params(params, spectrum_type, is_target=False, keep_sig
             if par["@name"].lower() in ["index"]:
                 new_par["name"] = "index"
             if par["@name"].lower() in ["index1"]:
-                if spectrum_type == "PLSuperExpCutoff":
+                if spectrum_type in ["PLSuperExpCutoff", "PLSuperExpCutoff2"]:
                     new_par["name"] = "index"
                 else:
                     new_par["name"] = "index1"  # For spectrum_type == "BrokenPowerLaw"
@@ -379,7 +380,7 @@ def xml_to_gammapy_model_params(params, spectrum_type, is_target=False, keep_sig
             if par["@name"].lower() in ["index2"]:
                 if spectrum_type == "PLSuperExpCutoff4":
                     new_par["name"] = "index_2"
-                elif spectrum_type == "PLSuperExpCutoff":
+                elif spectrum_type in ["PLSuperExpCutoff", "PLSuperExpCutoff2"]:
                     new_par["name"] = "alpha"
                 else:
                     new_par["name"] = "index2"  # For spectrum_type == "BrokenPowerLaw"
@@ -411,15 +412,29 @@ def xml_to_gammapy_model_params(params, spectrum_type, is_target=False, keep_sig
             new_par["min"] = -1 * max_
             new_par["max"] = -1 * min_
         if new_par["name"] in ["lambda_"]:
-            val_ = float(new_par["value"])
-            new_par["value"] = 1e6 / val_
-            if "error" in new_par:
-                new_par["error"] = 1e6 * float(new_par["error"]) / (val_**2)
-            min_ = float(new_par["min"])
-            max_ = float(new_par["max"])
-            new_par["min"] = 1e6 / max_
-            new_par["max"] = 1e6 / min_
-        if new_par["name"] == "alpha" and spectrum_type == "PLSuperExpCutoff":
+            if spectrum_type == "PLSuperExpCutoff":
+                val_ = float(new_par["value"])
+                new_par["value"] = 1e6 / val_
+                if "error" in new_par:
+                    new_par["error"] = 1e6 * float(new_par["error"]) / (val_**2)
+                min_ = float(new_par["min"])
+                max_ = float(new_par["max"])
+                new_par["min"] = 1e6 / max_
+                new_par["max"] = 1e6 / min_
+            if spectrum_type == "PLSuperExpCutoff2":
+                val_ = float(new_par["value"]) * 1.0e-6
+                new_par["value"] = val_
+                if "error" in new_par:
+                    new_par["error"] = float(new_par["error"]) * 1.0e-6
+                min_ = float(new_par["min"]) * 1.0e-6
+                max_ = float(new_par["max"]) * 1.0e-6
+                new_par["min"] = max_
+                new_par["max"] = min_
+
+        if new_par["name"] == "alpha" and spectrum_type in [
+            "PLSuperExpCutoff",
+            "PLSuperExpCutoff2",
+        ]:
             new_par["frozen"] = par["@free"] == "0"
 
         # new_par["error"] = 0
@@ -490,7 +505,7 @@ def create_source_skymodel(config_target, source, aux_path):
         # Define the Spectral Model type for Gammapy
         for spec in spectrum:
             if spec["@name"] not in ["GalDiffModel", "IsoDiffModel"]:
-                if spectrum_type == "PLSuperExpCutoff":
+                if spectrum_type in ["PLSuperExpCutoff", "PLSuperExpCutoff2"]:
                     spectrum_type_final = "ExpCutoffPowerLawSpectralModel"
                 elif spectrum_type == "PLSuperExpCutoff4":
                     spectrum_type_final = "SuperExpCutoffPowerLaw4FGLDR3SpectralModel"
@@ -535,9 +550,14 @@ def create_source_skymodel(config_target, source, aux_path):
 
     # Reading Spatial model from the XML file
     if source["spatialModel"]["@type"] == "SkyDirFunction":
+        for par_ in spatial_pars:
+            if par_["@name"] == "RA":
+                lon_0 = f"{par_['@value']} deg"
+            if par_["@name"] == "DEC":
+                lat_0 = f"{par_['@value']} deg"
         fk5_frame = SkyCoord(
-            f"{spatial_pars[0]['@value']} deg",
-            f"{spatial_pars[1]['@value']} deg",
+            lon_0,
+            lat_0,
             frame="fk5",
         )
         gal_frame = fk5_frame.transform_to("galactic")
@@ -550,6 +570,15 @@ def create_source_skymodel(config_target, source, aux_path):
         spatial_map = spatial_map.copy(unit="sr^-1")
 
         spatial_model = TemplateSpatialModel(spatial_map, filename=file_path)
+    elif source["spatialModel"]["@type"] == "RadialGaussian":
+        for par_ in spatial_pars:
+            if par_["@name"] == "RA":
+                lon_0 = f"{par_['@value']} deg"
+            if par_["@name"] == "DEC":
+                lat_0 = f"{par_['@value']} deg"
+            if par_["@name"] == "Sigma":
+                sigma = f"{par_['@value']} deg"
+        spatial_model = GaussianSpatialModel(lon_0=lon_0, lat_0=lat_0, sigma=sigma, frame="icrs")
 
     spatial_model.freeze()
     source_sky_model = SkyModel(

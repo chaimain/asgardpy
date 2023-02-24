@@ -10,7 +10,7 @@ general:
     datefmt: "%d-%b-%y %H:%M:%S"
   outdir: .
   n_jobs: 1
-  steps: [datasets-3d, datasets-1d, fit, flux-points, light-curve]
+  steps: [datasets-3d, datasets-1d, fit, flux-points]
   overwrite: true
   stacked_dataset: true
 
@@ -25,7 +25,7 @@ target:
   -   name: PG1553+113
       type: SkyModel
       spectral:
-          type: LogParabolaSpectralModel # For Gammapy Model registry search
+          type: LogParabolaSpectralModel
           parameters:
           -   name: amplitude
               value: 1e-05
@@ -57,7 +57,7 @@ target:
               frozen: false
           ebl_abs:
             reference: dominguez
-            type: EBLAbsorptionNormSpectralModel # For Gammapy Model registry search
+            type: EBLAbsorptionNormSpectralModel
             redshift: 0.433
             alpha_norm: 1.0
   covariance: None
@@ -165,7 +165,7 @@ dataset1d:
 
 # Fit parameters
 fit_params:
-  fit_range: &spectral_energy_range
+  fit_range:
     min: "100 MeV"
     max: "1 TeV"
   backend: minuit

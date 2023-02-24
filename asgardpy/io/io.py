@@ -117,7 +117,7 @@ class DL3Files:
             self.iso_diff_files = sorted(list(self.dl3_path.glob(self.glob_dict["iso_diffuse"])))
 
         if self.dl3_type.lower() == "lst-1":
-            self.event_files = sorted(list(self.dl3_path.glob(self.glob_dict["dl3"])))
+            self.events_files = sorted(list(self.dl3_path.glob(self.glob_dict["dl3"])))
 
     def select_unique_files(self, key, file_list):
         """
@@ -136,25 +136,35 @@ class DL3Files:
             file_list["xml_file"] = self.xml_files[0]
 
         if self.dl3_type.lower() == "lat-aux":
-            var_list = [
-                "iso_diff_files",
-            ]
+            if "0" not in key:  # For fermipy files, the diffuse files are already unique
+                var_list = [
+                    "iso_diff_files",
+                ]
+            else:
+                var_list = []
+                if isinstance(self.iso_diff_files, list):
+                    self.iso_gal_f = self.iso_diff_files[0]
+                else:
+                    self.iso_gal_f = self.iso_diff_files
+                file_list["iso_diff_file"] = self.iso_gal_f
+
             if isinstance(self.gal_diff_files, list):
                 self.diff_gal_f = self.gal_diff_files[0]
             else:
                 self.diff_gal_f = self.gal_diff_files
             file_list["gal_diff_file"] = self.diff_gal_f
 
-        for _v in var_list:
-            try:
-                filtered = [K for K in getattr(self, _v) if key in str(K)]
-                assert len(filtered) == 1
-            except Exception:
-                self.log.error(
-                    f"Variable self.{_v} does not contain one element after filtering by {key}"
-                )
-            else:
-                setattr(self, _v.replace("_files", "_f"), filtered[0])
-            file_list[_v.replace("files", "file")] = getattr(self, _v.replace("_files", "_f"))
+        if len(var_list) > 0:
+            for _v in var_list:
+                try:
+                    filtered = [K for K in getattr(self, _v) if key in str(K.name)]
+                    assert len(filtered) == 1
+                except Exception:
+                    self.log.error(
+                        f"Variable self.{_v} does not contain one element after filtering by {key}"
+                    )
+                else:
+                    setattr(self, _v.replace("_files", "_f"), filtered[0])
+                file_list[_v.replace("files", "file")] = getattr(self, _v.replace("_files", "_f"))
 
         return file_list
