@@ -5,28 +5,17 @@ Main classes to define High-level Analysis Config and the Analysis Steps.
 from enum import Enum
 
 from astropy import units as u
-from astropy.time import Time
 from gammapy.datasets import Datasets
-from gammapy.estimators import FluxPointsEstimator, LightCurveEstimator
+from gammapy.estimators import FluxPointsEstimator
 from gammapy.modeling import Fit
 
-from asgardpy.data.base import (
-    AnalysisStepBase,
-    AngleType,
-    BaseConfig,
-    EnergyRangeConfig,
-    TimeIntervalsConfig,
-)
-from asgardpy.data.geom import EnergyAxisConfig
+from asgardpy.data.base import AnalysisStepBase, BaseConfig, EnergyRangeConfig
 
 __all__ = [
     "FluxPointsConfig",
-    "LightCurveConfig",
     "FitConfig",
-    "ExcessMapConfig",
     "FitAnalysisStep",
     "FluxPointsAnalysisStep",
-    "LightCurveAnalysisStep",
 ]
 
 
@@ -47,18 +36,6 @@ class FitConfig(BaseConfig):
 
 class FluxPointsConfig(BaseConfig):
     parameters: dict = {"selection_optional": "all"}
-
-
-class LightCurveConfig(BaseConfig):
-    time_intervals: TimeIntervalsConfig = TimeIntervalsConfig()
-    energy_edges: EnergyAxisConfig = EnergyAxisConfig()
-    parameters: dict = {"selection_optional": "all"}
-
-
-class ExcessMapConfig(BaseConfig):
-    correlation_radius: AngleType = 0.1 * u.deg
-    parameters: dict = {}
-    energy_edges: EnergyAxisConfig = EnergyAxisConfig()
 
 
 # The main Analysis Steps
@@ -170,70 +147,3 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
                 sorted_datasets.append(dataset_list)
 
         return sorted_datasets, sorted_energy_edges
-
-
-class LightCurveAnalysisStep(AnalysisStepBase):
-    """
-    Using the Light Curve Estimator parameters in the config, and the given
-    datasets and instrument_spectral_info perform the Light Curve Estimation
-    and store the result in a list of flux points for each dataset.
-    """
-
-    tag = "light-curve"
-
-    def _run(self):
-        self.light_curve = []
-
-        for dataset in self.datasets:
-            self._set_lce(dataset=dataset)
-            light_curve = self.lce.run(datasets=dataset)
-            light_curve.name = dataset.name
-
-            self.light_curve.append(light_curve)
-
-    def _set_lce(self, dataset=None):
-        """
-        Setup the Gammapy LightCurveEstimator function with all the
-        provided parameters.
-        """
-        if dataset is None:
-            dataset = self.datasets
-
-        energy_range = self.config.light_curve_params.energy_edges
-        energy_min = u.Quantity(energy_range.min)
-        energy_max = u.Quantity(energy_range.max)
-
-        # Check with the given energy range of counts of each dataset.
-        dataset_energy = dataset.counts.geom.axes["energy"].edges
-        data_geom_energy_min = dataset_energy[0]
-        data_geom_energy_max = dataset_energy[-1]
-
-        # Fix the energy range to be within the given dataset.
-        if energy_min < data_geom_energy_min:
-            energy_min = data_geom_energy_min
-        if energy_max > data_geom_energy_max:
-            energy_max = data_geom_energy_max
-
-        energy_bin_edges = [energy_min, energy_max]
-
-        time_intervals_params = self.config.light_curve_params.time_intervals
-        if time_intervals_params.intervals[0].start is None:
-            self.log.info("Time intervals not defined. Extract light curve on datasets GTIs.")
-            time_intervals = None
-        else:
-            time_intervals = []
-            for interval in time_intervals_params.intervals:
-                time_intervals.append(
-                    [
-                        Time(interval.start, format=time_intervals_params.format),
-                        Time(interval.stop, format=time_intervals_params.format),
-                    ]
-                )
-        lce_settings = self.config.light_curve_params.parameters
-
-        self.lce = LightCurveEstimator(
-            energy_edges=energy_bin_edges,
-            time_intervals=time_intervals,
-            source=self.config.target.source_name,
-            **lce_settings
-        )

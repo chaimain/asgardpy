@@ -16,13 +16,10 @@ from asgardpy.data.base import (
 from asgardpy.data.dataset_1d import Dataset1DGeneration, Datasets1DAnalysisStep
 from asgardpy.data.dataset_3d import Dataset3DGeneration, Datasets3DAnalysisStep
 from asgardpy.data.dl4 import (
-    ExcessMapConfig,
     FitAnalysisStep,
     FitConfig,
     FluxPointsAnalysisStep,
     FluxPointsConfig,
-    LightCurveAnalysisStep,
-    LightCurveConfig,
 )
 from asgardpy.data.geom import (
     EnergyAxesConfig,
@@ -62,10 +59,8 @@ ANALYSIS_STEP_REGISTRY = Registry(
     [
         Datasets1DAnalysisStep,
         Datasets3DAnalysisStep,
-        # ExcessMapAnalysisStep,
         FitAnalysisStep,
         FluxPointsAnalysisStep,
-        LightCurveAnalysisStep,
     ]
 )
 
@@ -113,10 +108,7 @@ __all__ = [
     "Dataset3DGeneration",
     "Datasets3DAnalysisStep",
     "FluxPointsConfig",
-    "LightCurveConfig",
     "FitConfig",
-    "ExcessMapConfig",
     "FitAnalysisStep",
     "FluxPointsAnalysisStep",
-    "LightCurveAnalysisStep",
 ]

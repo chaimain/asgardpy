@@ -80,8 +80,8 @@ dataset3d:
       -   type: lat-aux
           input_dir: "."
           glob_pattern:
-            diffuse: "gll_iem_v07.fits*"
-            iso: "iso_P8R3_SOURCE_V3_*.txt"
+            gal_diffuse: "gll_iem_v07.fits*"
+            iso_diffuse: "iso_P8R3_SOURCE_V3_*.txt"
       dataset_info:
         name: Fermi-LAT
         key: ["FRONT", "BACK"]
@@ -177,20 +177,3 @@ fit_params:
 flux_points_params:
   parameters:
     selection_optional: "all"
-
-light_curve_params:
-  time_intervals:
-    format: "iso"
-    # intervals:
-  energy_edges:
-    min: "100 MeV"
-    max: "10 TeV"
-  parameters:
-    selection_optional: "all"
-
-excess_map_params:
-  energy_edges:
-    min: "100 MeV"
-    max: "10 TeV"
-  correlation_radius: 0.1 deg
-  # parameters:
