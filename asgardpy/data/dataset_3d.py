@@ -183,7 +183,7 @@ class Dataset3DGeneration:
             "exposure_interp": None,
         }
         self.events = {"events": None, "event_fits": None, "gti": None, "counts_map": None}
-        self.diffuse_models = {"diff_gal": None, "diff_iso": None, "diff_gal_cutout": None}
+        self.diffuse_models = {"gal_diffuse": None, "iso_diffuse": None, "gal_diffuse_cutout": None}
         self.list_sources = []
 
         # For updating the main config file with target source position
@@ -202,17 +202,17 @@ class Dataset3DGeneration:
         source_pos = self.get_source_skycoord()
 
         # Create the Counts Map
-        self._counts_map(source_pos)
+        self.create_counts_map(source_pos)
 
         # Create any dataset reduction makers or mask
-        self._generate_diffuse_background_cutout()
+        self.generate_diffuse_background_cutout()
 
-        self._set_edisp_interpolator()
-        self._set_exposure_interpolator()
+        self.set_edisp_interpolator()
+        self.set_exposure_interpolator()
 
-        self._create_exclusion_mask()
+        self.create_exclusion_mask()
 
-        self._apply_exclusion_mask_to_models()
+        self.apply_exclusion_mask_to_models()
 
         # Generate the final dataset
         dataset = self.generate_dataset(key_name)
@@ -226,26 +226,117 @@ class Dataset3DGeneration:
         """
         file_list = {}
 
-        for cfg in self.config_3d_dataset.io:
-            if cfg.type == "lat":
+        # Read the first IO list for events, IRFs and XML files
+
+        # Get the Diffuse models files list
+        for io_ in self.config_3d_dataset.io:
+            if io_.type == "lat":
                 file_list, [
                     self.irfs["exposure"],
                     self.irfs["psf"],
                     self.irfs["edisp"],
-                ] = self.get_base_objects(cfg, key_name, cfg.type, file_list)
-            ## Maybe add an option for fermipy files, to use this AFTER reading from XML file and fetching the names of these files...
-            ## Or first use get_list_objects and then get_base_objects
-            if cfg.type == "lat-aux":
-                file_list, [
-                    self.diffuse_models["diff_gal"],
-                    self.diffuse_models["diff_iso"],
-                ] = self.get_base_objects(cfg, key_name, cfg.type, file_list)
-                self.get_list_objects(cfg.input_dir, file_list["xml_file"])
-                self.get_source_pos_from_3d_dataset()
+                ] = self.get_base_objects(io_, key_name, file_list)
+                self.update_source_pos_from_3d_dataset()
+
+                # Maybe add an option for fermipy files, to use this AFTER
+                # reading from XML file and fetching the names of these files...
+                # aux-path should be specified. FERMI_DIFFUSE_DIR. In future,
+                # one can download from web...? But that is only for public data
+                # Not general enough.
+
+                # Or first use get_list_objects and then get_base_objects
+            if io_.type == "lat-aux":
+                if io_.glob_pattern["iso_diffuse"] == "":
+                    io_ = self.update_aux_info_from_xml(
+                        io_, file_list["xml_file"], fetch_iso_diff=True
+                    )
+                elif io_.glob_pattern["gal_diffuse"] == "":
+                    io_ = self.update_aux_info_from_xml(
+                        io_, file_list["xml_file"], fetch_gal_diff=True
+                    )
+                else:
+                    file_list, [
+                        self.diffuse_models["gal_diffuse"],
+                        self.diffuse_models["iso_diffuse"],
+                    ] = self.get_base_objects(io_, key_name, file_list)
+                    self.get_list_objects(io_.input_dir, file_list["xml_file"])
 
         return file_list
 
-    def get_source_pos_from_3d_dataset(self):
+    def update_aux_info_from_xml(
+        self, io_dict, xml_file, fetch_iso_diff=False, fetch_gal_diff=False
+    ):
+        """
+        When no glob_search patterns on axuillary files are provided, fetch
+        them from the XML file and update the AsgardpyConfig object.
+        """
+        with open(xml_file) as file:
+            data = xmltodict.parse(file.read())["source_library"]["source"]
+
+        for source in data:
+            source_name = source["@name"]
+            if source_name in ["IsoDiffModel", "isodiff"]:
+                if fetch_iso_diff:
+                    file_path = source["spectrum"]["@file"]
+                    file_name = file_path.split("/")[-1]
+                    io_dict.glob_pattern["iso_diffuse"] = file_name
+            if source_name in ["GalDiffModel", "galdiff"]:
+                if fetch_gal_diff:
+                    file_path = source["spatialModel"]["@file"]
+                    file_name = file_path.split("/")[-1]
+                    io_dict.glob_pattern["gal_diffuse"] = file_name
+
+        return io_dict
+
+    def get_base_objects(self, dl3_dir_dict, key, file_list):
+        """
+        For a DL3 files type and tag of the 'mode of observations' or key
+        (FRONT/00 and BACK/01 for Fermi-LAT in enrico/fermipy files),
+        read the files to appropriate Object type for further analysis.
+        """
+        dl3_info = DL3Files(dl3_dir_dict, file_list, log=self.log)
+        file_list = dl3_info.prepare_lat_files(key, file_list)
+        object_list = []
+
+        if dl3_dir_dict.type.lower() == "lat":
+            exposure = Map.read(file_list["expmap_file"])
+            psf = PSFMap.read(file_list["psf_file"], format="gtpsf")
+            drmap = fits.open(file_list["edrm_file"])
+            object_list = [exposure, psf, drmap]
+
+        if dl3_dir_dict.type.lower() == "lat-aux":
+            diff_gal = Map.read(file_list["gal_diff_file"])
+            diff_iso = create_iso_diffuse_skymodel(file_list["iso_diff_file"], key)
+            object_list = [diff_gal, diff_iso]
+
+        return file_list, object_list
+
+    def get_list_objects(self, aux_path, xml_file):
+        """
+        Read from the XML file to enlist the various objects and get their
+        SkyModels
+        """
+        with open(xml_file) as file:
+            data = xmltodict.parse(file.read())["source_library"]["source"]
+
+        # Fetch the FERMI_DIFFUSE_DIR from diffuse_models spectrum or spatialModels info
+        for source in data:
+            source_name = source["@name"]
+            if source_name in ["IsoDiffModel", "isodiff"]:
+                source = self.diffuse_models["iso_diffuse"]
+            elif source_name in ["GalDiffModel", "galdiff"]:
+                source = create_gal_diffuse_skymodel(self.diffuse_models["gal_diffuse"])
+            else:
+                source, is_target_source = create_source_skymodel(
+                    self.config_target, source, aux_path
+                )
+            if is_target_source:
+                self.list_sources.insert(0, source)
+                is_target_source = False  # To not let it repeat
+            else:
+                self.list_sources.append(source)
+
+    def update_source_pos_from_3d_dataset(self):
         """
         Introduce the source coordinates from the 3D dataset to be the standard
         value in the main config file, for further use.
@@ -267,34 +358,10 @@ class Dataset3DGeneration:
                     self.config_full.update(self.config_full)
                     self.config_target = self.config_full.target
 
-    def get_base_objects(self, dl3_dir_dict, key, dl3_type, file_list):
-        """
-        For a DL3 files type and tag of the 'mode of observations' or key
-        (FRONT or BACK for Fermi-LAT), read the files to appropriate Object
-        type for further analysis.
-        """
-        dl3_info = DL3Files(dl3_dir_dict, file_list, log=self.log)
-        file_list = dl3_info.prepare_lat_files(key, file_list)
-        object_list = []
-
-        if dl3_type.lower() == "lat":
-            exposure = Map.read(file_list["expmap_file"])
-            psf = PSFMap.read(file_list["psf_file"], format="gtpsf")
-            drmap = fits.open(file_list["edrm_file"])
-            object_list = [exposure, psf, drmap]
-
-        if dl3_type.lower() == "lat-aux":
-            diff_gal = Map.read(file_list["diff_gal_file"])
-            diff_iso = create_iso_diffuse_skymodel(file_list["iso_file"], key)
-            object_list = [diff_gal, diff_iso]
-
-        return file_list, object_list
-
     def set_energy_axes(self):
         """
         Get the energy axes from the given Detector Response Matrix file.
         """
-        ## Name generalization for +fermipy files
         energy_lo = self.irfs["edisp"]["DRM"].data["ENERG_LO"] * u.MeV
         energy_hi = self.irfs["edisp"]["DRM"].data["ENERG_HI"] * u.MeV
 
@@ -309,9 +376,7 @@ class Dataset3DGeneration:
         Matrix file.
         """
         energy_axis, energy_axis_true = self.set_energy_axes()
-        ## Name generalization for +fermipy files
         drm = self.irfs["edisp"]["DRM"].data["MATRIX"]
-        ## Name generalization for +fermipy files
         drm_matrix = np.array(list(drm))
 
         self.irfs["edisp_kernel"] = EDispKernel(
@@ -357,33 +422,7 @@ class Dataset3DGeneration:
 
         return source_pos
 
-    def get_list_objects(self, aux_path, xml_file):
-        """
-        Read from the XML file to enlist the various objects and get their
-        SkyModels
-        """
-        with open(xml_file) as file:
-            data = xmltodict.parse(file.read())["source_library"]["source"]
-
-        for source in data:
-            source_name = source["@name"]
-            ## Name generalization for +fermipy files
-            if source_name in ["IsoDiffModel", "isodiff"]:
-                source = self.diffuse_models["diff_iso"]
-            ## Name generalization for +fermipy files
-            elif source_name in ["GalDiffModel", "galdiff"]:
-                source = create_gal_diffuse_skymodel(self.diffuse_models["diff_gal"])
-            else:
-                source, is_target_source = create_source_skymodel(
-                    self.config_target, source, aux_path
-                )
-            if is_target_source:
-                self.list_sources.insert(0, source)
-                is_target_source = False  # To not let it repeat
-            else:
-                self.list_sources.append(source)
-
-    def _counts_map(self, source_pos):
+    def create_counts_map(self, source_pos):
         """
         Generate the counts Map object and fill it with the events' RA-Dec
         position, Energy and Time information.
@@ -406,7 +445,7 @@ class Dataset3DGeneration:
             }
         )
 
-    def _generate_diffuse_background_cutout(self):
+    def generate_diffuse_background_cutout(self):
         """
         Perform a cutout of the Diffuse background model with respect to the
         counts map geom (may improve fitting speed?) and update the main list
@@ -414,27 +453,27 @@ class Dataset3DGeneration:
 
         The Template Spatial Model is without normalization currently.
         """
-        diffuse_cutout = self.diffuse_models["diff_gal"].cutout(
+        diffuse_cutout = self.diffuse_models["gal_diffuse"].cutout(
             self.events["counts_map"].geom.center_skydir, self.events["counts_map"].geom.width[0]
         )
 
         template_diffuse = TemplateSpatialModel(diffuse_cutout, normalize=False)
 
-        self.diffuse_models["diff_gal_cutout"] = SkyModel(
+        self.diffuse_models["gal_diffuse_cutout"] = SkyModel(
             spectral_model=PowerLawNormSpectralModel(),
             spatial_model=template_diffuse,
             name="diffuse-iem",
         )
-        self.diffuse_models["diff_gal_cutout"].parameters["norm"].min = 0
-        self.diffuse_models["diff_gal_cutout"].parameters["norm"].max = 10
-        self.diffuse_models["diff_gal_cutout"].parameters["norm"].frozen = False
+        self.diffuse_models["gal_diffuse_cutout"].parameters["norm"].min = 0
+        self.diffuse_models["gal_diffuse_cutout"].parameters["norm"].max = 10
+        self.diffuse_models["gal_diffuse_cutout"].parameters["norm"].frozen = False
 
         # Update the model in self.list_sources
         for k, model_ in enumerate(self.list_sources):
             if model_.name == "diffuse-iem":
-                self.list_sources[k] = self.diffuse_models["diff_gal_cutout"]
+                self.list_sources[k] = self.diffuse_models["gal_diffuse_cutout"]
 
-    def _set_edisp_interpolator(self):
+    def set_edisp_interpolator(self):
         """
         Get the Energy Dispersion Kernel interpolated along true and
         reconstructed energy of the real counts.
@@ -455,7 +494,7 @@ class Dataset3DGeneration:
             axes=[axis_true, axis_reco], data=np.asarray(drm_interp)
         )
 
-    def _set_exposure_interpolator(self):
+    def set_exposure_interpolator(self):
         """
         Set Exposure interpolated along energy axis of real counts.
         """
@@ -463,7 +502,7 @@ class Dataset3DGeneration:
             self.events["counts_map"].geom.as_energy_true
         )
 
-    def _create_exclusion_mask(self):
+    def create_exclusion_mask(self):
         """
         Generate an Exclusion Mask for the final MapDataset and also select
         the region for the list of Models using the excluded regions.
@@ -534,7 +573,7 @@ class Dataset3DGeneration:
 
         return exclusion_regions
 
-    def _apply_exclusion_mask_to_models(self):
+    def apply_exclusion_mask_to_models(self):
         """
         Applying the exclusion mask to the list of sources, excluding the diffuse background,
         to have the same selection regions as counts_map.
