@@ -365,7 +365,7 @@ def xml_to_gammapy_model_params(params, spectrum_type, is_target=False, keep_sig
                 new_par["name"] = "emin"
             if par["@name"].lower() in ["upperlimit"]:
                 new_par["name"] = "emax"
-            if par["@name"].lower() in ["cutoff"]:
+            if par["@name"].lower() in ["cutoff", "expfactor"]:
                 new_par["name"] = "lambda_"
                 new_par["unit"] = "TeV-1"
             if par["@name"].lower() in ["index"]:
@@ -390,46 +390,59 @@ def xml_to_gammapy_model_params(params, spectrum_type, is_target=False, keep_sig
         # Some modifications:
         if new_par["name"] in ["reference", "ebreak", "emin", "emax"]:
             new_par["unit"] = "TeV"
-            new_par["value"] = float(new_par["value"]) * float(new_par["scale"]) * 1e-6
+            new_par["value"] = float(new_par["value"]) * float(new_par["scale"]) * 1.0e-6
             if "error" in new_par:
-                new_par["error"] = float(new_par["error"]) * float(new_par["scale"]) * 1e-6
-            new_par["min"] = float(new_par["min"]) * float(new_par["scale"]) * 1e-6
-            new_par["max"] = float(new_par["max"]) * float(new_par["scale"]) * 1e-6
+                new_par["error"] = float(new_par["error"]) * float(new_par["scale"]) * 1.0e-6
+            new_par["min"] = float(new_par["min"]) * float(new_par["scale"]) * 1.0e-6
+            new_par["max"] = float(new_par["max"]) * float(new_par["scale"]) * 1.0e-6
         if new_par["name"] in ["amplitude"]:
-            new_par["value"] = float(new_par["value"]) * float(new_par["scale"]) * 1e6
+            new_par["value"] = float(new_par["value"]) * float(new_par["scale"]) * 1.0e6
             if "error" in new_par:
-                new_par["error"] = float(new_par["error"]) * float(new_par["scale"]) * 1e6
-            new_par["min"] = float(new_par["min"]) * float(new_par["scale"]) * 1e6
-            new_par["max"] = float(new_par["max"]) * float(new_par["scale"]) * 1e6
+                new_par["error"] = float(new_par["error"]) * float(new_par["scale"]) * 1.0e6
+            new_par["min"] = float(new_par["min"]) * float(new_par["scale"]) * 1.0e6
+            new_par["max"] = float(new_par["max"]) * float(new_par["scale"]) * 1.0e6
         if new_par["name"] in ["index", "index_1", "index_2"] and not keep_sign:
             # Other than EBL Attenuated Power Law.
             # Maybe try using abs function to get always positive value
-            new_par["value"] = -1 * float(new_par["value"])
+            new_par["value"] = -1 * float(new_par["value"]) * float(new_par["scale"])
 
             # Reverse the limits while changing the sign
-            min_ = float(new_par["min"])
-            max_ = float(new_par["max"])
-            new_par["min"] = -1 * max_
-            new_par["max"] = -1 * min_
+            min_ = -1 * float(new_par["min"]) * float(new_par["scale"])
+            max_ = -1 * float(new_par["max"]) * float(new_par["scale"])
+            new_par["min"] = min(min_, max_)
+            new_par["max"] = max(min_, max_)
+        if new_par["name"] in ["beta"]:
+            # Some unique cases when some params have negative values, but not in scale
+            val_ = float(new_par["value"]) * float(new_par["scale"])
+            if val_ < 0:
+                new_par["value"] = -1 * val_
+
+                # Reverse the limits while changing the sign
+                min_ = -1 * float(new_par["min"]) * float(new_par["scale"])
+                max_ = -1 * float(new_par["max"]) * float(new_par["scale"])
+                new_par["min"] = min(min_, max_)
+                new_par["max"] = max(min_, max_)
+
         if new_par["name"] in ["lambda_"]:
             if spectrum_type == "PLSuperExpCutoff":
-                val_ = float(new_par["value"])
-                new_par["value"] = 1e6 / val_
+                # Original parameter is inverse of what gammapy uses
+                val_ = float(new_par["value"]) * float(new_par["scale"])
+                new_par["value"] = 1.0e6 / val_
                 if "error" in new_par:
-                    new_par["error"] = 1e6 * float(new_par["error"]) / (val_**2)
-                min_ = float(new_par["min"])
-                max_ = float(new_par["max"])
-                new_par["min"] = 1e6 / max_
-                new_par["max"] = 1e6 / min_
+                    new_par["error"] = 1.0e6 * float(new_par["error"]) / (val_**2)
+                min_ = 1.0e6 / (float(new_par["min"]) * float(new_par["scale"]))
+                max_ = 1.0e6 / (float(new_par["max"]) * float(new_par["scale"]))
+                new_par["min"] = min(min_, max_)
+                new_par["max"] = max(min_, max_)
             if spectrum_type == "PLSuperExpCutoff2":
-                val_ = float(new_par["value"]) * 1.0e-6
+                val_ = float(new_par["value"]) * float(new_par["scale"]) * 1.0e6
                 new_par["value"] = val_
                 if "error" in new_par:
-                    new_par["error"] = float(new_par["error"]) * 1.0e-6
-                min_ = float(new_par["min"]) * 1.0e-6
-                max_ = float(new_par["max"]) * 1.0e-6
-                new_par["min"] = max_
-                new_par["max"] = min_
+                    new_par["error"] = float(new_par["error"]) * float(new_par["scale"]) * 1.0e6
+                min_ = float(new_par["min"]) * float(new_par["scale"]) * 1.0e6
+                max_ = float(new_par["max"]) * float(new_par["scale"]) * 1.0e6
+                new_par["min"] = min_
+                new_par["max"] = max_
 
         if new_par["name"] == "alpha" and spectrum_type in [
             "PLSuperExpCutoff",
@@ -516,10 +529,10 @@ def create_source_skymodel(config_target, source, aux_path):
 
                 if spectrum_type == "LogParabola":
                     if "EblAtten" in source["spectrum"]["@type"]:
-                        spectral_model = LogParabolaSpectralModel()
-                    else:
-                        ebl_atten_pl = True
                         spectral_model = PowerLawSpectralModel()
+                        ebl_atten_pl = True
+                    else:
+                        spectral_model = LogParabolaSpectralModel()
 
         # Read the parameter values from XML file to create SpectralModel
         params_list = xml_to_gammapy_model_params(
@@ -578,7 +591,15 @@ def create_source_skymodel(config_target, source, aux_path):
                 lat_0 = f"{par_['@value']} deg"
             if par_["@name"] == "Sigma":
                 sigma = f"{par_['@value']} deg"
-        spatial_model = GaussianSpatialModel(lon_0=lon_0, lat_0=lat_0, sigma=sigma, frame="icrs")
+        fk5_frame = SkyCoord(
+            lon_0,
+            lat_0,
+            frame="fk5",
+        )
+        # gal_frame = fk5_frame.transform_to("galactic")
+        # spatial_model = GaussianSpatialModel.from_position(gal_frame)
+        # spatial_model.sigma.value = float(sigma[:-4])
+        spatial_model = GaussianSpatialModel(lon_0=lon_0, lat_0=lat_0, sigma=sigma, frame="fk5")
 
     spatial_model.freeze()
     source_sky_model = SkyModel(
