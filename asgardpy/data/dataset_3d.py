@@ -5,6 +5,7 @@ to generate 3D Datasets from given Instruments' DL3 data from the config.
 
 import logging
 from typing import List
+import re
 
 import numpy as np
 import xmltodict
@@ -199,10 +200,10 @@ class Dataset3DGeneration:
         self.set_energy_dispersion_matrix()
         self.load_events(file_list["events_file"])
 
-        source_pos = self.get_source_skycoord()
+        source_pos, evts_radius = self.get_source_skycoord()
 
         # Create the Counts Map
-        self.create_counts_map(source_pos)
+        self.create_counts_map(source_pos, evts_radius)
 
         # Create any dataset reduction makers or mask
         self.generate_diffuse_background_cutout()
@@ -405,33 +406,37 @@ class Dataset3DGeneration:
 
     def get_source_skycoord(self):
         """
-        Get the source skycoord from the events file.
+        Get the source skycoord and the ROI radius from the events file.
         """
         try:
             dsval2 = self.events["event_fits"][1].header["DSVAL2"]
-            ra_pos, dec_pos = [float(k) for k in dsval2.split("(")[1].split(",")[0:2]]
+            list_str_check = re.findall(r"[-+]?\d*\.\d+|\d+", dsval2)
+            ra_pos, dec_pos, evts_radius = [float(k) for k in list_str_check]
         except IndexError:
             history = str(self.events["event_fits"][1].header["HISTORY"])
-            ra_pos, dec_pos = (
-                history.split("angsep(RA,DEC,")[1].replace("\n", "").split(")")[0].split(",")
-            )
+            str_ = history.split("angsep(RA,DEC,")[1]
+            list_str_check = re.findall(r"[-+]?\d*\.\d+|\d+", str_)[:3]
+            ra_pos, dec_pos, evts_radius = [float(k) for k in list_str_check]
 
         source_pos = SkyCoord(ra_pos, dec_pos, unit="deg", frame="fk5")
 
-        return source_pos
+        return source_pos, evts_radius
 
-    def create_counts_map(self, source_pos):
+    def create_counts_map(self, source_pos, evts_radius):
         """
         Generate the counts Map object and fill it with the events' RA-Dec
         position, Energy and Time information.
         """
         energy_axis, _ = self.set_energy_axes()
         self.events["counts_map"] = Map.create(
-            skydir=source_pos,
-            npix=(self.irfs["exposure"].geom.npix[0][0], self.irfs["exposure"].geom.npix[1][0]),
-            proj="TAN",
-            frame="fk5",
-            binsz=self.irfs["exposure"].geom.pixel_scales[0],
+            skydir=source_pos.galactic,
+            npix=(
+                int(evts_radius * 20),
+                int(evts_radius * 20),
+            ),  # Using the limits from the events fits file
+            proj="TAN",  # Hard-coded for now
+            frame="galactic",
+            binsz=0.1,  # Small pixel size, hard-coded for now
             axes=[energy_axis],
             dtype=float,
         )

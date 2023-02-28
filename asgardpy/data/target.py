@@ -672,7 +672,7 @@ def create_gal_diffuse_skymodel(diff_gal):
         diff_gal, normalize=False
     )
     source = SkyModel(
-        spectral_model=SPATIAL_MODEL_REGISTRY.get_cls("PowerLawNormSpectralModel")(),
+        spectral_model=SPECTRAL_MODEL_REGISTRY.get_cls("PowerLawNormSpectralModel")(),
         spatial_model=template_diffuse,
         name="diffuse-iem",
     )
