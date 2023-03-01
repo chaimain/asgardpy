@@ -4,8 +4,8 @@ to generate 3D Datasets from given Instruments' DL3 data from the config.
 """
 
 import logging
-from typing import List
 import re
+from typing import List
 
 import numpy as np
 import xmltodict
@@ -426,8 +426,15 @@ class Dataset3DGeneration:
         """
         Generate the counts Map object and fill it with the events' RA-Dec
         position, Energy and Time information.
+        The energy axis is used from the spectral energy range provided in the Config.
         """
-        energy_axis, _ = self.set_energy_axes()
+        energy_range = self.config_3d_dataset.dataset_info.spectral_energy_range
+        energy_axis = MapAxis.from_energy_bounds(
+            energy_min=u.Quantity(energy_range.min),
+            energy_max=u.Quantity(energy_range.max),
+            nbin=int(energy_range.nbins),
+            per_decade=True,
+        )
         self.events["counts_map"] = Map.create(
             skydir=source_pos.galactic,
             npix=(
