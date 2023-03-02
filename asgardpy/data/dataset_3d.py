@@ -306,6 +306,7 @@ class Dataset3DGeneration:
 
         if dl3_dir_dict.type.lower() == "lat-aux":
             diff_gal = Map.read(file_list["gal_diff_file"])
+            diff_gal.meta["filename"] = file_list["gal_diff_file"]
             diff_iso = create_iso_diffuse_skymodel(file_list["iso_diff_file"], key)
             object_list = [diff_gal, diff_iso]
 

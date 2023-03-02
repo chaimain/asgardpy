@@ -669,7 +669,7 @@ def create_gal_diffuse_skymodel(diff_gal):
     Create SkyModel of the Diffuse Galactic sources.
     """
     template_diffuse = SPATIAL_MODEL_REGISTRY.get_cls("TemplateSpatialModel")(
-        diff_gal, normalize=False
+        diff_gal, normalize=False, filename=diff_gal.meta["filename"]
     )
     source = SkyModel(
         spectral_model=SPECTRAL_MODEL_REGISTRY.get_cls("PowerLawNormSpectralModel")(),
