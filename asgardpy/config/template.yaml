@@ -10,7 +10,7 @@ general:
     datefmt: "%d-%b-%y %H:%M:%S"
   outdir: .
   n_jobs: 1
-  steps: [datasets-3d, datasets-1d, fit, flux-points, light-curve]
+  steps: [datasets-3d, datasets-1d, fit, flux-points]
   overwrite: true
   stacked_dataset: true
 
@@ -25,13 +25,13 @@ target:
   -   name: PG1553+113
       type: SkyModel
       spectral:
-          type: LogParabolaSpectralModel # For Gammapy Model registry search
+          type: LogParabolaSpectralModel
           parameters:
           -   name: amplitude
-              value: 1e-05
+              value: 1.0e-05
               unit: cm-2 s-1 TeV-1
               error: 1.5e-06
-              min: 1e-13
+              min: 1.0e-13
               max: 0.01
               frozen: false
           -   name: reference
@@ -52,12 +52,12 @@ target:
               value: 0.1
               unit: ''
               error: 0.01
-              min: 1e-6
+              min: 1.0e-6
               max: 1.0
               frozen: false
           ebl_abs:
             reference: dominguez
-            type: EBLAbsorptionNormSpectralModel # For Gammapy Model registry search
+            type: EBLAbsorptionNormSpectralModel
             redshift: 0.433
             alpha_norm: 1.0
   covariance: None
@@ -80,8 +80,8 @@ dataset3d:
       -   type: lat-aux
           input_dir: "."
           glob_pattern:
-            diffuse: "gll_iem_v07.fits*"
-            iso: "iso_P8R3_SOURCE_V3_*.txt"
+            gal_diffuse: "gll_iem_v07.fits*"
+            iso_diffuse: "iso_P8R3_SOURCE_V3_*.txt"
       dataset_info:
         name: Fermi-LAT
         key: ["FRONT", "BACK"]
@@ -165,7 +165,7 @@ dataset1d:
 
 # Fit parameters
 fit_params:
-  fit_range: &spectral_energy_range
+  fit_range:
     min: "100 MeV"
     max: "1 TeV"
   backend: minuit

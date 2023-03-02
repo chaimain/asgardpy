@@ -52,7 +52,8 @@ from asgardpy.data.target import (
     create_iso_diffuse_skymodel,
     create_source_skymodel,
     set_models,
-    xml_to_gammapy_model_params,
+    xml_spatial_model_to_gammapy,
+    xml_spectral_model_to_gammapy_params,
 )
 
 ANALYSIS_STEP_REGISTRY = Registry(
@@ -80,7 +81,8 @@ __all__ = [
     "ExpCutoffLogParabolaSpectralModel",
     "set_models",
     "config_to_dict",
-    "xml_to_gammapy_model_params",
+    "xml_spectral_model_to_gammapy_params",
+    "xml_spatial_model_to_gammapy",
     "create_source_skymodel",
     "create_iso_diffuse_skymodel",
     "create_gal_diffuse_skymodel",

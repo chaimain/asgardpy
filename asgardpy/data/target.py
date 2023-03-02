@@ -14,14 +14,9 @@ from gammapy.modeling.models import (
     SPECTRAL_MODEL_REGISTRY,
     DatasetModels,
     EBLAbsorptionNormSpectralModel,
-    LogParabolaSpectralModel,
     Models,
-    PointSpatialModel,
-    PowerLawNormSpectralModel,
-    PowerLawSpectralModel,
     SkyModel,
     SpectralModel,
-    TemplateSpatialModel,
     create_fermi_isotropic_diffuse_model,
 )
 
@@ -37,7 +32,8 @@ __all__ = [
     "set_models",
     "config_to_dict",
     "read_models_from_asgardpy_config",
-    "xml_to_gammapy_model_params",
+    "xml_spectral_model_to_gammapy_params",
+    "xml_spatial_model_to_gammapy",
     "create_source_skymodel",
     "create_iso_diffuse_skymodel",
     "create_gal_diffuse_skymodel",
@@ -306,14 +302,17 @@ def config_to_dict(model_config):
     return model_dict
 
 
-def xml_to_gammapy_model_params(params, spectrum_type, is_target=False, keep_sign=False):
+def xml_spectral_model_to_gammapy_params(params, spectrum_type, is_target=False, keep_sign=False):
     """
-    Convert the Models information from XML model of FermiTools to Gammapy
+    Convert the Spectral Models information from XML model of FermiTools to Gammapy
     standards and return Parameters list.
     Details of the XML model can be seen at
     https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/source_models.html
     and with examples at
     https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/xml_model_defs.html
+
+    Models from the XML model, not read are -
+    ExpCutoff, BPLExpCutoff, PLSuperExpCutoff3, Gaussian, BandFunction
 
     Parameters
     ----------
@@ -321,7 +320,7 @@ def xml_to_gammapy_model_params(params, spectrum_type, is_target=False, keep_sig
         List of gammapy Parameter object of a particular Model
     spectrum_type: str
         Spectrum type as defined in XML. To be used only for special cases like
-        PLSuperExpCutoff and PLSuperExpCutoff4
+        PLSuperExpCutoff, PLSuperExpCutoff2 and PLSuperExpCutoff4
     is_target: bool
         Boolean to check if the given list of Parameters belong to the target
         source model or not.
@@ -334,6 +333,7 @@ def xml_to_gammapy_model_params(params, spectrum_type, is_target=False, keep_sig
         Final list of gammapy Parameter object
     """
     new_params = []
+
     for par in params:
         new_par = {}
 
@@ -356,73 +356,104 @@ def xml_to_gammapy_model_params(params, spectrum_type, is_target=False, keep_sig
                 new_par["name"] = "amplitude"
                 new_par["unit"] = "cm-2 s-1 TeV-1"
                 new_par["is_norm"] = True
+
             if par["@name"].lower() in ["scale", "eb"]:
                 new_par["name"] = "reference"
+
             if par["@name"].lower() in ["breakvalue"]:
                 new_par["name"] = "ebreak"
+
             if par["@name"].lower() in ["lowerlimit"]:
                 new_par["name"] = "emin"
+
             if par["@name"].lower() in ["upperlimit"]:
                 new_par["name"] = "emax"
-            if par["@name"].lower() in ["cutoff"]:
+
+            if par["@name"].lower() in ["cutoff", "expfactor"]:
                 new_par["name"] = "lambda_"
                 new_par["unit"] = "TeV-1"
+
             if par["@name"].lower() in ["index"]:
                 new_par["name"] = "index"
+
             if par["@name"].lower() in ["index1"]:
-                if spectrum_type == "PLSuperExpCutoff":
+                if spectrum_type in ["PLSuperExpCutoff", "PLSuperExpCutoff2"]:
                     new_par["name"] = "index"
                 else:
                     new_par["name"] = "index1"  # For spectrum_type == "BrokenPowerLaw"
+
             if par["@name"].lower() in ["indexs"]:
                 new_par["name"] = "index_1"  # For spectrum_type == "PLSuperExpCutoff4"
+
             if par["@name"].lower() in ["index2"]:
                 if spectrum_type == "PLSuperExpCutoff4":
                     new_par["name"] = "index_2"
-                elif spectrum_type == "PLSuperExpCutoff":
+                elif spectrum_type in ["PLSuperExpCutoff", "PLSuperExpCutoff2"]:
                     new_par["name"] = "alpha"
                 else:
                     new_par["name"] = "index2"  # For spectrum_type == "BrokenPowerLaw"
+
             if par["@name"].lower() in ["expfactors"]:
                 new_par["name"] = "expfactor"
 
-        # Some modifications:
+        # Some modifications on scaling/sign:
         if new_par["name"] in ["reference", "ebreak", "emin", "emax"]:
             new_par["unit"] = "TeV"
-            new_par["value"] = float(new_par["value"]) * float(new_par["scale"]) * 1e-6
+            new_par["value"] = float(new_par["value"]) * float(new_par["scale"]) * 1.0e-6
             if "error" in new_par:
-                new_par["error"] = float(new_par["error"]) * float(new_par["scale"]) * 1e-6
-            new_par["min"] = float(new_par["min"]) * float(new_par["scale"]) * 1e-6
-            new_par["max"] = float(new_par["max"]) * float(new_par["scale"]) * 1e-6
-        if new_par["name"] in ["amplitude"]:
-            new_par["value"] = float(new_par["value"]) * float(new_par["scale"]) * 1e6
-            if "error" in new_par:
-                new_par["error"] = float(new_par["error"]) * float(new_par["scale"]) * 1e6
-            new_par["min"] = float(new_par["min"]) * float(new_par["scale"]) * 1e6
-            new_par["max"] = float(new_par["max"]) * float(new_par["scale"]) * 1e6
-        if new_par["name"] in ["index", "index_1", "index_2"] and not keep_sign:
-            # Other than EBL Attenuated Power Law.
-            # Maybe try using abs function to get always positive value
-            new_par["value"] = -1 * float(new_par["value"])
+                new_par["error"] = float(new_par["error"]) * float(new_par["scale"]) * 1.0e-6
+            new_par["min"] = float(new_par["min"]) * float(new_par["scale"]) * 1.0e-6
+            new_par["max"] = float(new_par["max"]) * float(new_par["scale"]) * 1.0e-6
 
-            # Reverse the limits while changing the sign
-            min_ = float(new_par["min"])
-            max_ = float(new_par["max"])
-            new_par["min"] = -1 * max_
-            new_par["max"] = -1 * min_
-        if new_par["name"] in ["lambda_"]:
-            val_ = float(new_par["value"])
-            new_par["value"] = 1e6 / val_
+        if new_par["name"] in ["amplitude"]:
+            new_par["value"] = float(new_par["value"]) * float(new_par["scale"]) * 1.0e6
             if "error" in new_par:
-                new_par["error"] = 1e6 * float(new_par["error"]) / (val_**2)
-            min_ = float(new_par["min"])
-            max_ = float(new_par["max"])
-            new_par["min"] = 1e6 / max_
-            new_par["max"] = 1e6 / min_
-        if new_par["name"] == "alpha" and spectrum_type == "PLSuperExpCutoff":
+                new_par["error"] = float(new_par["error"]) * float(new_par["scale"]) * 1.0e6
+            new_par["min"] = float(new_par["min"]) * float(new_par["scale"]) * 1.0e6
+            new_par["max"] = float(new_par["max"]) * float(new_par["scale"]) * 1.0e6
+
+        if new_par["name"] in ["index", "index_1", "index_2", "beta"] and not keep_sign:
+            # Other than EBL Attenuated Power Law?
+            # spectral indices in gammapy are always taken as positive values.
+            val_ = float(new_par["value"]) * float(new_par["scale"])
+            if val_ < 0:
+                new_par["value"] = -1 * val_
+
+                # Reverse the limits while changing the sign
+                min_ = -1 * float(new_par["min"]) * float(new_par["scale"])
+                max_ = -1 * float(new_par["max"]) * float(new_par["scale"])
+                new_par["min"] = min(min_, max_)
+                new_par["max"] = max(min_, max_)
+
+        if new_par["name"] in ["lambda_"]:
+            if spectrum_type == "PLSuperExpCutoff":
+                # Original parameter is inverse of what gammapy uses
+                val_ = float(new_par["value"]) * float(new_par["scale"])
+                new_par["value"] = 1.0e6 / val_
+                if "error" in new_par:
+                    new_par["error"] = 1.0e6 * float(new_par["error"]) / (val_**2)
+                min_ = 1.0e6 / (float(new_par["min"]) * float(new_par["scale"]))
+                max_ = 1.0e6 / (float(new_par["max"]) * float(new_par["scale"]))
+                new_par["min"] = min(min_, max_)
+                new_par["max"] = max(min_, max_)
+
+            if spectrum_type == "PLSuperExpCutoff2":
+                val_ = float(new_par["value"]) * float(new_par["scale"]) * 1.0e6
+                new_par["value"] = val_
+                if "error" in new_par:
+                    new_par["error"] = float(new_par["error"]) * float(new_par["scale"]) * 1.0e6
+                min_ = float(new_par["min"]) * float(new_par["scale"]) * 1.0e6
+                max_ = float(new_par["max"]) * float(new_par["scale"]) * 1.0e6
+                new_par["min"] = min_
+                new_par["max"] = max_
+
+        if new_par["name"] == "alpha" and spectrum_type in [
+            "PLSuperExpCutoff",
+            "PLSuperExpCutoff2",
+        ]:
             new_par["frozen"] = par["@free"] == "0"
 
-        # new_par["error"] = 0
+        # Read into Gammapy Parameter object
         new_param = Parameter(name=new_par["name"], value=new_par["value"])
         if "error" in new_par:
             new_param.error = new_par["error"]
@@ -437,6 +468,73 @@ def xml_to_gammapy_model_params(params, spectrum_type, is_target=False, keep_sig
     params_final2 = Parameters(new_params)
 
     return params_final2
+
+
+def xml_spatial_model_to_gammapy(aux_path, xml_spatial_model):
+    """
+    Read the spatial model component of the XMl model to Gammapy SpatialModel
+    object.
+
+    Details of the XML model can be seen at
+    https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/source_models.html
+    and with examples at
+    https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/xml_model_defs.html
+
+    Paramaters
+    ----------
+    aux_path: `Path`
+        Path to the template diffuse models
+    xml_spatial_model: `dict`
+        Spatial Model component of a particular source from the XML file
+
+    Returns
+    -------
+    spatial_model: `gammapy.modeling.models.SpatialModel`
+        Gammapy Spatial Model object
+    """
+    spatial_pars = xml_spatial_model["parameter"]
+
+    if xml_spatial_model["@type"] == "SkyDirFunction":
+        for par_ in spatial_pars:
+            if par_["@name"] == "RA":
+                lon_0 = f"{par_['@value']} deg"
+            if par_["@name"] == "DEC":
+                lat_0 = f"{par_['@value']} deg"
+        fk5_frame = SkyCoord(
+            lon_0,
+            lat_0,
+            frame="fk5",
+        )
+        gal_frame = fk5_frame.transform_to("galactic")
+        spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("PointSpatialModel")().from_position(
+            gal_frame
+        )
+
+    elif xml_spatial_model["@type"] == "SpatialMap":
+        file_name = xml_spatial_model["@file"].split("/")[-1]
+        file_path = aux_path / f"Templates/{file_name}"
+
+        spatial_map = Map.read(file_path)
+        spatial_map = spatial_map.copy(unit="sr^-1")
+
+        spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("TemplateSpatialModel")(
+            spatial_map, filename=file_path
+        )
+
+    elif xml_spatial_model["@type"] == "RadialGaussian":
+        for par_ in spatial_pars:
+            if par_["@name"] == "RA":
+                lon_0 = f"{par_['@value']} deg"
+            if par_["@name"] == "DEC":
+                lat_0 = f"{par_['@value']} deg"
+            if par_["@name"] == "Sigma":
+                sigma = f"{par_['@value']} deg"
+
+        spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("GaussianSpatialModel")(
+            lon_0=lon_0, lat_0=lat_0, sigma=sigma, frame="fk5"
+        )
+
+    return spatial_model
 
 
 def create_source_skymodel(config_target, source, aux_path):
@@ -463,7 +561,6 @@ def create_source_skymodel(config_target, source, aux_path):
     source_name = source["@name"]
     spectrum_type = source["spectrum"]["@type"].split("EblAtten::")[-1]
     spectrum = source["spectrum"]["parameter"]
-    spatial_pars = source["spatialModel"]["parameter"]
 
     source_name_check = source_name.replace("_", "").replace(" ", "")
     target_check = config_target.source_name.replace("_", "").replace(" ", "")
@@ -490,7 +587,7 @@ def create_source_skymodel(config_target, source, aux_path):
         # Define the Spectral Model type for Gammapy
         for spec in spectrum:
             if spec["@name"] not in ["GalDiffModel", "IsoDiffModel"]:
-                if spectrum_type == "PLSuperExpCutoff":
+                if spectrum_type in ["PLSuperExpCutoff", "PLSuperExpCutoff2"]:
                     spectrum_type_final = "ExpCutoffPowerLawSpectralModel"
                 elif spectrum_type == "PLSuperExpCutoff4":
                     spectrum_type_final = "SuperExpCutoffPowerLaw4FGLDR3SpectralModel"
@@ -501,13 +598,15 @@ def create_source_skymodel(config_target, source, aux_path):
 
                 if spectrum_type == "LogParabola":
                     if "EblAtten" in source["spectrum"]["@type"]:
-                        spectral_model = LogParabolaSpectralModel()
-                    else:
+                        spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls("PowerLawSpectralModel")()
                         ebl_atten_pl = True
-                        spectral_model = PowerLawSpectralModel()
+                    else:
+                        spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(
+                            "LogParabolaSpectralModel"
+                        )()
 
         # Read the parameter values from XML file to create SpectralModel
-        params_list = xml_to_gammapy_model_params(
+        params_list = xml_spectral_model_to_gammapy_params(
             spectrum,
             spectrum_type,
             is_target=is_source_target,
@@ -534,22 +633,7 @@ def create_source_skymodel(config_target, source, aux_path):
             spectral_model = spectral_model * ebl_spectral_model
 
     # Reading Spatial model from the XML file
-    if source["spatialModel"]["@type"] == "SkyDirFunction":
-        fk5_frame = SkyCoord(
-            f"{spatial_pars[0]['@value']} deg",
-            f"{spatial_pars[1]['@value']} deg",
-            frame="fk5",
-        )
-        gal_frame = fk5_frame.transform_to("galactic")
-        spatial_model = PointSpatialModel.from_position(gal_frame)
-    elif source["spatialModel"]["@type"] == "SpatialMap":
-        file_name = source["spatialModel"]["@file"].split("/")[-1]
-        file_path = aux_path / f"Templates/{file_name}"
-
-        spatial_map = Map.read(file_path)
-        spatial_map = spatial_map.copy(unit="sr^-1")
-
-        spatial_model = TemplateSpatialModel(spatial_map, filename=file_path)
+    spatial_model = xml_spatial_model_to_gammapy(aux_path, source["spatialModel"])
 
     spatial_model.freeze()
     source_sky_model = SkyModel(
@@ -584,9 +668,11 @@ def create_gal_diffuse_skymodel(diff_gal):
     """
     Create SkyModel of the Diffuse Galactic sources.
     """
-    template_diffuse = TemplateSpatialModel(diff_gal, normalize=False)
+    template_diffuse = SPATIAL_MODEL_REGISTRY.get_cls("TemplateSpatialModel")(
+        diff_gal, normalize=False, filename=diff_gal.meta["filename"]
+    )
     source = SkyModel(
-        spectral_model=PowerLawNormSpectralModel(),
+        spectral_model=SPECTRAL_MODEL_REGISTRY.get_cls("PowerLawNormSpectralModel")(),
         spatial_model=template_diffuse,
         name="diffuse-iem",
     )
