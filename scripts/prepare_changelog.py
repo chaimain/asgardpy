@@ -27,7 +27,7 @@ def main():
     lines.insert(insert_index, "\n")
     lines.insert(
         insert_index + 1,
-        f"## [v{VERSION}](https://github.com/mireianievas/asgardpy/releases/tag/v{VERSION}) - "
+        f"## [v{VERSION}](https://github.com/chaimain/asgardpy/releases/tag/v{VERSION}) - "
         f"{datetime.now().strftime('%Y-%m-%d')}\n",
     )
 
