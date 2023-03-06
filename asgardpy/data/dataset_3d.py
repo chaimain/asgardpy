@@ -29,7 +29,7 @@ from gammapy.modeling.models import (
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion
 
 from asgardpy.data.base import AnalysisStepBase, BaseConfig, TimeIntervalsConfig
-from asgardpy.data.geom import EnergyAxisConfig, SpatialCircleConfig
+from asgardpy.data.geom import EnergyAxisConfig, GeomConfig, SpatialCircleConfig
 from asgardpy.data.reduction import (
     BackgroundConfig,
     MapSelectionEnum,
@@ -60,6 +60,7 @@ class Dataset3DInfoConfig(BaseConfig):
     key: List = []
     map_selection: List[MapSelectionEnum] = MapDatasetMaker.available_selection
     obs_time: TimeIntervalsConfig = TimeIntervalsConfig()
+    geom: GeomConfig = GeomConfig()
     background: BackgroundConfig = BackgroundConfig()
     safe_mask: SafeMaskConfig = SafeMaskConfig()
     on_region: SpatialCircleConfig = SpatialCircleConfig()
@@ -431,7 +432,7 @@ class Dataset3DGeneration:
         """
         geom_config = self.config_3d_dataset.dataset_info.geom
 
-        energy_range = geom_config.axes
+        energy_range = geom_config.axes[0].axis
         energy_axis = MapAxis.from_energy_bounds(
             energy_min=u.Quantity(energy_range.min),
             energy_max=u.Quantity(energy_range.max),
