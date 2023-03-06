@@ -429,25 +429,45 @@ class Dataset3DGeneration:
         position, Energy and Time information.
         The energy axis is used from the spectral energy range provided in the Config.
         """
-        energy_range = self.config_3d_dataset.dataset_info.spectral_energy_range
+        geom_config = self.config_3d_dataset.dataset_info.geom
+
+        energy_range = geom_config.axes
         energy_axis = MapAxis.from_energy_bounds(
             energy_min=u.Quantity(energy_range.min),
             energy_max=u.Quantity(energy_range.max),
             nbin=int(energy_range.nbins),
             per_decade=True,
         )
-        self.events["counts_map"] = Map.create(
-            skydir=source_pos.galactic,
-            npix=(
-                int(evts_radius * 20),
-                int(evts_radius * 20),
-            ),  # Using the limits from the events fits file
-            proj="TAN",  # Hard-coded for now
-            frame="galactic",
-            binsz=0.1,  # Small pixel size, hard-coded for now
-            axes=[energy_axis],
-            dtype=float,
-        )
+        bin_size = geom_config.wcs.binsize.to_value(u.deg)
+
+        if geom_config.from_events_file:
+            self.events["counts_map"] = Map.create(
+                skydir=source_pos.galactic,
+                binsz=bin_size,
+                npix=(
+                    int(evts_radius * 2 / bin_size),
+                    int(evts_radius * 2 / bin_size),
+                ),  # Using the limits from the events fits file
+                proj=geom_config.wcs.proj,
+                frame="galactic",
+                axes=[energy_axis],
+                dtype=float,
+            )
+        else:
+            width_ = geom_config.wcs.map_frame_shape.width.to_value(u.deg)
+            width_in_pixel = int(width_ / bin_size)
+            height_ = geom_config.wcs.map_frame_shape.height.to_value(u.deg)
+            height_in_pixel = int(height_ / bin_size)
+
+            self.events["counts_map"] = Map.create(
+                skydir=source_pos.galactic,
+                binsz=bin_size,
+                npix=(width_in_pixel, height_in_pixel),
+                proj=geom_config.wcs.proj,
+                frame="galactic",
+                axes=[energy_axis],
+                dtype=float,
+            )
         self.events["counts_map"].fill_by_coord(
             {
                 "skycoord": self.events["events"].radec,

@@ -253,27 +253,21 @@ class Dataset1DGeneration:
             )
 
         # Defining the energy axes
-        reco_energy_from_config = self.config_1d_dataset_info.geom.axes.energy
-        energy_axis = MapAxis.from_energy_bounds(
-            energy_min=u.Quantity(reco_energy_from_config.min),
-            energy_max=u.Quantity(reco_energy_from_config.max),
-            nbin=int(reco_energy_from_config.nbins),
-            per_decade=True,
-            name="energy",
-        )
+        axes_list = self.config_1d_dataset_info.geom.axes
+        for axes_ in axes_list:
+            energy_axis = MapAxis.from_energy_bounds(
+                energy_min=u.Quantity(axes_.axis.min),
+                energy_max=u.Quantity(axes_.axis.max),
+                nbin=int(axes_.axis.nbins),
+                per_decade=True,
+                name=axes_.name,
+            )
+            # Main geom and template Spectrum Dataset
+            if axes_.name == "energy":
+                geom = RegionGeom.create(region=on_region, axes=[energy_axis])
 
-        true_energy_from_config = self.config_1d_dataset_info.geom.axes.energy_true
-        true_energy_axis = MapAxis.from_energy_bounds(
-            energy_min=u.Quantity(true_energy_from_config.min),
-            energy_max=u.Quantity(true_energy_from_config.max),
-            nbin=int(true_energy_from_config.nbins),
-            per_decade=True,
-            name="energy_true",
-        )
-
-        # Main geom and template Spectrum Dataset
-        geom = RegionGeom.create(region=on_region, axes=[energy_axis])
-        dataset_template = SpectrumDataset.create(geom=geom, energy_axis_true=true_energy_axis)
+            if axes_.name == "energy_true":
+                dataset_template = SpectrumDataset.create(geom=geom, energy_axis_true=energy_axis)
 
         return dataset_template
 

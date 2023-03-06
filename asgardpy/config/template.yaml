@@ -87,7 +87,21 @@ dataset3d:
         key: ["FRONT", "BACK"]
         # map_selection: []
         # obs_time:
-        background:
+        geom:
+          from_events_file: True
+          wcs:
+            binsize: 0.1 deg
+            proj: TAN
+            map_frame_shape:
+              width: 10 deg
+              height: 10 deg
+          axes:
+          -   name: energy
+              axis:
+                min: "100 MeV"
+                max: "1 TeV"
+                nbins: 8
+          background:
           # method: reflected
           # parameters:
           exclusion:
@@ -110,7 +124,7 @@ dataset3d:
         spectral_energy_range: &lat_energy_range
           min: 100 MeV
           max: 1 TeV
-          nbins: 2
+          nbins: 4
 # - name: CTA
 #    ... full description ...
 
@@ -130,11 +144,13 @@ dataset1d:
           selection:
             offset_max: "2.5 deg"
           axes:
-            energy: &lst_energy
-              min: "10 GeV"
-              max: "10 TeV"
-              nbins: 5
-            energy_true: *lst_energy
+          -   name: energy
+              axis: &lst_energy
+                min: "10 GeV"
+                max: "10 TeV"
+                nbins: 5
+          -   name: energy_true
+              axis: *lst_energy
         observation:
           # obs_ids: []
           # obs_file: None

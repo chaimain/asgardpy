@@ -2,6 +2,7 @@
 Classes containing the Geometry config parameters for the high-level interface.
 """
 
+from enum import Enum
 from typing import List
 
 from astropy import units as u
@@ -12,11 +13,12 @@ __all__ = [
     "SpatialCircleConfig",
     "SpatialPointConfig",
     "EnergyAxisConfig",
-    "EnergyAxesConfig",
+    "MapAxesConfig",
     "EnergyEdgesCustomConfig",
     "SelectionConfig",
-    "FinalFrameConfig",
+    "MapFrameShapeConfig",
     "SkyCoordConfig",
+    "ProjectionEnum",
     "WcsConfig",
     "GeomConfig",
 ]
@@ -46,16 +48,16 @@ class EnergyEdgesCustomConfig(BaseConfig):
     edges: List[EnergyType] = []
 
 
-class EnergyAxesConfig(BaseConfig):
-    energy: EnergyAxisConfig = EnergyAxisConfig(min=1 * u.TeV, max=10 * u.TeV, nbins=5)
-    energy_true: EnergyAxisConfig = EnergyAxisConfig(min=0.5 * u.TeV, max=20 * u.TeV, nbins=16)
+class MapAxesConfig(BaseConfig):
+    name: str = "energy"
+    axis: EnergyAxisConfig = EnergyAxisConfig()
 
 
 class SelectionConfig(BaseConfig):
     offset_max: AngleType = 2.5 * u.deg
 
 
-class FinalFrameConfig(BaseConfig):
+class MapFrameShapeConfig(BaseConfig):
     width: AngleType = 5 * u.deg
     height: AngleType = 5 * u.deg
 
@@ -66,14 +68,21 @@ class SkyCoordConfig(BaseConfig):
     lat: AngleType = 0 * u.deg
 
 
+class ProjectionEnum(str, Enum):
+    tan = "TAN"
+    car = "CAR"
+
+
 class WcsConfig(BaseConfig):
     skydir: SkyCoordConfig = SkyCoordConfig()
-    binsize: AngleType = 0.02 * u.deg
-    final_frame: FinalFrameConfig = FinalFrameConfig()
+    binsize: AngleType = 0.1 * u.deg
+    proj: ProjectionEnum = ProjectionEnum.tan
+    map_frame_shape: MapFrameShapeConfig = MapFrameShapeConfig()
     binsize_irf: AngleType = 0.2 * u.deg
 
 
 class GeomConfig(BaseConfig):
     wcs: WcsConfig = WcsConfig()
     selection: SelectionConfig = SelectionConfig()
-    axes: EnergyAxesConfig = EnergyAxesConfig()
+    axes: List[MapAxesConfig] = [MapAxesConfig()]
+    from_events_file: bool = True
