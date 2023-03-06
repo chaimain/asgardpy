@@ -425,9 +425,9 @@ class Dataset3DGeneration:
 
     def create_counts_map(self, source_pos, evts_radius):
         """
-        Generate the counts Map object and fill it with the events' RA-Dec
+        Generate the counts Map object using the information provided in the
+        geom section of the Config and fill it with the events' RA-Dec
         position, Energy and Time information.
-        The energy axis is used from the spectral energy range provided in the Config.
         """
         geom_config = self.config_3d_dataset.dataset_info.geom
 

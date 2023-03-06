@@ -274,7 +274,8 @@ class Dataset1DGeneration:
     def get_bkg_maker(self):
         """
         Generate Background reduction maker by including an Exclusion mask
-        with any exclusion regions' information provided in the config.
+        with any exclusion regions' information on a Map geometry using the
+        information provided in the config.
         """
         bkg_config = self.config_1d_dataset_info.background
         exclusion_params = bkg_config.exclusion
@@ -311,10 +312,20 @@ class Dataset1DGeneration:
             )
             self.exclusion_regions = []
 
-        # Needs to be united with other Geometry creation functions, into a separate class
-        # Also make these geom parameters also part of the config requirements
+        geom_config = self.config_1d_dataset_info.geom
+
+        bin_size = geom_config.wcs.binsize.to_value(u.deg)
+        width_ = geom_config.wcs.map_frame_shape.width.to_value(u.deg)
+        width_in_pixel = int(width_ / bin_size)
+        height_ = geom_config.wcs.map_frame_shape.height.to_value(u.deg)
+        height_in_pixel = int(height_ / bin_size)
+
         excluded_geom = WcsGeom.create(
-            npix=(125, 125), binsz=0.05, skydir=center_ex, proj="TAN", frame="icrs"
+            npix=(width_in_pixel, height_in_pixel),
+            binsz=bin_size,
+            skydir=center_ex,
+            proj=geom_config.wcs.proj,
+            frame="icrs",
         )
         if len(self.exclusion_regions) > 0:
             exclusion_mask = ~excluded_geom.region_mask(self.exclusion_regions)
