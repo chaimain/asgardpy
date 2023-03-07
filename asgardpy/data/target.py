@@ -404,6 +404,7 @@ def xml_spectral_model_to_gammapy_params(params, spectrum_type, is_target=False,
                 new_par["error"] = float(new_par["error"]) * float(new_par["scale"]) * 1.0e-6
             new_par["min"] = float(new_par["min"]) * float(new_par["scale"]) * 1.0e-6
             new_par["max"] = float(new_par["max"]) * float(new_par["scale"]) * 1.0e-6
+            new_par["scale"] = 1.0
 
         if new_par["name"] in ["amplitude"]:
             new_par["value"] = float(new_par["value"]) * float(new_par["scale"]) * 1.0e6
@@ -411,6 +412,7 @@ def xml_spectral_model_to_gammapy_params(params, spectrum_type, is_target=False,
                 new_par["error"] = float(new_par["error"]) * float(new_par["scale"]) * 1.0e6
             new_par["min"] = float(new_par["min"]) * float(new_par["scale"]) * 1.0e6
             new_par["max"] = float(new_par["max"]) * float(new_par["scale"]) * 1.0e6
+            new_par["scale"] = 1.0
 
         if new_par["name"] in ["index", "index_1", "index_2", "beta"] and not keep_sign:
             # Other than EBL Attenuated Power Law?
@@ -424,6 +426,7 @@ def xml_spectral_model_to_gammapy_params(params, spectrum_type, is_target=False,
                 max_ = -1 * float(new_par["max"]) * float(new_par["scale"])
                 new_par["min"] = min(min_, max_)
                 new_par["max"] = max(min_, max_)
+                new_par["scale"] = 1.0
 
         if new_par["name"] in ["lambda_"]:
             if spectrum_type == "PLSuperExpCutoff":
@@ -436,6 +439,7 @@ def xml_spectral_model_to_gammapy_params(params, spectrum_type, is_target=False,
                 max_ = 1.0e6 / (float(new_par["max"]) * float(new_par["scale"]))
                 new_par["min"] = min(min_, max_)
                 new_par["max"] = max(min_, max_)
+                new_par["scale"] = 1.0
 
             if spectrum_type == "PLSuperExpCutoff2":
                 val_ = float(new_par["value"]) * float(new_par["scale"]) * 1.0e6
@@ -446,12 +450,22 @@ def xml_spectral_model_to_gammapy_params(params, spectrum_type, is_target=False,
                 max_ = float(new_par["max"]) * float(new_par["scale"]) * 1.0e6
                 new_par["min"] = min_
                 new_par["max"] = max_
+                new_par["scale"] = 1.0
 
         if new_par["name"] == "alpha" and spectrum_type in [
             "PLSuperExpCutoff",
             "PLSuperExpCutoff2",
         ]:
             new_par["frozen"] = par["@free"] == "0"
+
+        if float(new_par["scale"]) != 1.0:
+            # Without any other modifications, but using the scale value
+            new_par["value"] = float(new_par["value"]) * float(new_par["scale"])
+            if "error" in new_par:
+                new_par["error"] = float(new_par["error"]) * float(new_par["scale"])
+            new_par["min"] = float(new_par["min"]) * float(new_par["scale"])
+            new_par["max"] = float(new_par["max"]) * float(new_par["scale"])
+            new_par["scale"] = 1.0
 
         # Read into Gammapy Parameter object
         new_param = Parameter(name=new_par["name"], value=new_par["value"])
@@ -528,10 +542,17 @@ def xml_spatial_model_to_gammapy(aux_path, xml_spatial_model):
             if par_["@name"] == "DEC":
                 lat_0 = f"{par_['@value']} deg"
             if par_["@name"] == "Sigma":
-                sigma = f"{par_['@value']} deg"
+                sigma = f"{(float(par_['@value']) * np.pi / 180)} rad"
+
+        fk5_frame = SkyCoord(
+            lon_0,
+            lat_0,
+            frame="fk5",
+        )
+        gal_frame = fk5_frame.transform_to("galactic")
 
         spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("GaussianSpatialModel")(
-            lon_0=lon_0, lat_0=lat_0, sigma=sigma, frame="fk5"
+            lon_0=gal_frame.l.to("rad"), lat_0=gal_frame.b.to("rad"), sigma=sigma, frame="galactic"
         )
 
     return spatial_model
