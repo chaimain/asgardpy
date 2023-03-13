@@ -358,8 +358,6 @@ def params_renaming_to_gammapy(
 
         if params_1_name in ["expfactors"]:
             params_gpy["name"] = "expfactor"
-        if params_gpy["name"] in ["reference", "ebreak", "emin", "emax"]:
-            params_gpy["unit"] = "TeV"
 
     return params_gpy
 
@@ -374,6 +372,7 @@ def params_rescale_to_gammapy(params_gpy, spectrum_type, en_scale_1_to_gpy=1.0e-
     their Parameter names.
     """
     if params_gpy["name"] in ["reference", "ebreak", "emin", "emax"]:
+        params_gpy["unit"] = "TeV"
         params_gpy["value"] = (
             float(params_gpy["value"]) * float(params_gpy["scale"]) * en_scale_1_to_gpy
         )
@@ -524,9 +523,15 @@ def xml_spectral_model_to_gammapy_params(params, spectrum_type, is_target=False,
     # Modifications when different parameters are interconnected
     if spectrum_type == "PLSuperExpCutoff2":
         alpha_inv = 1 / params_final2["alpha"].value
-        params_final2["lambda_"].value = (params_final2["lambda_"].value / 1.0e6) ** alpha_inv * 1.0e6
-        params_final2["lambda_"].min = (params_final2["lambda_"].min / 1.0e6) ** alpha_inv * 1.0e6
-        params_final2["lambda_"].max = (params_final2["lambda_"].max / 1.0e6) ** alpha_inv * 1.0e6
+        min_sign = 1
+        if params_final2["lambda_"].min < 0:
+            min_sign = -1
+
+        params_final2["lambda_"].value = params_final2["lambda_"].value ** alpha_inv * 1.0e6
+        params_final2["lambda_"].min = min_sign * (
+            abs(params_final2["lambda_"].min) ** alpha_inv * 1.0e6
+        )
+        params_final2["lambda_"].max = params_final2["lambda_"].max ** alpha_inv * 1.0e6
 
     return params_final2
 
