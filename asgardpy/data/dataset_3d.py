@@ -330,6 +330,7 @@ class Dataset3DGeneration:
         with open(xml_file) as file:
             data = xmltodict.parse(file.read())["source_library"]["source"]
 
+        is_target_source = False
         for source in data:
             source_name = source["@name"]
             if source_name in ["IsoDiffModel", "isodiff"]:
