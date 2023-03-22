@@ -103,7 +103,11 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             instrument_spectral_info["name"].append(config_3d_dataset.name)
 
             key_names = config_3d_dataset.dataset_info.key
-            self.log.info(f"The different keys used: {key_names}")
+            if len(key_names) > 0:
+                self.log.info(f"The different keys used: {key_names}")
+            else:
+                key_names = [None]
+                self.log.info("No distinct keys used for the 3D dataset")
 
             # Extra Datasets object to differentiate between datasets obtained
             # from various "keys" of each instrument.
@@ -117,7 +121,10 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                 # Assigning datasets_names and including them in the final
                 # model list
                 for model_ in models:
-                    model_.datasets_names = [f"{config_3d_dataset.name}_{key}"]
+                    if key:
+                        model_.datasets_names = [f"{config_3d_dataset.name}_{key}"]
+                    else:
+                        model_.datasets_names = [f"{config_3d_dataset.name}"]
 
                     if model_.name in models_final.names:
                         models_final[model_.name].datasets_names.append(model_.datasets_names[0])
@@ -294,6 +301,8 @@ class Dataset3DGeneration:
         For a DL3 files type and tag of the 'mode of observations' or key
         (FRONT/00 and BACK/01 for Fermi-LAT in enrico/fermipy files),
         read the files to appropriate Object type for further analysis.
+
+        If there are no distinct key types of files, the value is None.
         """
         dl3_info = DL3Files(dl3_dir_dict, file_list, log=self.log)
         file_list = dl3_info.prepare_lat_files(key, file_list)
@@ -646,6 +655,10 @@ class Dataset3DGeneration:
             mask_safe.data = np.asarray(mask_safe.data == 0, dtype=bool)
 
         edisp = EDispKernelMap.from_edisp_kernel(self.irfs["edisp_interp_kernel"])
+        if key_name:
+            name = f"{self.config_3d_dataset.name}_{key_name}"
+        else:
+            name = f"{self.config_3d_dataset.name}"
 
         dataset = MapDataset(
             counts=self.events["counts_map"],
@@ -654,7 +667,7 @@ class Dataset3DGeneration:
             psf=self.irfs["psf"],
             edisp=edisp,
             mask_safe=mask_safe,
-            name=f"{self.config_3d_dataset.name}_{key_name}",
+            name=name,
         )
 
         return dataset

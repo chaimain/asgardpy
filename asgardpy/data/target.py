@@ -721,12 +721,14 @@ def create_source_skymodel(config_target, source, aux_path):
 def create_iso_diffuse_skymodel(iso_file, key):
     """
     Create a SkyModel of the Fermi Isotropic Diffuse Model and assigning
-    name as per the observation key.
+    name as per the observation key. If there are no distinct key types of
+    files, the value is None.
     """
     diff_iso = create_fermi_isotropic_diffuse_model(
         filename=iso_file, interp_kwargs={"fill_value": None}
     )
-    diff_iso._name = f"{diff_iso.name}-{key}"
+    if key:
+        diff_iso._name = f"{diff_iso.name}-{key}"
 
     # Parameters' limits
     diff_iso.spectral_model.model1.parameters[0].min = 0.001

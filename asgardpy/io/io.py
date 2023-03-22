@@ -92,7 +92,8 @@ class DL3Files:
 
     def prepare_lat_files(self, key, file_list):
         """
-        Prepare a list of LAT files following a particular key.
+        Prepare a list of LAT files following a particular key. If there are no
+        distinct key types of files, the value is None.
         """
         # Try to combine LAT and LAT-AUX files
         self.list_dl3_files()
@@ -122,7 +123,7 @@ class DL3Files:
     def select_unique_files(self, key, file_list):
         """
         Select Unique files from all of the provided LAT files, as per the
-        given key.
+        given key. If there are no distinct key types of files, the value is None.
         """
         # Have to make more checks or add conditions on selecting only select
         # files instead from the glob-searched lists.
@@ -136,17 +137,17 @@ class DL3Files:
             file_list["xml_file"] = self.xml_files[0]
 
         if self.dl3_type.lower() == "lat-aux":
-            if "0" not in key:  # For fermipy files, the diffuse files are already unique
-                var_list = [
-                    "iso_diff_files",
-                ]
+            var_list = []
+            if key:
+                if "0" not in key:  # For fermipy files, the diffuse files are already unique
+                    var_list = [
+                        "iso_diff_files",
+                    ]
+            if isinstance(self.iso_diff_files, list):
+                self.iso_gal_f = self.iso_diff_files[0]
             else:
-                var_list = []
-                if isinstance(self.iso_diff_files, list):
-                    self.iso_gal_f = self.iso_diff_files[0]
-                else:
-                    self.iso_gal_f = self.iso_diff_files
-                file_list["iso_diff_file"] = self.iso_gal_f
+                self.iso_gal_f = self.iso_diff_files
+            file_list["iso_diff_file"] = self.iso_gal_f
 
             if isinstance(self.gal_diff_files, list):
                 self.diff_gal_f = self.gal_diff_files[0]
@@ -159,11 +160,12 @@ class DL3Files:
                 try:
                     filtered = [K for K in getattr(self, _v) if key in str(K.name)]
                     assert len(filtered) == 1
-                except Exception:
-                    self.log.error(
+                except TypeError:
+                    self.log.info("No distinct key provided")
+                else:
+                    self.log.info(
                         f"Variable self.{_v} does not contain one element after filtering by {key}"
                     )
-                else:
                     setattr(self, _v.replace("_files", "_f"), filtered[0])
                 file_list[_v.replace("files", "file")] = getattr(self, _v.replace("_files", "_f"))
 
