@@ -168,12 +168,14 @@ class DL3Files:
                     filtered = [K for K in getattr(self, _v) if key in str(K.name)]
                     assert len(filtered) == 1
                 except TypeError:
-                    self.log.info("No distinct key provided")
+                    self.log.info("No distinct key provided, selecting the first file in the list")
                     setattr(self, _v.replace("_files", "_f"), getattr(self, _v)[0])
-                else:
-                    self.log.info(
+                except Exception:
+                    self.log.error(
                         f"Variable self.{_v} does not contain one element after filtering by {key}"
                     )
+                else:
+                    self.log.info(f"Selecting the file with name containing {key}")
                     setattr(self, _v.replace("_files", "_f"), filtered[0])
                 file_list[_v.replace("files", "file")] = getattr(self, _v.replace("_files", "_f"))
 
