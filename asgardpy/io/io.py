@@ -162,6 +162,7 @@ class DL3Files:
                     assert len(filtered) == 1
                 except TypeError:
                     self.log.info("No distinct key provided")
+                    setattr(self, _v.replace("_files", "_f"), getattr(self, _v)[0])
                 else:
                     self.log.info(
                         f"Variable self.{_v} does not contain one element after filtering by {key}"

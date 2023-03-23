@@ -30,6 +30,7 @@ __all__ = [
     "Target",
     "ExpCutoffLogParabolaSpectralModel",
     "set_models",
+    "apply_selection_mask_to_models",
     "config_to_dict",
     "params_renaming_to_gammapy",
     "params_rescale_to_gammapy",
@@ -201,6 +202,32 @@ def set_models(
 
     return datasets
 
+def apply_selection_mask_to_models(list_sources, selection_mask):
+    """
+    Applying a selection mask to a given list of sources,
+    excluding the diffuse background models
+    """
+    list_sources_excluded = []
+    list_diffuse = []
+
+    # Separate the list of sources and diffuse background
+    for model_ in list_sources:
+        if "diffuse" in model_.name:
+            list_diffuse.append(model_)
+        else:
+            list_sources_excluded.append(model_)
+
+    # Apply the exclusion mask
+    list_sources_excluded = Models(list_sources_excluded).select_mask(selection_mask)
+
+    # Add the diffuse background models
+    for diff_ in list_diffuse:
+        list_sources_excluded.append(diff_)
+
+    # Re-assign to the main variable
+    list_sources = list_sources_excluded
+
+    return list_sources
 
 # Functions for Models generation
 def read_models_from_asgardpy_config(config):

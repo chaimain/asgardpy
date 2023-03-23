@@ -48,6 +48,7 @@ from asgardpy.data.reduction import (
 from asgardpy.data.target import (
     ExpCutoffLogParabolaSpectralModel,
     Target,
+    apply_selection_mask_to_models,
     config_to_dict,
     create_gal_diffuse_skymodel,
     create_iso_diffuse_skymodel,
@@ -81,6 +82,7 @@ __all__ = [
     "Target",
     "ExpCutoffLogParabolaSpectralModel",
     "set_models",
+    "apply_selection_mask_to_models",
     "config_to_dict",
     "xml_spectral_model_to_gammapy_params",
     "xml_spatial_model_to_gammapy",
