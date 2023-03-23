@@ -134,7 +134,7 @@ dataset1d:
   instruments:
   -   name: LST-1
       io:
-      -   type: lst-1
+      -   type: gadf-dl3
           input_dir: "."
           glob_pattern:
             dl3: ""

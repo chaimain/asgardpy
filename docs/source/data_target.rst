@@ -7,9 +7,9 @@ asgardpy.data.target module
    :show-inheritance:
 
 
-params_renaming_to_gammapy
-==========================
+Spectral model parameter renaming to Gammapy default
+====================================================
 
 .. image:: _static/asgardpy_target_params_renaming.png
-    :width: 400px
+    :width: 800px
     :align: center
