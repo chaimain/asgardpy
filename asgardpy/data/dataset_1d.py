@@ -253,34 +253,29 @@ class Dataset1DGeneration:
             )
 
         # Defining the energy axes
-        reco_energy_from_config = self.config_1d_dataset_info.geom.axes.energy
-        energy_axis = MapAxis.from_energy_bounds(
-            energy_min=u.Quantity(reco_energy_from_config.min),
-            energy_max=u.Quantity(reco_energy_from_config.max),
-            nbin=int(reco_energy_from_config.nbins),
-            per_decade=True,
-            name="energy",
-        )
+        axes_list = self.config_1d_dataset_info.geom.axes
+        for axes_ in axes_list:
+            energy_axis = MapAxis.from_energy_bounds(
+                energy_min=u.Quantity(axes_.axis.min),
+                energy_max=u.Quantity(axes_.axis.max),
+                nbin=int(axes_.axis.nbins),
+                per_decade=True,
+                name=axes_.name,
+            )
+            # Main geom and template Spectrum Dataset
+            if axes_.name == "energy":
+                geom = RegionGeom.create(region=on_region, axes=[energy_axis])
 
-        true_energy_from_config = self.config_1d_dataset_info.geom.axes.energy_true
-        true_energy_axis = MapAxis.from_energy_bounds(
-            energy_min=u.Quantity(true_energy_from_config.min),
-            energy_max=u.Quantity(true_energy_from_config.max),
-            nbin=int(true_energy_from_config.nbins),
-            per_decade=True,
-            name="energy_true",
-        )
-
-        # Main geom and template Spectrum Dataset
-        geom = RegionGeom.create(region=on_region, axes=[energy_axis])
-        dataset_template = SpectrumDataset.create(geom=geom, energy_axis_true=true_energy_axis)
+            if axes_.name == "energy_true":
+                dataset_template = SpectrumDataset.create(geom=geom, energy_axis_true=energy_axis)
 
         return dataset_template
 
     def get_bkg_maker(self):
         """
         Generate Background reduction maker by including an Exclusion mask
-        with any exclusion regions' information provided in the config.
+        with any exclusion regions' information on a Map geometry using the
+        information provided in the config.
         """
         bkg_config = self.config_1d_dataset_info.background
         exclusion_params = bkg_config.exclusion
@@ -317,10 +312,20 @@ class Dataset1DGeneration:
             )
             self.exclusion_regions = []
 
-        # Needs to be united with other Geometry creation functions, into a separate class
-        # Also make these geom parameters also part of the config requirements
+        geom_config = self.config_1d_dataset_info.geom
+
+        bin_size = geom_config.wcs.binsize.to_value(u.deg)
+        width_ = geom_config.wcs.map_frame_shape.width.to_value(u.deg)
+        width_in_pixel = int(width_ / bin_size)
+        height_ = geom_config.wcs.map_frame_shape.height.to_value(u.deg)
+        height_in_pixel = int(height_ / bin_size)
+
         excluded_geom = WcsGeom.create(
-            npix=(125, 125), binsz=0.05, skydir=center_ex, proj="TAN", frame="icrs"
+            npix=(width_in_pixel, height_in_pixel),
+            binsz=bin_size,
+            skydir=center_ex,
+            proj=geom_config.wcs.proj,
+            frame="icrs",
         )
         if len(self.exclusion_regions) > 0:
             exclusion_mask = ~excluded_geom.region_mask(self.exclusion_regions)
