@@ -239,7 +239,7 @@ class Dataset3DGeneration:
 
         # Get the Diffuse models files list
         for io_ in self.config_3d_dataset.io:
-            if io_.type == "lat":
+            if io_.type in ["lat"]:
                 file_list, [
                     self.irfs["exposure"],
                     self.irfs["psf"],
@@ -247,14 +247,7 @@ class Dataset3DGeneration:
                 ] = self.get_base_objects(io_, key_name, file_list)
                 self.update_source_pos_from_3d_dataset()
 
-                # Maybe add an option for fermipy files, to use this AFTER
-                # reading from XML file and fetching the names of these files...
-                # aux-path should be specified. FERMI_DIFFUSE_DIR. In future,
-                # one can download from web...? But that is only for public data
-                # Not general enough.
-
-                # Or first use get_list_objects and then get_base_objects
-            if io_.type == "lat-aux":
+            if io_.type in ["lat-aux"]:
                 if io_.glob_pattern["iso_diffuse"] == "":
                     io_ = self.update_aux_info_from_xml(
                         io_, file_list["xml_file"], fetch_iso_diff=True
@@ -278,6 +271,8 @@ class Dataset3DGeneration:
         """
         When no glob_search patterns on axuillary files are provided, fetch
         them from the XML file and update the AsgardpyConfig object.
+
+        Currently assuming this to be applicable only for Fermi-LAT data.
         """
         with open(xml_file) as file:
             data = xmltodict.parse(file.read())["source_library"]["source"]
@@ -308,13 +303,13 @@ class Dataset3DGeneration:
         file_list = dl3_info.prepare_lat_files(key, file_list)
         object_list = []
 
-        if dl3_dir_dict.type.lower() == "lat":
+        if dl3_dir_dict.type.lower() in ["lat"]:
             exposure = Map.read(file_list["expmap_file"])
             psf = PSFMap.read(file_list["psf_file"], format="gtpsf")
             drmap = fits.open(file_list["edrm_file"])
             object_list = [exposure, psf, drmap]
 
-        if dl3_dir_dict.type.lower() == "lat-aux":
+        if dl3_dir_dict.type.lower() in ["lat-aux"]:
             diff_gal = Map.read(file_list["gal_diff_file"])
             diff_gal.meta["filename"] = file_list["gal_diff_file"]
             diff_iso = create_iso_diffuse_skymodel(file_list["iso_diff_file"], key)
@@ -326,10 +321,13 @@ class Dataset3DGeneration:
         """
         Read from the XML file to enlist the various objects and get their
         SkyModels
+
+        Currently assuming this to be applicable only for Fermi-LAT data.
         """
         with open(xml_file) as file:
             data = xmltodict.parse(file.read())["source_library"]["source"]
 
+        is_target_source = False
         for source in data:
             source_name = source["@name"]
             if source_name in ["IsoDiffModel", "isodiff"]:
@@ -371,6 +369,9 @@ class Dataset3DGeneration:
     def set_energy_axes(self):
         """
         Get the energy axes from the given Detector Response Matrix file.
+
+        Needs to be generalized for other possible file structures for other
+        instruments.
         """
         energy_lo = self.irfs["edisp"]["DRM"].data["ENERG_LO"] * u.MeV
         energy_hi = self.irfs["edisp"]["DRM"].data["ENERG_HI"] * u.MeV
@@ -384,6 +385,9 @@ class Dataset3DGeneration:
         """
         Generate the Energy Dispersion Kernel from the given Detector Response
         Matrix file.
+
+        Needs to be generalized for other possible file structures for other
+        instruments.
         """
         energy_axis, energy_axis_true = self.set_energy_axes()
         drm = self.irfs["edisp"]["DRM"].data["MATRIX"]
@@ -418,6 +422,9 @@ class Dataset3DGeneration:
     def get_source_skycoord(self):
         """
         Get the source skycoord and the ROI radius from the events file.
+
+        Needs to be generalized for other possible file structures for other
+        instruments.
         """
         try:
             dsval2 = self.events["event_fits"][1].header["DSVAL2"]
@@ -511,7 +518,7 @@ class Dataset3DGeneration:
 
         # Update the model in self.list_sources
         for k, model_ in enumerate(self.list_sources):
-            if model_.name == "diffuse-iem":
+            if model_.name in ["diffuse-iem"]:
                 self.list_sources[k] = self.diffuse_models["gal_diffuse_cutout"]
 
     def set_edisp_interpolator(self):
@@ -522,7 +529,7 @@ class Dataset3DGeneration:
         axis_reco = MapAxis.from_edges(
             self.events["counts_map"].geom.axes["energy"].edges,
             name="energy",
-            unit="MeV",
+            unit="MeV",  # Need to be generalized
             interp="log",
         )
         axis_true = axis_reco.copy(name="energy_true")

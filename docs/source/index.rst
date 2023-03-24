@@ -38,6 +38,11 @@ containing multiple types of datasets from multiple gamma-ray astronomical instr
 Gammapy Models object. These are then run with the standard Gammapy high-level analysis functions to get the DL5 products.
 
 
+.. image:: _static/asgardpy_workflow.png
+    :width: 600px
+    :align: center
+
+
 DL3 Data component
 ------------------
 
