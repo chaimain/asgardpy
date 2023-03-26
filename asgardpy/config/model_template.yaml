@@ -39,3 +39,6 @@ components:
           redshift: 0.4
           alpha_norm: 1.0
     covariance: None
+roi_selection:
+  roi_radius: 5 deg
+  non_free_sources: [None]

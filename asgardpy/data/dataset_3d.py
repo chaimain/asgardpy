@@ -221,7 +221,7 @@ class Dataset3DGeneration:
 
         self.create_exclusion_mask()
 
-        #self.list_sources = apply_selection_mask_to_models(self.list_sources)
+        # self.list_sources = apply_selection_mask_to_models(self.list_sources)
 
         # Generate the final dataset
         dataset = self.generate_dataset(key_name)
