@@ -225,7 +225,7 @@ class Dataset3DGeneration:
         # Apply the same exclusion mask to the list of source models as applied
         # to the Counts Map
         self.list_sources = apply_selection_mask_to_models(
-            self.list_sources,
+            list_sources=self.list_sources,
             target_source=self.config_target.source_name,
             selection_mask=self.exclusion_mask,
         )

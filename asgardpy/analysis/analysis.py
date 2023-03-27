@@ -143,10 +143,10 @@ class AsgardpyAnalysis:
                     # are provided in the FoV, that are not the background models.
                     elif len(self.final_model) > 1:
                         self.final_model = apply_selection_mask_to_models(
-                            self.final_model,
-                            self.config.target.source_name,
-                            self.config.target.roi_selection.roi_radius,
-                            self.config.target.roi_selection.free_sources,
+                            list_sources=self.final_model,
+                            target_source=self.config.target.source_name,
+                            roi_radius=self.config.target.roi_selection.roi_radius,
+                            free_sources=self.config.target.roi_selection.free_sources,
                         )
 
                     self.datasets = set_models(

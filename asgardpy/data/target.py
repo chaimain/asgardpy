@@ -212,7 +212,7 @@ def set_models(
 
 
 def apply_selection_mask_to_models(
-    list_sources, target_source=None, selection_mask=None, roi_radius=None, free_sources=[None]
+    list_sources, target_source=None, selection_mask=None, roi_radius=0 * u.deg, free_sources=[None]
 ):
     """
     For a given list of source models, with a given target source, apply various
@@ -273,7 +273,7 @@ def apply_selection_mask_to_models(
         list_sources_excluded = list_sources_excluded.select_mask(selection_mask)
 
     # If RoI radius is provided and is not default
-    if roi_radius.deg != 0:
+    if roi_radius.to_value("deg") != 0:
         for model_ in list_sources_excluded:
             model_pos = model_.spatial_model.position
             separation = target_source_pos.separation(model_pos).deg
