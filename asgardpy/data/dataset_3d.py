@@ -37,6 +37,7 @@ from asgardpy.data.reduction import (
     SafeMaskConfig,
 )
 from asgardpy.data.target import (
+    apply_selection_mask_to_models,
     create_gal_diffuse_skymodel,
     create_iso_diffuse_skymodel,
     create_source_skymodel,
@@ -221,7 +222,13 @@ class Dataset3DGeneration:
 
         self.create_exclusion_mask()
 
-        # self.list_sources = apply_selection_mask_to_models(self.list_sources)
+        # Apply the same exclusion mask to the list of source models as applied
+        # to the Counts Map
+        self.list_sources = apply_selection_mask_to_models(
+            self.list_sources,
+            target_source=self.config_target.source_name,
+            selection_mask=self.exclusion_mask,
+        )
 
         # Generate the final dataset
         dataset = self.generate_dataset(key_name)

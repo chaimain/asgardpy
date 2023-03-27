@@ -41,4 +41,4 @@ components:
     covariance: None
 roi_selection:
   roi_radius: 5 deg
-  non_free_sources: [None]
+  free_sources: [None]

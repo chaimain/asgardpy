@@ -84,7 +84,7 @@ class SkyModelComponent(BaseConfig):
 
 class RoISelectionConfig(BaseConfig):
     roi_radius: AngleType = 0 * u.deg
-    non_free_sources: List[str] = []
+    free_sources: List[str] = []
 
 
 class Target(BaseConfig):
@@ -212,17 +212,42 @@ def set_models(
 
 
 def apply_selection_mask_to_models(
-    list_sources, target_source=None, roi_radius=None, non_free_sources=[None]
+    list_sources, target_source=None, selection_mask=None, roi_radius=None, free_sources=[None]
 ):
     """
-    For a given list of sources, with a given target source, radius of a
-    circular Region of Interest in the sky, centered around the target source
-    position, freeze all the spectral parameters of the models of the sources,
-    excluding the diffuse background models.
+    For a given list of source models, with a given target source, apply various
+    selection masks on the Region of Interest in the sky. This will lead to
+    complete exclusion of models or freezing some or all spectral parameters.
+    These selections excludes the diffuse background models in the given list.
 
-    When a list of non_free_sources is provided, then the spectral amplitude of
-    models of those sources, if present in the given list of models, will be
-    unfrozen, and hence, allowed to be variable for Fit function.
+    First priority is given if a distinct selection mask is provided, with a
+    list of excluded regions to return only the source models within the selected
+    ROI.
+
+    Second priority is on creating a Circular ROI as per the given radius, and
+    freeze all the spectral parameters of the models of the sources.
+
+    Third priority is when a list of free_sources is provided, then the
+    spectral amplitude of models of those sources, if present in the given list
+    of models, will be unfrozen, and hence, allowed to be variable for fitting.
+
+    Parameters
+    ----------
+    list_sources: '~gammapy.modeling.models.Models'
+        Models object containing a list of source models.
+    target_source: 'str'
+        Name of the target source, whose position is used as the center of ROI.
+    selection_mask: 'WcsNDMap'
+        Map containing a boolean mask to apply to Models object.
+    roi_radius: 'astropy.units.Quantity' or 'asgardpy.data.base.AngleType'
+        Radius for a circular region around ROI (deg)
+    free_sources: 'list'
+        List of source names for which the spectral amplitude is to be kept free.
+
+    Returns
+    -------
+    list_sources: '~gammapy.modeling.models.Models'
+        Selected Models object.
     """
     list_sources_excluded = []
     list_diffuse = []
@@ -236,13 +261,16 @@ def apply_selection_mask_to_models(
 
     list_sources_excluded = Models(list_sources_excluded)
 
-    # Freeze models outside RoI from target source
     # Get the target source position as the center of RoI
     if not target_source:
         target_source = list_sources_excluded[0].name
         target_source_pos = target_source.spatial_model.position
     else:
         target_source_pos = list_sources_excluded[target_source].spatial_model.position
+
+    # If a distinct selection mask is provided
+    if selection_mask:
+        list_sources_excluded = list_sources_excluded.select_mask(selection_mask)
 
     # If RoI radius is provided and is not default
     if roi_radius.deg != 0:
@@ -253,13 +281,13 @@ def apply_selection_mask_to_models(
                 model_.spectral_model.freeze()
     else:
         # For a given list of non free sources, unfreeze the spectral amplitude
-        if non_free_sources[0]:
+        if free_sources[0]:
             for model_ in list_sources_excluded:
                 # Freeze all spectral parameters for other models
                 if model_.name != target_source:
                     model_.spectral_model.freeze()
                 # and now unfreeze the amplitude of selected models
-                if model_.name in non_free_sources:
+                if model_.name in free_sources:
                     model_.spectral_model.parameters["amplitude"].frozen = False
 
     # Add the diffuse background models back

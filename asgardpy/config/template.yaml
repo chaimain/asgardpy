@@ -64,7 +64,7 @@ target:
   from_3d: false
   roi_selection:
     roi_radius: 5 deg
-    non_free_sources: [None]
+    free_sources: [None]
 
 # Instrument datasets with 3D info
 dataset3d:

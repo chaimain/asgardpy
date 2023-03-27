@@ -146,7 +146,7 @@ class AsgardpyAnalysis:
                             self.final_model,
                             self.config.target.source_name,
                             self.config.target.roi_selection.roi_radius,
-                            self.config.target.roi_selection.non_free_sources,
+                            self.config.target.roi_selection.free_sources,
                         )
 
                     self.datasets = set_models(
