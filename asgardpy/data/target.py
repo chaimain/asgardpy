@@ -5,9 +5,9 @@ also the functions involving Models generation and assignment to datasets.
 
 from typing import List
 
+import astropy.units as u
 import numpy as np
 from astropy.coordinates import SkyCoord
-import astropy.units as u
 from gammapy.maps import Map
 from gammapy.modeling import Parameter, Parameters
 from gammapy.modeling.models import (
@@ -21,7 +21,7 @@ from gammapy.modeling.models import (
     create_fermi_isotropic_diffuse_model,
 )
 
-from asgardpy.data.base import BaseConfig, PathType, AngleType
+from asgardpy.data.base import AngleType, BaseConfig, PathType
 from asgardpy.data.geom import SkyCoordConfig
 
 __all__ = [
@@ -83,7 +83,7 @@ class SkyModelComponent(BaseConfig):
 
 
 class RoISelectionConfig(BaseConfig):
-    roi_radius: AngleType = 5 * u.deg
+    roi_radius: AngleType = 0 * u.deg
     non_free_sources: List[str] = []
 
 
@@ -244,21 +244,23 @@ def apply_selection_mask_to_models(
     else:
         target_source_pos = list_sources_excluded[target_source].spatial_model.position
 
-    # If RoI radius is not provided, use a default value of 5 deg
-    if not roi_radius:
-        roi_radius = 5 * u.deg
-
-    for model_ in list_sources_excluded:
-        model_pos = model_.spatial_model.position
-        separation = target_source_pos.separation(model_pos).deg
-        if separation >= roi_radius:
-            model_.spectral_model.freeze()
-
-    # For a given list of non free sources, unfreeze the spectral amplitude
-    if non_free_sources[0]:
+    # If RoI radius is provided and is not default
+    if roi_radius.deg != 0:
         for model_ in list_sources_excluded:
-            if model_.name in non_free_sources:
-                model_.spectral_model.parameters["amplitude"].frozen = False
+            model_pos = model_.spatial_model.position
+            separation = target_source_pos.separation(model_pos).deg
+            if separation >= roi_radius.deg:
+                model_.spectral_model.freeze()
+    else:
+        # For a given list of non free sources, unfreeze the spectral amplitude
+        if non_free_sources[0]:
+            for model_ in list_sources_excluded:
+                # Freeze all spectral parameters for other models
+                if model_.name != target_source:
+                    model_.spectral_model.freeze()
+                # and now unfreeze the amplitude of selected models
+                if model_.name in non_free_sources:
+                    model_.spectral_model.parameters["amplitude"].frozen = False
 
     # Add the diffuse background models back
     for diff_ in list_diffuse:

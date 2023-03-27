@@ -8,7 +8,7 @@ from gammapy.modeling.models import Models
 
 from asgardpy.config.generator import AsgardpyConfig
 from asgardpy.data.base import AnalysisStep
-from asgardpy.data.target import set_models, apply_selection_mask_to_models
+from asgardpy.data.target import apply_selection_mask_to_models, set_models
 
 log = logging.getLogger(__name__)
 
