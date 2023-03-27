@@ -37,6 +37,7 @@ from asgardpy.data.reduction import (
     SafeMaskConfig,
 )
 from asgardpy.data.target import (
+    apply_selection_mask_to_models,
     create_gal_diffuse_skymodel,
     create_iso_diffuse_skymodel,
     create_source_skymodel,
@@ -221,7 +222,13 @@ class Dataset3DGeneration:
 
         self.create_exclusion_mask()
 
-        self.apply_exclusion_mask_to_models()
+        # Apply the same exclusion mask to the list of source models as applied
+        # to the Counts Map
+        self.list_sources = apply_selection_mask_to_models(
+            list_sources=self.list_sources,
+            target_source=self.config_target.source_name,
+            selection_mask=self.exclusion_mask,
+        )
 
         # Generate the final dataset
         dataset = self.generate_dataset(key_name)
@@ -620,32 +627,6 @@ class Dataset3DGeneration:
         exclusion_regions.append(exclusion_region)
 
         return exclusion_regions
-
-    def apply_exclusion_mask_to_models(self):
-        """
-        Applying the exclusion mask to the list of sources, excluding the diffuse background,
-        to have the same selection regions as counts_map.
-        """
-        list_sources_excluded = []
-        list_diffuse = []
-
-        # Separate the list of sources and diffuse background
-        for model_ in self.list_sources:
-            if "diffuse" in model_.name:
-                list_diffuse.append(model_)
-            else:
-                list_sources_excluded.append(model_)
-
-        # Apply the exclusion mask
-        list_sources_excluded = Models(list_sources_excluded).select_mask(self.exclusion_mask)
-        self.log.info("Exclusion mask applied to the list of source models")
-
-        # Add the diffuse background models
-        for diff_ in list_diffuse:
-            list_sources_excluded.append(diff_)
-
-        # Re-assign to the main variable
-        self.list_sources = list_sources_excluded
 
     def generate_dataset(self, key_name):
         """

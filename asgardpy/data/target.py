@@ -5,6 +5,7 @@ also the functions involving Models generation and assignment to datasets.
 
 from typing import List
 
+import astropy.units as u
 import numpy as np
 from astropy.coordinates import SkyCoord
 from gammapy.maps import Map
@@ -20,16 +21,18 @@ from gammapy.modeling.models import (
     create_fermi_isotropic_diffuse_model,
 )
 
-from asgardpy.data.base import BaseConfig, PathType
+from asgardpy.data.base import AngleType, BaseConfig, PathType
 from asgardpy.data.geom import SkyCoordConfig
 
 __all__ = [
     "EBLAbsorptionModel",
     "SpectralModelConfig",
     "SpatialModelConfig",
+    "RoISelectionConfig",
     "Target",
     "ExpCutoffLogParabolaSpectralModel",
     "set_models",
+    "apply_selection_mask_to_models",
     "config_to_dict",
     "params_renaming_to_gammapy",
     "params_rescale_to_gammapy",
@@ -79,6 +82,11 @@ class SkyModelComponent(BaseConfig):
     spatial: SpatialModelConfig = SpatialModelConfig()
 
 
+class RoISelectionConfig(BaseConfig):
+    roi_radius: AngleType = 0 * u.deg
+    free_sources: List[str] = []
+
+
 class Target(BaseConfig):
     source_name: str = ""
     sky_position: SkyCoordConfig = SkyCoordConfig()
@@ -88,6 +96,7 @@ class Target(BaseConfig):
     components: List[SkyModelComponent] = [SkyModelComponent()]
     covariance: str = ""
     from_3d: bool = False
+    roi_selection: RoISelectionConfig = RoISelectionConfig()
 
 
 class ExpCutoffLogParabolaSpectralModel(SpectralModel):
@@ -200,6 +209,95 @@ def set_models(
     datasets.models = models
 
     return datasets
+
+
+def apply_selection_mask_to_models(
+    list_sources, target_source=None, selection_mask=None, roi_radius=0 * u.deg, free_sources=[None]
+):
+    """
+    For a given list of source models, with a given target source, apply various
+    selection masks on the Region of Interest in the sky. This will lead to
+    complete exclusion of models or freezing some or all spectral parameters.
+    These selections excludes the diffuse background models in the given list.
+
+    First priority is given if a distinct selection mask is provided, with a
+    list of excluded regions to return only the source models within the selected
+    ROI.
+
+    Second priority is on creating a Circular ROI as per the given radius, and
+    freeze all the spectral parameters of the models of the sources.
+
+    Third priority is when a list of free_sources is provided, then the
+    spectral amplitude of models of those sources, if present in the given list
+    of models, will be unfrozen, and hence, allowed to be variable for fitting.
+
+    Parameters
+    ----------
+    list_sources: '~gammapy.modeling.models.Models'
+        Models object containing a list of source models.
+    target_source: 'str'
+        Name of the target source, whose position is used as the center of ROI.
+    selection_mask: 'WcsNDMap'
+        Map containing a boolean mask to apply to Models object.
+    roi_radius: 'astropy.units.Quantity' or 'asgardpy.data.base.AngleType'
+        Radius for a circular region around ROI (deg)
+    free_sources: 'list'
+        List of source names for which the spectral amplitude is to be kept free.
+
+    Returns
+    -------
+    list_sources: '~gammapy.modeling.models.Models'
+        Selected Models object.
+    """
+    list_sources_excluded = []
+    list_diffuse = []
+
+    # Separate the list of sources and diffuse background
+    for model_ in list_sources:
+        if "diffuse" in model_.name:
+            list_diffuse.append(model_)
+        else:
+            list_sources_excluded.append(model_)
+
+    list_sources_excluded = Models(list_sources_excluded)
+
+    # Get the target source position as the center of RoI
+    if not target_source:
+        target_source = list_sources_excluded[0].name
+        target_source_pos = target_source.spatial_model.position
+    else:
+        target_source_pos = list_sources_excluded[target_source].spatial_model.position
+
+    # If a distinct selection mask is provided
+    if selection_mask:
+        list_sources_excluded = list_sources_excluded.select_mask(selection_mask)
+
+    # If RoI radius is provided and is not default
+    if roi_radius.to_value("deg") != 0:
+        for model_ in list_sources_excluded:
+            model_pos = model_.spatial_model.position
+            separation = target_source_pos.separation(model_pos).deg
+            if separation >= roi_radius.deg:
+                model_.spectral_model.freeze()
+    else:
+        # For a given list of non free sources, unfreeze the spectral amplitude
+        if free_sources[0]:
+            for model_ in list_sources_excluded:
+                # Freeze all spectral parameters for other models
+                if model_.name != target_source:
+                    model_.spectral_model.freeze()
+                # and now unfreeze the amplitude of selected models
+                if model_.name in free_sources:
+                    model_.spectral_model.parameters["amplitude"].frozen = False
+
+    # Add the diffuse background models back
+    for diff_ in list_diffuse:
+        list_sources_excluded.append(diff_)
+
+    # Re-assign to the main variable
+    list_sources = list_sources_excluded
+
+    return list_sources
 
 
 # Functions for Models generation

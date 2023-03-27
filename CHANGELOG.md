@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Incorporate fermipy files into Dataset3DGeneration by [@chaimain](https://github.com/chaimain).
 - Generalize usage of GeomConfig and Models for analysis with fermipy files by [@chaimain](https://github.com/chaimain).
 - Add support for common data types for different instruments by [@chaimain](https://github.com/chaimain).
+- Add support for selecting various spectral model parameters in a given Field of View by [@chaimain](https://github.com/chaimain).
 
 ## [0.1](https://github.com/chaimain/asgardpy/releases/tag/v0.1) - 2023-02-16
 

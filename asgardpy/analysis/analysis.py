@@ -8,7 +8,7 @@ from gammapy.modeling.models import Models
 
 from asgardpy.config.generator import AsgardpyConfig
 from asgardpy.data.base import AnalysisStep
-from asgardpy.data.target import set_models
+from asgardpy.data.target import apply_selection_mask_to_models, set_models
 
 log = logging.getLogger(__name__)
 
@@ -60,22 +60,6 @@ class AsgardpyAnalysis:
         if not self.datasets:
             raise RuntimeError("No datasets defined. Impossible to set models.")
         return self.datasets.models
-
-    """
-    Not sure if this should be removed completely or returned back
-
-    @models.setter
-    def models(self, models):
-
-        # Set a given Model to the final datasets object.
-
-        self.datasets = set_models(
-            config=self.config.target,
-            datasets=self.datasets,
-            models=models,
-            extend=False
-        )
-    """
 
     @property
     def config(self):
@@ -155,6 +139,15 @@ class AsgardpyAnalysis:
                     # It should be reinitialized again with the DatasetModels.
                     if len(self.final_model) == 0:
                         self.final_model = None
+                    # Apply selection filter for the ROI if more than 1 models
+                    # are provided in the FoV, that are not the background models.
+                    elif len(self.final_model) > 1:
+                        self.final_model = apply_selection_mask_to_models(
+                            list_sources=self.final_model,
+                            target_source=self.config.target.source_name,
+                            roi_radius=self.config.target.roi_selection.roi_radius,
+                            free_sources=self.config.target.roi_selection.free_sources,
+                        )
 
                     self.datasets = set_models(
                         self.config.target,

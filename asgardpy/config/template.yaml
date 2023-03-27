@@ -62,6 +62,9 @@ target:
             alpha_norm: 1.0
   covariance: None
   from_3d: false
+  roi_selection:
+    roi_radius: 5 deg
+    free_sources: [None]
 
 # Instrument datasets with 3D info
 dataset3d:
