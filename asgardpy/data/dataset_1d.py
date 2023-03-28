@@ -105,12 +105,10 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
             # Get the spectral energy information for each Instrument Dataset
             energy_axes = config_1d_dataset.dataset_info.spectral_energy_range
             if len(energy_axes.axis_custom.edges) > 0:
-                energy_bin_edges = get_energy_axis(
-                    energy_axes.axis_custom, only_edges=True, custom_range=True
-                )
+                energy_bin_edges = get_energy_axis(energy_axes, only_edges=True, custom_range=True)
             else:
                 energy_bin_edges = get_energy_axis(
-                    energy_axes.axis,
+                    energy_axes,
                     only_edges=True,
                 )
             instrument_spectral_info["spectral_energy_ranges"].append(energy_bin_edges)

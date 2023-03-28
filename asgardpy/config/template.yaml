@@ -126,15 +126,15 @@ dataset3d:
           # radius: 0.4 deg
         containment_correction: true
         spectral_energy_range:
-        -   name: energy
-            axis:
-              min: "100 MeV"
-              max: "1 TeV"
-              nbins: 4
-              per_decade: true
-            # axis_custom:
-            #   edges: [0.01, 0.05, 0.1, 0.5, 1, 5, 10]
-            #   unit: "TeV"
+          name: energy
+          axis:
+            min: "100 MeV"
+            max: "1 TeV"
+            nbins: 4
+            per_decade: true
+        #  axis_custom:
+        #    edges: [0.01, 0.05, 0.1, 0.5, 1, 5, 10]
+        #    unit: "TeV"
 # - name: CTA
 #    ... full description ...
 
@@ -193,15 +193,15 @@ dataset1d:
         containment_correction: false
         map_selection: [counts, exposure, edisp]
         spectral_energy_range:
-        -   name: energy
-            axis:
-              min: "10 GeV"
-              max: "10 TeV"
-              nbins: 5
-              per_decade: true
-            # axis_custom:
-            #   edges: [0.01, 0.05, 0.1, 0.5, 1, 5, 10]
-            #   unit: "TeV"
+          name: energy
+          axis:
+            min: "10 GeV"
+            max: "10 TeV"
+            nbins: 5
+            per_decade: true
+          #axis_custom:
+          #   edges: [0.01, 0.05, 0.1, 0.5, 1, 5, 10]
+          #   unit: "TeV"
 #  - name: MAGIC
 #      ... full description ...
 

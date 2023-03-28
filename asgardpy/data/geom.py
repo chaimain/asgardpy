@@ -108,7 +108,7 @@ def get_energy_axis(axes_config, only_edges=False, custom_range=False):
             energy_max=u.Quantity(energy_axis.max),
             nbin=int(energy_axis.nbins),
             per_decade=energy_axis.per_decade,
-            name=energy_axis.name,
+            name=axes_config.name,
         )
         if only_edges:
             energy_range = energy_range.edges
