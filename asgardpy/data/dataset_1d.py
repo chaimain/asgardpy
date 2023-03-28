@@ -330,7 +330,7 @@ class Dataset1DGeneration:
         if len(self.exclusion_regions) > 0:
             exclusion_mask = ~excluded_geom.region_mask(self.exclusion_regions)
         else:
-            exclusion_mask = ~excluded_geom
+            exclusion_mask = None
 
         # Background reduction maker. Need to generalize further.
         if bkg_config.method == "reflected":
