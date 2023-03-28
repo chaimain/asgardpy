@@ -21,11 +21,16 @@ from gammapy.makers import (
     SpectrumDatasetMaker,
     WobbleRegionsFinder,
 )
-from gammapy.maps import MapAxis, RegionGeom, WcsGeom
+from gammapy.maps import RegionGeom, WcsGeom
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion, PointSkyRegion
 
 from asgardpy.data.base import AnalysisStepBase, BaseConfig
-from asgardpy.data.geom import EnergyAxisConfig, GeomConfig, SpatialPointConfig
+from asgardpy.data.geom import (
+    GeomConfig,
+    MapAxesConfig,
+    SpatialPointConfig,
+    get_energy_axis,
+)
 from asgardpy.data.reduction import (
     BackgroundConfig,
     MapSelectionEnum,
@@ -56,7 +61,7 @@ class Dataset1DInfoConfig(BaseConfig):
     on_region: SpatialPointConfig = SpatialPointConfig()
     containment_correction: bool = True
     map_selection: List[MapSelectionEnum] = []
-    spectral_energy_range: EnergyAxisConfig = EnergyAxisConfig()
+    spectral_energy_range: MapAxesConfig = MapAxesConfig()
 
 
 class Dataset1DBaseConfig(BaseConfig):
@@ -98,13 +103,14 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
             dataset = generate_1d_dataset.run()
 
             # Get the spectral energy information for each Instrument Dataset
-            energy_range = config_1d_dataset.dataset_info.spectral_energy_range
-            energy_bin_edges = MapAxis.from_energy_bounds(
-                energy_min=u.Quantity(energy_range.min),
-                energy_max=u.Quantity(energy_range.max),
-                nbin=int(energy_range.nbins),
-                per_decade=True,
-            ).edges
+            energy_axes = config_1d_dataset.dataset_info.spectral_energy_range
+            if len(energy_axes.axis_custom.edges) > 0:
+                energy_bin_edges = get_energy_axis(energy_axes, only_edges=True, custom_range=True)
+            else:
+                energy_bin_edges = get_energy_axis(
+                    energy_axes,
+                    only_edges=True,
+                )
             instrument_spectral_info["spectral_energy_ranges"].append(energy_bin_edges)
 
             if self.config.general.stacked_dataset:
@@ -255,13 +261,7 @@ class Dataset1DGeneration:
         # Defining the energy axes
         axes_list = self.config_1d_dataset_info.geom.axes
         for axes_ in axes_list:
-            energy_axis = MapAxis.from_energy_bounds(
-                energy_min=u.Quantity(axes_.axis.min),
-                energy_max=u.Quantity(axes_.axis.max),
-                nbin=int(axes_.axis.nbins),
-                per_decade=True,
-                name=axes_.name,
-            )
+            energy_axis = get_energy_axis(axes_)
             # Main geom and template Spectrum Dataset
             if axes_.name == "energy":
                 geom = RegionGeom.create(region=on_region, axes=[energy_axis])

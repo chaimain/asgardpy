@@ -29,7 +29,12 @@ from gammapy.modeling.models import (
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion
 
 from asgardpy.data.base import AnalysisStepBase, BaseConfig, TimeIntervalsConfig
-from asgardpy.data.geom import EnergyAxisConfig, GeomConfig, SpatialCircleConfig
+from asgardpy.data.geom import (
+    GeomConfig,
+    MapAxesConfig,
+    SpatialCircleConfig,
+    get_energy_axis,
+)
 from asgardpy.data.reduction import (
     BackgroundConfig,
     MapSelectionEnum,
@@ -66,7 +71,7 @@ class Dataset3DInfoConfig(BaseConfig):
     safe_mask: SafeMaskConfig = SafeMaskConfig()
     on_region: SpatialCircleConfig = SpatialCircleConfig()
     containment_correction: bool = True
-    spectral_energy_range: EnergyAxisConfig = EnergyAxisConfig()
+    spectral_energy_range: MapAxesConfig = MapAxesConfig()
 
 
 class Dataset3DBaseConfig(BaseConfig):
@@ -147,13 +152,14 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                     ].spectral_model.model2
 
             # Get the spectral energy information for each Instrument Dataset
-            energy_range = config_3d_dataset.dataset_info.spectral_energy_range
-            energy_bin_edges = MapAxis.from_energy_bounds(
-                energy_min=u.Quantity(energy_range.min),
-                energy_max=u.Quantity(energy_range.max),
-                nbin=int(energy_range.nbins),
-                per_decade=True,
-            ).edges
+            energy_axes = config_3d_dataset.dataset_info.spectral_energy_range
+            if len(energy_axes.axis_custom.edges) > 0:
+                energy_bin_edges = get_energy_axis(energy_axes, only_edges=True, custom_range=True)
+            else:
+                energy_bin_edges = get_energy_axis(
+                    energy_axes,
+                    only_edges=True,
+                )
 
             instrument_spectral_info["spectral_energy_ranges"].append(energy_bin_edges)
 
@@ -225,7 +231,7 @@ class Dataset3DGeneration:
         # Apply the same exclusion mask to the list of source models as applied
         # to the Counts Map
         self.list_sources = apply_selection_mask_to_models(
-            list_sources=self.list_sources,
+            self.list_sources,
             target_source=self.config_target.source_name,
             selection_mask=self.exclusion_mask,
         )
@@ -455,13 +461,8 @@ class Dataset3DGeneration:
         """
         geom_config = self.config_3d_dataset.dataset_info.geom
 
-        energy_range = geom_config.axes[0].axis
-        energy_axis = MapAxis.from_energy_bounds(
-            energy_min=u.Quantity(energy_range.min),
-            energy_max=u.Quantity(energy_range.max),
-            nbin=int(energy_range.nbins),
-            per_decade=True,
-        )
+        energy_axes = geom_config.axes[0]
+        energy_axis = get_energy_axis(energy_axes)
         bin_size = geom_config.wcs.binsize.to_value(u.deg)
 
         if geom_config.from_events_file:

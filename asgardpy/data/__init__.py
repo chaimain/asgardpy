@@ -33,6 +33,7 @@ from asgardpy.data.geom import (
     SpatialCircleConfig,
     SpatialPointConfig,
     WcsConfig,
+    get_energy_axis,
 )
 from asgardpy.data.reduction import (
     BackgroundConfig,
@@ -101,6 +102,7 @@ __all__ = [
     "ProjectionEnum",
     "WcsConfig",
     "GeomConfig",
+    "get_energy_axis",
     "ReductionTypeEnum",
     "RequiredHDUEnum",
     "RegionsConfig",
