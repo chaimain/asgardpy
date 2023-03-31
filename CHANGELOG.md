@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add support for selecting various spectral model parameters in a given Field of View by [@chaimain](https://github.com/chaimain).
 - Generalize reading energy axes by [@chaimain](https://github.com/chaimain).
 - Update notebooks by [@chaimain](https://github.com/chaimain).
+- Remove GTI selections from 3D datasets by [@chaimain](https://github.com/chaimain).
 
 ## [0.1](https://github.com/chaimain/asgardpy/releases/tag/v0.1) - 2023-02-16
 
