@@ -12,7 +12,6 @@ import xmltodict
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
-from astropy.time import Time
 
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
 from gammapy.data import GTI, EventList
@@ -28,7 +27,7 @@ from gammapy.modeling.models import (
 )
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion
 
-from asgardpy.data.base import AnalysisStepBase, BaseConfig, TimeIntervalsConfig
+from asgardpy.data.base import AnalysisStepBase, BaseConfig
 from asgardpy.data.geom import (
     GeomConfig,
     MapAxesConfig,
@@ -65,7 +64,6 @@ class Dataset3DInfoConfig(BaseConfig):
     name: str = "dataset-name"
     key: List = []
     map_selection: List[MapSelectionEnum] = MapDatasetMaker.available_selection
-    obs_time: TimeIntervalsConfig = TimeIntervalsConfig()
     geom: GeomConfig = GeomConfig()
     background: BackgroundConfig = BackgroundConfig()
     safe_mask: SafeMaskConfig = SafeMaskConfig()
@@ -414,23 +412,10 @@ class Dataset3DGeneration:
         """
         Loading the events files for the specific "Key" into an EventList
         object and the GTI information into a GTI object.
-
-        Based on any time intervals selection, filter out the events and gti
-        accordingly.
         """
         self.events["event_fits"] = fits.open(events_file)
         self.events["events"] = EventList.read(events_file)
         self.events["gti"] = GTI.read(events_file)
-
-        obs_time = self.config_3d_dataset.dataset_info.obs_time
-        if obs_time.intervals[0].start != Time("0", format="mjd"):
-            t_start = Time(obs_time.intervals[0].start, format=obs_time.format)
-            t_stop = Time(obs_time.intervals[0].stop, format=obs_time.format)
-            time_intervals = [t_start, t_stop]
-
-            self.events["events"] = self.events["events"].select_time(time_intervals)
-            self.events["gti"] = self.events["gti"].select_time(time_intervals)
-            self.log.info(f"Events selected in time intervals: {time_intervals}")
 
     def get_source_skycoord(self):
         """
