@@ -174,8 +174,7 @@ class Dataset3DGeneration:
 
     Runs the following steps:
 
-    1. Read the DL3 files of 3D datasets into gammapy readable objects and perform any
-    selection of events in a given time interval.
+    1. Read the DL3 files of 3D datasets into gammapy readable objects.
 
     2. Create the base counts Map.
 
