@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import List
 
 import yaml
-from gammapy.utils.scripts import make_path, read_yaml
+from gammapy.utils.scripts import make_path, read_yaml, recursive_merge_dicts
 from pydantic.utils import deep_update
 
 from asgardpy.data.base import AnalysisStepEnum, BaseConfig, PathType
@@ -109,7 +109,7 @@ class AsgardpyConfig(BaseConfig):
         logging.basicConfig(**self.general.log.dict())
         log.info("Setting logging config: {!r}".format(self.general.log.dict()))
 
-    def update(self, config=None):
+    def update(self, config=None, merge=False):
         """
         Update config with provided settings.
         Parameters
@@ -124,7 +124,17 @@ class AsgardpyConfig(BaseConfig):
         else:
             raise TypeError(f"Invalid type: {config}")
 
-        config_new = deep_update(
-            self.dict(exclude_defaults=True), other.dict(exclude_defaults=True)
-        )
+        # Special case of when only updating target model parameters from a
+        # separate file, where the name of the source is not provided.
+        if other.target.components[0].name == "":
+            merge = True
+
+        if merge:
+            config_new = recursive_merge_dicts(
+                other.dict(), self.dict()
+            )
+        else:
+            config_new = deep_update(
+                self.dict(exclude_defaults=True), other.dict(exclude_defaults=True)
+            )
         return AsgardpyConfig(**config_new)
