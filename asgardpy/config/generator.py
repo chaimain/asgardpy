@@ -109,13 +109,20 @@ class AsgardpyConfig(BaseConfig):
         logging.basicConfig(**self.general.log.dict())
         log.info("Setting logging config: {!r}".format(self.general.log.dict()))
 
-    def update(self, config=None, merge=False):
+    def update(self, config=None, merge_recursive=False):
         """
         Update config with provided settings.
         Parameters
         ----------
         config : string dict or `AsgardpyConfig` object
-            Configuration settings provided in dict() syntax.
+            The other configuration settings provided in dict() syntax.
+        merge_recursive : bool
+            Perform a recursive merge from the other config onto the parent config.
+
+        Returns
+        -------
+        config : `AsgardpyConfig` object
+            Updated config object.
         """
         if isinstance(config, str):
             other = AsgardpyConfig.from_yaml(config)
@@ -127,12 +134,10 @@ class AsgardpyConfig(BaseConfig):
         # Special case of when only updating target model parameters from a
         # separate file, where the name of the source is not provided.
         if other.target.components[0].name == "":
-            merge = True
+            merge_recursive = True
 
-        if merge:
-            config_new = recursive_merge_dicts(
-                other.dict(), self.dict()
-            )
+        if merge_recursive:
+            config_new = recursive_merge_dicts(self.dict(), other.dict(exclude_defaults=True))
         else:
             config_new = deep_update(
                 self.dict(exclude_defaults=True), other.dict(exclude_defaults=True)
