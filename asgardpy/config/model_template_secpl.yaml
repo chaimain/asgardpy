@@ -1,0 +1,41 @@
+target:
+  components:
+  -   type: SkyModel
+      spectral:
+          type: SuperExpCutoffPowerLaw4FGLDR3SpectralModel
+          parameters:
+          -   name: amplitude
+              value: 1.0e-05
+              unit: cm-2 s-1 TeV-1
+              error: 1.5e-08
+              min: 1.0e-13
+              max: 0.01
+              frozen: false
+          -   name: reference
+              value: 0.0015
+              unit: TeV
+              error: 0.0
+              min: 0.0001
+              max: 100.0
+              frozen: true
+          -   name: index_1
+              value: 1.5
+              unit: ''
+              error: 0.1
+              min: 0.1
+              max: 5.0
+              frozen: false
+          -   name: index_2
+              value: 2.0
+              unit: ''
+              error: 0.01
+              min: 0.5
+              max: 5.0
+              frozen: false
+          -   name: expfactor
+              value: 0.001
+              unit: ''
+              error: 0.001
+              min: 1e-5
+              max: 0.1
+              frozen: false

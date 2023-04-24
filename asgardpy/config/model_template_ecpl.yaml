@@ -1,0 +1,42 @@
+target:
+  components:
+  -   type: SkyModel
+      spectral:
+          type: ExpCutoffPowerLawSpectralModel
+          parameters:
+          -   name: amplitude
+              value: 1.0e-05
+              unit: cm-2 s-1 TeV-1
+              error: 1.5e-06
+              min: 1.0e-13
+              max: 0.01
+              frozen: false
+          -   name: reference
+              value: 0.0015
+              unit: TeV
+              error: 0.0
+              min: 0.0001
+              max: 100.0
+              frozen: true
+          -   name: index
+              value: 1.7
+              unit: ''
+              error: 0.1
+              min: 0.1
+              max: 5.0
+              frozen: false
+          -   name: lambda_
+              value: 8
+              unit: 'TeV-1'
+              error: 0.01
+              min: 1.0e-3
+              max: 1.0e3
+              frozen: false
+          -   name: alpha
+              value: 1.0
+              unit: ''
+              error: 0.1
+              min: 0.5
+              max: 5.0
+              frozen: true
+

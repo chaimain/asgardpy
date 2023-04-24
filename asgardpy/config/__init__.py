@@ -1,3 +1,3 @@
-from asgardpy.config.generator import AsgardpyConfig
+from asgardpy.config.generator import AsgardpyConfig, recursive_merge_dicts
 
-__all__ = ["AsgardpyConfig"]
+__all__ = ["AsgardpyConfig", "recursive_merge_dicts"]
