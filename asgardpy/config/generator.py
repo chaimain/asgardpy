@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import List
 
 import yaml
-from gammapy.utils.scripts import make_path, read_yaml, recursive_merge_dicts
+from gammapy.utils.scripts import make_path, read_yaml
 from pydantic.utils import deep_update
 
 from asgardpy.data.base import AnalysisStepEnum, BaseConfig, PathType
@@ -13,7 +13,7 @@ from asgardpy.data.dataset_3d import Dataset3DConfig
 from asgardpy.data.dl4 import FitConfig, FluxPointsConfig
 from asgardpy.data.target import Target
 
-__all__ = ["AsgardpyConfig"]
+__all__ = ["AsgardpyConfig", "recursive_merge_dicts"]
 
 CONFIG_PATH = Path(__file__).resolve().parent / "config"
 DOCS_FILE = CONFIG_PATH / "docs.yaml"
@@ -37,6 +37,45 @@ class GeneralConfig(BaseConfig):
     steps: List[AnalysisStepEnum] = []
     overwrite: bool = True
     stacked_dataset: bool = False
+
+
+def recursive_merge_dicts(a, b):
+    """
+    recursively merge two dictionaries.
+    Entries in b override entries in a. The built-in update function cannot be
+    used for hierarchical dicts. Also for the case when there is a list of dicts involved, one has to be more careful.
+
+    Combined here are 2 options from SO.
+
+    See:
+    http://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth/3233356#3233356
+    and also
+    https://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth/18394648#18394648
+
+    Parameters
+    ----------
+    a : dict
+        dictionary to be merged
+    b : dict
+        dictionary to be merged
+    Returns
+    -------
+    c : dict
+        merged dict
+    """
+    c = a.copy()
+    for k, v in b.items():
+        if k in c and isinstance(c[k], list):
+            new_c = []
+            for cc, vv in zip(c[k], v):
+                cc = recursive_merge_dicts(cc or {}, vv)
+                new_c.append(cc)
+            c[k] = new_c
+        elif k in c and isinstance(c[k], dict):
+            c[k] = recursive_merge_dicts(c.get(k) or {}, v)
+        else:
+            c[k] = v
+    return c
 
 
 # Combine everything!
@@ -137,7 +176,9 @@ class AsgardpyConfig(BaseConfig):
             merge_recursive = True
 
         if merge_recursive:
-            config_new = recursive_merge_dicts(self.dict(), other.dict(exclude_defaults=True))
+            config_new = recursive_merge_dicts(
+                self.dict(exclude_defaults=True), other.dict(exclude_defaults=True)
+            )
         else:
             config_new = deep_update(
                 self.dict(exclude_defaults=True), other.dict(exclude_defaults=True)

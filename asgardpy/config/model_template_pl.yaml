@@ -1,0 +1,27 @@
+target:
+  components:
+  -   type: SkyModel
+      spectral:
+          type: PowerLawSpectralModel
+          parameters:
+          -   name: amplitude
+              value: 1.0e-05
+              unit: cm-2 s-1 TeV-1
+              error: 1.5e-06
+              min: 1.0e-13
+              max: 0.01
+              frozen: false
+          -   name: reference
+              value: 0.0015
+              unit: TeV
+              error: 0.0
+              min: 0.0001
+              max: 100.0
+              frozen: true
+          -   name: index
+              value: 2
+              unit: ''
+              error: 0.1
+              min: 0.1
+              max: 5.0
+              frozen: false
