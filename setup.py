@@ -33,7 +33,7 @@ with open("asgardpy/version.py", "r") as version_file:
 setup(
     name="asgardpy",
     version=VERSION["VERSION"],
-    description="",
+    description="Gammapy-based pipeline for easy joint analysis of different gamma-ray datasets",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     classifiers=[
@@ -45,8 +45,9 @@ setup(
     ],
     keywords="",
     url="https://github.com/chaimain/asgardpy",
-    author="Allen Institute for Artificial Intelligence",
-    author_email="contact@allenai.org",
+    download_url="https://github.com/chaimain/asgardpy/archive/refs/tags/v0.2.0.tar.gz",
+    author="Chaitanya Priyadarshi",
+    author_email="chaitanya.p.astrphys@gmail.com",
     license="Apache",
     packages=find_packages(
         exclude=["*.tests", "*.tests.*", "tests.*", "tests"],

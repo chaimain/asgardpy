@@ -3,20 +3,22 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-**asgardpy package**
-====================
+**asgardpy pipeline**
+=====================
 
-Gammapy-based package to support high-level analysis for multi-instruments joint datasets.
+Gammapy-based pipeline to support high-level analysis for multi-instruments joint datasets.
+Follow the `Gammapy v1.0 <https://docs.gammapy.org/1.0/>`_ documentation for understanding the core Gammapy objects.
 
+The various Data Levels used here follow the descriptions suggested by `GADF v0.3 <https://gamma-astro-data-formats.readthedocs.io/en/latest/>`_ and CTAO Data Model.
 
 Main structure
 --------------
 
 The package is structured in 2 ways -
 
-1. Creating the AnalysisConfig based on several Config components - :doc:`config`
+#. Creating the AnalysisConfig based on several Config components - :doc:`config`
 
-2. Generating AsgardpyAnalysis based on several Analysis Step components - :doc:`analysis`
+#. Generating AsgardpyAnalysis based on several Analysis Step components - :doc:`analysis`
 
 Analysis Steps
 --------------
@@ -25,13 +27,13 @@ The configuration-based pipeline separates the Gammapy-based High-Level Analysis
 Check :doc:`data_base` for more details.
 The steps are:
 
-1. datasets-3d
+#. datasets-3d
 
-2. datasets-1d
+#. datasets-1d
 
-3. fit
+#. fit
 
-4. flux-points
+#. flux-points
 
 The main purpose of this pipeline is accomplished before the "fit" step, which is to compile a Gammapy Datasets object
 containing multiple types of datasets from multiple gamma-ray astronomical instruments, update them with appropriate
@@ -51,21 +53,21 @@ by the IO module's DL3Files class.
 
 The main modules dealing with the 2 types of data being read are -
 
-1. 3D Dataset - :doc:`data_3d`
+#. 3D Dataset - :doc:`data_3d`
 
-2. 1D Dataset - :doc:`data_1d`
+#. 1D Dataset - :doc:`data_1d`
 
 They each build their Config components using classes defined with,
 
-1. a base in asgardpy/data/base,
+#. a base in asgardpy/data/base,
 
-2. from distinct modules -
+#. from distinct modules -
 
-2.1. Base Geometry - asgardpy/data/geom
+   #. Base Geometry - asgardpy/data/geom
 
-2.2 Dataset Reduction - asgardpy/data/reduction
+   #. Dataset Reduction - asgardpy/data/reduction
 
-3. and from their own respective modules
+#. and from their own respective modules
 
 The processing of Dataset creation is performed by the classes Dataset3DGeneration and Dataset1DGeneration
 

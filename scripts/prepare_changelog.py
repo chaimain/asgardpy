@@ -13,7 +13,7 @@ def main():
     insert_index: int = -1
     for i in range(len(lines)):
         line = lines[i]
-        if line.startswith("## Unreleased"):
+        if line.startswith("## [Unreleased]"):
             insert_index = i + 1
         elif line.startswith(f"## [v{VERSION}]"):
             print("CHANGELOG already up-to-date")
