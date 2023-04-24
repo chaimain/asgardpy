@@ -43,7 +43,9 @@ def recursive_merge_dicts(a, b):
     """
     recursively merge two dictionaries.
     Entries in b override entries in a. The built-in update function cannot be
-    used for hierarchical dicts. Also for the case when there is a list of dicts involved, one has to be more careful.
+    used for hierarchical dicts.
+
+    Also for the case when there is a list of dicts involved, one has to be more careful.
 
     Combined here are 2 options from SO.
 
