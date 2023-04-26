@@ -357,19 +357,7 @@ class Dataset1DGeneration:
 
         if len(safe_config.methods) != 0:
             if "custom-mask" not in safe_config.methods:
-                pos = SkyCoord(
-                    u.Quantity(pars.position["lon"]),
-                    u.Quantity(pars.position["lat"]),
-                    frame=pars.position["frame"],
-                )
-                safe_maker = SafeMaskMaker(
-                    methods=safe_config.methods,
-                    aeff_percent=pars.aeff_percent,
-                    bias_percent=pars.bias_percent,
-                    position=pos,
-                    fixed_offset=pars.fixed_offset,
-                    offset_max=pars.offset_max,
-                )
+                safe_maker = SafeMaskMaker(methods=safe_config.methods, **pars)
             else:
                 safe_maker = None
         else:

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update documentation with more description by [@chaimain](https://github.com/chaimain).
 - Update config with the option to perform recursive merging by [@chaimain](https://github.com/chaimain).
+- Fix Safe Mask reduction for 1D Dataset and add another custom Spectral Model by [@chaimain](https://github.com/chaimain).
 
 ## [v0.2.0](https://github.com/chaimain/asgardpy/releases/tag/v0.2.0) - 2023-04-19
 
