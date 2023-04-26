@@ -31,6 +31,7 @@ __all__ = [
     "RoISelectionConfig",
     "Target",
     "ExpCutoffLogParabolaSpectralModel",
+    "BrokenPowerLaw2SpectralModel",
     "set_models",
     "apply_selection_mask_to_models",
     "config_to_dict",
@@ -142,6 +143,59 @@ class ExpCutoffLogParabolaSpectralModel(SpectralModel):
         cutoff = np.exp(-np.power(energy * lambda_, alpha_2))
 
         return amplitude * np.power(xx, exponent) * cutoff
+
+
+class BrokenPowerLaw2SpectralModel(SpectralModel):
+    r"""Spectral broken power-law 2 model.
+
+    In this slightly modified Broken Power Law, instead of having the second index
+    as a distinct parameter, the difference in the spectral indices around the
+    Break Energy is used, to try for some assumptions on the different physical
+    processes that define the full spectrum, where the second process is dependent
+    on the first process.
+
+    For more information see :ref:`broken-powerlaw-spectral-model`.
+
+    Parameters
+    ----------
+    index1 : `~astropy.units.Quantity`
+        :math:`\Gamma1`
+    index_diff : `~astropy.units.Quantity`
+        :math:`\Delta\Gamma`
+    amplitude : `~astropy.units.Quantity`
+        :math:`\phi_0`
+    ebreak : `~astropy.units.Quantity`
+        :math:`E_{break}`
+
+    See Also
+    --------
+    SmoothBrokenPowerLawSpectralModel
+    """
+
+    tag = ["BrokenPowerLaw2SpectralModel", "bpl2"]
+    index1 = Parameter("index1", 2.0)
+    index_diff = Parameter("index_diff", 1.0)
+    amplitude = Parameter(
+        name="amplitude",
+        value="1e-12 cm-2 s-1 TeV-1",
+        scale_method="scale10",
+        interp="log",
+        is_norm=True,
+    )
+    ebreak = Parameter("ebreak", "1 TeV")
+
+    @staticmethod
+    def evaluate(energy, index1, index_diff, amplitude, ebreak):
+        """Evaluate the model (static function)."""
+        energy = np.atleast_1d(energy)
+        cond = energy < ebreak
+        bpwl2 = amplitude * np.ones(energy.shape)
+
+        index2 = index1 + index_diff
+        bpwl2[cond] *= (energy[cond] / ebreak) ** (-index1)
+        bpwl2[~cond] *= (energy[~cond] / ebreak) ** (-index2)
+
+        return bpwl2
 
 
 # Function for Models assignment
@@ -326,6 +380,10 @@ def read_models_from_asgardpy_config(config):
             model1 = ExpCutoffLogParabolaSpectralModel().from_dict(
                 {"spectral": config_to_dict(model_config.spectral)}
             )
+        elif model_config.spectral.type == "BrokenPowerLaw2SpectralModel":
+            model1 = BrokenPowerLaw2SpectralModel().from_dict(
+                {"spectral": config_to_dict(model_config.spectral)}
+            )
         else:
             model1 = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
                 {"spectral": config_to_dict(model_config.spectral)}
@@ -350,6 +408,10 @@ def read_models_from_asgardpy_config(config):
     else:
         if model_config.spectral.type == "ExpCutoffLogParabolaSpectralModel":
             spectral_model = ExpCutoffLogParabolaSpectralModel().from_dict(
+                {"spectral": config_to_dict(model_config.spectral)}
+            )
+        elif model_config.spectral.type == "BrokenPowerLaw2SpectralModel":
+            model1 = BrokenPowerLaw2SpectralModel().from_dict(
                 {"spectral": config_to_dict(model_config.spectral)}
             )
         else:

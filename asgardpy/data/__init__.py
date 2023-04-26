@@ -47,6 +47,7 @@ from asgardpy.data.reduction import (
     SafeMaskMethodsEnum,
 )
 from asgardpy.data.target import (
+    BrokenPowerLaw2SpectralModel,
     ExpCutoffLogParabolaSpectralModel,
     Target,
     apply_selection_mask_to_models,
@@ -81,6 +82,7 @@ __all__ = [
     "TimeIntervalsConfig",
     "EnergyRangeConfig",
     "Target",
+    "BrokenPowerLaw2SpectralModel",
     "ExpCutoffLogParabolaSpectralModel",
     "set_models",
     "apply_selection_mask_to_models",
