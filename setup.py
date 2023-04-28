@@ -45,7 +45,7 @@ setup(
     ],
     keywords="",
     url="https://github.com/chaimain/asgardpy",
-    download_url="https://github.com/chaimain/asgardpy/archive/refs/tags/v0.2.0.tar.gz",
+    download_url="https://github.com/chaimain/asgardpy/archive/refs/tags/v0.3.1.tar.gz",
     author="Chaitanya Priyadarshi",
     author_email="chaitanya.p.astrphys@gmail.com",
     license="Apache",
@@ -55,5 +55,5 @@ setup(
     package_data={"asgardpy": ["py.typed"]},
     install_requires=read_requirements("requirements.txt"),
     extras_require={"dev": read_requirements("dev-requirements.txt")},
-    python_requires=">=3.8",
+    python_requires=">=3.10",
 )
