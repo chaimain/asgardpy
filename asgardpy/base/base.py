@@ -149,7 +149,7 @@ class AnalysisStep:
 
     @staticmethod
     def create(tag, config, **kwargs):
-        from . import ANALYSIS_STEP_REGISTRY
+        from asgardpy.data import ANALYSIS_STEP_REGISTRY
 
         cls = ANALYSIS_STEP_REGISTRY.get_cls(tag)
         return cls(config, **kwargs)
