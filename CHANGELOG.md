@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Remove support of python 3.8 by [@chaimain](https://github.com/chaimain).
+
 ## [v0.3.0](https://github.com/chaimain/asgardpy/releases/tag/v0.3.0) - 2023-04-28
 
 ### Added
