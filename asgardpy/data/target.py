@@ -197,6 +197,10 @@ class BrokenPowerLaw2SpectralModel(SpectralModel):
         return bpwl2
 
 
+SPECTRAL_MODEL_REGISTRY.append(ExpCutoffLogParabolaSpectralModel)
+SPECTRAL_MODEL_REGISTRY.append(BrokenPowerLaw2SpectralModel)
+
+
 # Function for Models assignment
 def set_models(
     config, datasets, datasets_name_list=None, models=None, target_source_name=None, extend=False
@@ -375,18 +379,9 @@ def read_models_from_asgardpy_config(config):
 
     # Spectral Model
     if model_config.spectral.ebl_abs.reference != "":
-        if model_config.spectral.type == "ExpCutoffLogParabolaSpectralModel":
-            model1 = ExpCutoffLogParabolaSpectralModel().from_dict(
-                {"spectral": config_to_dict(model_config.spectral)}
-            )
-        elif model_config.spectral.type == "BrokenPowerLaw2SpectralModel":
-            model1 = BrokenPowerLaw2SpectralModel().from_dict(
-                {"spectral": config_to_dict(model_config.spectral)}
-            )
-        else:
-            model1 = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
-                {"spectral": config_to_dict(model_config.spectral)}
-            )
+        model1 = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
+            {"spectral": config_to_dict(model_config.spectral)}
+        )
 
         ebl_model = model_config.spectral.ebl_abs
 
