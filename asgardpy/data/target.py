@@ -21,28 +21,27 @@ from gammapy.modeling.models import (
     create_fermi_isotropic_diffuse_model,
 )
 
-from asgardpy.data.base import AngleType, BaseConfig, PathType
-from asgardpy.data.geom import SkyCoordConfig
+from asgardpy.base import AngleType, BaseConfig, PathType, SkyCoordConfig
 
 __all__ = [
-    "EBLAbsorptionModel",
-    "SpectralModelConfig",
-    "SpatialModelConfig",
-    "RoISelectionConfig",
-    "Target",
-    "ExpCutoffLogParabolaSpectralModel",
     "BrokenPowerLaw2SpectralModel",
-    "set_models",
+    "EBLAbsorptionModel",
+    "ExpCutoffLogParabolaSpectralModel",
+    "RoISelectionConfig",
+    "SpatialModelConfig",
+    "SpectralModelConfig",
+    "Target",
     "apply_selection_mask_to_models",
     "config_to_dict",
+    "create_gal_diffuse_skymodel",
+    "create_iso_diffuse_skymodel",
+    "create_source_skymodel",
     "params_renaming_to_gammapy",
     "params_rescale_to_gammapy",
     "read_models_from_asgardpy_config",
-    "xml_spectral_model_to_gammapy_params",
+    "set_models",
     "xml_spatial_model_to_gammapy",
-    "create_source_skymodel",
-    "create_iso_diffuse_skymodel",
-    "create_gal_diffuse_skymodel",
+    "xml_spectral_model_to_gammapy_params",
 ]
 
 

@@ -7,11 +7,14 @@ import yaml
 from gammapy.utils.scripts import make_path, read_yaml
 from pydantic.utils import deep_update
 
-from asgardpy.data.base import AnalysisStepEnum, BaseConfig, PathType
-from asgardpy.data.dataset_1d import Dataset1DConfig
-from asgardpy.data.dataset_3d import Dataset3DConfig
-from asgardpy.data.dl4 import FitConfig, FluxPointsConfig
-from asgardpy.data.target import Target
+from asgardpy.base import AnalysisStepEnum, BaseConfig, PathType
+from asgardpy.data import (
+    Dataset1DConfig,
+    Dataset3DConfig,
+    FitConfig,
+    FluxPointsConfig,
+    Target,
+)
 
 __all__ = ["AsgardpyConfig", "recursive_merge_dicts"]
 

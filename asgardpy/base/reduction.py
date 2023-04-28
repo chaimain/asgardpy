@@ -8,23 +8,28 @@ from typing import List
 
 from astropy import units as u
 
-from asgardpy.data.base import AngleType, BaseConfig, PathType, TimeIntervalsConfig
-from asgardpy.data.geom import SkyCoordConfig
+from asgardpy.base import (
+    AngleType,
+    BaseConfig,
+    PathType,
+    SkyCoordConfig,
+    TimeIntervalsConfig,
+)
 
 __all__ = [
-    "ReductionTypeEnum",
-    "RequiredHDUEnum",
-    "ObservationsConfig",
-    "BackgroundRegionFinderMethodEnum",
-    "ReflectedRegionFinderConfig",
-    "WobbleRegionsFinderConfig",
-    "BackgroundMethodEnum",
-    "ExclusionRegionsConfig",
-    "RegionsConfig",
-    "SafeMaskMethodsEnum",
-    "MapSelectionEnum",
     "BackgroundConfig",
+    "BackgroundMethodEnum",
+    "BackgroundRegionFinderMethodEnum",
+    "ExclusionRegionsConfig",
+    "MapSelectionEnum",
+    "ObservationsConfig",
+    "ReductionTypeEnum",
+    "ReflectedRegionFinderConfig",
+    "RegionsConfig",
+    "RequiredHDUEnum",
     "SafeMaskConfig",
+    "SafeMaskMethodsEnum",
+    "WobbleRegionsFinderConfig",
 ]
 
 

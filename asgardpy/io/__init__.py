@@ -1,3 +1,3 @@
 from asgardpy.io.io import DL3Files, InputConfig, InputFilePatterns
 
-__all__ = ["InputFilePatterns", "InputConfig", "DL3Files"]
+__all__ = ["DL3Files", "InputConfig", "InputFilePatterns"]

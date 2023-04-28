@@ -14,17 +14,19 @@ from astropy.time import Time
 from pydantic import BaseModel
 
 __all__ = [
-    "AngleType",
-    "EnergyType",
-    "TimeType",
-    "FrameEnum",
-    "TimeFormatEnum",
-    "AnalysisStepBase",
     "AnalysisStep",
+    "AnalysisStepBase",
+    "AnalysisStepEnum",
+    "AngleType",
     "BaseConfig",
-    "TimeRangeConfig",
-    "TimeIntervalsConfig",
     "EnergyRangeConfig",
+    "EnergyType",
+    "FrameEnum",
+    "PathType",
+    "TimeFormatEnum",
+    "TimeIntervalsConfig",
+    "TimeRangeConfig",
+    "TimeType",
 ]
 
 
@@ -147,7 +149,7 @@ class AnalysisStep:
 
     @staticmethod
     def create(tag, config, **kwargs):
-        from . import ANALYSIS_STEP_REGISTRY
+        from asgardpy.data import ANALYSIS_STEP_REGISTRY
 
         cls = ANALYSIS_STEP_REGISTRY.get_cls(tag)
         return cls(config, **kwargs)

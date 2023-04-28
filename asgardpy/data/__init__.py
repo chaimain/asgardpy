@@ -1,50 +1,20 @@
 from gammapy.utils.registry import Registry
 
-from asgardpy.data.base import (
-    AnalysisStep,
-    AnalysisStepBase,
-    AngleType,
-    BaseConfig,
-    EnergyRangeConfig,
-    EnergyType,
-    FrameEnum,
-    TimeFormatEnum,
-    TimeIntervalsConfig,
-    TimeRangeConfig,
-    TimeType,
+from asgardpy.data.dataset_1d import (
+    Dataset1DConfig,
+    Dataset1DGeneration,
+    Datasets1DAnalysisStep,
 )
-from asgardpy.data.dataset_1d import Dataset1DGeneration, Datasets1DAnalysisStep
-from asgardpy.data.dataset_3d import Dataset3DGeneration, Datasets3DAnalysisStep
+from asgardpy.data.dataset_3d import (
+    Dataset3DConfig,
+    Dataset3DGeneration,
+    Datasets3DAnalysisStep,
+)
 from asgardpy.data.dl4 import (
     FitAnalysisStep,
     FitConfig,
     FluxPointsAnalysisStep,
     FluxPointsConfig,
-)
-from asgardpy.data.geom import (
-    EnergyAxisConfig,
-    EnergyEdgesCustomConfig,
-    GeomConfig,
-    MapAxesConfig,
-    MapFrameShapeConfig,
-    ProjectionEnum,
-    SelectionConfig,
-    SkyCoordConfig,
-    SpatialCircleConfig,
-    SpatialPointConfig,
-    WcsConfig,
-    get_energy_axis,
-)
-from asgardpy.data.reduction import (
-    BackgroundConfig,
-    BackgroundMethodEnum,
-    ExclusionRegionsConfig,
-    MapSelectionEnum,
-    ReductionTypeEnum,
-    RegionsConfig,
-    RequiredHDUEnum,
-    SafeMaskConfig,
-    SafeMaskMethodsEnum,
 )
 from asgardpy.data.target import (
     BrokenPowerLaw2SpectralModel,
@@ -70,17 +40,6 @@ ANALYSIS_STEP_REGISTRY = Registry(
 )
 
 __all__ = [
-    "AngleType",
-    "EnergyType",
-    "TimeType",
-    "FrameEnum",
-    "TimeFormatEnum",
-    "BaseConfig",
-    "AnalysisStepBase",
-    "AnalysisStep",
-    "TimeRangeConfig",
-    "TimeIntervalsConfig",
-    "EnergyRangeConfig",
     "Target",
     "BrokenPowerLaw2SpectralModel",
     "ExpCutoffLogParabolaSpectralModel",
@@ -94,27 +53,10 @@ __all__ = [
     "create_gal_diffuse_skymodel",
     "SpatialCircleConfig",
     "SpatialPointConfig",
-    "EnergyAxisConfig",
-    "MapAxesConfig",
-    "EnergyEdgesCustomConfig",
-    "ExclusionRegionsConfig",
-    "SelectionConfig",
-    "MapFrameShapeConfig",
-    "SkyCoordConfig",
-    "ProjectionEnum",
-    "WcsConfig",
-    "GeomConfig",
-    "get_energy_axis",
-    "ReductionTypeEnum",
-    "RequiredHDUEnum",
-    "RegionsConfig",
-    "BackgroundMethodEnum",
-    "SafeMaskMethodsEnum",
-    "MapSelectionEnum",
-    "BackgroundConfig",
-    "SafeMaskConfig",
+    "Dataset1DConfig",
     "Dataset1DGeneration",
     "Datasets1DAnalysisStep",
+    "Dataset3DConfig",
     "Dataset3DGeneration",
     "Datasets3DAnalysisStep",
     "FluxPointsConfig",

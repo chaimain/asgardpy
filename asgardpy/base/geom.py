@@ -8,20 +8,20 @@ from typing import List
 from astropy import units as u
 from gammapy.maps import MapAxis
 
-from asgardpy.data.base import AngleType, BaseConfig, EnergyType, FrameEnum
+from asgardpy.base import AngleType, BaseConfig, EnergyType, FrameEnum
 
 __all__ = [
+    "EnergyAxisConfig",
+    "EnergyEdgesCustomConfig",
+    "GeomConfig",
+    "MapAxesConfig",
+    "MapFrameShapeConfig",
+    "ProjectionEnum",
+    "SelectionConfig",
+    "SkyCoordConfig",
     "SpatialCircleConfig",
     "SpatialPointConfig",
-    "EnergyAxisConfig",
-    "MapAxesConfig",
-    "EnergyEdgesCustomConfig",
-    "SelectionConfig",
-    "MapFrameShapeConfig",
-    "SkyCoordConfig",
-    "ProjectionEnum",
     "WcsConfig",
-    "GeomConfig",
     "get_energy_axis",
 ]
 
