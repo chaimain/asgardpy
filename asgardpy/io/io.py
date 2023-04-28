@@ -10,22 +10,11 @@ for 1D Dataset.
 import logging
 from pathlib import Path
 
-from asgardpy.data.base import BaseConfig, PathType
+from asgardpy.base import BaseConfig, PathType
 
 __all__ = ["InputFilePatterns", "InputConfig", "DL3Files"]
 
 EXPECTED_DL3_RANGE = ["gadf-dl3", "lat", "lat-aux"]
-
-glob_dict_std = {
-    "events": "*events.fits*",
-    "edisp": "*DRM.fits*",
-    "exposure": "*BinnedMap.fits*",
-    "xml_model": "*out.xml",
-    "psf": "*psf.fits*",
-    "diffuse": "gll_iem_v*.fits*",
-    "iso": "iso_P8R3_SOURCE_V*_*.txt",
-    "dl3": "dl3*fits",
-}
 
 
 # Basic Components for the Input Config
@@ -69,11 +58,7 @@ class DL3Files:
         self.dl3_type = dir_dict.type
         self._check_dl3_type()
 
-        glob_dict = dir_dict.glob_pattern
-        if glob_dict is None:
-            self.glob_dict = glob_dict_std
-        else:
-            self.glob_dict = glob_dict
+        self.glob_dict = dir_dict.glob_pattern
 
         self.events_files = None
         self.edrm_files = None

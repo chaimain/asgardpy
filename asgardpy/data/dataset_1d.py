@@ -24,28 +24,26 @@ from gammapy.makers import (
 from gammapy.maps import RegionGeom, WcsGeom
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion, PointSkyRegion
 
-from asgardpy.data.base import AnalysisStepBase, BaseConfig
-from asgardpy.data.geom import (
+from asgardpy.base import (
+    AnalysisStepBase,
+    BackgroundConfig,
+    BaseConfig,
     GeomConfig,
     MapAxesConfig,
-    SpatialPointConfig,
-    get_energy_axis,
-)
-from asgardpy.data.reduction import (
-    BackgroundConfig,
     MapSelectionEnum,
     ObservationsConfig,
     ReductionTypeEnum,
     SafeMaskConfig,
+    SpatialPointConfig,
+    get_energy_axis,
 )
-from asgardpy.io.io import DL3Files, InputConfig
+from asgardpy.io import DL3Files, InputConfig
 
 __all__ = [
-    "Dataset1DConfig",
+    "Datasets1DAnalysisStep",
     "Dataset1DBaseConfig",
     "Dataset1DConfig",
     "Dataset1DGeneration",
-    "Datasets1DAnalysisStep",
 ]
 
 log = logging.getLogger(__name__)

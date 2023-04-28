@@ -179,7 +179,7 @@ dataset1d:
             n_off_regions: 1
           # exclusion:
         safe_mask:
-          methods: ["custom-mask"]
+          methods: ["custom-mask"] #["aeff-max", "aeff-default", "edisp-bias", "offset-max", "bkg-peak"]
           parameters:
             min: "10 GeV"
             max: "10 TeV"

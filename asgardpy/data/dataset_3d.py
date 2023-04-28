@@ -27,18 +27,17 @@ from gammapy.modeling.models import (
 )
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion
 
-from asgardpy.data.base import AnalysisStepBase, BaseConfig
-from asgardpy.data.geom import (
+from asgardpy.base import (
+    AnalysisStepBase,
+    BackgroundConfig,
+    BaseConfig,
     GeomConfig,
     MapAxesConfig,
-    SpatialCircleConfig,
-    get_energy_axis,
-)
-from asgardpy.data.reduction import (
-    BackgroundConfig,
     MapSelectionEnum,
     ReductionTypeEnum,
     SafeMaskConfig,
+    SpatialCircleConfig,
+    get_energy_axis,
 )
 from asgardpy.data.target import (
     apply_selection_mask_to_models,
@@ -49,11 +48,11 @@ from asgardpy.data.target import (
 from asgardpy.io import DL3Files, InputConfig
 
 __all__ = [
-    "Dataset3DInfoConfig",
+    "Datasets3DAnalysisStep",
     "Dataset3DBaseConfig",
     "Dataset3DConfig",
     "Dataset3DGeneration",
-    "Datasets3DAnalysisStep",
+    "Dataset3DInfoConfig",
 ]
 
 log = logging.getLogger(__name__)

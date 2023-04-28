@@ -24,7 +24,7 @@ Analysis Steps
 --------------
 
 The configuration-based pipeline separates the Gammapy-based High-Level Analysis into serialized intermediate steps.
-Check :doc:`data_base` for more details.
+Check :doc:`base_base` for more details.
 The steps are:
 
 #. datasets-3d
@@ -59,13 +59,13 @@ The main modules dealing with the 2 types of data being read are -
 
 They each build their Config components using classes defined with,
 
-#. a base in asgardpy/data/base,
+#. a base in asgardpy/base/base,
 
 #. from distinct modules -
 
-   #. Base Geometry - asgardpy/data/geom
+   #. Base Geometry - asgardpy/base/geom
 
-   #. Dataset Reduction - asgardpy/data/reduction
+   #. Dataset Reduction - asgardpy/base/reduction
 
 #. and from their own respective modules
 
@@ -108,8 +108,8 @@ Contents
    :maxdepth: 2
 
    analysis
+   base_base
    config
-   data_base
    data_3d
    data_1d
    data_target

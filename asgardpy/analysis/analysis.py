@@ -6,9 +6,9 @@ import logging
 from gammapy.datasets import Datasets
 from gammapy.modeling.models import Models
 
-from asgardpy.config.generator import AsgardpyConfig
-from asgardpy.data.base import AnalysisStep
-from asgardpy.data.target import apply_selection_mask_to_models, set_models
+from asgardpy.base import AnalysisStep
+from asgardpy.config import AsgardpyConfig
+from asgardpy.data import apply_selection_mask_to_models, set_models
 
 log = logging.getLogger(__name__)
 

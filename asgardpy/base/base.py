@@ -14,17 +14,19 @@ from astropy.time import Time
 from pydantic import BaseModel
 
 __all__ = [
-    "AngleType",
-    "EnergyType",
-    "TimeType",
-    "FrameEnum",
-    "TimeFormatEnum",
-    "AnalysisStepBase",
     "AnalysisStep",
+    "AnalysisStepBase",
+    "AnalysisStepEnum",
+    "AngleType",
     "BaseConfig",
-    "TimeRangeConfig",
-    "TimeIntervalsConfig",
     "EnergyRangeConfig",
+    "EnergyType",
+    "FrameEnum",
+    "PathType",
+    "TimeFormatEnum",
+    "TimeIntervalsConfig",
+    "TimeRangeConfig",
+    "TimeType",
 ]
 
 
