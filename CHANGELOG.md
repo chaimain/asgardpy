@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.3.2](https://github.com/chaimain/asgardpy/releases/tag/v0.3.2) - 2023-04-28
+
 ### Added
 
 - Add the custom spectral models to the Gammapy registry by [@chaimain](https://github.com/chaimain).
