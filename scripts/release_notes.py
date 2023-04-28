@@ -23,7 +23,7 @@ def get_change_log_notes() -> str:
     with open("CHANGELOG.md") as changelog:
         for line in changelog:
             if line.startswith("## "):
-                if line.startswith("## Unreleased"):
+                if line.startswith("## [Unreleased]"):
                     continue
                 if line.startswith(f"## [{TAG}]"):
                     in_current_section = True
