@@ -38,5 +38,8 @@ sphinx-autobuild>=2021.3.14
 # Automatically adds types to docs
 sphinx-autodoc-typehints
 
+# For documenting pydantic modules, classes and fields
+autodoc_pydantic
+
 # For parsing and comparing version numbers.
 packaging
