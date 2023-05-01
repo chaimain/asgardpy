@@ -50,6 +50,7 @@ extensions = [
     "sphinx_copybutton",
     "sphinx_autodoc_typehints",
     "sphinx.ext.inheritance_diagram",
+    "sphinxcontrib.autodoc_pydantic",
 ]
 
 # Tell myst-parser to assign header anchors for h1-h3.
@@ -80,9 +81,14 @@ intersphinx_mapping = {
 # By default, sort documented members by type within classes and modules.
 autodoc_member_order = "groupwise"
 
+autodoc_pydantic_model_show_json = False
+autodoc_pydantic_model_show_config = False
+autodoc_pydantic_model_show_config_member = False
+autodoc_pydantic_model_show_config_summary = False
+autodoc_pydantic_model_show_field_summary = True
+
 # Include default values when documenting parameter types.
 typehints_defaults = "comma"
-
 
 # -- Options for HTML output -------------------------------------------------
 
