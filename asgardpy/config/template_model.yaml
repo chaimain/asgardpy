@@ -1,44 +1,34 @@
-components:
--   name: ""
-    type: SkyModel
-    spectral:
-        type: LogParabolaSpectralModel
-        parameters:
-        -   name: amplitude
-            value: 1.0e-05
-            unit: cm-2 s-1 TeV-1
-            error: 1.5e-06
-            min: 1.0e-13
-            max: 0.01
-            frozen: false
-        -   name: reference
-            value: 0.0015
-            unit: TeV
-            error: 0.0
-            min: 0.0001
-            max: 100.0
-            frozen: true
-        -   name: alpha
-            value: 2
-            unit: ''
-            error: 0.1
-            min: 0.5
-            max: 5.0
-            frozen: false
-        -   name: beta
-            value: 0.1
-            unit: ''
-            error: 0.01
-            min: 0.01
-            max: 1.0
-            frozen: false
-        ebl_abs:
-          reference: dominguez
-          # filename: /path/to/custom_ebl_model.fits.gz
-          type: EBLAbsorptionNormSpectralModel
-          redshift: 0.4
-          alpha_norm: 1.0
-    covariance: None
-roi_selection:
-  roi_radius: 5 deg
-  free_sources: [None]
+target:
+  components:
+  -   type: SkyModel
+      spectral:
+          type: LogParabolaSpectralModel
+          parameters:
+          -   name: amplitude
+              value: 1.0e-05
+              unit: cm-2 s-1 TeV-1
+              error: 1.5e-06
+              min: 1.0e-13
+              max: 0.01
+              frozen: false
+          -   name: reference
+              value: 0.0015
+              unit: TeV
+              error: 0.0
+              min: 0.0001
+              max: 100.0
+              frozen: true
+          -   name: alpha
+              value: 2
+              unit: ''
+              error: 0.1
+              min: 0.5
+              max: 5.0
+              frozen: false
+          -   name: beta
+              value: 0.1
+              unit: ''
+              error: 0.01
+              min: 0.01
+              max: 1.0
+              frozen: false

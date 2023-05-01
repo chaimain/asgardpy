@@ -21,7 +21,7 @@ setuptools
 wheel
 
 # Building docs
-Sphinx>=4.3.0,<7
+Sphinx>=4.3.0,<8
 
 # Sphinx theme: https://sphinx-themes.org/sample-sites/furo/
 furo>=2022.12.7

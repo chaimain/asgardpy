@@ -1,0 +1,1172 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
+
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><!-- Generated with Sphinx 6.2.1 and Furo 2023.03.27 -->
+        <title>asgardpy.data.target - asgardpy v0.3.2</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=fad236701ea90a88636c2a8c73b44ae642ed2a53" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">asgardpy v0.3.2</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  
+  
+  <span class="sidebar-brand-text">asgardpy v0.3.2</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CHANGELOG.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/chaimain/asgardpy/blob/main/LICENSE">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CONTRIBUTING.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/chaimain/asgardpy">GitHub Repository</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../analysis.html">asgardpy.analysis module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../base_base.html">asgardpy.base.base module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../config.html">asgardpy.config module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../data_3d.html">asgardpy.data.dataset_3d module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../data_1d.html">asgardpy.data.dataset_1d module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../data_target.html">asgardpy.data.target module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../data_target.html#spectral-model-parameter-renaming-to-gammapy-default">Spectral model parameter renaming to Gammapy default</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../data_dl4.html">asgardpy.data.dl4 module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../io.html">asgardpy.io module</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <h1>Source code for asgardpy.data.target</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Classes containing the Target config parameters for the high-level interface and</span>
+<span class="sd">also the functions involving Models generation and assignment to datasets.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+
+<span class="kn">import</span> <span class="nn">astropy.units</span> <span class="k">as</span> <span class="nn">u</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">astropy.coordinates</span> <span class="kn">import</span> <span class="n">SkyCoord</span>
+<span class="kn">from</span> <span class="nn">gammapy.maps</span> <span class="kn">import</span> <span class="n">Map</span>
+<span class="kn">from</span> <span class="nn">gammapy.modeling</span> <span class="kn">import</span> <span class="n">Parameter</span><span class="p">,</span> <span class="n">Parameters</span>
+<span class="kn">from</span> <span class="nn">gammapy.modeling.models</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">SPATIAL_MODEL_REGISTRY</span><span class="p">,</span>
+    <span class="n">SPECTRAL_MODEL_REGISTRY</span><span class="p">,</span>
+    <span class="n">DatasetModels</span><span class="p">,</span>
+    <span class="n">EBLAbsorptionNormSpectralModel</span><span class="p">,</span>
+    <span class="n">Models</span><span class="p">,</span>
+    <span class="n">SkyModel</span><span class="p">,</span>
+    <span class="n">SpectralModel</span><span class="p">,</span>
+    <span class="n">create_fermi_isotropic_diffuse_model</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">asgardpy.base</span> <span class="kn">import</span> <span class="n">AngleType</span><span class="p">,</span> <span class="n">BaseConfig</span><span class="p">,</span> <span class="n">PathType</span><span class="p">,</span> <span class="n">SkyCoordConfig</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;BrokenPowerLaw2SpectralModel&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;EBLAbsorptionModel&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ExpCutoffLogParabolaSpectralModel&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RoISelectionConfig&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SpatialModelConfig&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SpectralModelConfig&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Target&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;apply_selection_mask_to_models&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;config_to_dict&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;create_gal_diffuse_skymodel&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;create_iso_diffuse_skymodel&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;create_source_skymodel&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;params_renaming_to_gammapy&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;params_rescale_to_gammapy&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;read_models_from_asgardpy_config&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;set_models&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;xml_spatial_model_to_gammapy&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;xml_spectral_model_to_gammapy_params&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="c1"># Basic components to define the Target Config and any Models Config</span>
+<span class="k">class</span> <span class="nc">EBLAbsorptionModel</span><span class="p">(</span><span class="n">BaseConfig</span><span class="p">):</span>
+    <span class="n">filename</span><span class="p">:</span> <span class="n">PathType</span> <span class="o">=</span> <span class="n">PathType</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+    <span class="n">reference</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;dominguez&quot;</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;EBLAbsorptionNormSpectralModel&quot;</span>
+    <span class="n">redshift</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.4</span>
+    <span class="n">alpha_norm</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+
+<span class="k">class</span> <span class="nc">ModelParams</span><span class="p">(</span><span class="n">BaseConfig</span><span class="p">):</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">unit</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
+    <span class="n">error</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
+    <span class="nb">min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
+    <span class="nb">max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">frozen</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+<span class="k">class</span> <span class="nc">SpectralModelConfig</span><span class="p">(</span><span class="n">BaseConfig</span><span class="p">):</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">parameters</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ModelParams</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">ModelParams</span><span class="p">()]</span>
+    <span class="n">ebl_abs</span><span class="p">:</span> <span class="n">EBLAbsorptionModel</span> <span class="o">=</span> <span class="n">EBLAbsorptionModel</span><span class="p">()</span>
+
+
+<span class="k">class</span> <span class="nc">SpatialModelConfig</span><span class="p">(</span><span class="n">BaseConfig</span><span class="p">):</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">parameters</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ModelParams</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">ModelParams</span><span class="p">()]</span>
+
+
+<span class="k">class</span> <span class="nc">SkyModelComponent</span><span class="p">(</span><span class="n">BaseConfig</span><span class="p">):</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;SkyModel&quot;</span>
+    <span class="n">spectral</span><span class="p">:</span> <span class="n">SpectralModelConfig</span> <span class="o">=</span> <span class="n">SpectralModelConfig</span><span class="p">()</span>
+    <span class="n">spatial</span><span class="p">:</span> <span class="n">SpatialModelConfig</span> <span class="o">=</span> <span class="n">SpatialModelConfig</span><span class="p">()</span>
+
+
+<span class="k">class</span> <span class="nc">RoISelectionConfig</span><span class="p">(</span><span class="n">BaseConfig</span><span class="p">):</span>
+    <span class="n">roi_radius</span><span class="p">:</span> <span class="n">AngleType</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span>
+    <span class="n">free_sources</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+<span class="k">class</span> <span class="nc">Target</span><span class="p">(</span><span class="n">BaseConfig</span><span class="p">):</span>
+    <span class="n">source_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">sky_position</span><span class="p">:</span> <span class="n">SkyCoordConfig</span> <span class="o">=</span> <span class="n">SkyCoordConfig</span><span class="p">()</span>
+    <span class="n">use_uniform_position</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">models_file</span><span class="p">:</span> <span class="n">PathType</span> <span class="o">=</span> <span class="n">PathType</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+    <span class="n">extended</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">components</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SkyModelComponent</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">SkyModelComponent</span><span class="p">()]</span>
+    <span class="n">covariance</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">from_3d</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">roi_selection</span><span class="p">:</span> <span class="n">RoISelectionConfig</span> <span class="o">=</span> <span class="n">RoISelectionConfig</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="ExpCutoffLogParabolaSpectralModel"><a class="viewcode-back" href="../../../data_target.html#asgardpy.data.target.ExpCutoffLogParabolaSpectralModel">[docs]</a><span class="k">class</span> <span class="nc">ExpCutoffLogParabolaSpectralModel</span><span class="p">(</span><span class="n">SpectralModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Spectral Exponential Cutoff Log Parabola model.</span>
+
+<span class="sd">    Using a simple template from Gammapy.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    amplitude : `~astropy.units.Quantity`</span>
+<span class="sd">        :math:`\phi_0`</span>
+<span class="sd">    reference : `~astropy.units.Quantity`</span>
+<span class="sd">        :math:`E_0`</span>
+<span class="sd">    alpha_1 : `~astropy.units.Quantity`</span>
+<span class="sd">        :math:`\alpha_1`</span>
+<span class="sd">    beta : `~astropy.units.Quantity`</span>
+<span class="sd">        :math:`\beta`</span>
+<span class="sd">    lambda_ : `~astropy.units.Quantity`</span>
+<span class="sd">        :math:`\lambda`</span>
+<span class="sd">    alpha_2 : `~astropy.units.Quantity`</span>
+<span class="sd">        :math:`\alpha_2`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ExpCutoffLogParabolaSpectralModel&quot;</span><span class="p">,</span> <span class="s2">&quot;ECLP&quot;</span><span class="p">]</span>
+
+    <span class="n">amplitude</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+        <span class="s2">&quot;amplitude&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1e-12 cm-2 s-1 TeV-1&quot;</span><span class="p">,</span>
+        <span class="n">scale_method</span><span class="o">=</span><span class="s2">&quot;scale10&quot;</span><span class="p">,</span>
+        <span class="n">interp</span><span class="o">=</span><span class="s2">&quot;log&quot;</span><span class="p">,</span>
+        <span class="n">is_norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">reference</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="s2">&quot;reference&quot;</span><span class="p">,</span> <span class="s2">&quot;1 TeV&quot;</span><span class="p">,</span> <span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">alpha_1</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="s2">&quot;alpha_1&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">alpha_2</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="s2">&quot;alpha_2&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">beta</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="s2">&quot;beta&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">lambda_</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="s2">&quot;lambda_&quot;</span><span class="p">,</span> <span class="s2">&quot;0.1 TeV-1&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ExpCutoffLogParabolaSpectralModel.evaluate"><a class="viewcode-back" href="../../../data_target.html#asgardpy.data.target.ExpCutoffLogParabolaSpectralModel.evaluate">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span> <span class="n">reference</span><span class="p">,</span> <span class="n">alpha_1</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">,</span> <span class="n">alpha_2</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate the model (static function).&quot;&quot;&quot;</span>
+        <span class="n">xx</span> <span class="o">=</span> <span class="n">energy</span> <span class="o">/</span> <span class="n">reference</span>
+        <span class="n">exponent</span> <span class="o">=</span> <span class="o">-</span><span class="n">alpha_1</span> <span class="o">-</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">xx</span><span class="p">)</span>
+        <span class="n">cutoff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">energy</span> <span class="o">*</span> <span class="n">lambda_</span><span class="p">,</span> <span class="n">alpha_2</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">exponent</span><span class="p">)</span> <span class="o">*</span> <span class="n">cutoff</span></div></div>
+
+
+<div class="viewcode-block" id="BrokenPowerLaw2SpectralModel"><a class="viewcode-back" href="../../../data_target.html#asgardpy.data.target.BrokenPowerLaw2SpectralModel">[docs]</a><span class="k">class</span> <span class="nc">BrokenPowerLaw2SpectralModel</span><span class="p">(</span><span class="n">SpectralModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Spectral broken power-law 2 model.</span>
+
+<span class="sd">    In this slightly modified Broken Power Law, instead of having the second index</span>
+<span class="sd">    as a distinct parameter, the difference in the spectral indices around the</span>
+<span class="sd">    Break Energy is used, to try for some assumptions on the different physical</span>
+<span class="sd">    processes that define the full spectrum, where the second process is dependent</span>
+<span class="sd">    on the first process.</span>
+
+<span class="sd">    For more information see :ref:`broken-powerlaw-spectral-model`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    index1 : `~astropy.units.Quantity`</span>
+<span class="sd">        :math:`\Gamma1`</span>
+<span class="sd">    index_diff : `~astropy.units.Quantity`</span>
+<span class="sd">        :math:`\Delta\Gamma`</span>
+<span class="sd">    amplitude : `~astropy.units.Quantity`</span>
+<span class="sd">        :math:`\phi_0`</span>
+<span class="sd">    ebreak : `~astropy.units.Quantity`</span>
+<span class="sd">        :math:`E_{break}`</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    SmoothBrokenPowerLawSpectralModel</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">tag</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;BrokenPowerLaw2SpectralModel&quot;</span><span class="p">,</span> <span class="s2">&quot;bpl2&quot;</span><span class="p">]</span>
+    <span class="n">index1</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="s2">&quot;index1&quot;</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+    <span class="n">index_diff</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="s2">&quot;index_diff&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">amplitude</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;amplitude&quot;</span><span class="p">,</span>
+        <span class="n">value</span><span class="o">=</span><span class="s2">&quot;1e-12 cm-2 s-1 TeV-1&quot;</span><span class="p">,</span>
+        <span class="n">scale_method</span><span class="o">=</span><span class="s2">&quot;scale10&quot;</span><span class="p">,</span>
+        <span class="n">interp</span><span class="o">=</span><span class="s2">&quot;log&quot;</span><span class="p">,</span>
+        <span class="n">is_norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ebreak</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="s2">&quot;ebreak&quot;</span><span class="p">,</span> <span class="s2">&quot;1 TeV&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BrokenPowerLaw2SpectralModel.evaluate"><a class="viewcode-back" href="../../../data_target.html#asgardpy.data.target.BrokenPowerLaw2SpectralModel.evaluate">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">index1</span><span class="p">,</span> <span class="n">index_diff</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span> <span class="n">ebreak</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate the model (static function).&quot;&quot;&quot;</span>
+        <span class="n">energy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">energy</span><span class="p">)</span>
+        <span class="n">cond</span> <span class="o">=</span> <span class="n">energy</span> <span class="o">&lt;</span> <span class="n">ebreak</span>
+        <span class="n">bpwl2</span> <span class="o">=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">energy</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="n">index2</span> <span class="o">=</span> <span class="n">index1</span> <span class="o">+</span> <span class="n">index_diff</span>
+        <span class="n">bpwl2</span><span class="p">[</span><span class="n">cond</span><span class="p">]</span> <span class="o">*=</span> <span class="p">(</span><span class="n">energy</span><span class="p">[</span><span class="n">cond</span><span class="p">]</span> <span class="o">/</span> <span class="n">ebreak</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="n">index1</span><span class="p">)</span>
+        <span class="n">bpwl2</span><span class="p">[</span><span class="o">~</span><span class="n">cond</span><span class="p">]</span> <span class="o">*=</span> <span class="p">(</span><span class="n">energy</span><span class="p">[</span><span class="o">~</span><span class="n">cond</span><span class="p">]</span> <span class="o">/</span> <span class="n">ebreak</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="n">index2</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">bpwl2</span></div></div>
+
+
+<span class="n">SPECTRAL_MODEL_REGISTRY</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ExpCutoffLogParabolaSpectralModel</span><span class="p">)</span>
+<span class="n">SPECTRAL_MODEL_REGISTRY</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">BrokenPowerLaw2SpectralModel</span><span class="p">)</span>
+
+
+<span class="c1"># Function for Models assignment</span>
+<div class="viewcode-block" id="set_models"><a class="viewcode-back" href="../../../data_target.html#asgardpy.data.target.set_models">[docs]</a><span class="k">def</span> <span class="nf">set_models</span><span class="p">(</span>
+    <span class="n">config</span><span class="p">,</span> <span class="n">datasets</span><span class="p">,</span> <span class="n">datasets_name_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">models</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_source_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">extend</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Set models on given Datasets.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config: `AsgardpyConfig` or others?</span>
+<span class="sd">        AsgardpyConfig containing target information.</span>
+<span class="sd">    datasets: `gammapy.datasets.Datasets`</span>
+<span class="sd">        Datasets object</span>
+<span class="sd">    dataset_name_list: List</span>
+<span class="sd">        List of datasets_names to be used on the Models, before assigning them</span>
+<span class="sd">        to the given datasets.</span>
+<span class="sd">    models : `~gammapy.modeling.models.Models` or str</span>
+<span class="sd">        Models object or YAML models string</span>
+<span class="sd">    target_source_name: str</span>
+<span class="sd">        Name of the Target source, to use to update only that Model&#39;s</span>
+<span class="sd">        datasets_names, when a list of more than 1 models are provided.</span>
+<span class="sd">    extend : bool</span>
+<span class="sd">        Extend the existing models on the datasets or replace them with</span>
+<span class="sd">        another model, maybe a Background Model. Not worked out currently.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    datasets: `gammapy.datasets.Datasets`</span>
+<span class="sd">        Datasets object with Models assigned.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Have some checks on argument types</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">models</span><span class="p">,</span> <span class="n">DatasetModels</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">models</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">models</span> <span class="o">=</span> <span class="n">Models</span><span class="p">(</span><span class="n">models</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">models</span><span class="p">,</span> <span class="n">PathType</span><span class="p">):</span>
+        <span class="n">models</span> <span class="o">=</span> <span class="n">Models</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">models</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">components</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">spectral_model</span><span class="p">,</span> <span class="n">spatial_model</span> <span class="o">=</span> <span class="n">read_models_from_asgardpy_config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">models</span> <span class="o">=</span> <span class="n">Models</span><span class="p">(</span>
+            <span class="n">SkyModel</span><span class="p">(</span>
+                <span class="n">spectral_model</span><span class="o">=</span><span class="n">spectral_model</span><span class="p">,</span>
+                <span class="n">spatial_model</span><span class="o">=</span><span class="n">spatial_model</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">source_name</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">models</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># if extend:</span>
+    <span class="c1"># For extending a Background Model</span>
+    <span class="c1">#    Models(models).extend(self.bkg_models)</span>
+
+    <span class="k">if</span> <span class="n">datasets_name_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">datasets_name_list</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">names</span>
+
+    <span class="k">if</span> <span class="n">target_source_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">target_source_name</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">source_name</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">models</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">models</span><span class="p">[</span><span class="n">target_source_name</span><span class="p">]</span><span class="o">.</span><span class="n">datasets_names</span> <span class="o">=</span> <span class="n">datasets_name_list</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">models</span><span class="o">.</span><span class="n">datasets_names</span> <span class="o">=</span> <span class="n">datasets_name_list</span>
+
+    <span class="n">datasets</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">models</span>
+
+    <span class="k">return</span> <span class="n">datasets</span></div>
+
+
+<div class="viewcode-block" id="apply_selection_mask_to_models"><a class="viewcode-back" href="../../../data_target.html#asgardpy.data.target.apply_selection_mask_to_models">[docs]</a><span class="k">def</span> <span class="nf">apply_selection_mask_to_models</span><span class="p">(</span>
+    <span class="n">list_sources</span><span class="p">,</span> <span class="n">target_source</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">selection_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">roi_radius</span><span class="o">=</span><span class="mi">0</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">free_sources</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    For a given list of source models, with a given target source, apply various</span>
+<span class="sd">    selection masks on the Region of Interest in the sky. This will lead to</span>
+<span class="sd">    complete exclusion of models or freezing some or all spectral parameters.</span>
+<span class="sd">    These selections excludes the diffuse background models in the given list.</span>
+
+<span class="sd">    First priority is given if a distinct selection mask is provided, with a</span>
+<span class="sd">    list of excluded regions to return only the source models within the selected</span>
+<span class="sd">    ROI.</span>
+
+<span class="sd">    Second priority is on creating a Circular ROI as per the given radius, and</span>
+<span class="sd">    freeze all the spectral parameters of the models of the sources.</span>
+
+<span class="sd">    Third priority is when a list of free_sources is provided, then the</span>
+<span class="sd">    spectral amplitude of models of those sources, if present in the given list</span>
+<span class="sd">    of models, will be unfrozen, and hence, allowed to be variable for fitting.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    list_sources: &#39;~gammapy.modeling.models.Models&#39;</span>
+<span class="sd">        Models object containing a list of source models.</span>
+<span class="sd">    target_source: &#39;str&#39;</span>
+<span class="sd">        Name of the target source, whose position is used as the center of ROI.</span>
+<span class="sd">    selection_mask: &#39;WcsNDMap&#39;</span>
+<span class="sd">        Map containing a boolean mask to apply to Models object.</span>
+<span class="sd">    roi_radius: &#39;astropy.units.Quantity&#39; or &#39;asgardpy.data.base.AngleType&#39;</span>
+<span class="sd">        Radius for a circular region around ROI (deg)</span>
+<span class="sd">    free_sources: &#39;list&#39;</span>
+<span class="sd">        List of source names for which the spectral amplitude is to be kept free.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list_sources: &#39;~gammapy.modeling.models.Models&#39;</span>
+<span class="sd">        Selected Models object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">list_sources_excluded</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">list_diffuse</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Separate the list of sources and diffuse background</span>
+    <span class="k">for</span> <span class="n">model_</span> <span class="ow">in</span> <span class="n">list_sources</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;diffuse&quot;</span> <span class="ow">in</span> <span class="n">model_</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="n">list_diffuse</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model_</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">list_sources_excluded</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model_</span><span class="p">)</span>
+
+    <span class="n">list_sources_excluded</span> <span class="o">=</span> <span class="n">Models</span><span class="p">(</span><span class="n">list_sources_excluded</span><span class="p">)</span>
+
+    <span class="c1"># Get the target source position as the center of RoI</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">target_source</span><span class="p">:</span>
+        <span class="n">target_source</span> <span class="o">=</span> <span class="n">list_sources_excluded</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">target_source_pos</span> <span class="o">=</span> <span class="n">target_source</span><span class="o">.</span><span class="n">spatial_model</span><span class="o">.</span><span class="n">position</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">target_source_pos</span> <span class="o">=</span> <span class="n">list_sources_excluded</span><span class="p">[</span><span class="n">target_source</span><span class="p">]</span><span class="o">.</span><span class="n">spatial_model</span><span class="o">.</span><span class="n">position</span>
+
+    <span class="c1"># If a distinct selection mask is provided</span>
+    <span class="k">if</span> <span class="n">selection_mask</span><span class="p">:</span>
+        <span class="n">list_sources_excluded</span> <span class="o">=</span> <span class="n">list_sources_excluded</span><span class="o">.</span><span class="n">select_mask</span><span class="p">(</span><span class="n">selection_mask</span><span class="p">)</span>
+
+    <span class="c1"># If RoI radius is provided and is not default</span>
+    <span class="k">if</span> <span class="n">roi_radius</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="s2">&quot;deg&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">model_</span> <span class="ow">in</span> <span class="n">list_sources_excluded</span><span class="p">:</span>
+            <span class="n">model_pos</span> <span class="o">=</span> <span class="n">model_</span><span class="o">.</span><span class="n">spatial_model</span><span class="o">.</span><span class="n">position</span>
+            <span class="n">separation</span> <span class="o">=</span> <span class="n">target_source_pos</span><span class="o">.</span><span class="n">separation</span><span class="p">(</span><span class="n">model_pos</span><span class="p">)</span><span class="o">.</span><span class="n">deg</span>
+            <span class="k">if</span> <span class="n">separation</span> <span class="o">&gt;=</span> <span class="n">roi_radius</span><span class="o">.</span><span class="n">deg</span><span class="p">:</span>
+                <span class="n">model_</span><span class="o">.</span><span class="n">spectral_model</span><span class="o">.</span><span class="n">freeze</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># For a given list of non free sources, unfreeze the spectral amplitude</span>
+        <span class="k">if</span> <span class="n">free_sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">model_</span> <span class="ow">in</span> <span class="n">list_sources_excluded</span><span class="p">:</span>
+                <span class="c1"># Freeze all spectral parameters for other models</span>
+                <span class="k">if</span> <span class="n">model_</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">target_source</span><span class="p">:</span>
+                    <span class="n">model_</span><span class="o">.</span><span class="n">spectral_model</span><span class="o">.</span><span class="n">freeze</span><span class="p">()</span>
+                <span class="c1"># and now unfreeze the amplitude of selected models</span>
+                <span class="k">if</span> <span class="n">model_</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">free_sources</span><span class="p">:</span>
+                    <span class="n">model_</span><span class="o">.</span><span class="n">spectral_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;amplitude&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">frozen</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># Add the diffuse background models back</span>
+    <span class="k">for</span> <span class="n">diff_</span> <span class="ow">in</span> <span class="n">list_diffuse</span><span class="p">:</span>
+        <span class="n">list_sources_excluded</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">diff_</span><span class="p">)</span>
+
+    <span class="c1"># Re-assign to the main variable</span>
+    <span class="n">list_sources</span> <span class="o">=</span> <span class="n">list_sources_excluded</span>
+
+    <span class="k">return</span> <span class="n">list_sources</span></div>
+
+
+<span class="c1"># Functions for Models generation</span>
+<span class="k">def</span> <span class="nf">read_models_from_asgardpy_config</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reading Models information from AsgardpyConfig and return Spectral and</span>
+<span class="sd">    Spatial Models object to be combined later into SkyModels/Models object.</span>
+
+<span class="sd">    Parameter</span>
+<span class="sd">    ---------</span>
+<span class="sd">    config: `AsgardpyConfig`</span>
+<span class="sd">        Config section containing Target source information</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    spectral_model: `gammapy.modeling.models.SpectralModel`</span>
+<span class="sd">        Spectral Model components of a gammapy SkyModel object.</span>
+<span class="sd">    spatial_model: `gammapy.modeling.models.SpatialModel`</span>
+<span class="sd">        Spatial Model components of a gammapy SkyModel object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Spectral Model</span>
+    <span class="k">if</span> <span class="n">model_config</span><span class="o">.</span><span class="n">spectral</span><span class="o">.</span><span class="n">ebl_abs</span><span class="o">.</span><span class="n">reference</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="n">model1</span> <span class="o">=</span> <span class="n">SPECTRAL_MODEL_REGISTRY</span><span class="o">.</span><span class="n">get_cls</span><span class="p">(</span><span class="n">model_config</span><span class="o">.</span><span class="n">spectral</span><span class="o">.</span><span class="n">type</span><span class="p">)()</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+            <span class="p">{</span><span class="s2">&quot;spectral&quot;</span><span class="p">:</span> <span class="n">config_to_dict</span><span class="p">(</span><span class="n">model_config</span><span class="o">.</span><span class="n">spectral</span><span class="p">)}</span>
+        <span class="p">)</span>
+
+        <span class="n">ebl_model</span> <span class="o">=</span> <span class="n">model_config</span><span class="o">.</span><span class="n">spectral</span><span class="o">.</span><span class="n">ebl_abs</span>
+
+        <span class="c1"># First check for filename of a custom EBL model</span>
+        <span class="k">if</span> <span class="n">ebl_model</span><span class="o">.</span><span class="n">filename</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="n">model2</span> <span class="o">=</span> <span class="n">EBLAbsorptionNormSpectralModel</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
+                <span class="nb">str</span><span class="p">(</span><span class="n">ebl_model</span><span class="o">.</span><span class="n">filename</span><span class="p">),</span> <span class="n">redshift</span><span class="o">=</span><span class="n">ebl_model</span><span class="o">.</span><span class="n">redshift</span>
+            <span class="p">)</span>
+            <span class="c1"># Update the reference name when using the custom EBL model for logging</span>
+            <span class="n">ebl_model</span><span class="o">.</span><span class="n">reference</span> <span class="o">=</span> <span class="n">ebl_model</span><span class="o">.</span><span class="n">filename</span><span class="o">.</span><span class="n">name</span><span class="p">[:</span><span class="o">-</span><span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">model2</span> <span class="o">=</span> <span class="n">EBLAbsorptionNormSpectralModel</span><span class="o">.</span><span class="n">read_builtin</span><span class="p">(</span>
+                <span class="n">ebl_model</span><span class="o">.</span><span class="n">reference</span><span class="p">,</span> <span class="n">redshift</span><span class="o">=</span><span class="n">ebl_model</span><span class="o">.</span><span class="n">redshift</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">ebl_model</span><span class="o">.</span><span class="n">alpha_norm</span><span class="p">:</span>
+            <span class="n">model2</span><span class="o">.</span><span class="n">alpha_norm</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">ebl_model</span><span class="o">.</span><span class="n">alpha_norm</span>
+        <span class="n">spectral_model</span> <span class="o">=</span> <span class="n">model1</span> <span class="o">*</span> <span class="n">model2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">model_config</span><span class="o">.</span><span class="n">spectral</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;ExpCutoffLogParabolaSpectralModel&quot;</span><span class="p">:</span>
+            <span class="n">spectral_model</span> <span class="o">=</span> <span class="n">ExpCutoffLogParabolaSpectralModel</span><span class="p">()</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;spectral&quot;</span><span class="p">:</span> <span class="n">config_to_dict</span><span class="p">(</span><span class="n">model_config</span><span class="o">.</span><span class="n">spectral</span><span class="p">)}</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">model_config</span><span class="o">.</span><span class="n">spectral</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;BrokenPowerLaw2SpectralModel&quot;</span><span class="p">:</span>
+            <span class="n">model1</span> <span class="o">=</span> <span class="n">BrokenPowerLaw2SpectralModel</span><span class="p">()</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;spectral&quot;</span><span class="p">:</span> <span class="n">config_to_dict</span><span class="p">(</span><span class="n">model_config</span><span class="o">.</span><span class="n">spectral</span><span class="p">)}</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">spectral_model</span> <span class="o">=</span> <span class="n">SPECTRAL_MODEL_REGISTRY</span><span class="o">.</span><span class="n">get_cls</span><span class="p">(</span>
+                <span class="n">model_config</span><span class="o">.</span><span class="n">spectral</span><span class="o">.</span><span class="n">type</span>
+            <span class="p">)()</span><span class="o">.</span><span class="n">from_dict</span><span class="p">({</span><span class="s2">&quot;spectral&quot;</span><span class="p">:</span> <span class="n">config_to_dict</span><span class="p">(</span><span class="n">model_config</span><span class="o">.</span><span class="n">spectral</span><span class="p">)})</span>
+    <span class="n">spectral_model</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">source_name</span>
+
+    <span class="c1"># Spatial model if provided</span>
+    <span class="k">if</span> <span class="n">model_config</span><span class="o">.</span><span class="n">spatial</span><span class="o">.</span><span class="n">type</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="n">spatial_model</span> <span class="o">=</span> <span class="n">SPATIAL_MODEL_REGISTRY</span><span class="o">.</span><span class="n">get_cls</span><span class="p">(</span><span class="n">model_config</span><span class="o">.</span><span class="n">spatial</span><span class="o">.</span><span class="n">type</span><span class="p">)()</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+            <span class="p">{</span><span class="s2">&quot;spatial&quot;</span><span class="p">:</span> <span class="n">config_to_dict</span><span class="p">(</span><span class="n">model_config</span><span class="o">.</span><span class="n">spatial</span><span class="p">)}</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">spatial_model</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">spectral_model</span><span class="p">,</span> <span class="n">spatial_model</span>
+
+
+<div class="viewcode-block" id="config_to_dict"><a class="viewcode-back" href="../../../data_target.html#asgardpy.data.target.config_to_dict">[docs]</a><span class="k">def</span> <span class="nf">config_to_dict</span><span class="p">(</span><span class="n">model_config</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert the Spectral/Spatial models into dict.</span>
+<span class="sd">    Probably an extra step and maybe removed later.</span>
+
+<span class="sd">    Parameter</span>
+<span class="sd">    ---------</span>
+<span class="sd">    model_config: `AsgardpyConfig`</span>
+<span class="sd">        Config section containg Target Model SkyModel components only.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    model_dict: dict</span>
+<span class="sd">        dictionary of the particular model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">model_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">model_dict</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">model_config</span><span class="o">.</span><span class="n">type</span><span class="p">)</span>
+    <span class="n">model_dict</span><span class="p">[</span><span class="s2">&quot;parameters&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">model_config</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+        <span class="n">par_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">par_dict</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">par_dict</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">par_dict</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">unit</span>
+        <span class="n">par_dict</span><span class="p">[</span><span class="s2">&quot;error&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">error</span>
+        <span class="n">par_dict</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">min</span>
+        <span class="n">par_dict</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">max</span>
+        <span class="n">par_dict</span><span class="p">[</span><span class="s2">&quot;frozen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">frozen</span>
+        <span class="n">model_dict</span><span class="p">[</span><span class="s2">&quot;parameters&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par_dict</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">model_dict</span></div>
+
+
+<div class="viewcode-block" id="params_renaming_to_gammapy"><a class="viewcode-back" href="../../../data_target.html#asgardpy.data.target.params_renaming_to_gammapy">[docs]</a><span class="k">def</span> <span class="nf">params_renaming_to_gammapy</span><span class="p">(</span>
+    <span class="n">params_1_name</span><span class="p">,</span> <span class="n">params_gpy</span><span class="p">,</span> <span class="n">spectrum_type</span><span class="p">,</span> <span class="n">params_1_base_model</span><span class="o">=</span><span class="s2">&quot;Fermi-XML&quot;</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reading from a given parameter name, get basic parameters details like name,</span>
+<span class="sd">    unit and is_norm as per Gammapy definition.</span>
+
+<span class="sd">    This function collects all such switch cases, based on the base model of the</span>
+<span class="sd">    given set of parameters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">params_1_base_model</span> <span class="o">==</span> <span class="s2">&quot;Fermi-XML&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">params_1_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;norm&quot;</span><span class="p">,</span> <span class="s2">&quot;prefactor&quot;</span><span class="p">,</span> <span class="s2">&quot;integral&quot;</span><span class="p">]:</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;amplitude&quot;</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;cm-2 s-1 TeV-1&quot;</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;is_norm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">if</span> <span class="n">params_1_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">,</span> <span class="s2">&quot;eb&quot;</span><span class="p">]:</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;reference&quot;</span>
+
+        <span class="k">if</span> <span class="n">params_1_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;breakvalue&quot;</span><span class="p">]:</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;ebreak&quot;</span>
+
+        <span class="k">if</span> <span class="n">params_1_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;lowerlimit&quot;</span><span class="p">]:</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;emin&quot;</span>
+
+        <span class="k">if</span> <span class="n">params_1_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;upperlimit&quot;</span><span class="p">]:</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;emax&quot;</span>
+
+        <span class="k">if</span> <span class="n">params_1_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;cutoff&quot;</span><span class="p">,</span> <span class="s2">&quot;expfactor&quot;</span><span class="p">]:</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;lambda_&quot;</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;TeV-1&quot;</span>
+
+        <span class="k">if</span> <span class="n">params_1_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;index&quot;</span><span class="p">]:</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;index&quot;</span>
+
+        <span class="k">if</span> <span class="n">params_1_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;index1&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">spectrum_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;PLSuperExpCutoff&quot;</span><span class="p">,</span> <span class="s2">&quot;PLSuperExpCutoff2&quot;</span><span class="p">]:</span>
+                <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;index&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;index1&quot;</span>  <span class="c1"># For spectrum_type == &quot;BrokenPowerLaw&quot;</span>
+
+        <span class="k">if</span> <span class="n">params_1_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;indexs&quot;</span><span class="p">]:</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;index_1&quot;</span>  <span class="c1"># For spectrum_type == &quot;PLSuperExpCutoff4&quot;</span>
+
+        <span class="k">if</span> <span class="n">params_1_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;index2&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">spectrum_type</span> <span class="o">==</span> <span class="s2">&quot;PLSuperExpCutoff4&quot;</span><span class="p">:</span>
+                <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;index_2&quot;</span>
+            <span class="k">elif</span> <span class="n">spectrum_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;PLSuperExpCutoff&quot;</span><span class="p">,</span> <span class="s2">&quot;PLSuperExpCutoff2&quot;</span><span class="p">]:</span>
+                <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;alpha&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;index2&quot;</span>  <span class="c1"># For spectrum_type == &quot;BrokenPowerLaw&quot;</span>
+
+        <span class="k">if</span> <span class="n">params_1_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;expfactors&quot;</span><span class="p">]:</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;expfactor&quot;</span>
+
+    <span class="k">return</span> <span class="n">params_gpy</span></div>
+
+
+<div class="viewcode-block" id="params_rescale_to_gammapy"><a class="viewcode-back" href="../../../data_target.html#asgardpy.data.target.params_rescale_to_gammapy">[docs]</a><span class="k">def</span> <span class="nf">params_rescale_to_gammapy</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">,</span> <span class="n">spectrum_type</span><span class="p">,</span> <span class="n">en_scale_1_to_gpy</span><span class="o">=</span><span class="mf">1.0e-6</span><span class="p">,</span> <span class="n">keep_sign</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Rescaling parameters to be used with Gammapy standard units, by using the</span>
+<span class="sd">    various physical factors (energy for now), compared with the initial set of</span>
+<span class="sd">    parameters as compared with Gammapy standard units.</span>
+
+<span class="sd">    Also, scales the value, min and max of the given parameters, depending on</span>
+<span class="sd">    their Parameter names.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;reference&quot;</span><span class="p">,</span> <span class="s2">&quot;ebreak&quot;</span><span class="p">,</span> <span class="s2">&quot;emin&quot;</span><span class="p">,</span> <span class="s2">&quot;emax&quot;</span><span class="p">]:</span>
+        <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;TeV&quot;</span>
+        <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="n">en_scale_1_to_gpy</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;error&quot;</span> <span class="ow">in</span> <span class="n">params_gpy</span><span class="p">:</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;error&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;error&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="n">en_scale_1_to_gpy</span>
+            <span class="p">)</span>
+        <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="n">en_scale_1_to_gpy</span>
+        <span class="p">)</span>
+        <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="n">en_scale_1_to_gpy</span>
+        <span class="p">)</span>
+        <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="k">if</span> <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;amplitude&quot;</span><span class="p">]:</span>
+        <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">en_scale_1_to_gpy</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;error&quot;</span> <span class="ow">in</span> <span class="n">params_gpy</span><span class="p">:</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;error&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;error&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">en_scale_1_to_gpy</span>
+            <span class="p">)</span>
+        <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">en_scale_1_to_gpy</span>
+        <span class="p">)</span>
+        <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">en_scale_1_to_gpy</span>
+        <span class="p">)</span>
+        <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="k">if</span> <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;index&quot;</span><span class="p">,</span> <span class="s2">&quot;index_1&quot;</span><span class="p">,</span> <span class="s2">&quot;index_2&quot;</span><span class="p">,</span> <span class="s2">&quot;beta&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">keep_sign</span><span class="p">:</span>
+        <span class="c1"># Other than EBL Attenuated Power Law?</span>
+        <span class="c1"># spectral indices in gammapy are always taken as positive values.</span>
+        <span class="n">val_</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">val_</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">val_</span>
+
+            <span class="c1"># Reverse the limits while changing the sign</span>
+            <span class="n">min_</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span>
+            <span class="n">max_</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">min_</span><span class="p">,</span> <span class="n">max_</span><span class="p">)</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">min_</span><span class="p">,</span> <span class="n">max_</span><span class="p">)</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="k">if</span> <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;lambda_&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">spectrum_type</span> <span class="o">==</span> <span class="s2">&quot;PLSuperExpCutoff&quot;</span><span class="p">:</span>
+        <span class="c1"># Original parameter is inverse of what gammapy uses</span>
+        <span class="n">val_</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span>
+        <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">en_scale_1_to_gpy</span> <span class="o">/</span> <span class="n">val_</span>
+        <span class="k">if</span> <span class="s2">&quot;error&quot;</span> <span class="ow">in</span> <span class="n">params_gpy</span><span class="p">:</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;error&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">en_scale_1_to_gpy</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;error&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">val_</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">min_</span> <span class="o">=</span> <span class="n">en_scale_1_to_gpy</span> <span class="o">/</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]))</span>
+        <span class="n">max_</span> <span class="o">=</span> <span class="n">en_scale_1_to_gpy</span> <span class="o">/</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]))</span>
+        <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">min_</span><span class="p">,</span> <span class="n">max_</span><span class="p">)</span>
+        <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">min_</span><span class="p">,</span> <span class="n">max_</span><span class="p">)</span>
+        <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="c1"># Without any other modifications, but using the scale value</span>
+        <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s2">&quot;error&quot;</span> <span class="ow">in</span> <span class="n">params_gpy</span><span class="p">:</span>
+            <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;error&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;error&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span>
+        <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span>
+        <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span>
+        <span class="n">params_gpy</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="k">return</span> <span class="n">params_gpy</span></div>
+
+
+<div class="viewcode-block" id="xml_spectral_model_to_gammapy_params"><a class="viewcode-back" href="../../../data_target.html#asgardpy.data.target.xml_spectral_model_to_gammapy_params">[docs]</a><span class="k">def</span> <span class="nf">xml_spectral_model_to_gammapy_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">spectrum_type</span><span class="p">,</span> <span class="n">is_target</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">keep_sign</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert the Spectral Models information from XML model of FermiTools to Gammapy</span>
+<span class="sd">    standards and return Parameters list.</span>
+<span class="sd">    Details of the XML model can be seen at</span>
+<span class="sd">    https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/source_models.html</span>
+<span class="sd">    and with examples at</span>
+<span class="sd">    https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/xml_model_defs.html</span>
+
+<span class="sd">    Models from the XML model, not read are -</span>
+<span class="sd">    ExpCutoff, BPLExpCutoff, PLSuperExpCutoff3, Gaussian, BandFunction</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    params: `gammapy.modeling.Parameters`</span>
+<span class="sd">        List of gammapy Parameter object of a particular Model</span>
+<span class="sd">    spectrum_type: str</span>
+<span class="sd">        Spectrum type as defined in XML. To be used only for special cases like</span>
+<span class="sd">        PLSuperExpCutoff, PLSuperExpCutoff2 and PLSuperExpCutoff4</span>
+<span class="sd">    is_target: bool</span>
+<span class="sd">        Boolean to check if the given list of Parameters belong to the target</span>
+<span class="sd">        source model or not.</span>
+<span class="sd">    keep_sign: bool</span>
+<span class="sd">        Boolean to keep the same sign on the parameter values or not.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    params_final: `gammapy.modeling.Parameters`</span>
+<span class="sd">        Final list of gammapy Parameter object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">new_params</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+        <span class="n">new_par</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">key_</span> <span class="ow">in</span> <span class="n">par</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="c1"># Getting the &quot;@par_name&quot; for each parameter without the &quot;@&quot;</span>
+            <span class="k">if</span> <span class="n">key_</span> <span class="o">!=</span> <span class="s2">&quot;@free&quot;</span><span class="p">:</span>
+                <span class="n">new_par</span><span class="p">[</span><span class="n">key_</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="n">par</span><span class="p">[</span><span class="n">key_</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">par</span><span class="p">[</span><span class="s2">&quot;@name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">,</span> <span class="s2">&quot;eb&quot;</span><span class="p">]:</span>
+                    <span class="n">new_par</span><span class="p">[</span><span class="s2">&quot;frozen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">par</span><span class="p">[</span><span class="n">key_</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;0&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_target</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Never change frozen status of Reference Energy</span>
+                    <span class="n">new_par</span><span class="p">[</span><span class="s2">&quot;frozen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="p">[</span><span class="n">key_</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;0&quot;</span>
+            <span class="n">new_par</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="n">new_par</span><span class="p">[</span><span class="s2">&quot;is_norm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="c1"># Using the nomenclature as used in Gammapy</span>
+            <span class="n">new_par</span> <span class="o">=</span> <span class="n">params_renaming_to_gammapy</span><span class="p">(</span>
+                <span class="n">par</span><span class="p">[</span><span class="s2">&quot;@name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">new_par</span><span class="p">,</span> <span class="n">spectrum_type</span><span class="p">,</span> <span class="n">params_1_base_model</span><span class="o">=</span><span class="s2">&quot;Fermi-XML&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Some modifications on scaling/sign:</span>
+        <span class="n">new_par</span> <span class="o">=</span> <span class="n">params_rescale_to_gammapy</span><span class="p">(</span>
+            <span class="n">new_par</span><span class="p">,</span> <span class="n">spectrum_type</span><span class="p">,</span> <span class="n">en_scale_1_to_gpy</span><span class="o">=</span><span class="mf">1.0e-6</span><span class="p">,</span> <span class="n">keep_sign</span><span class="o">=</span><span class="n">keep_sign</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">new_par</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;alpha&quot;</span> <span class="ow">and</span> <span class="n">spectrum_type</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s2">&quot;PLSuperExpCutoff&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;PLSuperExpCutoff2&quot;</span><span class="p">,</span>
+        <span class="p">]:</span>
+            <span class="n">new_par</span><span class="p">[</span><span class="s2">&quot;frozen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="p">[</span><span class="s2">&quot;@free&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;0&quot;</span>
+
+        <span class="c1"># Read into Gammapy Parameter object</span>
+        <span class="n">new_param</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">new_par</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span> <span class="n">value</span><span class="o">=</span><span class="n">new_par</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s2">&quot;error&quot;</span> <span class="ow">in</span> <span class="n">new_par</span><span class="p">:</span>
+            <span class="n">new_param</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="n">new_par</span><span class="p">[</span><span class="s2">&quot;error&quot;</span><span class="p">]</span>
+        <span class="n">new_param</span><span class="o">.</span><span class="n">min</span> <span class="o">=</span> <span class="n">new_par</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]</span>
+        <span class="n">new_param</span><span class="o">.</span><span class="n">max</span> <span class="o">=</span> <span class="n">new_par</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]</span>
+        <span class="n">new_param</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">new_par</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">]</span>
+        <span class="n">new_param</span><span class="o">.</span><span class="n">frozen</span> <span class="o">=</span> <span class="n">new_par</span><span class="p">[</span><span class="s2">&quot;frozen&quot;</span><span class="p">]</span>
+        <span class="n">new_param</span><span class="o">.</span><span class="n">_is_norm</span> <span class="o">=</span> <span class="n">new_par</span><span class="p">[</span><span class="s2">&quot;is_norm&quot;</span><span class="p">]</span>
+
+        <span class="n">new_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_param</span><span class="p">)</span>
+
+    <span class="n">params_final2</span> <span class="o">=</span> <span class="n">Parameters</span><span class="p">(</span><span class="n">new_params</span><span class="p">)</span>
+
+    <span class="c1"># Modifications when different parameters are interconnected</span>
+    <span class="k">if</span> <span class="n">spectrum_type</span> <span class="o">==</span> <span class="s2">&quot;PLSuperExpCutoff2&quot;</span><span class="p">:</span>
+        <span class="n">alpha_inv</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">params_final2</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">min_sign</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">params_final2</span><span class="p">[</span><span class="s2">&quot;lambda_&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">min_sign</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="n">params_final2</span><span class="p">[</span><span class="s2">&quot;lambda_&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">params_final2</span><span class="p">[</span><span class="s2">&quot;lambda_&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">**</span> <span class="n">alpha_inv</span> <span class="o">*</span> <span class="mf">1.0e6</span>
+        <span class="n">params_final2</span><span class="p">[</span><span class="s2">&quot;lambda_&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span> <span class="o">=</span> <span class="n">min_sign</span> <span class="o">*</span> <span class="p">(</span>
+            <span class="nb">abs</span><span class="p">(</span><span class="n">params_final2</span><span class="p">[</span><span class="s2">&quot;lambda_&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">)</span> <span class="o">**</span> <span class="n">alpha_inv</span> <span class="o">*</span> <span class="mf">1.0e6</span>
+        <span class="p">)</span>
+        <span class="n">params_final2</span><span class="p">[</span><span class="s2">&quot;lambda_&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span> <span class="o">=</span> <span class="n">params_final2</span><span class="p">[</span><span class="s2">&quot;lambda_&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span> <span class="o">**</span> <span class="n">alpha_inv</span> <span class="o">*</span> <span class="mf">1.0e6</span>
+
+    <span class="k">return</span> <span class="n">params_final2</span></div>
+
+
+<div class="viewcode-block" id="xml_spatial_model_to_gammapy"><a class="viewcode-back" href="../../../data_target.html#asgardpy.data.target.xml_spatial_model_to_gammapy">[docs]</a><span class="k">def</span> <span class="nf">xml_spatial_model_to_gammapy</span><span class="p">(</span><span class="n">aux_path</span><span class="p">,</span> <span class="n">xml_spatial_model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read the spatial model component of the XMl model to Gammapy SpatialModel</span>
+<span class="sd">    object.</span>
+
+<span class="sd">    Details of the XML model can be seen at</span>
+<span class="sd">    https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/source_models.html</span>
+<span class="sd">    and with examples at</span>
+<span class="sd">    https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/xml_model_defs.html</span>
+
+<span class="sd">    Paramaters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    aux_path: `Path`</span>
+<span class="sd">        Path to the template diffuse models</span>
+<span class="sd">    xml_spatial_model: `dict`</span>
+<span class="sd">        Spatial Model component of a particular source from the XML file</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    spatial_model: `gammapy.modeling.models.SpatialModel`</span>
+<span class="sd">        Gammapy Spatial Model object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">spatial_pars</span> <span class="o">=</span> <span class="n">xml_spatial_model</span><span class="p">[</span><span class="s2">&quot;parameter&quot;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">xml_spatial_model</span><span class="p">[</span><span class="s2">&quot;@type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;SkyDirFunction&quot;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">par_</span> <span class="ow">in</span> <span class="n">spatial_pars</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">par_</span><span class="p">[</span><span class="s2">&quot;@name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;RA&quot;</span><span class="p">:</span>
+                <span class="n">lon_0</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">par_</span><span class="p">[</span><span class="s1">&#39;@value&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> deg&quot;</span>
+            <span class="k">if</span> <span class="n">par_</span><span class="p">[</span><span class="s2">&quot;@name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;DEC&quot;</span><span class="p">:</span>
+                <span class="n">lat_0</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">par_</span><span class="p">[</span><span class="s1">&#39;@value&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> deg&quot;</span>
+        <span class="n">fk5_frame</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span>
+            <span class="n">lon_0</span><span class="p">,</span>
+            <span class="n">lat_0</span><span class="p">,</span>
+            <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;fk5&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">gal_frame</span> <span class="o">=</span> <span class="n">fk5_frame</span><span class="o">.</span><span class="n">transform_to</span><span class="p">(</span><span class="s2">&quot;galactic&quot;</span><span class="p">)</span>
+        <span class="n">spatial_model</span> <span class="o">=</span> <span class="n">SPATIAL_MODEL_REGISTRY</span><span class="o">.</span><span class="n">get_cls</span><span class="p">(</span><span class="s2">&quot;PointSpatialModel&quot;</span><span class="p">)()</span><span class="o">.</span><span class="n">from_position</span><span class="p">(</span>
+            <span class="n">gal_frame</span>
+        <span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">xml_spatial_model</span><span class="p">[</span><span class="s2">&quot;@type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;SpatialMap&quot;</span><span class="p">:</span>
+        <span class="n">file_name</span> <span class="o">=</span> <span class="n">xml_spatial_model</span><span class="p">[</span><span class="s2">&quot;@file&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">file_path</span> <span class="o">=</span> <span class="n">aux_path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;Templates/</span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="n">spatial_map</span> <span class="o">=</span> <span class="n">Map</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+        <span class="n">spatial_map</span> <span class="o">=</span> <span class="n">spatial_map</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s2">&quot;sr^-1&quot;</span><span class="p">)</span>
+
+        <span class="n">spatial_model</span> <span class="o">=</span> <span class="n">SPATIAL_MODEL_REGISTRY</span><span class="o">.</span><span class="n">get_cls</span><span class="p">(</span><span class="s2">&quot;TemplateSpatialModel&quot;</span><span class="p">)(</span>
+            <span class="n">spatial_map</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">file_path</span>
+        <span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">xml_spatial_model</span><span class="p">[</span><span class="s2">&quot;@type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;RadialGaussian&quot;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">par_</span> <span class="ow">in</span> <span class="n">spatial_pars</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">par_</span><span class="p">[</span><span class="s2">&quot;@name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;RA&quot;</span><span class="p">:</span>
+                <span class="n">lon_0</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">par_</span><span class="p">[</span><span class="s1">&#39;@value&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> deg&quot;</span>
+            <span class="k">if</span> <span class="n">par_</span><span class="p">[</span><span class="s2">&quot;@name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;DEC&quot;</span><span class="p">:</span>
+                <span class="n">lat_0</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">par_</span><span class="p">[</span><span class="s1">&#39;@value&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> deg&quot;</span>
+            <span class="k">if</span> <span class="n">par_</span><span class="p">[</span><span class="s2">&quot;@name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Sigma&quot;</span><span class="p">:</span>
+                <span class="n">sigma</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">par_</span><span class="p">[</span><span class="s1">&#39;@value&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> deg&quot;</span>
+
+        <span class="n">fk5_frame</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span>
+            <span class="n">lon_0</span><span class="p">,</span>
+            <span class="n">lat_0</span><span class="p">,</span>
+            <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;fk5&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">gal_frame</span> <span class="o">=</span> <span class="n">fk5_frame</span><span class="o">.</span><span class="n">transform_to</span><span class="p">(</span><span class="s2">&quot;galactic&quot;</span><span class="p">)</span>
+
+        <span class="n">spatial_model</span> <span class="o">=</span> <span class="n">SPATIAL_MODEL_REGISTRY</span><span class="o">.</span><span class="n">get_cls</span><span class="p">(</span><span class="s2">&quot;GaussianSpatialModel&quot;</span><span class="p">)(</span>
+            <span class="n">lon_0</span><span class="o">=</span><span class="n">gal_frame</span><span class="o">.</span><span class="n">l</span><span class="p">,</span> <span class="n">lat_0</span><span class="o">=</span><span class="n">gal_frame</span><span class="o">.</span><span class="n">b</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="s2">&quot;galactic&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">spatial_model</span></div>
+
+
+<div class="viewcode-block" id="create_source_skymodel"><a class="viewcode-back" href="../../../data_target.html#asgardpy.data.target.create_source_skymodel">[docs]</a><span class="k">def</span> <span class="nf">create_source_skymodel</span><span class="p">(</span><span class="n">config_target</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">aux_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build SkyModels from a given AsgardpyConfig section of the target</span>
+<span class="sd">    source information, list of LAT files and other relevant information.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config_target: `AsgardpyConfig`</span>
+<span class="sd">        Config section containing the Target source information.</span>
+<span class="sd">    source: dict</span>
+<span class="sd">        Dictionary containing the source models infromation from XML file.</span>
+<span class="sd">    aux_path: str</span>
+<span class="sd">        Path location of the LAT auxillary files.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    source_sky_model: `gammapy.modeling.SkyModel`</span>
+<span class="sd">        SkyModels object for the given source information.</span>
+<span class="sd">    is_source_target: bool</span>
+<span class="sd">        Boolean to check if the Models belong to the target source.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">source_name</span> <span class="o">=</span> <span class="n">source</span><span class="p">[</span><span class="s2">&quot;@name&quot;</span><span class="p">]</span>
+    <span class="n">spectrum_type</span> <span class="o">=</span> <span class="n">source</span><span class="p">[</span><span class="s2">&quot;spectrum&quot;</span><span class="p">][</span><span class="s2">&quot;@type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;EblAtten::&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">spectrum</span> <span class="o">=</span> <span class="n">source</span><span class="p">[</span><span class="s2">&quot;spectrum&quot;</span><span class="p">][</span><span class="s2">&quot;parameter&quot;</span><span class="p">]</span>
+
+    <span class="n">source_name_check</span> <span class="o">=</span> <span class="n">source_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">target_check</span> <span class="o">=</span> <span class="n">config_target</span><span class="o">.</span><span class="n">source_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># initialized to check for the case if target spectral model information</span>
+    <span class="c1"># is to be taken from the Config</span>
+    <span class="n">spectral_model</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Check if target_source file exists</span>
+    <span class="n">is_source_target</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">ebl_atten_pl</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># If Target source model&#39;s spectral component is to be taken from Config</span>
+    <span class="c1"># and not from 3D dataset.</span>
+    <span class="k">if</span> <span class="n">source_name_check</span> <span class="o">==</span> <span class="n">target_check</span><span class="p">:</span>
+        <span class="n">source_name</span> <span class="o">=</span> <span class="n">config_target</span><span class="o">.</span><span class="n">source_name</span>
+        <span class="n">is_source_target</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># Only taking the spectral model information right now.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">config_target</span><span class="o">.</span><span class="n">from_3d</span><span class="p">:</span>
+            <span class="n">spectral_model</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">read_models_from_asgardpy_config</span><span class="p">(</span><span class="n">config_target</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">spectral_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Define the Spectral Model type for Gammapy</span>
+        <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">spectrum</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">spec</span><span class="p">[</span><span class="s2">&quot;@name&quot;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;GalDiffModel&quot;</span><span class="p">,</span> <span class="s2">&quot;IsoDiffModel&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">spectrum_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;PLSuperExpCutoff&quot;</span><span class="p">,</span> <span class="s2">&quot;PLSuperExpCutoff2&quot;</span><span class="p">]:</span>
+                    <span class="n">spectrum_type_final</span> <span class="o">=</span> <span class="s2">&quot;ExpCutoffPowerLawSpectralModel&quot;</span>
+                <span class="k">elif</span> <span class="n">spectrum_type</span> <span class="o">==</span> <span class="s2">&quot;PLSuperExpCutoff4&quot;</span><span class="p">:</span>
+                    <span class="n">spectrum_type_final</span> <span class="o">=</span> <span class="s2">&quot;SuperExpCutoffPowerLaw4FGLDR3SpectralModel&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">spectrum_type_final</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">spectrum_type</span><span class="si">}</span><span class="s2">SpectralModel&quot;</span>
+
+                <span class="n">spectral_model</span> <span class="o">=</span> <span class="n">SPECTRAL_MODEL_REGISTRY</span><span class="o">.</span><span class="n">get_cls</span><span class="p">(</span><span class="n">spectrum_type_final</span><span class="p">)()</span>
+
+                <span class="k">if</span> <span class="n">spectrum_type</span> <span class="o">==</span> <span class="s2">&quot;LogParabola&quot;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;EblAtten&quot;</span> <span class="ow">in</span> <span class="n">source</span><span class="p">[</span><span class="s2">&quot;spectrum&quot;</span><span class="p">][</span><span class="s2">&quot;@type&quot;</span><span class="p">]:</span>
+                        <span class="n">spectral_model</span> <span class="o">=</span> <span class="n">SPECTRAL_MODEL_REGISTRY</span><span class="o">.</span><span class="n">get_cls</span><span class="p">(</span><span class="s2">&quot;PowerLawSpectralModel&quot;</span><span class="p">)()</span>
+                        <span class="n">ebl_atten_pl</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">spectral_model</span> <span class="o">=</span> <span class="n">SPECTRAL_MODEL_REGISTRY</span><span class="o">.</span><span class="n">get_cls</span><span class="p">(</span>
+                            <span class="s2">&quot;LogParabolaSpectralModel&quot;</span>
+                        <span class="p">)()</span>
+
+        <span class="c1"># Read the parameter values from XML file to create SpectralModel</span>
+        <span class="n">params_list</span> <span class="o">=</span> <span class="n">xml_spectral_model_to_gammapy_params</span><span class="p">(</span>
+            <span class="n">spectrum</span><span class="p">,</span>
+            <span class="n">spectrum_type</span><span class="p">,</span>
+            <span class="n">is_target</span><span class="o">=</span><span class="n">is_source_target</span><span class="p">,</span>
+            <span class="n">keep_sign</span><span class="o">=</span><span class="n">ebl_atten_pl</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">param_</span> <span class="ow">in</span> <span class="n">params_list</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">spectral_model</span><span class="p">,</span> <span class="n">param_</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">param_</span><span class="p">)</span>
+        <span class="n">config_spectral</span> <span class="o">=</span> <span class="n">config_target</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">spectral</span>
+        <span class="n">ebl_absorption_included</span> <span class="o">=</span> <span class="n">config_spectral</span><span class="o">.</span><span class="n">ebl_abs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">is_source_target</span> <span class="ow">and</span> <span class="n">ebl_absorption_included</span><span class="p">:</span>
+            <span class="n">ebl_model</span> <span class="o">=</span> <span class="n">config_spectral</span><span class="o">.</span><span class="n">ebl_abs</span>
+
+            <span class="k">if</span> <span class="n">ebl_model</span><span class="o">.</span><span class="n">filename</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+                <span class="n">ebl_spectral_model</span> <span class="o">=</span> <span class="n">EBLAbsorptionNormSpectralModel</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">ebl_model</span><span class="o">.</span><span class="n">filename</span><span class="p">),</span> <span class="n">redshift</span><span class="o">=</span><span class="n">ebl_model</span><span class="o">.</span><span class="n">redshift</span>
+                <span class="p">)</span>
+                <span class="n">ebl_model</span><span class="o">.</span><span class="n">reference</span> <span class="o">=</span> <span class="n">ebl_model</span><span class="o">.</span><span class="n">filename</span><span class="o">.</span><span class="n">name</span><span class="p">[:</span><span class="o">-</span><span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ebl_spectral_model</span> <span class="o">=</span> <span class="n">EBLAbsorptionNormSpectralModel</span><span class="o">.</span><span class="n">read_builtin</span><span class="p">(</span>
+                    <span class="n">ebl_model</span><span class="o">.</span><span class="n">reference</span><span class="p">,</span> <span class="n">redshift</span><span class="o">=</span><span class="n">ebl_model</span><span class="o">.</span><span class="n">redshift</span>
+                <span class="p">)</span>
+            <span class="n">spectral_model</span> <span class="o">=</span> <span class="n">spectral_model</span> <span class="o">*</span> <span class="n">ebl_spectral_model</span>
+
+    <span class="c1"># Reading Spatial model from the XML file</span>
+    <span class="n">spatial_model</span> <span class="o">=</span> <span class="n">xml_spatial_model_to_gammapy</span><span class="p">(</span><span class="n">aux_path</span><span class="p">,</span> <span class="n">source</span><span class="p">[</span><span class="s2">&quot;spatialModel&quot;</span><span class="p">])</span>
+
+    <span class="n">spatial_model</span><span class="o">.</span><span class="n">freeze</span><span class="p">()</span>
+    <span class="n">source_sky_model</span> <span class="o">=</span> <span class="n">SkyModel</span><span class="p">(</span>
+        <span class="n">spectral_model</span><span class="o">=</span><span class="n">spectral_model</span><span class="p">,</span>
+        <span class="n">spatial_model</span><span class="o">=</span><span class="n">spatial_model</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">source_name</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">source_sky_model</span><span class="p">,</span> <span class="n">is_source_target</span></div>
+
+
+<div class="viewcode-block" id="create_iso_diffuse_skymodel"><a class="viewcode-back" href="../../../data_target.html#asgardpy.data.target.create_iso_diffuse_skymodel">[docs]</a><span class="k">def</span> <span class="nf">create_iso_diffuse_skymodel</span><span class="p">(</span><span class="n">iso_file</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a SkyModel of the Fermi Isotropic Diffuse Model and assigning</span>
+<span class="sd">    name as per the observation key. If there are no distinct key types of</span>
+<span class="sd">    files, the value is None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">diff_iso</span> <span class="o">=</span> <span class="n">create_fermi_isotropic_diffuse_model</span><span class="p">(</span>
+        <span class="n">filename</span><span class="o">=</span><span class="n">iso_file</span><span class="p">,</span> <span class="n">interp_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;fill_value&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">key</span><span class="p">:</span>
+        <span class="n">diff_iso</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">diff_iso</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="c1"># Parameters&#39; limits</span>
+    <span class="n">diff_iso</span><span class="o">.</span><span class="n">spectral_model</span><span class="o">.</span><span class="n">model1</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">min</span> <span class="o">=</span> <span class="mf">0.001</span>
+    <span class="n">diff_iso</span><span class="o">.</span><span class="n">spectral_model</span><span class="o">.</span><span class="n">model1</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">max</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">diff_iso</span><span class="o">.</span><span class="n">spectral_model</span><span class="o">.</span><span class="n">model2</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">min</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">diff_iso</span><span class="o">.</span><span class="n">spectral_model</span><span class="o">.</span><span class="n">model2</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">max</span> <span class="o">=</span> <span class="mi">10</span>
+
+    <span class="k">return</span> <span class="n">diff_iso</span></div>
+
+
+<div class="viewcode-block" id="create_gal_diffuse_skymodel"><a class="viewcode-back" href="../../../data_target.html#asgardpy.data.target.create_gal_diffuse_skymodel">[docs]</a><span class="k">def</span> <span class="nf">create_gal_diffuse_skymodel</span><span class="p">(</span><span class="n">diff_gal</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create SkyModel of the Diffuse Galactic sources.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">template_diffuse</span> <span class="o">=</span> <span class="n">SPATIAL_MODEL_REGISTRY</span><span class="o">.</span><span class="n">get_cls</span><span class="p">(</span><span class="s2">&quot;TemplateSpatialModel&quot;</span><span class="p">)(</span>
+        <span class="n">diff_gal</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">diff_gal</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">SkyModel</span><span class="p">(</span>
+        <span class="n">spectral_model</span><span class="o">=</span><span class="n">SPECTRAL_MODEL_REGISTRY</span><span class="o">.</span><span class="n">get_cls</span><span class="p">(</span><span class="s2">&quot;PowerLawNormSpectralModel&quot;</span><span class="p">)(),</span>
+        <span class="n">spatial_model</span><span class="o">=</span><span class="n">template_diffuse</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;diffuse-iem&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">source</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;norm&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">source</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;norm&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">source</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;norm&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">frozen</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">return</span> <span class="n">source</span></div>
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2023, Allen Institute for Artificial Intelligence
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              <a class="muted-link " href="https://github.com/chaimain/asgardpy" aria-label="GitHub">
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/scripts/furo.js"></script>
+    <script src="../../../_static/clipboard.min.js"></script>
+    <script src="../../../_static/copybutton.js"></script>
+    </body>
+</html>

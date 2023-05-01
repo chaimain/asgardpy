@@ -20,7 +20,7 @@ target:
   sky_position: &source_pos {frame: icrs, lon: 238.92934976 deg, lat: 11.19010155 deg}
   use_uniform_position: true
   extended: false
-  models_file: "model_template.yaml"
+  models_file: "template_model.yaml"
   components:
   -   name: PG1553+113
       type: SkyModel
@@ -104,9 +104,9 @@ dataset3d:
                 max: "1 TeV"
                 nbins: 8
                 per_decade: true
-          background:
-          # method: reflected
-          # parameters:
+        background:
+        # method: reflected
+        # parameters:
           exclusion:
             target_source: true
             regions:

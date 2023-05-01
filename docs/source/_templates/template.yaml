@@ -1,0 +1,220 @@
+# Configuration file template for Data analysis of 3D+1D DL3 datasets
+
+# General settings
+general:
+  log:
+    level: info
+    filename: filename.log
+    filemode: a
+    format: "%(asctime)s - %(message)s"
+    datefmt: "%d-%b-%y %H:%M:%S"
+  outdir: .
+  n_jobs: 1
+  steps: [datasets-3d, datasets-1d, fit, flux-points]
+  overwrite: true
+  stacked_dataset: true
+
+# Target settings
+target:
+  source_name: PG1553+113
+  sky_position: &source_pos {frame: icrs, lon: 238.92934976 deg, lat: 11.19010155 deg}
+  use_uniform_position: true
+  extended: false
+  models_file: "template_model.yaml"
+  components:
+  -   name: PG1553+113
+      type: SkyModel
+      spectral:
+          type: LogParabolaSpectralModel
+          parameters:
+          -   name: amplitude
+              value: 1.0e-05
+              unit: cm-2 s-1 TeV-1
+              error: 1.5e-06
+              min: 1.0e-13
+              max: 0.01
+              frozen: false
+          -   name: reference
+              value: 0.0015
+              unit: TeV
+              error: 0.0
+              min: 0.0001
+              max: 100.0
+              frozen: true
+          -   name: alpha
+              value: 1.5
+              unit: ''
+              error: 0.1
+              min: 0.5
+              max: 5.0
+              frozen: false
+          -   name: beta
+              value: 0.1
+              unit: ''
+              error: 0.01
+              min: 1.0e-6
+              max: 1.0
+              frozen: false
+          ebl_abs:
+            reference: dominguez
+            type: EBLAbsorptionNormSpectralModel
+            redshift: 0.433
+            alpha_norm: 1.0
+  covariance: None
+  from_3d: false
+  roi_selection:
+    roi_radius: 5 deg
+    free_sources: [None]
+
+# Instrument datasets with 3D info
+dataset3d:
+  type: "3d"
+  instruments:
+  -   name: Fermi-LAT
+      io:
+      -   type: lat
+          input_dir: "."
+          glob_pattern:
+            events: "*MkTime.fits*"
+            edisp: "*eDRM.fits*"
+            xml_model: "*out.xml"
+            exposure: "*BinnedMap.fits*"
+            psf: "*psf.fits*"
+      -   type: lat-aux
+          input_dir: "."
+          glob_pattern:
+            gal_diffuse: "gll_iem_v07.fits*"
+            iso_diffuse: "iso_P8R3_SOURCE_V3_*.txt"
+      dataset_info:
+        name: Fermi-LAT
+        key: ["FRONT", "BACK"]
+        # map_selection: []
+        geom:
+          from_events_file: True
+          wcs:
+            binsize: 0.1 deg
+            proj: TAN
+            map_frame_shape:
+              width: 10 deg
+              height: 10 deg
+          axes:
+          -   name: energy
+              axis:
+                min: "100 MeV"
+                max: "1 TeV"
+                nbins: 8
+                per_decade: true
+        background:
+        # method: reflected
+        # parameters:
+          exclusion:
+            target_source: true
+            regions:
+            -   type: CircleAnnulusSkyRegion
+                name: None
+                position: *source_pos
+                parameters:
+                  rad_0: 8 deg
+                  rad_1: 30 deg
+        safe_mask:
+          methods: []
+          parameters:
+            min: 0.001 TeV
+            max: 1 TeV
+        on_region: *source_pos
+          # radius: 0.4 deg
+        containment_correction: true
+        spectral_energy_range:
+          name: energy
+          axis:
+            min: "100 MeV"
+            max: "1 TeV"
+            nbins: 4
+            per_decade: true
+        #  axis_custom:
+        #    edges: [0.01, 0.05, 0.1, 0.5, 1, 5, 10]
+        #    unit: "TeV"
+# - name: CTA
+#    ... full description ...
+
+# Instrument datasets with 1D info
+dataset1d:
+  type: "1d"
+  instruments:
+  -   name: LST-1
+      io:
+      -   type: gadf-dl3
+          input_dir: "."
+          glob_pattern:
+            dl3: ""
+      dataset_info:
+        name: LST-1
+        geom:
+          wcs:
+            binsize: 0.05 deg
+            proj: TAN
+            map_frame_shape:
+              width: 6.25 deg
+              height: 6.25 deg
+          selection:
+            offset_max: "2.5 deg"
+          axes:
+          -   name: energy
+              axis: &lst_energy
+                min: "10 GeV"
+                max: "10 TeV"
+                nbins: 5
+                per_decade: true
+          -   name: energy_true
+              axis: *lst_energy
+        observation:
+          # obs_ids: []
+          # obs_file: None
+          # obs_time:
+          required_irfs: ["aeff", "edisp", "rad_max"]
+        background:
+          method: reflected
+          region_finder_method: wobble
+          parameters:
+            n_off_regions: 1
+          # exclusion:
+        safe_mask:
+          methods: ["custom-mask"] #["aeff-max", "aeff-default", "edisp-bias", "offset-max", "bkg-peak"]
+          parameters:
+            min: "10 GeV"
+            max: "10 TeV"
+            aeff_percent: 10
+            bias_percent: 10
+            fixed_offset: 0.1 deg
+            offset_max: 3 deg
+            position: *source_pos
+        on_region: *source_pos
+        containment_correction: false
+        map_selection: [counts, exposure, edisp]
+        spectral_energy_range:
+          name: energy
+          axis:
+            min: "10 GeV"
+            max: "10 TeV"
+            nbins: 5
+            per_decade: true
+          #axis_custom:
+          #   edges: [0.01, 0.05, 0.1, 0.5, 1, 5, 10]
+          #   unit: "TeV"
+#  - name: MAGIC
+#      ... full description ...
+
+# Fit parameters
+fit_params:
+  fit_range:
+    min: "100 MeV"
+    max: "1 TeV"
+  backend: minuit
+  optimize_opts: {}
+  covariance_opts: {}
+  confidence_opts: {}
+  store_trace: true
+
+flux_points_params:
+  parameters:
+    selection_optional: "all"
