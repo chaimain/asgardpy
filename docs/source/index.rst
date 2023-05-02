@@ -29,7 +29,7 @@ The steps are:
 
 #. datasets-3d :class:`asgardpy.data.dataset_3d.Datasets3DAnalysisStep`
 
-#. datasets-1d:class:`asgardpy.data.dataset_1d.Datasets1DAnalysisStep`
+#. datasets-1d :class:`asgardpy.data.dataset_1d.Datasets1DAnalysisStep`
 
 #. fit :class:`asgardpy.data.dl4.FitAnalysisStep`
 
