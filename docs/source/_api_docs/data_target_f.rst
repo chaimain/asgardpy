@@ -11,6 +11,6 @@ asgardpy.data.target module: Functions
 Spectral model parameter renaming to Gammapy default
 ====================================================
 
-.. image:: _static/asgardpy_target_params_renaming.png
+.. image:: ../_static/asgardpy_target_params_renaming.png
     :width: 800px
     :align: center
