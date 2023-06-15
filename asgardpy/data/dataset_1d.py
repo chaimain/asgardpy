@@ -44,6 +44,7 @@ __all__ = [
     "Dataset1DBaseConfig",
     "Dataset1DConfig",
     "Dataset1DGeneration",
+    "Dataset1DInfoConfig",
 ]
 
 log = logging.getLogger(__name__)

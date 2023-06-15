@@ -160,8 +160,6 @@ class AnalysisStepEnum(str, Enum):
     datasets_3d = "datasets-3d"
     fit = "fit"
     flux_points = "flux-points"
-    excess_map = "excess-map"
-    light_curve = "light-curve"
 
 
 # Basic Quantity ranges Type for building the Config
