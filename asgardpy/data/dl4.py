@@ -27,7 +27,7 @@ class BackendEnum(str, Enum):
 
 class ParallelBackendEnum(str, Enum):
     multi = "multiprocessing"
-    ray: "ray"
+    ray = "ray"
 
 
 class FitConfig(BaseConfig):
@@ -125,7 +125,7 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
             source=self.config.target.source_name,
             n_jobs=self.config.general.n_jobs,
             parallel_backend=self.config.flux_points_params.parallel_backend,
-            reoptimize=self.config.flux_points_params.reoptimize
+            reoptimize=self.config.flux_points_params.reoptimize,
             **fpe_settings
         )
 
