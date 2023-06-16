@@ -218,3 +218,5 @@ fit_params:
 flux_points_params:
   parameters:
     selection_optional: "all"
+  parallel_backend: "multi"
+  reoptimize: false
