@@ -9,12 +9,11 @@ asgardpy.config module
 Template AsgardpyConfig
 =======================
 
-.. literalinclude:: _templates/template.yaml
+.. literalinclude:: ../_templates/template.yaml
    :language: yaml
 
 Template models file
 ====================
 
-.. literalinclude:: _templates/template_model.yaml
+.. literalinclude:: ../_templates/template_model.yaml
    :language: yaml
-

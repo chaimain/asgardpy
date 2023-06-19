@@ -9,87 +9,35 @@
 Gammapy-based pipeline to support high-level analysis for multi-instruments joint datasets.
 Follow the `Gammapy v1.1 <https://docs.gammapy.org/1.1/>`_ documentation for understanding the core Gammapy objects.
 
-The various Data Levels used here follow the descriptions suggested by `GADF v0.3 <https://gamma-astro-data-formats.readthedocs.io/en/latest/>`_ and CTAO Data Model.
+The various Data Levels used here follow the descriptions suggested by
+`GADF v0.3 <https://gamma-astro-data-formats.readthedocs.io/en/latest/>`_ and CTAO Data Model.
 
-Main structure
---------------
+The pipeline was developed with first testing with Fermi-LAT (`enrico <https://enrico.readthedocs.io/en/latest/>`_ and
+`fermipy <https://fermipy.readthedocs.io/en/latest/>`_) files and LST-1 (`cta-lstchain <https://cta-observatory.github.io/cta-lstchain/>`_)
+DL3 files (with energy-dependent selection cuts) for point-like sources.
+The pipeline can be further expanded to support more types of DL3 files of gamma-ray instruments.
 
-The package is structured in 2 ways -
+GitHub Repository: https://github.com/chaimain/asgardpy
 
-#. Creating the AnalysisConfig based on several Config components - :doc:`config`
-
-#. Generating AsgardpyAnalysis based on several Analysis Step components - :doc:`analysis`
-
-Analysis Steps
---------------
-
-The configuration-based pipeline separates the Gammapy-based High-Level Analysis into serialized intermediate steps.
-Check :doc:`base_base` for more details.
-The steps are:
-
-#. datasets-3d :class:`asgardpy.data.dataset_3d.Datasets3DAnalysisStep`
-
-#. datasets-1d :class:`asgardpy.data.dataset_1d.Datasets1DAnalysisStep`
-
-#. fit :class:`asgardpy.data.dl4.FitAnalysisStep`
-
-#. flux-points :class:`asgardpy.data.dl4.FluxPointsAnalysisStep`
-
-The main purpose of this pipeline is accomplished before the "fit" step, which is to compile a Gammapy Datasets object
-containing multiple types of datasets from multiple gamma-ray astronomical instruments, update them with appropriate
-Gammapy Models object. These are then run with the standard Gammapy high-level analysis functions to get the DL5 products.
-
-
-.. image:: _static/asgardpy_workflow.png
-    :width: 600px
-    :align: center
-
-
-DL3 Data component
-------------------
-
-The "DL3 level" data files for any instrument is read by providing the path location and a search glob pattern in the Config file. These are read
-by the :class:`asgardpy.io.io.DL3Files`.
-
-The main modules dealing with the 2 types of data being read are -
-
-#. 3D Dataset :doc:`data_3d`
-
-#. 1D Dataset :doc:`data_1d`
-
-They each build their Config components using classes defined with,
-
-#. a base in :class:`asgardpy.base.base`,
-
-#. from distinct modules -
-
-   #. Base Geometry :doc:`base_geom`
-
-   #. Dataset Reduction :doc:`base_reduction`
-
-#. and from their own respective modules
-
-The processing of Dataset creation is performed by :class:`asgardpy.data.dataset_3d.Dataset3DGeneration` and :class:`asgardpy.data.dataset_1d.Dataset1DGeneration`
-
-Models
-------
-
-The :doc:`data_target_b` contains various classes for various Models objects and :doc:`data_target_f` contains various functions for handling them.
-
-High-level Analysis
--------------------
-
-The various Config components and Analysis steps for the high-level analysis can be found in :doc:`data_dl4`.
-
-Getting started
----------------
+.. _introduction:
 
 .. toctree::
    :maxdepth: 2
+   :caption: Introduction
+   :name: _introduction
 
+   overview
    installation
    CHANGELOG
 
+.. _api:
+
+.. toctree::
+   :maxdepth: 1
+   :caption: API Documentation
+   :name: _api
+
+   _api_docs/index
 
 .. toctree::
   :hidden:
@@ -98,26 +46,6 @@ Getting started
   License <https://github.com/chaimain/asgardpy/blob/main/LICENSE>
   CONTRIBUTING
   GitHub Repository <https://github.com/chaimain/asgardpy>
-
-
-
-Contents
---------
-
-.. toctree::
-   :maxdepth: 2
-
-   analysis
-   base_base
-   base_geom
-   base_reduction
-   config
-   data_3d
-   data_1d
-   data_target_b
-   data_target_f
-   data_dl4
-   io
 
 
 Team
