@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Retry to fix sphinx documentation build issue by [@chaimain](https://github.com/chaimain).
 - Fill more detailed information in the sphinx documentation by [@chaimain](https://github.com/chaimain).
 - Update dependencies and update requirement conditions by [@chaimain](https://github.com/chaimain).
+- Restructure sphinx documentation to be more compact by [@chaimain](https://github.com/chaimain).
 
 ## [v0.3.2](https://github.com/chaimain/asgardpy/releases/tag/v0.3.2) - 2023-04-28
 

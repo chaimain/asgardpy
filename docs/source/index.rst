@@ -37,7 +37,7 @@ GitHub Repository: https://github.com/chaimain/asgardpy
    :caption: API Documentation
    :name: _api
 
-   _api_docs/api
+   _api_docs/index
 
 .. toctree::
   :hidden:
