@@ -5,7 +5,7 @@
 Example: 3D Fermi-LAT (with various source models in the Region of Interest stored in XML file) + 1D energy-dependent selection cut MAGIC/LST [PointSkyRegion geometry for ON region] + 1D fixed-cut VERITAS [CircleSkyRegion geometry for ON region].
 
 Follow the documentation at https://asgardpy.readthedocs.io/en/latest/ for the main functionality of this pipeline.
-Follow the [Gammapy v1.0](https://docs.gammapy.org/1.0/) documentation for understanding the core Gammapy objects.
+Follow the [Gammapy v1.1](https://docs.gammapy.org/1.1/) documentation for understanding the core Gammapy objects.
 
 The various Data Levels	used here follow the descriptions suggested by [GADF v0.3](https://gamma-astro-data-formats.readthedocs.io/en/latest/) and CTAO Data Model
 

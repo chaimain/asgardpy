@@ -7,7 +7,7 @@
 =====================
 
 Gammapy-based pipeline to support high-level analysis for multi-instruments joint datasets.
-Follow the `Gammapy v1.0 <https://docs.gammapy.org/1.0/>`_ documentation for understanding the core Gammapy objects.
+Follow the `Gammapy v1.1 <https://docs.gammapy.org/1.1/>`_ documentation for understanding the core Gammapy objects.
 
 The various Data Levels used here follow the descriptions suggested by `GADF v0.3 <https://gamma-astro-data-formats.readthedocs.io/en/latest/>`_ and CTAO Data Model.
 
