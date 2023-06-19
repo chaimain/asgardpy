@@ -2,7 +2,7 @@
 flake8
 
 # Static type checking
-mypy>=0.991
+mypy>=1.2
 
 # Automatic code formatting
 black>=22.10
@@ -21,13 +21,13 @@ setuptools
 wheel
 
 # Building docs
-Sphinx>=4.3.0,<8
+Sphinx>=6.0,<8
 
 # Sphinx theme: https://sphinx-themes.org/sample-sites/furo/
 furo>=2022.12.7
 
 # Lets Sphinx parse markdown files in addition to rst.
-myst-parser>=0.15.2,<1.1.0
+myst-parser>=2.0
 
 # Adds a copy button to code examples in the docs.
 sphinx-copybutton>=0.5.0
