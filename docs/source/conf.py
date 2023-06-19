@@ -70,7 +70,7 @@ source_suffix = [".rst", ".md"]
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
-    "gammapy": ("https://docs.gammapy.org/1.0/", None),
+    "gammapy": ("https://docs.gammapy.org/1.1/", None),
     "astropy": ("http://docs.astropy.org/en/latest/", None),
     # Uncomment these if you use them in your codebase:
     #  "torch": ("https://pytorch.org/docs/stable", None),
