@@ -20,6 +20,7 @@ from gammapy.modeling.models import (
     SpectralModel,
     create_fermi_isotropic_diffuse_model,
 )
+from scipy.stats import chi2, norm
 
 from asgardpy.base import AngleType, BaseConfig, PathType, SkyCoordConfig
 
@@ -32,6 +33,8 @@ __all__ = [
     "SpectralModelConfig",
     "Target",
     "apply_selection_mask_to_models",
+    "check_model_preference_aic",
+    "check_model_preference_lrt",
     "config_to_dict",
     "create_gal_diffuse_skymodel",
     "create_iso_diffuse_skymodel",
@@ -910,3 +913,105 @@ def create_gal_diffuse_skymodel(diff_gal):
     source.parameters["norm"].frozen = False
 
     return source
+
+
+def check_model_preference_lrt(result1, result2, model1, model2):
+    """
+    Log-likelihood ratio test. Checking the preference of a "nested" spectral
+    model2 (observed), over a primary model1.
+
+    Parameters
+    ----------
+    result1: `gammapy.modeling.fit.FitResult`
+        Fit result of the primary spectral model.
+    result2: `gammapy.modeling.fit.FitResult`
+        Fit result of the nested spectral model.
+    model1: `gammapy.modeling.models.spectral.SpectralModel`
+        Primary spectral model
+    model2: `gammapy.modeling.models.spectral.SpectralModel`
+        Nested spectral model
+
+    Returns
+    -------
+    p_value: float
+        p-value for the ratio of the likelihoods
+    gaussian_sigmas: float
+        significance (Chi2) of the ratio of the likelihoods estimated in
+        Gaussian distribution.
+    chi2_1: float
+        significance (Chi2) of the likelihood of primary fit model estimated in
+        Gaussian distribution.
+    chi2_2: float
+        significance (Chi2) of the likelihood of nested fit model estimated in
+        Gaussian distribution.
+    n_dof: int
+        number of degrees of freedom or free parameters between primary and
+        nested model.
+    """
+    Wstat_1 = result1.total_stat
+    Wstat_2 = result2.total_stat
+
+    pval_1 = chi2.sf(Wstat_1, len(list(model1.parameters.free_parameters)))
+    pval_2 = chi2.sf(Wstat_2, len(list(model2.parameters.free_parameters)))
+
+    chi2_1 = norm.isf(pval_1 / 2)
+    chi2_2 = norm.isf(pval_2 / 2)
+
+    n_dof = len(list(model2.parameters.free_parameters)) - len(
+        list(model1.parameters.free_parameters)
+    )
+    if n_dof < 1:
+        print(
+            f"DoF is lower in {model2.spectral_model.model1.tag[0]} compared "
+            f"to {model1.spectral_model.model1.tag[0]}"
+        )
+        return np.nan, np.nan, chi2_1, chi2_2, n_dof
+
+    p_value = chi2.sf((Wstat_1 - Wstat_2), n_dof)
+    gaussian_sigmas = norm.isf(p_value / 2)
+
+    if not np.isfinite(gaussian_sigmas):
+        gaussian_sigmas = np.sqrt((Wstat_1 - Wstat_2))
+
+    return p_value, gaussian_sigmas, chi2_1, chi2_2, n_dof
+
+
+def check_model_preference_aic(list_wstat, list_dof):
+    """
+    Akaike Information Criterion (AIC) preference over a list of wstat and DoF
+    (degree of freedom) to get relative likelihood of a given list of best-fit
+    models.
+
+    Parameters
+    ----------
+    list_wstat: list
+        List of wstat or -2 Log likelihood values for a list of models.
+    list_dof: list
+        List of degrees of freedom or list of free parameters, for a list of models.
+
+    Returns
+    -------
+    list_p: list
+        List of relative likelihood probabilities, for a list of models.
+    """
+    list_aic = []
+    for w, d in zip(list_wstat, list_dof):
+        aic = 2 * w + 2 * d
+        list_aic.append(aic)
+    list_aic = np.array(list_aic)
+
+    aic_min = np.min(list_aic)
+
+    list_b = []
+    for a in list_aic:
+        b = np.exp((aic_min - a) / 2)
+        list_b.append(b)
+    list_b = np.array(list_b)
+
+    list_p = []
+    for bb in list_b:
+        bbb = bb / np.sum(list_b)
+        list_p.append(bbb)
+    list_p = np.array(list_p)
+
+    return list_p

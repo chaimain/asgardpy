@@ -4,12 +4,11 @@ from pathlib import Path
 
 import numpy as np
 import yaml
-from gammapy.modeling.models import SPECTRAL_MODEL_REGISTRY
-from scipy.stats import chi2, norm
 
 from asgardpy.analysis import AsgardpyAnalysis
 from asgardpy.config import AsgardpyConfig
 from asgardpy.config.generator import CONFIG_PATH
+from asgardpy.data.target import check_model_preference_aic, check_model_preference_lrt
 
 log = logging.getLogger(__name__)
 
@@ -31,86 +30,15 @@ parser.add_argument(
 )
 
 
-def check_model_preference(result1, result2, model1, model2):
-    """
-    Log-likelihood ratio test. Checking the preference of a "nested" spectral
-    model2 (observed), over model1.
-    """
-    Wstat_1 = result1.total_stat
-    Wstat_2 = result2.total_stat
-
-    p1 = chi2.sf(Wstat_1, len(list(model1.parameters.free_parameters)))
-    p2 = chi2.sf(Wstat_2, len(list(model2.parameters.free_parameters)))
-
-    g1 = norm.isf(p1 / 2)
-    g2 = norm.isf(p2 / 2)
-
-    n_dof = len(list(model2.parameters.free_parameters)) - len(
-        list(model1.parameters.free_parameters)
-    )
-    if n_dof < 1:
-        print(
-            f"DoF is lower in {model2.spectral_model.model1.tag[0]} compared "
-            f"to {model1.spectral_model.model1.tag[0]}"
-        )
-        return np.nan, np.nan, g1, g2, n_dof
-
-    p_value = chi2.sf((Wstat_1 - Wstat_2), n_dof)
-    gaussian_sigmas = norm.isf(p_value / 2)
-
-    if not np.isfinite(gaussian_sigmas):
-        gaussian_sigmas = np.sqrt((Wstat_1 - Wstat_2))
-
-    return p_value, gaussian_sigmas, g1, g2, n_dof
-
-
-def check_model_preference_aic(list_wstat, list_dof):
-    """
-    AIC preference over a list of wstat and DoF to get relative likelihood.
-    """
-    list_aic = []
-    for w, d in zip(list_wstat, list_dof):
-        aic = 2 * w + 2 * d
-        list_aic.append(aic)
-    list_aic = np.array(list_aic)
-
-    aic_min = np.min(list_aic)
-    # print(f"With a list of Akaike information criterion (AIC) Statistics,
-    # {list_aic}, the minimum is {aic_min}")
-
-    list_b = []
-    for a in list_aic:
-        b = np.exp((aic_min - a) / 2)
-        list_b.append(b)
-    list_b = np.array(list_b)
-
-    list_p = []
-    for bb in list_b:
-        bbb = bb / np.sum(list_b)
-        list_p.append(bbb)
-    list_p = np.array(list_p)
-
-    # print(f"Relative likelihood list: {list_p}")
-
-    return list_p
-
-
 def main():
     args = parser.parse_args()
 
     main_config = AsgardpyConfig.read(args.config)
-    main_analysis = AsgardpyAnalysis(main_config)
+    temp_analysis = AsgardpyAnalysis(main_config)
     target_source_name = main_config.target.source_name
 
     log.info(f"Analysis steps mentioned in the config file: {main_config.general.steps}")
     log.info(f"Target source is: {target_source_name}")
-
-    # Check if the spectral model is readable by Gammapy
-    sp_t = main_analysis.config.target.components[0].spectral.type
-    try:
-        SPECTRAL_MODEL_REGISTRY.get_cls(sp_t)
-    except KeyError:
-        log.error("Incorrect spectral model that cannot be read with Gammapy")
 
     spec_model_template_files = sorted(list(CONFIG_PATH.glob("model_template*yaml")))
 
@@ -118,40 +46,44 @@ def main():
     spec_models_list = []
 
     for temp in spec_model_template_files:
-        mm = AsgardpyAnalysis(main_config)
-        mm.config.target.models_file = temp
-        print(mm.config.target.models_file)
-        mm_2 = AsgardpyAnalysis(mm.config)
-        print(mm_2.config.target)
+        temp_aa = AsgardpyAnalysis(main_config)
+        temp_aa.config.target.models_file = temp
+        print(temp_aa.config.target.models_file)
+        temp_aa_2 = AsgardpyAnalysis(temp_aa.config)
+        print(temp_aa_2.config.target)
         # Have the same value of amplitude
-        mm_2.config.target.components[0].spectral.parameters[0].value = (
-            mm.config.target.components[0].spectral.parameters[0].value
+        temp_aa_2.config.target.components[0].spectral.parameters[0].value = (
+            temp_aa.config.target.components[0].spectral.parameters[0].value
         )
         # Have the same value of reference/e_break energy
-        mm_2.config.target.components[0].spectral.parameters[1].value = (
-            mm.config.target.components[0].spectral.parameters[1].value
+        temp_aa_2.config.target.components[0].spectral.parameters[1].value = (
+            temp_aa.config.target.components[0].spectral.parameters[1].value
         )
         # Have the same value of redshift value
-        mm_2.config.target.components[0].spectral.ebl_abs.redshift = (
-            mm.config.target.components[0].spectral.ebl_abs.redshift
+        temp_aa_2.config.target.components[0].spectral.ebl_abs.redshift = (
+            temp_aa.config.target.components[0].spectral.ebl_abs.redshift
         )
 
         # Make sure the source names are the same
-        mm_2.config.target.source_name = mm.config.target.source_name
-        mm_2.config.target.components[0].name = mm.config.target.components[0].name
+        temp_aa_2.config.target.source_name = temp_aa.config.target.source_name
+        temp_aa_2.config.target.components[0].name = temp_aa.config.target.components[0].name
 
         spec_tag = temp.name.split(".")[0].split("_")[-1]
         spec_models_list.append(spec_tag)
         main_analysis_list[spec_tag] = {}
-        log.info(mm_2.config.target.components[0])
-        main_analysis_list[spec_tag]["Analysis"] = mm_2
+
+        log.info(temp_aa_2.config.target.components[0])
+
+        main_analysis_list[spec_tag]["Analysis"] = temp_aa_2
 
     spec_models_list = np.array(spec_models_list)
 
     # Run Analysis Steps till Fit
     for i, tag in enumerate(spec_models_list):
         log.info(f"Spectral model being tested: {tag}")
+
         main_analysis_list[tag]["Analysis"].run(["datasets-3d", "datasets-1d", "fit"])
+
         if tag == "pl":
             PL_idx = i
 
@@ -182,7 +114,7 @@ def main():
             pref_over_pl_chi2_list.append(0)
             continue
 
-        p_pl_x, g_pl_x, g_pl, g_x, ndof_pl_x = check_model_preference(
+        p_pl_x, g_pl_x, g_pl, g_x, ndof_pl_x = check_model_preference_lrt(
             main_analysis_list["pl"]["Analysis"].fit_result,
             main_analysis_list[tag]["Analysis"].fit_result,
             main_analysis_list["pl"]["Analysis"].final_model[target_source_name],
@@ -198,6 +130,7 @@ def main():
         pref_over_pl_chi2_list.append(g_pl_x)
         main_analysis_list[tag]["Pref_over_pl_pval"] = p_pl_x
         main_analysis_list[tag]["DoF_over_pl"] = ndof_pl_x
+
     log.info(f"Chi2 of PL model: {g_pl}/{main_analysis_list['pl']['DoF']}")
 
     fit_success_list = np.array(fit_success_list)
@@ -223,6 +156,7 @@ def main():
         log.info(f"Relative likelihood for {tag} is {list_rel_p[i]}")
 
         best_sp_idx_aic = np.nonzero(list_rel_p == np.nanmax(list_rel_p))[0]
+
         for idx in best_sp_idx_aic:
             if list_rel_p[idx] > 0.95:
                 sp_idx_aic = idx
