@@ -112,9 +112,7 @@ def main():
     except KeyError:
         log.error("Incorrect spectral model that cannot be read with Gammapy")
 
-    spec_model_template_files = sorted(list(
-        CONFIG_PATH.parent.glob("model_template*yaml")
-    ))
+    spec_model_template_files = sorted(list(CONFIG_PATH.parent.glob("model_template*yaml")))
 
     main_analysis_list = {}
     spec_models_list = []
@@ -157,9 +155,7 @@ def main():
     for tag in spec_models_list:
         # Collect parameters for AIC check
         wstat = main_analysis_list[tag]["Analysis"].fit_result.total_stat
-        dof = len(list(
-            main_analysis_list[tag]["Analysis"].final_model.parameters.free_parameters
-        ))
+        dof = len(list(main_analysis_list[tag]["Analysis"].final_model.parameters.free_parameters))
         main_analysis_list[tag]["DoF"] = dof
         main_analysis_list[tag]["Wstat"] = wstat
 
@@ -199,10 +195,7 @@ def main():
     # If any spectral model has at least 5 sigmas preference over PL
     if pref_over_pl_chi2_list.any() > 5:
         best_sp_idx_lrt = np.where(pref_over_pl_chi2_list == np.nanmax(pref_over_pl_chi2_list))
-        log.info(
-            "Best preferred spectral model over PL "
-            f"is {spec_models_list[best_sp_idx_lrt]}"
-        )
+        log.info("Best preferred spectral model over PL " f"is {spec_models_list[best_sp_idx_lrt]}")
     else:
         best_sp_idx_lrt = PL_idx
         log.info("No other model preferred over PL")
