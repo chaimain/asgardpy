@@ -34,7 +34,6 @@ def main():
     args = parser.parse_args()
 
     main_config = AsgardpyConfig.read(args.config)
-    temp_analysis = AsgardpyAnalysis(main_config)
     target_source_name = main_config.target.source_name
 
     log.info(f"Analysis steps mentioned in the config file: {main_config.general.steps}")
@@ -60,9 +59,9 @@ def main():
             temp_aa.config.target.components[0].spectral.parameters[1].value
         )
         # Have the same value of redshift value
-        temp_aa_2.config.target.components[0].spectral.ebl_abs.redshift = (
-            temp_aa.config.target.components[0].spectral.ebl_abs.redshift
-        )
+        temp_aa_2.config.target.components[
+            0
+        ].spectral.ebl_abs.redshift = temp_aa.config.target.components[0].spectral.ebl_abs.redshift
 
         # Make sure the source names are the same
         temp_aa_2.config.target.source_name = temp_aa.config.target.source_name
