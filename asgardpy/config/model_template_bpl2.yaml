@@ -28,8 +28,8 @@ target:
           -   name: index_diff
               value: 1.0
               unit: ''
-              error: 0.01
-              min: 0.5
-              max: 5.0
+              error: 0.001
+              min: 0.001
+              max: 3.0
               frozen: false
 

@@ -98,7 +98,7 @@ def check_model_preference_aic(list_wstat, list_dof):
 def main():
     args = parser.parse_args()
 
-    main_config = AsgardpyConfig().read(args.config)
+    main_config = AsgardpyConfig.read(args.config)
     main_analysis = AsgardpyAnalysis(main_config)
     target_source_name = main_config.target.source_name
 
@@ -112,7 +112,7 @@ def main():
     except KeyError:
         log.error("Incorrect spectral model that cannot be read with Gammapy")
 
-    spec_model_template_files = sorted(list(CONFIG_PATH.parent.glob("model_template*yaml")))
+    spec_model_template_files = sorted(list(CONFIG_PATH.glob("model_template*yaml")))
 
     main_analysis_list = {}
     spec_models_list = []
@@ -120,7 +120,9 @@ def main():
     for temp in spec_model_template_files:
         mm = AsgardpyAnalysis(main_config)
         mm.config.target.models_file = temp
+        print(mm.config.target.models_file)
         mm_2 = AsgardpyAnalysis(mm.config)
+        print(mm_2.config.target)
         # Have the same value of amplitude
         mm_2.config.target.components[0].spectral.parameters[0].value = (
             mm.config.target.components[0].spectral.parameters[0].value
@@ -129,25 +131,31 @@ def main():
         mm_2.config.target.components[0].spectral.parameters[1].value = (
             mm.config.target.components[0].spectral.parameters[1].value
         )
+        # Have the same value of redshift value
+        mm_2.config.target.components[0].spectral.ebl_abs.redshift = (
+            mm.config.target.components[0].spectral.ebl_abs.redshift
+        )
+
         # Make sure the source names are the same
         mm_2.config.target.source_name = mm.config.target.source_name
         mm_2.config.target.components[0].name = mm.config.target.components[0].name
 
-        spec_tag = SPECTRAL_MODEL_REGISTRY.get_cls(
-            mm_2.config.target.components[0].spectral.type
-        ).tag[1]
+        spec_tag = temp.name.split(".")[0].split("_")[-1]
         spec_models_list.append(spec_tag)
         main_analysis_list[spec_tag] = {}
+        log.info(mm_2.config.target.components[0])
         main_analysis_list[spec_tag]["Analysis"] = mm_2
 
     spec_models_list = np.array(spec_models_list)
 
     # Run Analysis Steps till Fit
     for i, tag in enumerate(spec_models_list):
+        log.info(f"Spectral model being tested: {tag}")
         main_analysis_list[tag]["Analysis"].run(["datasets-3d", "datasets-1d", "fit"])
         if tag == "pl":
             PL_idx = i
 
+    fit_success_list = []
     pref_over_pl_chi2_list = []
     wstat_list = []
     dof_list = []
@@ -156,9 +164,12 @@ def main():
         # Collect parameters for AIC check
         wstat = main_analysis_list[tag]["Analysis"].fit_result.total_stat
         dof = len(list(main_analysis_list[tag]["Analysis"].final_model.parameters.free_parameters))
+        fit_success = main_analysis_list[tag]["Analysis"].fit_result.success
+
         main_analysis_list[tag]["DoF"] = dof
         main_analysis_list[tag]["Wstat"] = wstat
 
+        fit_success_list.append(fit_success)
         wstat_list.append(wstat)
         dof_list.append(dof)
 
@@ -168,6 +179,7 @@ def main():
             main_analysis_list[tag]["Pref_over_pl_chi2"] = 0
             main_analysis_list[tag]["Pref_over_pl_pval"] = 0
             main_analysis_list[tag]["DoF_over_pl"] = 0
+            pref_over_pl_chi2_list.append(0)
             continue
 
         p_pl_x, g_pl_x, g_pl, g_x, ndof_pl_x = check_model_preference(
@@ -188,37 +200,43 @@ def main():
         main_analysis_list[tag]["DoF_over_pl"] = ndof_pl_x
     log.info(f"Chi2 of PL model: {g_pl}/{main_analysis_list['pl']['DoF']}")
 
-    wstat_list = np.array(wstat_list)
-    dof_list = np.array(dof_list)
-    pref_over_pl_chi2_list = np.array(pref_over_pl_chi2_list)
+    fit_success_list = np.array(fit_success_list)
+
+    # Only select fit results that were successful for comparisons
+    wstat_list = np.array(wstat_list)[fit_success_list]
+    dof_list = np.array(dof_list)[fit_success_list]
+    pref_over_pl_chi2_list = np.array(pref_over_pl_chi2_list)[fit_success_list]
 
     # If any spectral model has at least 5 sigmas preference over PL
-    if pref_over_pl_chi2_list.any() > 5:
-        best_sp_idx_lrt = np.where(pref_over_pl_chi2_list == np.nanmax(pref_over_pl_chi2_list))
-        log.info("Best preferred spectral model over PL " f"is {spec_models_list[best_sp_idx_lrt]}")
-    else:
-        best_sp_idx_lrt = PL_idx
-        log.info("No other model preferred over PL")
+    best_sp_idx_lrt = np.nonzero(pref_over_pl_chi2_list == np.nanmax(pref_over_pl_chi2_list))[0]
+    for idx in best_sp_idx_lrt:
+        if pref_over_pl_chi2_list[idx] > 5:
+            sp_idx_lrt = idx
+            log.info("Best preferred spectral model over PL " f"is {spec_models_list[idx]}")
+        else:
+            sp_idx_lrt = PL_idx
+            log.info("No other model preferred over PL")
 
     list_rel_p = check_model_preference_aic(wstat_list, dof_list)
 
-    for i, tag in enumerate(spec_models_list):
+    for i, tag in enumerate(spec_models_list[fit_success_list]):
         log.info(f"Relative likelihood for {tag} is {list_rel_p[i]}")
 
-        if list_rel_p[i] > 0.95:
-            if list_rel_p[i] == np.nanmax(list_rel_p):
-                best_sp_idx_aic = i
+        best_sp_idx_aic = np.nonzero(list_rel_p == np.nanmax(list_rel_p))[0]
+        for idx in best_sp_idx_aic:
+            if list_rel_p[idx] > 0.95:
+                sp_idx_aic = idx
                 log.info(f"Best preferred spectral model is {tag}")
-        else:
-            best_sp_idx_aic = PL_idx
-            log.info("No other model preferred, hence PL is selected")
+            else:
+                sp_idx_aic = PL_idx
+                log.info("No other model preferred, hence PL is selected")
 
     if args.write_best_config:
         log.info("Write the spectral model")
 
-        for idx, name in zip([best_sp_idx_lrt, best_sp_idx_aic], ["lrt", "aic"]):
-            tag = spec_models_list[idx]
-            config_ = main_analysis_list[tag].config
+        for idx, name in zip([sp_idx_lrt, sp_idx_aic], ["lrt", "aic"]):
+            tag = spec_models_list[fit_success_list][idx]
+            config_ = main_analysis_list[tag]["Analysis"].config
             spec_model = config_.target.components[0].spectral
 
             path = Path(args.config).parent / f"model_most_pref_{name}.yaml"
