@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Combine the various Sky Position configs into a single SkyPositionConfig by [@chaimain](https://github.com/chaimain).
+
 ## [v0.3.3](https://github.com/chaimain/asgardpy/releases/tag/v0.3.3) - 2023-06-20
+
+### Added
 
 - Fix sphinx documentation build issue by [@chaimain](https://github.com/chaimain).
 - Retry to fix sphinx documentation build issue by [@chaimain](https://github.com/chaimain).

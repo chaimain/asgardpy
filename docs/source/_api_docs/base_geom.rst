@@ -2,7 +2,6 @@ asgardpy.base.geom module
 =========================
 
 .. automodule:: asgardpy.base.geom
-   :members: GeomConfig, WcsConfig, SkyCoordConfig, MapAxesConfig, EnergyAxisConfig, SpatialPointConfig, SpatialCircleConfig
+   :members: GeomConfig, WcsConfig, SkyPositionConfig, MapAxesConfig, EnergyAxisConfig
    :undoc-members:
    :show-inheritance:
-

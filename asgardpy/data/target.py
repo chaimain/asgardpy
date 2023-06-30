@@ -21,7 +21,7 @@ from gammapy.modeling.models import (
     create_fermi_isotropic_diffuse_model,
 )
 
-from asgardpy.base import AngleType, BaseConfig, PathType, SkyCoordConfig
+from asgardpy.base import AngleType, BaseConfig, PathType, SkyPositionConfig
 
 __all__ = [
     "BrokenPowerLaw2SpectralModel",
@@ -89,7 +89,7 @@ class RoISelectionConfig(BaseConfig):
 
 class Target(BaseConfig):
     source_name: str = ""
-    sky_position: SkyCoordConfig = SkyCoordConfig()
+    sky_position: SkyPositionConfig = SkyPositionConfig()
     use_uniform_position: bool = True
     models_file: PathType = PathType(".")
     extended: bool = False
