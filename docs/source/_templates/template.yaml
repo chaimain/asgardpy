@@ -9,7 +9,7 @@ general:
     format: "%(asctime)s - %(message)s"
     datefmt: "%d-%b-%y %H:%M:%S"
   outdir: .
-  n_jobs: 1
+  n_jobs: 10
   steps: [datasets-3d, datasets-1d, fit, flux-points]
   overwrite: true
   stacked_dataset: true
@@ -17,10 +17,10 @@ general:
 # Target settings
 target:
   source_name: PG1553+113
-  sky_position: &source_pos {frame: icrs, lon: 238.92934976 deg, lat: 11.19010155 deg}
+  sky_position: &source_pos {frame: icrs, lon: 238.92934976 deg, lat: 11.19010155 deg, radius: 0 deg}
   use_uniform_position: true
   extended: false
-  models_file: "template_model.yaml"
+  #models_file: "template_model.yaml"
   components:
   -   name: PG1553+113
       type: SkyModel
@@ -218,3 +218,5 @@ fit_params:
 flux_points_params:
   parameters:
     selection_optional: "all"
+  parallel_backend: "multiprocessing"
+  reoptimize: false
