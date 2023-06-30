@@ -16,10 +16,13 @@ from asgardpy.data import (
     Target,
 )
 
-__all__ = ["AsgardpyConfig", "recursive_merge_dicts"]
+__all__ = [
+    "AsgardpyConfig",
+    "get_model_template",
+    "recursive_merge_dicts",
+]
 
-CONFIG_PATH = Path(__file__).resolve().parent / "config"
-DOCS_FILE = CONFIG_PATH / "docs.yaml"
+CONFIG_PATH = Path(__file__).resolve().parent
 
 log = logging.getLogger(__name__)
 
@@ -40,6 +43,18 @@ class GeneralConfig(BaseConfig):
     steps: List[AnalysisStepEnum] = []
     overwrite: bool = True
     stacked_dataset: bool = False
+
+
+def get_model_template(spec_model_tag):
+    """
+    Read a particular template model yaml file into AsgardpyConfig object.
+    """
+    template_files = sorted(list(CONFIG_PATH.glob("model_template*yaml")))
+    new_model_file = None
+    for file in template_files:
+        if spec_model_tag == file.name.split("_")[-1].split(".")[0]:
+            new_model_file = file
+    return new_model_file
 
 
 def recursive_merge_dicts(a, b):
