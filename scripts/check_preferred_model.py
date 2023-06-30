@@ -169,13 +169,20 @@ def main():
 
         for idx, name in zip([sp_idx_lrt, sp_idx_aic], ["lrt", "aic"]):
             tag = spec_models_list[fit_success_list][idx]
-            config_ = main_analysis_list[tag]["Analysis"].config
-            spec_model = config_.target.components[0].spectral
+            model_ = main_analysis_list[tag]["Analysis"].final_model[0]
+            spec_model = model_.spectral_model.model1.to_dict()
 
             path = Path(args.config).parent / f"model_most_pref_{name}.yaml"
+            # Create a temp config file
             temp_config = AsgardpyConfig()
-            temp_config.target.components[0].spectral = spec_model
+            temp_config.target.components[0] = spec_model
+            # Update with the spectral model info
             temp_ = temp_config.dict(exclude_defaults=True)
+
+            # Remove some of the unnecessary keys
+            temp_["target"].pop("models_file", None)
+            temp_["target"]["components"][0]["spectral"].pop("ebl_abs", None)
+
             yaml_ = yaml.dump(
                 temp_,
                 sort_keys=False,
