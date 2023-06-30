@@ -23,7 +23,7 @@ parser.add_argument(
 # fetch options of spec models to test from user, or use all available...
 
 parser.add_argument(
-    "--write-best-config",
+    "--write-config",
     help="Boolean to write the best-fit model into a separate file.",
     default=True,
     type=bool,
@@ -164,7 +164,7 @@ def main():
                 sp_idx_aic = PL_idx
                 log.info("No other model preferred, hence PL is selected")
 
-    if args.write_best_config:
+    if args.write_config:
         log.info("Write the spectral model")
 
         for idx, name in zip([sp_idx_lrt, sp_idx_aic], ["lrt", "aic"]):
