@@ -17,10 +17,10 @@ general:
 # Target settings
 target:
   source_name: PG1553+113
-  sky_position: &source_pos {frame: icrs, lon: 238.92934976 deg, lat: 11.19010155 deg}
+  sky_position: &source_pos {frame: icrs, lon: 238.92934976 deg, lat: 11.19010155 deg, radius: 0 deg}
   use_uniform_position: true
   extended: false
-  models_file: "template_model.yaml"
+  #models_file: "template_model.yaml"
   components:
   -   name: PG1553+113
       type: SkyModel
