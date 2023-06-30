@@ -36,7 +36,7 @@ from asgardpy.base import (
     MapSelectionEnum,
     ReductionTypeEnum,
     SafeMaskConfig,
-    SpatialCircleConfig,
+    SkyPositionConfig,
     get_energy_axis,
 )
 from asgardpy.data.target import (
@@ -66,7 +66,7 @@ class Dataset3DInfoConfig(BaseConfig):
     geom: GeomConfig = GeomConfig()
     background: BackgroundConfig = BackgroundConfig()
     safe_mask: SafeMaskConfig = SafeMaskConfig()
-    on_region: SpatialCircleConfig = SpatialCircleConfig()
+    on_region: SkyPositionConfig = SkyPositionConfig()
     containment_correction: bool = True
     spectral_energy_range: MapAxesConfig = MapAxesConfig()
 

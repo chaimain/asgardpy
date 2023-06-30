@@ -34,7 +34,7 @@ from asgardpy.base import (
     ObservationsConfig,
     ReductionTypeEnum,
     SafeMaskConfig,
-    SpatialPointConfig,
+    SkyPositionConfig,
     get_energy_axis,
 )
 from asgardpy.io import DL3Files, InputConfig
@@ -57,7 +57,7 @@ class Dataset1DInfoConfig(BaseConfig):
     observation: ObservationsConfig = ObservationsConfig()
     background: BackgroundConfig = BackgroundConfig()
     safe_mask: SafeMaskConfig = SafeMaskConfig()
-    on_region: SpatialPointConfig = SpatialPointConfig()
+    on_region: SkyPositionConfig = SkyPositionConfig()
     containment_correction: bool = True
     map_selection: List[MapSelectionEnum] = []
     spectral_energy_range: MapAxesConfig = MapAxesConfig()
@@ -245,7 +245,7 @@ class Dataset1DGeneration:
 
         # Defining the ON region's geometry
         given_on_geom = self.config_1d_dataset_info.on_region
-        if ~hasattr(given_on_geom, "radius"):
+        if given_on_geom.radius == 0 * u.deg:
             on_region = PointSkyRegion(src_pos)
             # Hack to allow for the joint fit
             # (otherwise pointskyregion.contains returns None)
