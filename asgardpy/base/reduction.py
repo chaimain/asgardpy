@@ -12,7 +12,7 @@ from asgardpy.base import (
     AngleType,
     BaseConfig,
     PathType,
-    SkyCoordConfig,
+    SkyPositionConfig,
     TimeIntervalsConfig,
 )
 
@@ -83,7 +83,7 @@ class WobbleRegionsFinderConfig(BaseConfig):
 class RegionsConfig(BaseConfig):
     type: str = ""
     name: str = ""
-    position: SkyCoordConfig = SkyCoordConfig()
+    position: SkyPositionConfig = SkyPositionConfig()
     parameters: dict = {}
 
 

@@ -18,28 +18,13 @@ __all__ = [
     "MapFrameShapeConfig",
     "ProjectionEnum",
     "SelectionConfig",
-    "SkyCoordConfig",
-    "SpatialCircleConfig",
-    "SpatialPointConfig",
+    "SkyPositionConfig",
     "WcsConfig",
     "get_energy_axis",
 ]
 
 
 # Basic Components to define the main GeomConfig
-class SpatialCircleConfig(BaseConfig):
-    frame: FrameEnum = FrameEnum.icrs
-    lon: AngleType = 0 * u.deg
-    lat: AngleType = 0 * u.deg
-    radius: AngleType = 0.1 * u.rad
-
-
-class SpatialPointConfig(BaseConfig):
-    frame: FrameEnum = FrameEnum.icrs
-    lon: AngleType = 0 * u.deg
-    lat: AngleType = 0 * u.deg
-
-
 class EnergyAxisConfig(BaseConfig):
     min: EnergyType = 1 * u.GeV
     max: EnergyType = 1 * u.TeV
@@ -67,10 +52,11 @@ class MapFrameShapeConfig(BaseConfig):
     height: AngleType = 5 * u.deg
 
 
-class SkyCoordConfig(BaseConfig):
+class SkyPositionConfig(BaseConfig):
     frame: FrameEnum = FrameEnum.icrs
     lon: AngleType = 0 * u.deg
     lat: AngleType = 0 * u.deg
+    radius: AngleType = 0 * u.deg
 
 
 class ProjectionEnum(str, Enum):
@@ -79,7 +65,7 @@ class ProjectionEnum(str, Enum):
 
 
 class WcsConfig(BaseConfig):
-    skydir: SkyCoordConfig = SkyCoordConfig()
+    skydir: SkyPositionConfig = SkyPositionConfig()
     binsize: AngleType = 0.1 * u.deg
     proj: ProjectionEnum = ProjectionEnum.tan
     map_frame_shape: MapFrameShapeConfig = MapFrameShapeConfig()
