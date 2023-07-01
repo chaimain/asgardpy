@@ -61,6 +61,12 @@ They each build their Config components using classes defined with,
 
 The processing of Dataset creation is performed by :class:`asgardpy.data.dataset_3d.Dataset3DGeneration` and :class:`asgardpy.data.dataset_1d.Dataset1DGeneration`
 
+For the DL3 files with energy-dependent directional (RAD_MAX) cuts, the ON region is defined by a `PointSkyRegion` whereas for files with global cuts, the ON region is defined by a `CircleSkyRegion`.
+The usage of either of these can be generalized by providing the source sky position with a value of radius as 0 deg (by default) or a non-zero angular radius, respectively.
+
+Following `Gammapy v1.1 <https://docs.gammapy.org/1.1/>`_ we have the usage of parallel processing for DL4 Dataset creation, Flux Points Estimation and also Light Curve Estimation.
+For the first two processes, here we have the parameters of `n_jobs` and `parallel_backend` defined in `asgardpy.config.generator.GeneralConfig` as can be seen in :class:`asgardpy.config.AsgardpyConfig`.
+
 Models
 ------
 
