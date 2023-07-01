@@ -1,6 +1,6 @@
-from enum import Enum
 import json
 import logging
+from enum import Enum
 from pathlib import Path
 from typing import List
 

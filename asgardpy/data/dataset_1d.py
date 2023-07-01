@@ -97,9 +97,7 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
             config_1d_dataset = instruments_list[i]
             instrument_spectral_info["name"].append(config_1d_dataset.name)
 
-            generate_1d_dataset = Dataset1DGeneration(
-                self.log, config_1d_dataset, self.config
-            )
+            generate_1d_dataset = Dataset1DGeneration(self.log, config_1d_dataset, self.config)
             dataset = generate_1d_dataset.run()
 
             # Get the spectral energy information for each Instrument Dataset
@@ -386,15 +384,12 @@ class Dataset1DGeneration:
             n_jobs=self.n_jobs,
             parallel_backend=self.parallel_backend,
         )
-        self.datasets = datasets_maker.run(
-            dataset_template,
-            observations
-        )
+        self.datasets = datasets_maker.run(dataset_template, observations)
 
         safe_cfg = self.config_1d_dataset_info.safe_mask
         pars = safe_cfg.parameters
 
-        for (data, obs) in zip(self.datasets, observations):
+        for data, obs in zip(self.datasets, observations):
             # Rename the datasets using the appropriate Obs ID
             data._name = obs.obs_id
 
