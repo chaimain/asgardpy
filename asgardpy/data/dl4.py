@@ -25,11 +25,6 @@ class BackendEnum(str, Enum):
     scipy = "scipy"
 
 
-class ParallelBackendEnum(str, Enum):
-    multi = "multiprocessing"
-    ray = "ray"
-
-
 class FitConfig(BaseConfig):
     fit_range: EnergyRangeConfig = EnergyRangeConfig()
     backend: BackendEnum = BackendEnum.minuit
@@ -41,7 +36,6 @@ class FitConfig(BaseConfig):
 
 class FluxPointsConfig(BaseConfig):
     parameters: dict = {"selection_optional": "all"}
-    parallel_backend: ParallelBackendEnum = ParallelBackendEnum.multi
     reoptimize: bool = False
 
 
@@ -124,7 +118,7 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
             energy_edges=energy_bin_edges,
             source=self.config.target.source_name,
             n_jobs=self.config.general.n_jobs,
-            parallel_backend=self.config.flux_points_params.parallel_backend,
+            parallel_backend=self.config.general.parallel_backend,
             reoptimize=self.config.flux_points_params.reoptimize,
             **fpe_settings
         )
