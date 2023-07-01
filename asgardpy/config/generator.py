@@ -1,3 +1,4 @@
+from enum import Enum
 import json
 import logging
 from pathlib import Path
@@ -36,10 +37,16 @@ class LogConfig(BaseConfig):
     datefmt: str = ""
 
 
+class ParallelBackendEnum(str, Enum):
+    multi = "multiprocessing"
+    ray = "ray"
+
+
 class GeneralConfig(BaseConfig):
     log: LogConfig = LogConfig()
     outdir: PathType = PathType(".")
     n_jobs: int = 1
+    parallel_backend: ParallelBackendEnum = ParallelBackendEnum.multi
     steps: List[AnalysisStepEnum] = []
     overwrite: bool = True
     stacked_dataset: bool = False

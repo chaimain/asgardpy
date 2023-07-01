@@ -15,6 +15,7 @@ from astropy.time import Time
 from gammapy.data import DataStore
 from gammapy.datasets import Datasets, SpectrumDataset
 from gammapy.makers import (
+    DatasetsMaker,
     ReflectedRegionsBackgroundMaker,
     ReflectedRegionsFinder,
     SafeMaskMaker,
@@ -97,7 +98,7 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
             instrument_spectral_info["name"].append(config_1d_dataset.name)
 
             generate_1d_dataset = Dataset1DGeneration(
-                self.log, config_1d_dataset, self.config.target
+                self.log, config_1d_dataset, self.config
             )
             dataset = generate_1d_dataset.run()
 
@@ -144,11 +145,13 @@ class Dataset1DGeneration:
     5. Generate the final dataset.
     """
 
-    def __init__(self, log, config_1d_dataset, config_target):
+    def __init__(self, log, config_1d_dataset, config_full):
         self.config_1d_dataset_io = config_1d_dataset.io
         self.log = log
         self.config_1d_dataset_info = config_1d_dataset.dataset_info
-        self.config_target = config_target
+        self.config_target = config_full.target
+        self.n_jobs = config_full.general.n_jobs
+        self.multi = config_full.general.parallel_backend
         self.exclusion_regions = []
         self.datasets = Datasets()
 
@@ -369,22 +372,35 @@ class Dataset1DGeneration:
     ):
         """
         From the given Observations, Dataset Template and various Makers,
-        produce the DatasetOnOff object and append it to the Datasets object.
+        use the multiprocessing method with DatasetsMaker and update the
+        datasets accordingly.
         """
-        for obs in observations:
-            dataset = dataset_maker.run(dataset_template.copy(name=str(obs.obs_id)), obs)
+        if safe_maker:
+            makers = [dataset_maker, safe_maker, bkg_maker]
+        else:
+            makers = [dataset_maker, bkg_maker]
 
-            dataset_on_off = bkg_maker.run(dataset, obs)
+        datasets_maker = DatasetsMaker(
+            makers,
+            stack_datasets=False,
+            n_jobs=self.n_jobs,
+            parallel_backend=self.parallel_backend,
+        )
+        self.datasets = datasets_maker.run(
+            dataset_template,
+            observations
+        )
 
-            safe_cfg = self.config_1d_dataset_info.safe_mask
-            if "custom-mask" in safe_cfg.methods:
-                pars = safe_cfg.parameters
-                dataset_on_off.mask_safe = dataset_on_off.counts.geom.energy_mask(
-                    energy_min=u.Quantity(pars["min"]), energy_max=u.Quantity(pars["max"])
+        safe_cfg = self.config_1d_dataset_info.safe_mask
+        pars = safe_cfg.parameters
+
+        for (data, obs) in zip(self.datasets, observations):
+            # Rename the datasets using the appropriate Obs ID
+            data._name = obs.obs_id
+
+            # Use custom safe energy mask
+            if safe_maker is None:
+                data.mask_safe = data.counts.geom.energy_mask(
+                    energy_min=u.Quantity(pars["min"]),
+                    energy_max=u.Quantity(pars["max"]),
                 )
-            elif len(safe_cfg.methods) != 0:
-                dataset_on_off = safe_maker.run(dataset_on_off, obs)
-            else:
-                self.log.info(f"No safe mask applied for {obs.obs_id}")
-
-            self.datasets.append(dataset_on_off)

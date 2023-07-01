@@ -10,6 +10,7 @@ general:
     datefmt: "%d-%b-%y %H:%M:%S"
   outdir: .
   n_jobs: 10
+  parallel_backend: multiprocessing
   steps: [datasets-3d, datasets-1d, fit, flux-points]
   overwrite: true
   stacked_dataset: true
@@ -218,5 +219,4 @@ fit_params:
 flux_points_params:
   parameters:
     selection_optional: "all"
-  parallel_backend: "multiprocessing"
   reoptimize: false
