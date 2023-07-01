@@ -149,7 +149,7 @@ class Dataset1DGeneration:
         self.config_1d_dataset_info = config_1d_dataset.dataset_info
         self.config_target = config_full.target
         self.n_jobs = config_full.general.n_jobs
-        self.multi = config_full.general.parallel_backend
+        self.parallel_backend = config_full.general.parallel_backend
         self.exclusion_regions = []
         self.datasets = Datasets()
 
