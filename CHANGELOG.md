@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.3.4](https://github.com/chaimain/asgardpy/releases/tag/v0.3.4) - 2023-07-02
+
 ### Added
 
 - Combine the various Sky Position configs into a single SkyPositionConfig by [@chaimain](https://github.com/chaimain).
