@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add script to get most preferred spectral model fit by [@chaimain](https://github.com/chaimain).
 - Update documentation for the extended support by [@chaimain](https://github.com/chaimain).
 - Update with usage of common multiprocessing with Gammapy by [@chaimain](https://github.com/chaimain).
+- Constrain pydantic and autodoc-pydantic versions by [@chaimain](https://github.com/chaimain).
 
 ## [v0.3.3](https://github.com/chaimain/asgardpy/releases/tag/v0.3.3) - 2023-06-20
 
