@@ -39,6 +39,7 @@ __all__ = [
     "generate_dl4_dataset",
     "get_bkg_maker",
     "get_dataset_template",
+    "get_exclusion_region_mask",
     "get_filtered_observations",
     "get_safe_mask_maker",
     "MapSelectionEnum",
@@ -240,15 +241,15 @@ def get_safe_mask_maker(safe_config):
     return safe_maker
 
 
-def get_bkg_maker(bkg_config, geom_config, exclusion_regions, config_target, log):
-    """
-    Generate Background reduction maker by including an Exclusion mask
-    with any exclusion regions' information on a Map geometry using the
-    information provided in the config.
-    """
-    exclusion_params = bkg_config.exclusion
-
-    # Exclusion mask
+def get_exclusion_region_mask(
+    exclusion_params,
+    excluded_geom,
+    exclusion_regions,
+    config_target,
+    geom_config,
+    log,
+):
+    """ """
     if len(exclusion_params.regions) != 0:
         for region in exclusion_params.regions:
             if region.name == "":
@@ -278,20 +279,28 @@ def get_bkg_maker(bkg_config, geom_config, exclusion_regions, config_target, log
             u.Quantity(config_target.sky_position.lat),
             frame=config_target.sky_position.frame,
         )
-        exclusion_regions = []
 
-    excluded_geom = generate_geom(
-        tag="excluded",
-        geom_config=geom_config,
-        center_pos={"center": center_ex},
-    )
+    if excluded_geom is None:
+        excluded_geom = generate_geom(
+            tag="excluded",
+            geom_config=geom_config,
+            center_pos={"center": center_ex},
+        )
 
     if len(exclusion_regions) > 0:
         exclusion_mask = ~excluded_geom.region_mask(exclusion_regions)
     else:
         exclusion_mask = None
 
-    # Background reduction maker. Need to generalize further.
+    return exclusion_mask
+
+
+def get_bkg_maker(bkg_config, exclusion_mask, log):
+    """
+    Generate Background reduction maker by including an Exclusion mask
+    with any exclusion regions' information on a Map geometry using the
+    information provided in the config.
+    """
     if bkg_config.method == "reflected":
         if bkg_config.region_finder_method == "wobble":
             region_finder = WobbleRegionsFinder(**bkg_config.parameters)

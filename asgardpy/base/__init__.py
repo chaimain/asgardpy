@@ -42,6 +42,7 @@ from asgardpy.base.reduction import (
     generate_dl4_dataset,
     get_bkg_maker,
     get_dataset_template,
+    get_exclusion_region_mask,
     get_filtered_observations,
     get_safe_mask_maker,
 )
@@ -63,6 +64,7 @@ __all__ = [
     "generate_dl4_dataset",
     "get_bkg_maker",
     "get_dataset_template",
+    "get_exclusion_region_mask",
     "get_filtered_observations",
     "get_safe_mask_maker",
     "GeomConfig",

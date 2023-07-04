@@ -31,6 +31,7 @@ from asgardpy.base.reduction import (
     generate_dl4_dataset,
     get_bkg_maker,
     get_dataset_template,
+    get_exclusion_region_mask,
     get_filtered_observations,
     get_safe_mask_maker,
 )
@@ -181,11 +182,18 @@ class Dataset1DGeneration:
             containment_correction=self.config_1d_dataset_info.containment_correction,
             selection=self.config_1d_dataset_info.map_selection,
         )
+        exclusion_mask = get_exclusion_region_mask(
+            exclusion_params=self.config_1d_dataset_info.background.exclusion,
+            exclusion_regions=self.exclusion_regions,
+            excluded_geom=None,
+            config_target=self.config_target,
+            geom_config=self.config_1d_dataset_info.geom,
+            log=self.log,
+        )
         bkg_maker = get_bkg_maker(
             bkg_config=self.config_1d_dataset_info.background,
             geom_config=self.config_1d_dataset_info.geom,
-            exclusion_regions=self.exclusion_regions,
-            config_target=self.config_target,
+            exclusion_mask=exclusion_mask,
             log=self.log,
         )
         safe_maker = get_safe_mask_maker(safe_config=self.config_1d_dataset_info.safe_mask)

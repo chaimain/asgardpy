@@ -9,7 +9,6 @@ from typing import List
 import numpy as np
 import xmltodict
 from astropy import units as u
-from astropy.coordinates import SkyCoord
 from astropy.io import fits
 
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
@@ -24,7 +23,6 @@ from gammapy.modeling.models import (
     SkyModel,
     TemplateSpatialModel,
 )
-from regions import CircleAnnulusSkyRegion, CircleSkyRegion
 
 from asgardpy.base import (
     AnalysisStepBase,
@@ -44,6 +42,7 @@ from asgardpy.base.reduction import (
     generate_dl4_dataset,
     get_bkg_maker,
     get_dataset_template,
+    get_exclusion_region_mask,
     get_filtered_observations,
     get_safe_mask_maker,
 )
@@ -241,11 +240,19 @@ class Dataset3DGeneration:
             safe_maker = get_safe_mask_maker(
                 safe_config=self.config_3d_dataset.dataset_info.safe_mask
             )
+            exclusion_mask = get_exclusion_region_mask(
+                exclusion_params=self.config_3d_dataset.dataset_info.background.exclusion,
+                exclusion_regions=exclusion_regions,
+                excluded_geom=None,
+                config_target=self.config_target,
+                geom_config=self.config_3d_dataset.dataset_info.geom,
+                log=self.log,
+            )
+
             bkg_maker = get_bkg_maker(
                 bkg_config=self.config_3d_dataset.dataset_info.background,
                 geom_config=self.config_3d_dataset.dataset_info.geom,
-                exclusion_regions=exclusion_regions,
-                config_target=self.config_target,
+                exclusion_mask=exclusion_mask,
                 log=self.log,
             )
             dataset = generate_dl4_dataset(
@@ -286,7 +293,14 @@ class Dataset3DGeneration:
             self.set_edisp_interpolator()
             self.set_exposure_interpolator()
 
-            self.create_exclusion_mask(exclusion_regions=exclusion_regions)
+            self.exclusion_mask = get_exclusion_region_mask(
+                exclusion_params=self.config_3d_dataset.dataset_info.background.exclusion,
+                excluded_geom=self.events["counts_map"].geom.copy(),
+                exclusion_regions=exclusion_regions,
+                config_target=self.config_target,
+                geom_config=self.config_3d_dataset.dataset_info.geom,
+                log=self.log,
+            )
 
             # Apply the same exclusion mask to the list of source models as applied
             # to the Counts Map
@@ -544,76 +558,6 @@ class Dataset3DGeneration:
         self.irfs["exposure_interp"] = self.irfs["exposure"].interp_to_geom(
             self.events["counts_map"].geom.as_energy_true
         )
-
-    def create_exclusion_mask(self, exclusion_regions):
-        """
-        Generate an Exclusion Mask for the final MapDataset and also select
-        the region for the list of Models using the excluded regions.
-        """
-        excluded_geom = self.events["counts_map"].geom.copy()
-        exclusion_params = self.config_3d_dataset.dataset_info.background.exclusion
-
-        if len(exclusion_params.regions) != 0:
-            for region in exclusion_params.regions:
-                if region.name == "None":
-                    coord = region.position
-                    center_ex = SkyCoord(
-                        u.Quantity(coord.lon), u.Quantity(coord.lat), frame=coord.frame
-                    ).icrs
-                else:
-                    center_ex = SkyCoord.from_name(region.name)
-
-                if region.type == "CircleAnnulusSkyRegion":
-                    excluded_region = CircleAnnulusSkyRegion(
-                        center=center_ex,
-                        inner_radius=u.Quantity(region.parameters["rad_0"]),
-                        outer_radius=u.Quantity(region.parameters["rad_1"]),
-                    )
-                elif region.type == "CircleSkyRegion":
-                    excluded_region = CircleSkyRegion(
-                        center=center_ex, radius=u.Quantity(region.parameters["region_radius"])
-                    )
-                else:
-                    self.log.error(f"Unknown type of region passed {region.type}")
-                exclusion_regions.append(excluded_region)
-            self.exclusion_mask = ~excluded_geom.region_mask(exclusion_regions)
-
-        elif len(exclusion_regions) == 0:
-            self.log.info("Creating empty/dummy exclusion region")
-            pos = SkyCoord(0, 90, unit="deg")
-            exclusion_region = CircleSkyRegion(pos, 0.00001 * u.deg)
-
-            exclusion_regions.append(exclusion_region)
-            self.exclusion_mask = ~excluded_geom.region_mask(exclusion_regions)
-        else:
-            self.log.info("Creating exclusion region")
-            self.exclusion_mask = ~excluded_geom.region_mask(exclusion_regions)
-
-    def add_source_to_exclusion_region(
-        self, exclusion_regions, source_pos=None, radius=0.1 * u.deg
-    ):
-        """
-        Add to an existing exclusion_regions list, the source region.
-
-        Check if this function is necessary.
-        """
-        if source_pos is not None:
-            exclusion_region = CircleSkyRegion(
-                center=source_pos.galactic,
-                radius=radius,
-            )
-        else:
-            sky_pos = self.config_target.sky_position
-            source_pos = SkyCoord(
-                u.Quantity(sky_pos.lon), u.Quantity(sky_pos.lat), frame=sky_pos.frame
-            )
-            exclusion_region = CircleSkyRegion(
-                center=source_pos.galactic,
-                radius=radius,
-            )
-        exclusion_regions.append(exclusion_region)
-
-        return exclusion_regions
 
     def generate_dataset(self, key_name):
         """
