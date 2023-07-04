@@ -3,6 +3,7 @@ def test_asgardpyconfig():
 
     assert AsgardpyConfig()
 
+
 def test_asgardpyanalysis():
     from asgardpy.analysis import AsgardpyAnalysis
 
