@@ -13,8 +13,10 @@ from gammapy.data import DataStore
 from gammapy.datasets import MapDataset, SpectrumDataset
 from gammapy.makers import (
     DatasetsMaker,
+    FoVBackgroundMaker,
     ReflectedRegionsBackgroundMaker,
     ReflectedRegionsFinder,
+    RingBackgroundMaker,
     SafeMaskMaker,
     WobbleRegionsFinder,
 )
@@ -299,6 +301,10 @@ def get_bkg_maker(bkg_config, geom_config, exclusion_regions, config_target, log
         bkg_maker = ReflectedRegionsBackgroundMaker(
             region_finder=region_finder, exclusion_mask=exclusion_mask
         )
+    elif bkg_config.method == "fov_background":
+        bkg_maker = FoVBackgroundMaker(**bkg_config.parameters)
+    elif bkg_config.method == "ring":
+        bkg_maker = RingBackgroundMaker(**bkg_config.parameters)
     else:
         bkg_maker = None
 
