@@ -26,8 +26,8 @@ from asgardpy.base import (
     SkyPositionConfig,
     get_energy_axis,
 )
-from asgardpy.data.geom import generate_geom, get_source_position
-from asgardpy.data.reduction import (
+from asgardpy.base.geom import generate_geom, get_source_position
+from asgardpy.base.reduction import (
     generate_dl4_dataset,
     get_bkg_maker,
     get_dataset_template,
@@ -170,10 +170,14 @@ class Dataset1DGeneration:
 
         # Create the main counts geometry
         geom = generate_geom(
-            tag="1d", geom_config=self.config_1d_dataset_info.geom, center_pos=center_pos
+            tag="1d",
+            geom_config=self.config_1d_dataset_info.geom,
+            center_pos=center_pos
         )
         dataset_template = get_dataset_template(
-            tag="1d", geom=geom, geom_config=self.config_1d_dataset_info.geom
+            tag="1d",
+            geom=geom,
+            geom_config=self.config_1d_dataset_info.geom
         )
 
         # Get all the Dataset reduction makers
@@ -186,9 +190,11 @@ class Dataset1DGeneration:
             geom_config=self.config_1d_dataset_info.geom,
             exclusion_regions=self.exclusion_regions,
             config_target=self.config_target,
-            log=self.log,
+            log=self.log
         )
-        safe_maker = get_safe_mask_maker(safe_config=self.config_1d_dataset_info.safe_mask)
+        safe_maker = get_safe_mask_maker(
+            safe_config=self.config_1d_dataset_info.safe_mask
+        )
 
         # Produce the final Dataset
         self.datasets = generate_dl4_dataset(
@@ -206,7 +212,8 @@ class Dataset1DGeneration:
         return self.datasets
 
     def update_dataset(self, observations, safe_maker):
-        """ """
+        """
+        """
         safe_cfg = self.config_1d_dataset_info.safe_mask
         pars = safe_cfg.parameters
 

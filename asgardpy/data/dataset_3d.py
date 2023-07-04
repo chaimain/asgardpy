@@ -39,8 +39,8 @@ from asgardpy.base import (
     SkyPositionConfig,
     get_energy_axis,
 )
-from asgardpy.data.geom import create_counts_map, generate_geom, get_source_position
-from asgardpy.data.reduction import (
+from asgardpy.base.geom import create_counts_map, generate_geom, get_source_position
+from asgardpy.base.reduction import (
     generate_dl4_dataset,
     get_bkg_maker,
     get_dataset_template,
