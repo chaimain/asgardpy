@@ -89,7 +89,11 @@ dataset3d:
       dataset_info:
         name: Fermi-LAT
         key: ["FRONT", "BACK"]
-        # map_selection: []
+        # observation:
+          # obs_ids: []
+          # obs_time:
+          # obs_cone:
+        # map_selection: [counts, exposure, background, psf, edisp]
         geom:
           from_events_file: True
           wcs:

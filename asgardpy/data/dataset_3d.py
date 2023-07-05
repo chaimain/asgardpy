@@ -41,7 +41,8 @@ from asgardpy.base.geom import create_counts_map, generate_geom, get_source_posi
 from asgardpy.base.reduction import (
     generate_dl4_dataset,
     get_bkg_maker,
-    get_dataset_template,
+    get_dataset_maker,
+    get_dataset_reference,
     get_exclusion_region_mask,
     get_filtered_observations,
     get_safe_mask_maker,
@@ -232,16 +233,19 @@ class Dataset3DGeneration:
                 geom_config=self.config_3d_dataset.dataset_info.geom,
                 center_pos=center_pos,
             )
-            dataset_template = get_dataset_template(
+            dataset_reference = get_dataset_reference(
                 tag="3d", geom=geom, geom_config=self.config_3d_dataset.dataset_info.geom
             )
 
-            dataset_maker = MapDatasetMaker(
-                selection=self.config_3d_dataset.dataset_info.map_selection
+            dataset_maker = get_dataset_maker(
+                tag="3d",
+                dataset_config=self.config_3d_dataset.dataset_info,
             )
+
             safe_maker = get_safe_mask_maker(
                 safe_config=self.config_3d_dataset.dataset_info.safe_mask
             )
+
             exclusion_mask = get_exclusion_region_mask(
                 exclusion_params=self.config_3d_dataset.dataset_info.background.exclusion,
                 exclusion_regions=exclusion_regions,
@@ -256,10 +260,11 @@ class Dataset3DGeneration:
                 exclusion_mask=exclusion_mask,
                 log=self.log,
             )
+
             dataset = generate_dl4_dataset(
                 tag="3d",
                 observations=observations,
-                dataset_template=dataset_template,
+                dataset_reference=dataset_reference,
                 dataset_maker=dataset_maker,
                 bkg_maker=bkg_maker,
                 safe_maker=safe_maker,
@@ -509,17 +514,17 @@ class Dataset3DGeneration:
         counts map geom (may improve fitting speed?) and update the main list
         of models.
 
-        The Template Spatial Model is without normalization currently.
+        The reference Spatial Model is without normalization currently.
         """
         diffuse_cutout = self.diffuse_models["gal_diffuse"].cutout(
             self.events["counts_map"].geom.center_skydir, self.events["counts_map"].geom.width[0]
         )
 
-        template_diffuse = TemplateSpatialModel(diffuse_cutout, normalize=False)
+        reference_diffuse = TemplateSpatialModel(diffuse_cutout, normalize=False)
 
         self.diffuse_models["gal_diffuse_cutout"] = SkyModel(
             spectral_model=PowerLawNormSpectralModel(),
-            spatial_model=template_diffuse,
+            spatial_model=reference_diffuse,
             name="diffuse-iem",
         )
         self.diffuse_models["gal_diffuse_cutout"].parameters["norm"].min = 0

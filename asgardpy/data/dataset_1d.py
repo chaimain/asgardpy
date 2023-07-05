@@ -11,7 +11,6 @@ from astropy import units as u
 
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
 from gammapy.datasets import Datasets
-from gammapy.makers import SpectrumDatasetMaker
 
 from asgardpy.base import (
     AnalysisStepBase,
@@ -30,7 +29,8 @@ from asgardpy.base.geom import generate_geom, get_source_position
 from asgardpy.base.reduction import (
     generate_dl4_dataset,
     get_bkg_maker,
-    get_dataset_template,
+    get_dataset_maker,
+    get_dataset_reference,
     get_exclusion_region_mask,
     get_filtered_observations,
     get_safe_mask_maker,
@@ -133,7 +133,7 @@ class Dataset1DGeneration:
 
     2. Perform any Observation selection, based on Observation IDs or time intervals.
 
-    3. Create the base dataset template, including the main counts geometry.
+    3. Create the base dataset reference, including the main counts geometry.
 
     4. Prepare standard data reduction makers using the parameters passed in the config.
 
@@ -173,15 +173,19 @@ class Dataset1DGeneration:
         geom = generate_geom(
             tag="1d", geom_config=self.config_1d_dataset_info.geom, center_pos=center_pos
         )
-        dataset_template = get_dataset_template(
+
+        # Get all the Dataset reduction makers
+        dataset_reference = get_dataset_reference(
             tag="1d", geom=geom, geom_config=self.config_1d_dataset_info.geom
         )
 
-        # Get all the Dataset reduction makers
-        dataset_maker = SpectrumDatasetMaker(
-            containment_correction=self.config_1d_dataset_info.containment_correction,
-            selection=self.config_1d_dataset_info.map_selection,
+        dataset_maker = get_dataset_maker(
+            tag="1d",
+            dataset_config=self.config_1d_dataset_info,
         )
+
+        safe_maker = get_safe_mask_maker(safe_config=self.config_1d_dataset_info.safe_mask)
+
         exclusion_mask = get_exclusion_region_mask(
             exclusion_params=self.config_1d_dataset_info.background.exclusion,
             exclusion_regions=self.exclusion_regions,
@@ -190,18 +194,18 @@ class Dataset1DGeneration:
             geom_config=self.config_1d_dataset_info.geom,
             log=self.log,
         )
+
         bkg_maker = get_bkg_maker(
             bkg_config=self.config_1d_dataset_info.background,
             exclusion_mask=exclusion_mask,
             log=self.log,
         )
-        safe_maker = get_safe_mask_maker(safe_config=self.config_1d_dataset_info.safe_mask)
 
         # Produce the final Dataset
         self.datasets = generate_dl4_dataset(
             tag="1d",
             observations=observations,
-            dataset_template=dataset_template,
+            dataset_reference=dataset_reference,
             dataset_maker=dataset_maker,
             bkg_maker=bkg_maker,
             safe_maker=safe_maker,

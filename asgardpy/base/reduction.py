@@ -1,6 +1,7 @@
 """
 Classes containing the Dataset Reduction config parameters for the high-level
-interface.
+interface and also various functions to support in Dataset Reduction and
+creating of the appropriate DL4 dataset.
 """
 
 from enum import Enum
@@ -14,10 +15,12 @@ from gammapy.datasets import MapDataset, SpectrumDataset
 from gammapy.makers import (
     DatasetsMaker,
     FoVBackgroundMaker,
+    MapDatasetMaker,
     ReflectedRegionsBackgroundMaker,
     ReflectedRegionsFinder,
     RingBackgroundMaker,
     SafeMaskMaker,
+    SpectrumDatasetMaker,
     WobbleRegionsFinder,
 )
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion
@@ -38,7 +41,8 @@ __all__ = [
     "ExclusionRegionsConfig",
     "generate_dl4_dataset",
     "get_bkg_maker",
-    "get_dataset_template",
+    "get_dataset_maker",
+    "get_dataset_reference",
     "get_exclusion_region_mask",
     "get_filtered_observations",
     "get_safe_mask_maker",
@@ -215,7 +219,7 @@ def get_filtered_observations(dl3_path, obs_config, log):
     return observations
 
 
-def get_dataset_template(tag, geom, geom_config, name=None):
+def get_dataset_reference(tag, geom, geom_config, name=None):
     """
     Create a base Dataset object to fill up with the appropriate {1, 3}D type
     of DL3 data to generate the reduced DL4 dataset, using the given base
@@ -224,8 +228,7 @@ def get_dataset_template(tag, geom, geom_config, name=None):
     Parameters
     ----------
     tag: str
-        Determining either the {1, 3}d Dataset type of "excluded", for creating
-        base geometry for the excluded regions.
+        Determining either the {1, 3}d Dataset type.
     geom: 'gammapy.maps.RegionGeom' or `gammapy.maps.WcsGeom`
         Appropriate Base geometry objects for {1, 3}D type of DL4 Datasets.
     geom_config: `asgardpy.base.geom.GeomConfig`
@@ -235,30 +238,60 @@ def get_dataset_template(tag, geom, geom_config, name=None):
 
     Return
     ------
-    dataset_template: `gammapy.dataset.SpectrumDataset` or
+    dataset_reference: `gammapy.dataset.SpectrumDataset` or
         `gammapy.dataset.MapDataset`
-        Appropriate Dataset template for {1, 3}D type of DL4 Datasets.
+        Appropriate Dataset reference for {1, 3}D type of DL4 Datasets.
     """
-    dataset_template = None
+    dataset_reference = None
 
     if tag == "1d":
         for axes_ in geom_config.axes:
             if axes_.name == "energy_true":
                 energy_axis = get_energy_axis(axes_)
-                dataset_template = SpectrumDataset.create(
+                dataset_reference = SpectrumDataset.create(
                     geom=geom,
                     name=name,
                     energy_axis_true=energy_axis,
                 )
     else:  # For tag == "3d"
         binsize_irf = geom_config.wcs.binsize_irf.to_value("deg")
-        dataset_template = MapDataset.create(
+        dataset_reference = MapDataset.create(
             geom=geom,
             name=name,
             binsz_irf=binsize_irf,
         )
 
-    return dataset_template
+    return dataset_reference
+
+
+def get_dataset_maker(tag, dataset_config):
+    """
+    Create a Dataset Maker object to support creating an appropriate {1, 3}D
+    type of DL4 Dataset along with other reduction makers.
+
+    Parameters
+    ----------
+    tag: str
+        Determining either the {1, 3}d Dataset type.
+    dataset_config: `asgardpy.data.dataset_1d.Dataset1DInfoConfig` or
+        `asgardpy.data.dataset_3d.Dataset3DInfoConfig`
+        Config information on creating appropriate {1, 3}d DL4 dataset type.
+
+    Return
+    ------
+    dataset_maker: `gammapy.makers.SpectrumDatasetMaker` or
+        `gammapy.makers.MapDatasetMaker`
+        Appropriate Dataset Maker for {1, 3}D type of DL4 Datasets.
+    """
+    if tag == "1d":
+        dataset_maker = SpectrumDatasetMaker(
+            containment_correction=dataset_config.containment_correction,
+            selection=dataset_config.map_selection,
+        )
+    else:  # for tag == "3d"
+        dataset_maker = MapDatasetMaker(selection=dataset_config.map_selection)
+
+    return dataset_maker
 
 
 def get_safe_mask_maker(safe_config):
@@ -418,7 +451,7 @@ def get_bkg_maker(bkg_config, exclusion_mask, log):
 def generate_dl4_dataset(
     tag,
     observations,
-    dataset_template,
+    dataset_reference,
     dataset_maker,
     bkg_maker,
     safe_maker,
@@ -426,20 +459,19 @@ def generate_dl4_dataset(
     parallel_backend,
 ):
     """
-    From the given Observations, Dataset Template and various Makers,
+    From the given Observations, Dataset reference and various Makers,
     use the multiprocessing method with DatasetsMaker, create the appropriate
     DL4 Dataset for {1, 3}D type of DL3 data.
 
     Parameters
     ----------
     tag: str
-        Determining either the {1, 3}d Dataset type of "excluded", for creating
-        base geometry for the excluded regions.
+        Determining either the {1, 3}d Dataset type.
     observations: `gammapy.data.Observations`
         Selected list of Observation object
-    dataset_template: `gammapy.dataset.SpectrumDataset` or
+    dataset_reference: `gammapy.dataset.SpectrumDataset` or
         `gammapy.dataset.MapDataset`
-        Appropriate Dataset template for {1, 3}D type of DL4 Datasets.
+        Appropriate Dataset reference for {1, 3}D type of DL4 Datasets.
     dataset_maker: `gammapy.makers.MapDatasetMaker` or
         `gammapy.makers.SpectrumDatasetMaker`
         Appropriate gammapy object to bin the Observations Map data or 1D
@@ -482,6 +514,6 @@ def generate_dl4_dataset(
             # cutout_width=2*offset_max  # As used in the API, from geom.selection
         )
 
-    datasets = datasets_maker.run(dataset_template, observations)
+    datasets = datasets_maker.run(dataset_reference, observations)
 
     return datasets

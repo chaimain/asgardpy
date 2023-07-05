@@ -1,5 +1,7 @@
 """
-Classes containing the Geometry config parameters for the high-level interface.
+Classes containing the Geometry config parameters for the high-level interface
+and also some functions to support creating the base Geometry of various 
+DL4 datasets.
 """
 
 import re
