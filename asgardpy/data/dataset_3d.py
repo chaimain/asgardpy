@@ -131,6 +131,8 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
 
                 # Assigning datasets_names and including them in the final
                 # model list
+
+                # What if there are no associated models?
                 for model_ in models:
                     if key:
                         model_.datasets_names = [f"{config_3d_dataset.name}_{key}"]
