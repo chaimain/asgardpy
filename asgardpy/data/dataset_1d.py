@@ -220,7 +220,7 @@ class Dataset1DGeneration:
 
         for data, obs in zip(self.datasets, observations):
             # Rename the datasets using the appropriate Obs ID
-            data._name = obs.obs_id
+            data._name = str(obs.obs_id)
 
             # Use custom safe energy mask
             if safe_maker is None:

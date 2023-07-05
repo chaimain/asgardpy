@@ -88,6 +88,20 @@ class GeomConfig(BaseConfig):
 def get_energy_axis(axes_config, only_edges=False, custom_range=False):
     """
     Read from a MapAxesConfig section to return the required energy axis/range.
+
+    Parameters
+    ----------
+    axes_config: `asgardpy.base.geom.MapAxesConfig`
+        COnfig for generating an energy axis
+    only_edges: bool
+        If True, only return an array of energy edges
+    custom_range: bool
+        If True, use the given list of energy edges and energy unit.
+
+    Return
+    ------
+    energy_range: `gammapy.maps.MapAxis`
+        Energy Axis formed from the given config parameters
     """
     energy_axis = axes_config.axis
     energy_axis_custom = axes_config.axis_custom
@@ -110,9 +124,23 @@ def get_energy_axis(axes_config, only_edges=False, custom_range=False):
 
 def get_source_position(config_target, fits_header=None):
     """
-    Common function for nD dataset.
-    fits_header is used for Fermi-LAT files only.
-    otherwise the Config section is used.
+    Function to fetch the target source position and the angular radius for
+    the generating the Counts Map or ON region.
+
+    Parameters
+    ----------
+    config_target: `asgardpy.config.AsgardpyConfig.target`
+        Config containing the information on the target source
+    fits_header: `astropy.io.fits.Header`
+        FITS Header information of the events fits file, only for Fermi-LAT
+        DL3 files. If None is passed, the information is collected from the
+        config_target.
+
+    Return
+    ------
+    center_pos: dict
+        Dict information on the central `astropy.coordinates.SkyCoord` position
+        and `astropy.units.Quantity` angular radius.
     """
     if fits_header:
         try:
@@ -129,8 +157,11 @@ def get_source_position(config_target, fits_header=None):
     else:
         # Fetching info from the config_target section
         src_name = config_target.source_name
+
+        # First check by Sesame name resolver
         if src_name is not None:
             source_pos = SkyCoord.from_name(src_name)
+        # Next use the sky position information given in the config
         else:
             source_pos = SkyCoord(
                 u.Quantity(config_target.sky_position.lon),
@@ -147,14 +178,28 @@ def get_source_position(config_target, fits_header=None):
 def create_counts_map(geom_config, center_pos):
     """
     Generate the counts Map object using the information provided in the
-    geom section of the Config.
+    geom section of the Config and the dict information on the position and
+    Counts Map size of the target source. Used currently only for Fermi-LAT
+    DL3 files.
 
-    Only for Fermi-LAT
+    Parameters
+    ----------
+    geom_config: `asgardpy.base.geom.GeomConfig`
+        Config information on creating the Base Geometry of the DL4 dataset.
+    center_pos: dict
+        Dict information on the central `astropy.coordinates.SkyCoord` position
+        and `astropy.units.Quantity` angular radius.
+
+    Return
+    ------
+    counts_map: `gammapy.maps.Map`
+        Map object of the Counts informatio.
     """
     energy_axes = geom_config.axes[0]
     energy_axis = get_energy_axis(energy_axes)
     bin_size = geom_config.wcs.binsize.to_value(u.deg)
 
+    # For fetching information from the events fits file to resize the Map size.
     if geom_config.from_events_file:
         counts_map = Map.create(
             skydir=center_pos.center.galactic,
@@ -169,6 +214,7 @@ def create_counts_map(geom_config, center_pos):
             dtype=float,
         )
     else:
+        # Using the config information
         width_ = geom_config.wcs.map_frame_shape.width.to_value(u.deg)
         width_in_pixel = int(width_ / bin_size)
         height_ = geom_config.wcs.map_frame_shape.height.to_value(u.deg)
@@ -191,12 +237,27 @@ def generate_geom(tag, geom_config, center_pos):
     """
     Generate from a given target source position, the geometry of the ON
     events and the axes information on reco energy and true energy,
-    for which the 1D dataset can be defined.
+    for which a DL4 dataset of a given tag, can be defined.
 
-    Common for nD dataset of gadf-dl3 type
+    Can also generate Base geometry for the excluded regions for a 3D dataset.
+
+    Parameters
+    ----------
+    tag: str
+        Determining either the {1, 3}d Dataset type of "excluded", for creating
+        base geometry for the excluded regions.
+    geom_config: `asgardpy.base.geom.GeomConfig`
+        Config information on creating the Base Geometry of the DL4 dataset.
+    center_pos: dict
+        Dict information on the central `astropy.coordinates.SkyCoord` position
+        and `astropy.units.Quantity` angular radius.
+
+    Return
+    ------
+    geom: 'gammapy.maps.RegionGeom' or `gammapy.maps.WcsGeom`
+        appropriate Base geometry objects for {1, 3}D type of DL4 Datasets.
     """
-
-    # Defining the energy axes
+    # Getting the energy axes
     axes_list = geom_config.axes
     for axes_ in axes_list:
         if axes_.name == "energy":
@@ -209,14 +270,13 @@ def generate_geom(tag, geom_config, center_pos):
             # Hack to allow for the joint fit
             # (otherwise pointskyregion.contains returns None)
             on_region.meta = {"include": False}
-
         else:
             on_region = CircleSkyRegion(
                 center=center_pos.center,
                 radius=u.Quantity(center_pos.radius),
             )
 
-        # Main geom and template Spectrum Dataset
+        # Main geom for 1D Dataset
         geom = RegionGeom.create(region=on_region, axes=[energy_axis])
 
     else:
@@ -236,6 +296,7 @@ def generate_geom(tag, geom_config, center_pos):
         geom_params["proj"] = geom_config.wcs.proj
         geom_params["width"] = (width_, height_)
 
+        # Main geom for 3D Dataset
         geom = WcsGeom.create(**geom_params)
 
     return geom
