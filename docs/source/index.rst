@@ -55,6 +55,13 @@ Team
 To learn more about who specifically contributed to this codebase, see
 `our contributors <https://github.com/chaimain/asgardpy/graphs/contributors>`_ page.
 
+
+Cite
+----
+
+If you use Asgardpy in a publication, please cite the exact version you used from Zenodo *Cite as* https://doi.org/10.5281/zenodo.8106369
+
+
 License
 -------
 
