@@ -1,6 +1,6 @@
 """
 Classes containing the Geometry config parameters for the high-level interface
-and also some functions to support creating the base Geometry of various 
+and also some functions to support creating the base Geometry of various
 DL4 datasets.
 """
 
