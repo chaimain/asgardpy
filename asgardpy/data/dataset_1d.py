@@ -192,7 +192,6 @@ class Dataset1DGeneration:
         )
         bkg_maker = get_bkg_maker(
             bkg_config=self.config_1d_dataset_info.background,
-            geom_config=self.config_1d_dataset_info.geom,
             exclusion_mask=exclusion_mask,
             log=self.log,
         )

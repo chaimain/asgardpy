@@ -220,7 +220,7 @@ class Dataset3DGeneration:
         self.load_events(file_list["events_file"])
         exclusion_regions = []
 
-        if self.config_3d_dataset.io.type == "gadf-dl3":
+        if self.config_3d_dataset.io[0].type == "gadf-dl3":
             observations = get_filtered_observations(
                 dl3_path=self.config_3d_dataset_io[0].input_dir,
                 obs_config=self.config_3d_dataset.dataset_info.observation,
@@ -253,7 +253,6 @@ class Dataset3DGeneration:
 
             bkg_maker = get_bkg_maker(
                 bkg_config=self.config_3d_dataset.dataset_info.background,
-                geom_config=self.config_3d_dataset.dataset_info.geom,
                 exclusion_mask=exclusion_mask,
                 log=self.log,
             )
@@ -268,7 +267,7 @@ class Dataset3DGeneration:
                 parallel_backend=self.config_full.general.parallel_backend,
             )
 
-        elif "lat" in self.config_3d_dataset.io.type:
+        elif "lat" in self.config_3d_dataset.io[0].type:
             # Start preparing objects to create the counts map
             self.set_energy_dispersion_matrix()
 

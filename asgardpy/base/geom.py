@@ -202,11 +202,11 @@ def create_counts_map(geom_config, center_pos):
     # For fetching information from the events fits file to resize the Map size.
     if geom_config.from_events_file:
         counts_map = Map.create(
-            skydir=center_pos.center.galactic,
+            skydir=center_pos["center"].galactic,
             binsz=bin_size,
             npix=(
-                int(center_pos.radius * 2 / bin_size),
-                int(center_pos.radius * 2 / bin_size),
+                int(center_pos["radius"] * 2 / bin_size),
+                int(center_pos["radius"] * 2 / bin_size),
             ),  # Using the limits from the events fits file
             proj=geom_config.wcs.proj,
             frame="galactic",
@@ -221,7 +221,7 @@ def create_counts_map(geom_config, center_pos):
         height_in_pixel = int(height_ / bin_size)
 
         counts_map = Map.create(
-            skydir=center_pos.center.galactic,
+            skydir=center_pos["center"].galactic,
             binsz=bin_size,
             npix=(width_in_pixel, height_in_pixel),
             proj=geom_config.wcs.proj,
@@ -265,15 +265,15 @@ def generate_geom(tag, geom_config, center_pos):
 
     if tag == "1d":
         # Defining the ON region's geometry
-        if center_pos.radius == 0 * u.deg:
-            on_region = PointSkyRegion(center_pos.center)
+        if center_pos["radius"] == 0 * u.deg:
+            on_region = PointSkyRegion(center_pos["center"])
             # Hack to allow for the joint fit
             # (otherwise pointskyregion.contains returns None)
             on_region.meta = {"include": False}
         else:
             on_region = CircleSkyRegion(
-                center=center_pos.center,
-                radius=u.Quantity(center_pos.radius),
+                center=center_pos["center"],
+                radius=u.Quantity(center_pos["radius"]),
             )
 
         # Main geom for 1D Dataset
@@ -289,8 +289,8 @@ def generate_geom(tag, geom_config, center_pos):
             height_ = int(height_ / bin_size)
 
         geom_params = {}
-        geom_params["skydir"] = center_pos.center
-        geom_params["frame"] = center_pos.center.frame
+        geom_params["skydir"] = center_pos["center"]
+        geom_params["frame"] = center_pos["center"].frame
         geom_params["axes"] = [energy_axis]
         geom_params["binsz"] = geom_config.wcs.binsize
         geom_params["proj"] = geom_config.wcs.proj
