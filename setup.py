@@ -33,7 +33,7 @@ with open("asgardpy/version.py", "r") as version_file:
 setup(
     name="asgardpy",
     version=VERSION["VERSION"],
-    description="Gammapy-based pipeline for easy joint analysis of different gamma-ray datasets",
+    description="Gammapy-based package for easy joint analysis of different gamma-ray datasets",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     classifiers=[

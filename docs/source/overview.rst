@@ -13,7 +13,7 @@ The package is structured in 2 ways -
 Analysis Steps
 --------------
 
-The configuration-based pipeline separates the Gammapy-based High-Level Analysis into serialized intermediate steps.
+The configuration-based package separates the Gammapy-based High-Level Analysis into serialized intermediate steps.
 Check :doc:`_api_docs/base_base` for more details.
 The steps are:
 
@@ -25,7 +25,7 @@ The steps are:
 
 #. flux-points :class:`asgardpy.data.dl4.FluxPointsAnalysisStep`
 
-The main purpose of this pipeline is accomplished before the "fit" step, which is to compile a Gammapy Datasets object
+The main purpose of this package is accomplished before the "fit" step, which is to compile a Gammapy Datasets object
 containing multiple types of datasets from multiple gamma-ray astronomical instruments, update them with appropriate
 Gammapy Models object. These are then run with the standard Gammapy high-level analysis functions to get the DL5 products.
 

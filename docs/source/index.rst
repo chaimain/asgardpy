@@ -3,19 +3,19 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-**asgardpy pipeline**
-=====================
+**asgardpy package**
+====================
 
-Gammapy-based pipeline to support high-level analysis for multi-instruments joint datasets.
+Gammapy-based package to support high-level analysis for multi-instruments joint datasets.
 Follow the `Gammapy v1.1 <https://docs.gammapy.org/1.1/>`_ documentation for understanding the core Gammapy objects.
 
 The various Data Levels used here follow the descriptions suggested by
 `GADF v0.3 <https://gamma-astro-data-formats.readthedocs.io/en/latest/>`_ and CTAO Data Model.
 
-The pipeline was developed with first testing with Fermi-LAT (`enrico <https://enrico.readthedocs.io/en/latest/>`_ and
+The package was developed with first testing with Fermi-LAT (`enrico <https://enrico.readthedocs.io/en/latest/>`_ and
 `fermipy <https://fermipy.readthedocs.io/en/latest/>`_) files and LST-1 (`cta-lstchain <https://cta-observatory.github.io/cta-lstchain/>`_)
 DL3 files (with energy-dependent and global selection cuts) for point-like sources.
-The pipeline can be further expanded to support more types of DL3 files of gamma-ray instruments.
+The package can be further expanded to support more types of DL3 files of gamma-ray instruments.
 
 GitHub Repository: https://github.com/chaimain/asgardpy
 
