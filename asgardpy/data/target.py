@@ -107,6 +107,11 @@ class ExpCutoffLogParabolaSpectralModel(SpectralModel):
 
     Using a simple template from Gammapy.
 
+    .. math::
+        \phi(E) = \phi_0 \left( \frac{E}{E_0} \right) ^ {
+          - \alpha_1 - \beta \log{ \left( \frac{E}{E_0} \right) }} \cdot
+          \exp(- {(\lambda E})^{\alpha_2})
+
     Parameters
     ----------
     amplitude : `~astropy.units.Quantity`
@@ -158,10 +163,16 @@ class BrokenPowerLaw2SpectralModel(SpectralModel):
 
     For more information see :ref:`broken-powerlaw-spectral-model`.
 
+    .. math::
+        \phi(E) = \phi_0 \cdot \begin{cases}
+                \left( \frac{E}{E_{break}} \right)^{-\Gamma_1} & \text{if } E < E_{break} \\
+                \left( \frac{E}{E_{break}} \right)^{-(\Gamma_1 + \Delta\Gamma)} & \text{otherwise}
+            \end{cases}
+
     Parameters
     ----------
     index1 : `~astropy.units.Quantity`
-        :math:`\Gamma1`
+        :math:`\Gamma_1`
     index_diff : `~astropy.units.Quantity`
         :math:`\Delta\Gamma`
     amplitude : `~astropy.units.Quantity`

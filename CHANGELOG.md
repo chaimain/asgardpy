@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Update docs with Zenodo DOI by [@chaimain](https://github.com/chaimain).
+- Restructure pipeline to regroup common functions for GADF-based DL3 files for 1D and 3D dataset by [@chaimain](https://github.com/chaimain).
 
 ## [v0.3.4](https://github.com/chaimain/asgardpy/releases/tag/v0.3.4) - 2023-07-02
 

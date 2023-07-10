@@ -187,4 +187,5 @@ class AsgardpyAnalysis:
         self.run(steps=["flux-points"])
 
     def update_config(self, config):
+        """Update the primary config with another config."""
         self.config = self.config.update(config=config)

@@ -4,13 +4,11 @@ to generate 3D Datasets from given Instruments' DL3 data from the config.
 """
 
 import logging
-import re
 from typing import List
 
 import numpy as np
 import xmltodict
 from astropy import units as u
-from astropy.coordinates import SkyCoord
 from astropy.io import fits
 
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
@@ -25,7 +23,6 @@ from gammapy.modeling.models import (
     SkyModel,
     TemplateSpatialModel,
 )
-from regions import CircleAnnulusSkyRegion, CircleSkyRegion
 
 from asgardpy.base import (
     AnalysisStepBase,
@@ -34,10 +31,21 @@ from asgardpy.base import (
     GeomConfig,
     MapAxesConfig,
     MapSelectionEnum,
+    ObservationsConfig,
     ReductionTypeEnum,
     SafeMaskConfig,
     SkyPositionConfig,
     get_energy_axis,
+)
+from asgardpy.base.geom import create_counts_map, generate_geom, get_source_position
+from asgardpy.base.reduction import (
+    generate_dl4_dataset,
+    get_bkg_maker,
+    get_dataset_maker,
+    get_dataset_reference,
+    get_exclusion_region_mask,
+    get_filtered_observations,
+    get_safe_mask_maker,
 )
 from asgardpy.data.target import (
     apply_selection_mask_to_models,
@@ -62,6 +70,7 @@ log = logging.getLogger(__name__)
 class Dataset3DInfoConfig(BaseConfig):
     name: str = "dataset-name"
     key: List = []
+    observation: ObservationsConfig = ObservationsConfig()
     map_selection: List[MapSelectionEnum] = MapDatasetMaker.available_selection
     geom: GeomConfig = GeomConfig()
     background: BackgroundConfig = BackgroundConfig()
@@ -123,6 +132,8 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
 
                 # Assigning datasets_names and including them in the final
                 # model list
+
+                # What if there are no associated models?
                 for model_ in models:
                     if key:
                         model_.datasets_names = [f"{config_3d_dataset.name}_{key}"]
@@ -207,33 +218,106 @@ class Dataset3DGeneration:
         # First check for the given file list if they are readable or not.
         file_list = self.read_to_objects(key_name)
 
-        # Start preparing objects to create the counts map
-        self.set_energy_dispersion_matrix()
         self.load_events(file_list["events_file"])
+        exclusion_regions = []
 
-        source_pos, evts_radius = self.get_source_skycoord()
+        if self.config_3d_dataset.io[0].type == "gadf-dl3":
+            observations = get_filtered_observations(
+                dl3_path=self.config_3d_dataset_io[0].input_dir,
+                obs_config=self.config_3d_dataset.dataset_info.observation,
+                log=self.log,
+            )
+            center_pos = get_source_position(config_target=self.config_target)
+            geom = generate_geom(
+                tag="3d",
+                geom_config=self.config_3d_dataset.dataset_info.geom,
+                center_pos=center_pos,
+            )
+            dataset_reference = get_dataset_reference(
+                tag="3d", geom=geom, geom_config=self.config_3d_dataset.dataset_info.geom
+            )
 
-        # Create the Counts Map
-        self.create_counts_map(source_pos, evts_radius)
+            dataset_maker = get_dataset_maker(
+                tag="3d",
+                dataset_config=self.config_3d_dataset.dataset_info,
+            )
 
-        # Create any dataset reduction makers or mask
-        self.generate_diffuse_background_cutout()
+            safe_maker = get_safe_mask_maker(
+                safe_config=self.config_3d_dataset.dataset_info.safe_mask
+            )
 
-        self.set_edisp_interpolator()
-        self.set_exposure_interpolator()
+            exclusion_mask = get_exclusion_region_mask(
+                exclusion_params=self.config_3d_dataset.dataset_info.background.exclusion,
+                exclusion_regions=exclusion_regions,
+                excluded_geom=None,
+                config_target=self.config_target,
+                geom_config=self.config_3d_dataset.dataset_info.geom,
+                log=self.log,
+            )
 
-        self.create_exclusion_mask()
+            bkg_maker = get_bkg_maker(
+                bkg_config=self.config_3d_dataset.dataset_info.background,
+                exclusion_mask=exclusion_mask,
+                log=self.log,
+            )
 
-        # Apply the same exclusion mask to the list of source models as applied
-        # to the Counts Map
-        self.list_sources = apply_selection_mask_to_models(
-            self.list_sources,
-            target_source=self.config_target.source_name,
-            selection_mask=self.exclusion_mask,
-        )
+            dataset = generate_dl4_dataset(
+                tag="3d",
+                observations=observations,
+                dataset_reference=dataset_reference,
+                dataset_maker=dataset_maker,
+                bkg_maker=bkg_maker,
+                safe_maker=safe_maker,
+                n_jobs=self.config_full.general.n_jobs,
+                parallel_backend=self.config_full.general.parallel_backend,
+            )
 
-        # Generate the final dataset
-        dataset = self.generate_dataset(key_name)
+        elif "lat" in self.config_3d_dataset.io[0].type:
+            # Start preparing objects to create the counts map
+            self.set_energy_dispersion_matrix()
+
+            center_pos = get_source_position(
+                config_target=self.config_target,
+                fits_header=self.events["event_fits"][1].header,
+            )
+
+            # Create the Counts Map
+            self.events["counts_map"] = create_counts_map(
+                geom_config=self.config_3d_dataset.dataset_info.geom,
+                center_pos=center_pos,
+            )
+            self.events["counts_map"].fill_by_coord(
+                {
+                    "skycoord": self.events["events"].radec,
+                    "energy": self.events["events"].energy,
+                    "time": self.events["events"].time,
+                }
+            )
+            # Create any dataset reduction makers or mask
+            self.generate_diffuse_background_cutout()
+
+            self.set_edisp_interpolator()
+            self.set_exposure_interpolator()
+
+            self.exclusion_mask = get_exclusion_region_mask(
+                exclusion_params=self.config_3d_dataset.dataset_info.background.exclusion,
+                excluded_geom=self.events["counts_map"].geom.copy(),
+                exclusion_regions=exclusion_regions,
+                config_target=self.config_target,
+                geom_config=self.config_3d_dataset.dataset_info.geom,
+                log=self.log,
+            )
+
+            # Apply the same exclusion mask to the list of source models as applied
+            # to the Counts Map
+            self.list_sources = apply_selection_mask_to_models(
+                self.list_sources,
+                target_source=self.config_target.source_name,
+                selection_mask=self.exclusion_mask,
+            )
+
+            # Generate the final dataset
+            dataset = self.generate_dataset(key_name)
 
         return dataset, self.list_sources
 
@@ -248,6 +332,9 @@ class Dataset3DGeneration:
 
         # Get the Diffuse models files list
         for io_ in self.config_3d_dataset.io:
+            if io_.type in ["gadf-dl3"]:
+                file_list, _ = self.get_base_objects(io_, key_name, file_list)
+
             if io_.type in ["lat"]:
                 file_list, [
                     self.irfs["exposure"],
@@ -309,22 +396,28 @@ class Dataset3DGeneration:
         If there are no distinct key types of files, the value is None.
         """
         dl3_info = DL3Files(dl3_dir_dict, file_list, log=self.log)
-        file_list = dl3_info.prepare_lat_files(key, file_list)
         object_list = []
 
-        if dl3_dir_dict.type.lower() in ["lat"]:
-            exposure = Map.read(file_list["expmap_file"])
-            psf = PSFMap.read(file_list["psf_file"], format="gtpsf")
-            drmap = fits.open(file_list["edrm_file"])
-            object_list = [exposure, psf, drmap]
+        if dl3_dir_dict.type.lower() in ["gadf-dl3"]:
+            file_list = dl3_info.list_dl3_files()
 
-        if dl3_dir_dict.type.lower() in ["lat-aux"]:
-            diff_gal = Map.read(file_list["gal_diff_file"])
-            diff_gal.meta["filename"] = file_list["gal_diff_file"]
-            diff_iso = create_iso_diffuse_skymodel(file_list["iso_diff_file"], key)
-            object_list = [diff_gal, diff_iso]
+            return file_list, object_list
+        else:
+            file_list = dl3_info.prepare_lat_files(key, file_list)
 
-        return file_list, object_list
+            if dl3_dir_dict.type.lower() in ["lat"]:
+                exposure = Map.read(file_list["expmap_file"])
+                psf = PSFMap.read(file_list["psf_file"], format="gtpsf")
+                drmap = fits.open(file_list["edrm_file"])
+                object_list = [exposure, psf, drmap]
+
+            if dl3_dir_dict.type.lower() in ["lat-aux"]:
+                diff_gal = Map.read(file_list["gal_diff_file"])
+                diff_gal.meta["filename"] = file_list["gal_diff_file"]
+                diff_iso = create_iso_diffuse_skymodel(file_list["iso_diff_file"], key)
+                object_list = [diff_gal, diff_iso]
+
+            return file_list, object_list
 
     def get_list_objects(self, aux_path, xml_file):
         """
@@ -415,92 +508,23 @@ class Dataset3DGeneration:
         self.events["events"] = EventList.read(events_file)
         self.events["gti"] = GTI.read(events_file)
 
-    def get_source_skycoord(self):
-        """
-        Get the source skycoord and the ROI radius from the events file.
-
-        Needs to be generalized for other possible file structures for other
-        instruments.
-        """
-        try:
-            dsval2 = self.events["event_fits"][1].header["DSVAL2"]
-            list_str_check = re.findall(r"[-+]?\d*\.\d+|\d+", dsval2)
-            ra_pos, dec_pos, evts_radius = [float(k) for k in list_str_check]
-        except IndexError:
-            history = str(self.events["event_fits"][1].header["HISTORY"])
-            str_ = history.split("angsep(RA,DEC,")[1]
-            list_str_check = re.findall(r"[-+]?\d*\.\d+|\d+", str_)[:3]
-            ra_pos, dec_pos, evts_radius = [float(k) for k in list_str_check]
-
-        source_pos = SkyCoord(ra_pos, dec_pos, unit="deg", frame="fk5")
-
-        return source_pos, evts_radius
-
-    def create_counts_map(self, source_pos, evts_radius):
-        """
-        Generate the counts Map object using the information provided in the
-        geom section of the Config and fill it with the events' RA-Dec
-        position, Energy and Time information.
-        """
-        geom_config = self.config_3d_dataset.dataset_info.geom
-
-        energy_axes = geom_config.axes[0]
-        energy_axis = get_energy_axis(energy_axes)
-        bin_size = geom_config.wcs.binsize.to_value(u.deg)
-
-        if geom_config.from_events_file:
-            self.events["counts_map"] = Map.create(
-                skydir=source_pos.galactic,
-                binsz=bin_size,
-                npix=(
-                    int(evts_radius * 2 / bin_size),
-                    int(evts_radius * 2 / bin_size),
-                ),  # Using the limits from the events fits file
-                proj=geom_config.wcs.proj,
-                frame="galactic",
-                axes=[energy_axis],
-                dtype=float,
-            )
-        else:
-            width_ = geom_config.wcs.map_frame_shape.width.to_value(u.deg)
-            width_in_pixel = int(width_ / bin_size)
-            height_ = geom_config.wcs.map_frame_shape.height.to_value(u.deg)
-            height_in_pixel = int(height_ / bin_size)
-
-            self.events["counts_map"] = Map.create(
-                skydir=source_pos.galactic,
-                binsz=bin_size,
-                npix=(width_in_pixel, height_in_pixel),
-                proj=geom_config.wcs.proj,
-                frame="galactic",
-                axes=[energy_axis],
-                dtype=float,
-            )
-        self.events["counts_map"].fill_by_coord(
-            {
-                "skycoord": self.events["events"].radec,
-                "energy": self.events["events"].energy,
-                "time": self.events["events"].time,
-            }
-        )
-
     def generate_diffuse_background_cutout(self):
         """
         Perform a cutout of the Diffuse background model with respect to the
         counts map geom (may improve fitting speed?) and update the main list
         of models.
 
-        The Template Spatial Model is without normalization currently.
+        The reference Spatial Model is without normalization currently.
         """
         diffuse_cutout = self.diffuse_models["gal_diffuse"].cutout(
             self.events["counts_map"].geom.center_skydir, self.events["counts_map"].geom.width[0]
         )
 
-        template_diffuse = TemplateSpatialModel(diffuse_cutout, normalize=False)
+        reference_diffuse = TemplateSpatialModel(diffuse_cutout, normalize=False)
 
         self.diffuse_models["gal_diffuse_cutout"] = SkyModel(
             spectral_model=PowerLawNormSpectralModel(),
-            spatial_model=template_diffuse,
+            spatial_model=reference_diffuse,
             name="diffuse-iem",
         )
         self.diffuse_models["gal_diffuse_cutout"].parameters["norm"].min = 0
@@ -540,77 +564,6 @@ class Dataset3DGeneration:
         self.irfs["exposure_interp"] = self.irfs["exposure"].interp_to_geom(
             self.events["counts_map"].geom.as_energy_true
         )
-
-    def create_exclusion_mask(self):
-        """
-        Generate an Exclusion Mask for the final MapDataset and also select
-        the region for the list of Models using the excluded regions.
-        """
-        exclusion_regions = []
-        excluded_geom = self.events["counts_map"].geom.copy()
-        exclusion_params = self.config_3d_dataset.dataset_info.background.exclusion
-
-        if len(exclusion_params.regions) != 0:
-            for region in exclusion_params.regions:
-                if region.name == "None":
-                    coord = region.position
-                    center_ex = SkyCoord(
-                        u.Quantity(coord.lon), u.Quantity(coord.lat), frame=coord.frame
-                    ).icrs
-                else:
-                    center_ex = SkyCoord.from_name(region.name)
-
-                if region.type == "CircleAnnulusSkyRegion":
-                    excluded_region = CircleAnnulusSkyRegion(
-                        center=center_ex,
-                        inner_radius=u.Quantity(region.parameters["rad_0"]),
-                        outer_radius=u.Quantity(region.parameters["rad_1"]),
-                    )
-                elif region.type == "CircleSkyRegion":
-                    excluded_region = CircleSkyRegion(
-                        center=center_ex, radius=u.Quantity(region.parameters["region_radius"])
-                    )
-                else:
-                    self.log.error(f"Unknown type of region passed {region.type}")
-                exclusion_regions.append(excluded_region)
-            self.exclusion_mask = ~excluded_geom.region_mask(exclusion_regions)
-
-        elif len(exclusion_regions) == 0:
-            self.log.info("Creating empty/dummy exclusion region")
-            pos = SkyCoord(0, 90, unit="deg")
-            exclusion_region = CircleSkyRegion(pos, 0.00001 * u.deg)
-
-            exclusion_regions.append(exclusion_region)
-            self.exclusion_mask = ~excluded_geom.region_mask(exclusion_regions)
-        else:
-            self.log.info("Creating exclusion region")
-            self.exclusion_mask = ~excluded_geom.region_mask(exclusion_regions)
-
-    def add_source_to_exclusion_region(
-        self, exclusion_regions, source_pos=None, radius=0.1 * u.deg
-    ):
-        """
-        Add to an existing exclusion_regions list, the source region.
-
-        Check if this function is necessary.
-        """
-        if source_pos is not None:
-            exclusion_region = CircleSkyRegion(
-                center=source_pos.galactic,
-                radius=radius,
-            )
-        else:
-            sky_pos = self.config_target.sky_position
-            source_pos = SkyCoord(
-                u.Quantity(sky_pos.lon), u.Quantity(sky_pos.lat), frame=sky_pos.frame
-            )
-            exclusion_region = CircleSkyRegion(
-                center=source_pos.galactic,
-                radius=radius,
-            )
-        exclusion_regions.append(exclusion_region)
-
-        return exclusion_regions
 
     def generate_dataset(self, key_name):
         """
