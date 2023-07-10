@@ -285,15 +285,17 @@ def generate_geom(tag, geom_config, center_pos):
         width_ = geom_config.wcs.map_frame_shape.width.to_value("deg")
         height_ = geom_config.wcs.map_frame_shape.height.to_value("deg")
 
+        geom_params = {}
+
         if tag != "3d":  # For exclusion regions
             bin_size = geom_config.wcs.binsize.to_value("deg")
             width_ = int(width_ / bin_size)
             height_ = int(height_ / bin_size)
+        else:
+            geom_params["axes"] = [energy_axis]
 
-        geom_params = {}
         geom_params["skydir"] = center_pos["center"]
         geom_params["frame"] = center_pos["center"].frame
-        geom_params["axes"] = [energy_axis]
         geom_params["binsz"] = geom_config.wcs.binsize
         geom_params["proj"] = geom_config.wcs.proj
         geom_params["width"] = (width_, height_)

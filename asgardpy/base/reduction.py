@@ -334,6 +334,10 @@ def get_exclusion_region_mask(
     of exclusion regions, config information on the target source and the base
     geometry for the exclusion mask, a background exclusion region mask.
 
+    This may be generalized further to include excluded sources from FoV, which
+    is currently used in the asgardpy.data.target.apply_selection_mask_to_models
+    function and given as parameters in RoISelectionConfig.
+
     Parameters
     ----------
     exclusion_params: `asgardpy.base.reduction.ExclusionRegionsConfig`
