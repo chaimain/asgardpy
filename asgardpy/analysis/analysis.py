@@ -61,15 +61,6 @@ class AsgardpyAnalysis:
             raise RuntimeError("No datasets defined. Impossible to set models.")
         return self.datasets.models
 
-    @models.setter
-    def models(self, model):
-        self.datasets = set_models(
-            self.config.target,
-            self.datasets,
-            self.dataset_name_list,
-            models=model,
-        )
-
     @property
     def config(self):
         """
@@ -137,7 +128,12 @@ class AsgardpyAnalysis:
                 for edges in instrument_spectral_info["spectral_energy_ranges"]:
                     self.instrument_spectral_info["spectral_energy_ranges"].append(edges)
 
-        self.models(self.final_model)
+        self.datasets, self.final_model = set_models(
+            self.config.target,
+            self.datasets,
+            self.dataset_name_list,
+            models=self.final_model,
+        )
 
         if len(dl4_dl5_steps) > 0:
             self.log.info("Perform DL4 to DL5 processes!")
