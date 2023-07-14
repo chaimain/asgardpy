@@ -222,8 +222,6 @@ def set_models(
     datasets,
     datasets_name_list=None,
     models=None,
-    target_source_name=None,
-    add_fov_bkg_model=False,
 ):
     """
     Set models on given Datasets.
@@ -239,12 +237,6 @@ def set_models(
         to the given datasets.
     models : `~gammapy.modeling.models.Models` or str
         Models object or YAML models string
-    target_source_name: str
-        Name of the Target source, to use to update only that Model's
-        datasets_names, when a list of more than 1 models are provided.
-    add_fov_bkg_model : bool
-        Add a FoVBackgroundModel for 3D Datasets. Maybe this needs another
-        config option from the user.
 
     Returns
     -------
@@ -279,7 +271,7 @@ def set_models(
             free_sources=config.target.roi_selection.free_sources,
         )
 
-    if add_fov_bkg_model:
+    if config.target.add_fov_bkg_model:
         # For extending a Background Model for each 3D dataset
         bkg_models = []
 
@@ -292,11 +284,8 @@ def set_models(
     if datasets_name_list is None:
         datasets_name_list = datasets.names
 
-    if target_source_name is None:
-        target_source_name = config.source_name
-
     if len(models) > 1:
-        models[target_source_name].datasets_names = datasets_name_list
+        models[config.target.source_name].datasets_names = datasets_name_list
     else:
         models.datasets_names = datasets_name_list
 

@@ -68,8 +68,6 @@ class AsgardpyAnalysis:
             self.datasets,
             self.dataset_name_list,
             models=model,
-            target_source_name=self.config.target.source_name,
-            add_fov_bkg_model=False,
         )
 
     @property
