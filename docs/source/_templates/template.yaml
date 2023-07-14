@@ -22,6 +22,7 @@ target:
   use_uniform_position: true
   add_fov_bkg_model: false
   #models_file: "template_model.yaml"
+  #use_catalog: "3fgl"
   components:
   -   name: PG1553+113
       type: SkyModel

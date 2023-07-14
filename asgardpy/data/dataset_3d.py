@@ -133,28 +133,33 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                 # Assigning datasets_names and including them in the final
                 # model list
 
-                # What if there are no associated models?
-                for model_ in models:
-                    model_.datasets_names = [dataset.name]
+                # When no associated list of models are provided, look for a
+                # separate model for target and an entry of catalog to fill in.
+                if len(models) > 0:
+                    for model_ in models:
+                        model_.datasets_names = [dataset.name]
 
-                    if model_.name in models_final.names:  # Should it not be "not in "??
-                        models_final[model_.name].datasets_names.append(dataset.name)
-                    else:
-                        models_final.append(model_)
+                        if model_.name in models_final.names:
+                            models_final[model_.name].datasets_names.append(dataset.name)
+                        else:
+                            models_final.append(model_)
 
                 dataset_instrument.append(dataset)
 
-            # Linking the spectral model of the diffuse model for each key
-            diffuse_models_names = []
-            for model_name in models_final.names:
-                if "diffuse-iso" in model_name:
-                    diffuse_models_names.append(model_name)
+            if len(models_final) > 0:
+                # Linking the spectral model of the diffuse model for each key
+                diffuse_models_names = []
+                for model_name in models_final.names:
+                    if "diffuse-iso" in model_name:
+                        diffuse_models_names.append(model_name)
 
-            if len(diffuse_models_names) > 1:
-                for model_name in diffuse_models_names[1:]:
-                    models_final[diffuse_models_names[0]].spectral_model.model2 = models_final[
-                        model_name
-                    ].spectral_model.model2
+                if len(diffuse_models_names) > 1:
+                    for model_name in diffuse_models_names[1:]:
+                        models_final[diffuse_models_names[0]].spectral_model.model2 = models_final[
+                            model_name
+                        ].spectral_model.model2
+            else:
+                models_final = None
 
             # Get the spectral energy information for each Instrument Dataset
             energy_axes = config_3d_dataset.dataset_info.spectral_energy_range

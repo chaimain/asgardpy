@@ -56,7 +56,7 @@ class AsgardpyAnalysis:
             setattr(self, data_product, None)
 
     @property
-    def models(self):  # Check if it really worked. If not, then just have a ._models
+    def models(self):
         if not self.datasets:
             raise RuntimeError("No datasets defined. Impossible to set models.")
         return self.datasets.models
@@ -104,9 +104,6 @@ class AsgardpyAnalysis:
                         # If the target source has Spatial model included,
                         # only then (?) get all the models as final_model.
                         # Needs reconsideration.
-
-                        # Also, what if there are more than 1 type of 3D
-                        # datasets with each their own list of associated models ??
                         for m in models_list:
                             self.final_model.append(m)
                     else:
