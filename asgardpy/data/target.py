@@ -15,6 +15,7 @@ from gammapy.modeling.models import (
     SPECTRAL_MODEL_REGISTRY,
     DatasetModels,
     EBLAbsorptionNormSpectralModel,
+    FoVBackgroundModel,
     Models,
     SkyModel,
     SpectralModel,
@@ -95,7 +96,7 @@ class Target(BaseConfig):
     sky_position: SkyPositionConfig = SkyPositionConfig()
     use_uniform_position: bool = True
     models_file: PathType = PathType(".")
-    extended: bool = False
+    add_fov_bkg_model: bool = False
     components: List[SkyModelComponent] = [SkyModelComponent()]
     covariance: str = ""
     from_3d: bool = False
@@ -217,7 +218,12 @@ SPECTRAL_MODEL_REGISTRY.append(BrokenPowerLaw2SpectralModel)
 
 # Function for Models assignment
 def set_models(
-    config, datasets, datasets_name_list=None, models=None, target_source_name=None, extend=False
+    config,
+    datasets,
+    datasets_name_list=None,
+    models=None,
+    target_source_name=None,
+    add_fov_bkg_model=False,
 ):
     """
     Set models on given Datasets.
@@ -236,9 +242,9 @@ def set_models(
     target_source_name: str
         Name of the Target source, to use to update only that Model's
         datasets_names, when a list of more than 1 models are provided.
-    extend : bool
-        Extend the existing models on the datasets or replace them with
-        another model, maybe a Background Model. Not worked out currently.
+    add_fov_bkg_model : bool
+        Add a FoVBackgroundModel for 3D Datasets. Maybe this needs another
+        config option from the user.
 
     Returns
     -------
@@ -250,21 +256,38 @@ def set_models(
         models = Models(models)
     elif isinstance(models, PathType):
         models = Models.read(models)
-    elif len(config.components) > 0:
-        spectral_model, spatial_model = read_models_from_asgardpy_config(config)
-        models = Models(
-            SkyModel(
-                spectral_model=spectral_model,
-                spatial_model=spatial_model,
-                name=config.source_name,
-            )
-        )
     else:
         raise TypeError(f"Invalid type: {type(models)}")
 
-    # if extend:
-    # For extending a Background Model
-    #    Models(models).extend(self.bkg_models)
+    if len(models) == 0:
+        if len(config.components) > 0:
+            spectral_model, spatial_model = read_models_from_asgardpy_config(config)
+            models = Models(
+                SkyModel(
+                    spectral_model=spectral_model,
+                    spatial_model=spatial_model,
+                    name=config.source_name,
+                )
+            )
+        else:
+            raise Exception("No input for Models provided!")
+    else:
+        models = apply_selection_mask_to_models(
+            list_sources=models,
+            target_source=config.target.source_name,
+            roi_radius=config.target.roi_selection.roi_radius,
+            free_sources=config.target.roi_selection.free_sources,
+        )
+
+    if add_fov_bkg_model:
+        # For extending a Background Model for each 3D dataset
+        bkg_models = []
+
+        for dataset in datasets:
+            if dataset.tag == "MapDataset" and dataset.background_model is None:
+                bkg_models.append(FoVBackgroundModel(dataset_name=dataset.name))
+
+        models.extend(bkg_models)
 
     if datasets_name_list is None:
         datasets_name_list = datasets.names

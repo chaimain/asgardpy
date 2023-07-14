@@ -8,7 +8,7 @@ from gammapy.modeling.models import Models
 
 from asgardpy.base import AnalysisStep
 from asgardpy.config import AsgardpyConfig
-from asgardpy.data import apply_selection_mask_to_models, set_models
+from asgardpy.data import set_models
 
 log = logging.getLogger(__name__)
 
@@ -56,10 +56,21 @@ class AsgardpyAnalysis:
             setattr(self, data_product, None)
 
     @property
-    def models(self):
+    def models(self):  # Check if it really worked. If not, then just have a ._models
         if not self.datasets:
             raise RuntimeError("No datasets defined. Impossible to set models.")
         return self.datasets.models
+
+    @models.setter
+    def models(self, model):
+        self.datasets = set_models(
+            self.config.target,
+            self.datasets,
+            self.dataset_name_list,
+            models=model,
+            target_source_name=self.config.target.source_name,
+            add_fov_bkg_model=False,
+        )
 
     @property
     def config(self):
@@ -84,18 +95,29 @@ class AsgardpyAnalysis:
         else:
             if overwrite is None:
                 overwrite = True
-        for step in steps:
-            if "datasets" in step:
+
+        dl3_dl4_steps = [step for step in steps if "datasets" in step]
+        dl4_dl5_steps = [step for step in steps if "datasets" not in step]
+
+        if len(dl3_dl4_steps) > 0:
+            self.log.info("Perform DL3 to DL4 process!")
+
+            for step in dl3_dl4_steps:
                 analysis_step = AnalysisStep.create(step, self.config, **kwargs)
+
                 datasets_list, models_list, instrument_spectral_info = analysis_step.run()
 
-                if step == "datasets-3d":
+                if models_list:
+                    # This step is only valid for 3D Datasets which have a list of models
                     target_source_model = models_list[self.config.target.source_name]
 
                     if target_source_model.spatial_model:
                         # If the target source has Spatial model included,
                         # only then (?) get all the models as final_model.
                         # Needs reconsideration.
+
+                        # Also, what if there are more than 1 type of 3D
+                        # datasets with each their own list of associated models ??
                         for m in models_list:
                             self.final_model.append(m)
                     else:
@@ -103,22 +125,11 @@ class AsgardpyAnalysis:
                             f"The target source only has spectral model:{target_source_model}"
                         )
 
-                    # To get all datasets_names from the target source model.
-                    if target_source_model.datasets_names:
-                        for names in target_source_model.datasets_names:
-                            # Only update the list if a new name is found.
-                            if names not in self.dataset_name_list:
-                                self.dataset_name_list.append(names)
-
-                    # Finally, simply update the final datasets list
-                    for data in datasets_list:
-                        self.datasets.append(data)
-
-                if step == "datasets-1d":
-                    for data in datasets_list:
-                        if data.name not in self.dataset_name_list:
-                            self.dataset_name_list.append(data.name)
-                        self.datasets.append(data)
+                # To get all datasets_names from the datasets and update the final datasets list
+                for data in datasets_list:
+                    if data.name not in self.dataset_name_list:
+                        self.dataset_name_list.append(data.name)
+                    self.datasets.append(data)
 
                 # Update the name and spectral energy ranges for each
                 # instrument Datasets, to be used for the FluxPointsAnalysisStep.
@@ -128,38 +139,14 @@ class AsgardpyAnalysis:
                 for edges in instrument_spectral_info["spectral_energy_ranges"]:
                     self.instrument_spectral_info["spectral_energy_ranges"].append(edges)
 
-            else:
-                # Running DL5 functions on a given Datasets object.
-                if step == "fit":
-                    # Confirming the Final Models object for all the datasets
-                    # for the Fit function.
+        self.models(self.final_model)
 
-                    # In case of only 1D dataset being selected, Model is read
-                    # from the config information, by passing None as value.
-                    # It should be reinitialized again with the DatasetModels.
-                    if len(self.final_model) == 0:
-                        self.final_model = None
-                    # Apply selection filter for the ROI if more than 1 models
-                    # are provided in the FoV, that are not the background models.
-                    elif len(self.final_model) > 1:
-                        self.final_model = apply_selection_mask_to_models(
-                            list_sources=self.final_model,
-                            target_source=self.config.target.source_name,
-                            roi_radius=self.config.target.roi_selection.roi_radius,
-                            free_sources=self.config.target.roi_selection.free_sources,
-                        )
+        if len(dl4_dl5_steps) > 0:
+            self.log.info("Perform DL4 to DL5 processes!")
 
-                    self.datasets = set_models(
-                        self.config.target,
-                        self.datasets,
-                        self.dataset_name_list,
-                        models=self.final_model,
-                        target_source_name=self.config.target.source_name,
-                    )
-                    if self.final_model is None:
-                        self.final_model = self.datasets.models
-
+            for step in dl4_dl5_steps:
                 analysis_step = AnalysisStep.create(step, self.config, **kwargs)
+
                 analysis_step.run(
                     datasets=self.datasets, instrument_spectral_info=self.instrument_spectral_info
                 )

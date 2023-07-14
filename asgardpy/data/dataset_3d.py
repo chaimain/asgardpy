@@ -135,13 +135,10 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
 
                 # What if there are no associated models?
                 for model_ in models:
-                    if key:
-                        model_.datasets_names = [f"{config_3d_dataset.name}_{key}"]
-                    else:
-                        model_.datasets_names = [f"{config_3d_dataset.name}"]
+                    model_.datasets_names = [dataset.name]
 
-                    if model_.name in models_final.names:
-                        models_final[model_.name].datasets_names.append(model_.datasets_names[0])
+                    if model_.name in models_final.names:  # Should it not be "not in "??
+                        models_final[model_.name].datasets_names.append(dataset.name)
                     else:
                         models_final.append(model_)
 
