@@ -15,6 +15,7 @@ from gammapy.modeling.models import (
     SPECTRAL_MODEL_REGISTRY,
     DatasetModels,
     EBLAbsorptionNormSpectralModel,
+    FoVBackgroundModel,
     Models,
     SkyModel,
     SpectralModel,
@@ -90,12 +91,19 @@ class RoISelectionConfig(BaseConfig):
     free_sources: List[str] = []
 
 
+class CatalogConfig(BaseConfig):
+    name: str = ""
+    selection_radius: AngleType = 0 * u.deg
+    exclusion_radius: AngleType = 0 * u.deg
+
+
 class Target(BaseConfig):
     source_name: str = ""
     sky_position: SkyPositionConfig = SkyPositionConfig()
     use_uniform_position: bool = True
     models_file: PathType = PathType(".")
-    extended: bool = False
+    add_fov_bkg_model: bool = False
+    use_catalog: CatalogConfig = CatalogConfig()
     components: List[SkyModelComponent] = [SkyModelComponent()]
     covariance: str = ""
     from_3d: bool = False
@@ -217,14 +225,17 @@ SPECTRAL_MODEL_REGISTRY.append(BrokenPowerLaw2SpectralModel)
 
 # Function for Models assignment
 def set_models(
-    config, datasets, datasets_name_list=None, models=None, target_source_name=None, extend=False
+    config_target,
+    datasets,
+    datasets_name_list=None,
+    models=None,
 ):
     """
     Set models on given Datasets.
 
     Parameters
     ----------
-    config: `AsgardpyConfig` or others?
+    config_target: `AsgardpyConfig.target`
         AsgardpyConfig containing target information.
     datasets: `gammapy.datasets.Datasets`
         Datasets object
@@ -233,12 +244,6 @@ def set_models(
         to the given datasets.
     models : `~gammapy.modeling.models.Models` or str
         Models object or YAML models string
-    target_source_name: str
-        Name of the Target source, to use to update only that Model's
-        datasets_names, when a list of more than 1 models are provided.
-    extend : bool
-        Extend the existing models on the datasets or replace them with
-        another model, maybe a Background Model. Not worked out currently.
 
     Returns
     -------
@@ -250,40 +255,54 @@ def set_models(
         models = Models(models)
     elif isinstance(models, PathType):
         models = Models.read(models)
-    elif len(config.components) > 0:
-        spectral_model, spatial_model = read_models_from_asgardpy_config(config)
-        models = Models(
-            SkyModel(
-                spectral_model=spectral_model,
-                spatial_model=spatial_model,
-                name=config.source_name,
-            )
-        )
     else:
         raise TypeError(f"Invalid type: {type(models)}")
 
-    # if extend:
-    # For extending a Background Model
-    #    Models(models).extend(self.bkg_models)
+    if len(models) == 0:
+        if len(config_target.components) > 0:
+            spectral_model, spatial_model = read_models_from_asgardpy_config(config_target)
+            models = Models(
+                SkyModel(
+                    spectral_model=spectral_model,
+                    spatial_model=spatial_model,
+                    name=config_target.source_name,
+                )
+            )
+        else:
+            raise Exception("No input for Models provided for the Target source!")
+    else:
+        models = apply_selection_mask_to_models(
+            list_sources=models,
+            target_source=config_target.source_name,
+            roi_radius=config_target.roi_selection.roi_radius,
+            free_sources=config_target.roi_selection.free_sources,
+        )
+
+    if config_target.add_fov_bkg_model:
+        # For extending a Background Model for each 3D dataset
+        bkg_models = []
+
+        for dataset in datasets:
+            if dataset.tag == "MapDataset" and dataset.background_model is None:
+                bkg_models.append(FoVBackgroundModel(dataset_name=dataset.name))
+
+        models.extend(bkg_models)
 
     if datasets_name_list is None:
         datasets_name_list = datasets.names
 
-    if target_source_name is None:
-        target_source_name = config.source_name
-
     if len(models) > 1:
-        models[target_source_name].datasets_names = datasets_name_list
+        models[config_target.source_name].datasets_names = datasets_name_list
     else:
         models.datasets_names = datasets_name_list
 
     datasets.models = models
 
-    return datasets
+    return datasets, models
 
 
 def apply_selection_mask_to_models(
-    list_sources, target_source=None, selection_mask=None, roi_radius=0 * u.deg, free_sources=[None]
+    list_sources, target_source=None, selection_mask=None, roi_radius=0 * u.deg, free_sources=[]
 ):
     """
     For a given list of source models, with a given target source, apply various
@@ -352,7 +371,7 @@ def apply_selection_mask_to_models(
                 model_.spectral_model.freeze()
     else:
         # For a given list of non free sources, unfreeze the spectral amplitude
-        if free_sources[0]:
+        if len(free_sources) > 0:
             for model_ in list_sources_excluded:
                 # Freeze all spectral parameters for other models
                 if model_.name != target_source:

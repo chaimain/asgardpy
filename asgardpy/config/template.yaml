@@ -20,8 +20,12 @@ target:
   source_name: PG1553+113
   sky_position: &source_pos {frame: icrs, lon: 238.92934976 deg, lat: 11.19010155 deg, radius: 0 deg}
   use_uniform_position: true
-  extended: false
+  add_fov_bkg_model: false
   #models_file: "template_model.yaml"
+  #use_catalog:
+    #name: "3fgl"
+    #selection_radius: 0.4 deg
+    #exclusion_radius: 0.5 deg
   components:
   -   name: PG1553+113
       type: SkyModel

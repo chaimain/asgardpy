@@ -12,6 +12,7 @@ from astropy import units as u
 from astropy.io import fits
 
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
+from gammapy.catalog import CATALOG_REGISTRY
 from gammapy.data import GTI, EventList
 from gammapy.datasets import Datasets, MapDataset
 from gammapy.irf import EDispKernel, EDispKernelMap, PSFMap
@@ -52,6 +53,7 @@ from asgardpy.data.target import (
     create_gal_diffuse_skymodel,
     create_iso_diffuse_skymodel,
     create_source_skymodel,
+    read_models_from_asgardpy_config,
 )
 from asgardpy.io import DL3Files, InputConfig
 
@@ -133,31 +135,33 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                 # Assigning datasets_names and including them in the final
                 # model list
 
-                # What if there are no associated models?
-                for model_ in models:
-                    if key:
-                        model_.datasets_names = [f"{config_3d_dataset.name}_{key}"]
-                    else:
-                        model_.datasets_names = [f"{config_3d_dataset.name}"]
+                # When no associated list of models are provided, look for a
+                # separate model for target and an entry of catalog to fill in.
+                if len(models) > 0:
+                    for model_ in models:
+                        model_.datasets_names = [dataset.name]
 
-                    if model_.name in models_final.names:
-                        models_final[model_.name].datasets_names.append(model_.datasets_names[0])
-                    else:
-                        models_final.append(model_)
+                        if model_.name in models_final.names:
+                            models_final[model_.name].datasets_names.append(dataset.name)
+                        else:
+                            models_final.append(model_)
 
                 dataset_instrument.append(dataset)
 
-            # Linking the spectral model of the diffuse model for each key
-            diffuse_models_names = []
-            for model_name in models_final.names:
-                if "diffuse-iso" in model_name:
-                    diffuse_models_names.append(model_name)
+            if len(models_final) > 0:
+                # Linking the spectral model of the diffuse model for each key
+                diffuse_models_names = []
+                for model_name in models_final.names:
+                    if "diffuse-iso" in model_name:
+                        diffuse_models_names.append(model_name)
 
-            if len(diffuse_models_names) > 1:
-                for model_name in diffuse_models_names[1:]:
-                    models_final[diffuse_models_names[0]].spectral_model.model2 = models_final[
-                        model_name
-                    ].spectral_model.model2
+                if len(diffuse_models_names) > 1:
+                    for model_name in diffuse_models_names[1:]:
+                        models_final[diffuse_models_names[0]].spectral_model.model2 = models_final[
+                            model_name
+                        ].spectral_model.model2
+            else:
+                models_final = None
 
             # Get the spectral energy information for each Instrument Dataset
             energy_axes = config_3d_dataset.dataset_info.spectral_energy_range
@@ -246,6 +250,39 @@ class Dataset3DGeneration:
                 safe_config=self.config_3d_dataset.dataset_info.safe_mask
             )
 
+            # If there is no explicit list of models provided for the 3D data,
+            # one can use one of the several catalogs available in Gammapy.
+            # Reading them as Models will keep the procedure uniform.
+            if len(self.list_sources) == 0:
+                # Read the SkyModel info from AsgardpyConfig.target section
+                if len(self.config_target.components) > 0:
+                    spectral_model, spatial_model = read_models_from_asgardpy_config(
+                        self.config_target
+                    )
+                    self.list_sources.append(
+                        Models(
+                            SkyModel(
+                                spectral_model=spectral_model,
+                                spatial_model=spatial_model,
+                                name=self.config_target.source_name,
+                            )
+                        )
+                    )
+
+                # If a catalog information is provided, use it to build up the list of models
+                # Check if a catalog data is given with selection radius
+                if self.config_target.use_catalog.selection_radius != 0 * u.deg:
+                    catalog = CATALOG_REGISTRY.get_cls(self.config_target.use_catalog.name)()
+
+                    # One can also provide a separate file, but one has to add
+                    # another config option for reading Catalog file paths.
+                    base_geom = self.events["counts_map"].geom.copy()
+                    inside_geom = base_geom.to_image().contains(catalog.positions)
+
+                    idx_list = np.nonzero(inside_geom)[0]
+                    for i in idx_list:
+                        self.list_sources.append(catalog[i].sky_model())
+
             exclusion_mask = get_exclusion_region_mask(
                 exclusion_params=self.config_3d_dataset.dataset_info.background.exclusion,
                 exclusion_regions=exclusion_regions,
@@ -308,6 +345,10 @@ class Dataset3DGeneration:
                 log=self.log,
             )
 
+            # Generate the final dataset
+            dataset = self.generate_dataset(key_name)
+
+        if len(self.list_sources) != 0:
             # Apply the same exclusion mask to the list of source models as applied
             # to the Counts Map
             self.list_sources = apply_selection_mask_to_models(
@@ -315,9 +356,6 @@ class Dataset3DGeneration:
                 target_source=self.config_target.source_name,
                 selection_mask=self.exclusion_mask,
             )
-
-            # Generate the final dataset
-            dataset = self.generate_dataset(key_name)
 
         return dataset, self.list_sources
 
