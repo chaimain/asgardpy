@@ -7,9 +7,11 @@ creating of the appropriate DL4 dataset.
 from enum import Enum
 from typing import List
 
+import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
+from gammapy.catalog import CATALOG_REGISTRY
 from gammapy.data import DataStore
 from gammapy.datasets import MapDataset, SpectrumDataset
 from gammapy.makers import (
@@ -334,10 +336,6 @@ def get_exclusion_region_mask(
     of exclusion regions, config information on the target source and the base
     geometry for the exclusion mask, a background exclusion region mask.
 
-    This may be generalized further to include excluded sources from FoV, which
-    is currently used in the asgardpy.data.target.apply_selection_mask_to_models
-    function and given as parameters in RoISelectionConfig.
-
     Parameters
     ----------
     exclusion_params: `asgardpy.base.reduction.ExclusionRegionsConfig`
@@ -353,7 +351,6 @@ def get_exclusion_region_mask(
         Config information on creating the Base Geometry of the DL4 dataset.
     log: `logging()`
         Common log file.
-
     Return
     ------
     exclusion_mask: `gammapy.maps.WcsNDMap`
@@ -402,6 +399,22 @@ def get_exclusion_region_mask(
             center_pos={"center": center_ex},
         )
 
+    # Check if a catalog data is given with exclusion radius
+    if config_target.use_catalog.exclusion_radius != 0 * u.deg:
+        catalog = CATALOG_REGISTRY.get_cls(config_target.use_catalog.name)()
+
+        # Only use source positions from the Catalog within the base geometry
+        inside_geom = excluded_geom.to_image().contains(catalog.positions)
+
+        idx_list = np.nonzero(inside_geom)[0]
+        for i in idx_list:
+            exclusion_regions.append(
+                CircleSkyRegion(
+                    center=catalog[i].position,
+                    radius=config_target.use_catalog.exclusion_radius,
+                )
+            )
+
     # Apply the exclusion regions mask on the base geometry to get the final
     # boolean mask
     if len(exclusion_regions) > 0:
@@ -443,9 +456,9 @@ def get_bkg_maker(bkg_config, exclusion_mask, log):
             region_finder=region_finder, exclusion_mask=exclusion_mask
         )
     elif bkg_config.method == "fov_background":
-        bkg_maker = FoVBackgroundMaker(**bkg_config.parameters)
+        bkg_maker = FoVBackgroundMaker(exclusion_mask=exclusion_mask, **bkg_config.parameters)
     elif bkg_config.method == "ring":
-        bkg_maker = RingBackgroundMaker(**bkg_config.parameters)
+        bkg_maker = RingBackgroundMaker(exclusion_mask=exclusion_mask, **bkg_config.parameters)
     else:
         bkg_maker = None
 

@@ -8,7 +8,6 @@ from typing import List
 import astropy.units as u
 import numpy as np
 from astropy.coordinates import SkyCoord
-from gammapy.catalog import CATALOG_REGISTRY
 from gammapy.maps import Map
 from gammapy.modeling import Parameter, Parameters
 from gammapy.modeling.models import (
@@ -92,13 +91,19 @@ class RoISelectionConfig(BaseConfig):
     free_sources: List[str] = []
 
 
+class CatalogConfig(BaseConfig):
+    name: str = ""
+    selection_radius: AngleType = 0 * u.deg
+    exclusion_radius: AngleType = 0 * u.deg
+
+
 class Target(BaseConfig):
     source_name: str = ""
     sky_position: SkyPositionConfig = SkyPositionConfig()
     use_uniform_position: bool = True
     models_file: PathType = PathType(".")
     add_fov_bkg_model: bool = False
-    use_catalog: str = ""
+    use_catalog: CatalogConfig = CatalogConfig()
     components: List[SkyModelComponent] = [SkyModelComponent()]
     covariance: str = ""
     from_3d: bool = False
@@ -263,21 +268,8 @@ def set_models(
                     name=config_target.source_name,
                 )
             )
-            # If there is no explicit list of models provided for the 3D data,
-            # one can use one of the several catalogs available in Gammapy.
-            # Reading them as Models will keep the procedure uniform.
-
-            # Note, in this case the target config should have spatial model
-            # in the above step!
-
-            if config_target.use_catalog != "":
-                catalog_models = CATALOG_REGISTRY.get_cls(config_target.use_catalog)().to_models()
-                # One can also provide a separate file, but one has to add
-                # another config option for reading Catalog file paths.
-                models.extend(catalog_models)
-
         else:
-            raise Exception("No input for Models provided!")
+            raise Exception("No input for Models provided for the Target source!")
     else:
         models = apply_selection_mask_to_models(
             list_sources=models,

@@ -12,6 +12,7 @@ from astropy import units as u
 from astropy.io import fits
 
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
+from gammapy.catalog import CATALOG_REGISTRY
 from gammapy.data import GTI, EventList
 from gammapy.datasets import Datasets, MapDataset
 from gammapy.irf import EDispKernel, EDispKernelMap, PSFMap
@@ -52,6 +53,7 @@ from asgardpy.data.target import (
     create_gal_diffuse_skymodel,
     create_iso_diffuse_skymodel,
     create_source_skymodel,
+    read_models_from_asgardpy_config,
 )
 from asgardpy.io import DL3Files, InputConfig
 
@@ -248,6 +250,38 @@ class Dataset3DGeneration:
                 safe_config=self.config_3d_dataset.dataset_info.safe_mask
             )
 
+            # If there is no explicit list of models provided for the 3D data,
+            # one can use one of the several catalogs available in Gammapy.
+            # Reading them as Models will keep the procedure uniform.
+            if len(self.list_sources) == 0:
+                # Read the SkyModel info from AsgardpyConfig.target section
+                if len(self.config_target.components) > 0:
+                    spectral_model, spatial_model = read_models_from_asgardpy_config(
+                        self.config_target
+                    )
+                    self.list_sources.append(
+                        Models(
+                            SkyModel(
+                                spectral_model=spectral_model,
+                                spatial_model=spatial_model,
+                                name=self.config_target.source_name,
+                            )
+                        )
+                    )
+
+                # If a catalog information is provided, use it to build up the list of models
+                # Check if a catalog data is given with selection radius
+                if self.config_target.use_catalog.selection_radius != 0 * u.deg:
+                    catalog = CATALOG_REGISTRY.get_cls(self.config_target.use_catalog.name)()
+
+                    # One can also provide a separate file, but one has to add
+                    # another config option for reading Catalog file paths.
+                    base_geom = self.events["counts_map"].geom.copy()
+                    inside_geom = base_geom.to_image().contains(catalog.positions)
+
+                    idx_list = np.nonzero(inside_geom)[0]
+                    self.list_sources.append([catalog[i].sky_model() for i in idx_list])
+
             exclusion_mask = get_exclusion_region_mask(
                 exclusion_params=self.config_3d_dataset.dataset_info.background.exclusion,
                 exclusion_regions=exclusion_regions,
@@ -310,6 +344,10 @@ class Dataset3DGeneration:
                 log=self.log,
             )
 
+            # Generate the final dataset
+            dataset = self.generate_dataset(key_name)
+
+        if len(self.list_sources) != 0:
             # Apply the same exclusion mask to the list of source models as applied
             # to the Counts Map
             self.list_sources = apply_selection_mask_to_models(
@@ -317,9 +355,6 @@ class Dataset3DGeneration:
                 target_source=self.config_target.source_name,
                 selection_mask=self.exclusion_mask,
             )
-
-            # Generate the final dataset
-            dataset = self.generate_dataset(key_name)
 
         return dataset, self.list_sources
 
