@@ -25,9 +25,14 @@ The steps are:
 
 #. flux-points :class:`asgardpy.data.dl4.FluxPointsAnalysisStep`
 
-The main purpose of this pipeline is accomplished before the "fit" step, which is to compile a Gammapy Datasets object
-containing multiple types of datasets from multiple gamma-ray astronomical instruments, update them with appropriate
-Gammapy Models object. These are then run with the standard Gammapy high-level analysis functions to get the DL5 products.
+The main purpose of this pipeline is accomplished for -
+
+#. performing DL3 to DL4 for a joint dataset - to compile a joint Gammapy Datasets (DL4) object
+containing multiple types of datasets from DL3 files of multiple gamma-ray astronomical instruments
+
+#. update the joint DL4 data with appropriate Gammapy Models object.
+
+#. perform DL4 to DL5 (SED only) after performing joint-likelihood fitting.
 
 
 .. image:: ./_static/asgardpy_workflow.png
@@ -71,6 +76,36 @@ Models
 ------
 
 The :doc:`_api_docs/data_target_b` contains various classes for various Models objects and :doc:`_api_docs/data_target_f` contains various functions for handling them.
+
+
+The information regarding the model to be used for the target source is given by :class:`asgardpy.data.target.Target` and the various input options are -
+
+#. Include the model information in :func:`AsgardpyConfig.target.components`
+
+#. Include the path for a separate model file in :attr:`AsgardpyConfig.target.models_file`
+
+#. Use :attr:`AsgardpyConfig.target.from_3d` = True, if the model is included in the list of Models provided with the 3D Dataset
+
+
+The list of associated Models can be provided by -
+
+#. Using a file provided along with the DL3 data of the 3D data (XML type for Fermi-LAT)
+
+#. Using a Catalog available in Gammapy, by adding information in :attr:`AsgardpyConfig.target.use_catalog`
+
+
+While combining DL4 datasets from multiple instruments, the positions of the target source, included within these data, may not be exactly the same.
+This will cause computation issue for the binned analysis performed with Gammapy. To resolve this issue, use :attr:`AsgardpyConfig.target.use_uniform_position` = True.
+
+
+To add a Gammapy `FoVBackgroundModel` to the 3D dataset, use :attr:`AsgardpyConfig.target.add_fov_bkg_model` = True
+
+
+The :py:func:`asgardpy.data.target.apply_selection_mask_to_models` function is used to apply various selections on the given list of models.
+
+
+To perform some tests on the preference of the assumed spectral model of the target source, use either :func:`asgardpy.data.target.check_model_preference_lrt` or :func:`asgardpy.data.target.check_model_preference_aic`.
+
 
 High-level Analysis
 -------------------
