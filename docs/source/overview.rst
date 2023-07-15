@@ -27,8 +27,7 @@ The steps are:
 
 The main purpose of this pipeline is accomplished for -
 
-#. performing DL3 to DL4 for a joint dataset - to compile a joint Gammapy Datasets (DL4) object
-containing multiple types of datasets from DL3 files of multiple gamma-ray astronomical instruments
+#. performing DL3 data from multiple gamma-ray astronomical instruments to a joint DL4 dataset.
 
 #. update the joint DL4 data with appropriate Gammapy Models object.
 

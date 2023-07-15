@@ -21,11 +21,15 @@ __all__ = [
 
 # Defining various components of High-level Analysis Config
 class BackendEnum(str, Enum):
+    """Config section for a list Fitting backend methods."""
+
     minuit = "minuit"
     scipy = "scipy"
 
 
 class FitConfig(BaseConfig):
+    """Config section for parameters to use for Fit function."""
+
     fit_range: EnergyRangeConfig = EnergyRangeConfig()
     backend: BackendEnum = BackendEnum.minuit
     optimize_opts: dict = {}
@@ -35,6 +39,8 @@ class FitConfig(BaseConfig):
 
 
 class FluxPointsConfig(BaseConfig):
+    """Config section for parameters to use for FluxPointsEstimator function."""
+
     parameters: dict = {"selection_optional": "all"}
     reoptimize: bool = False
 
@@ -101,13 +107,13 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
         datasets, energy_edges = self._sort_datasets_info()
 
         for dataset, energy_edges in zip(datasets, energy_edges):
-            self._set_fpe(dataset, energy_edges)
+            self._set_fpe(energy_edges)
             flux_points = self.fpe.run(datasets=dataset)
             flux_points.name = dataset.names
 
             self.flux_points.append(flux_points)
 
-    def _set_fpe(self, dataset, energy_bin_edges):
+    def _set_fpe(self, energy_bin_edges):
         """
         Setup the Gammapy FluxPointsEstimator function with all the
         provided parameters.

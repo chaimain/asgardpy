@@ -50,6 +50,8 @@ log = logging.getLogger(__name__)
 
 # Defining various components of 1D Dataset Config section
 class Dataset1DInfoConfig(BaseConfig):
+    """Config section for 1D DL3 Dataset Reduction for each instrument."""
+
     name: str = "dataset-name"
     geom: GeomConfig = GeomConfig()
     observation: ObservationsConfig = ObservationsConfig()
@@ -62,12 +64,18 @@ class Dataset1DInfoConfig(BaseConfig):
 
 
 class Dataset1DBaseConfig(BaseConfig):
+    """
+    Config section for 1D DL3 Dataset base information for each instrument.
+    """
+
     name: str = "Instrument-name"
     io: List[InputConfig] = [InputConfig()]
     dataset_info: Dataset1DInfoConfig = Dataset1DInfoConfig()
 
 
 class Dataset1DConfig(BaseConfig):
+    """Config section for a list of all 1D DL3 Datasets information."""
+
     type: ReductionTypeEnum = ReductionTypeEnum.spectrum
     instruments: List[Dataset1DBaseConfig] = [Dataset1DBaseConfig()]
 
@@ -198,7 +206,6 @@ class Dataset1DGeneration:
         bkg_maker = get_bkg_maker(
             bkg_config=self.config_1d_dataset_info.background,
             exclusion_mask=exclusion_mask,
-            log=self.log,
         )
 
         # Produce the final Dataset

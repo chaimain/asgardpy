@@ -19,6 +19,11 @@ EXPECTED_DL3_RANGE = ["gadf-dl3", "lat", "lat-aux"]
 
 # Basic Components for the Input Config
 class InputFilePatterns(BaseConfig):
+    """
+    Config section for list of file patterns to use for fetching relevant DL3
+    files.
+    """
+
     events: str = "*events.fits*"
     edisp: str = "*DRM.fits*"
     exposure: str = "*BinnedMap.fits*"
@@ -32,6 +37,10 @@ class InputFilePatterns(BaseConfig):
 
 
 class InputConfig(BaseConfig):
+    """
+    Config section for main information on getting the relevant DL3 files.
+    """
+
     type: str = "type"
     input_dir: PathType = PathType(".")
     glob_pattern: dict = {}
@@ -136,15 +145,15 @@ class DL3Files:
                         "iso_diff_files",
                     ]
             if isinstance(self.iso_diff_files, list):
-                self.iso_gal_f = self.iso_diff_files[0]
+                setattr(self, "iso_gal_f", self.iso_diff_files[0])
             else:
-                self.iso_gal_f = self.iso_diff_files
+                setattr(self, "iso_gal_f", self.iso_diff_files)
             file_list["iso_diff_file"] = self.iso_gal_f
 
             if isinstance(self.gal_diff_files, list):
-                self.diff_gal_f = self.gal_diff_files[0]
+                setattr(self, "diff_gal_f", self.gal_diff_files[0])
             else:
-                self.diff_gal_f = self.gal_diff_files
+                setattr(self, "diff_gal_f", self.gal_diff_files)
             file_list["gal_diff_file"] = self.diff_gal_f
 
         if len(var_list) > 0:

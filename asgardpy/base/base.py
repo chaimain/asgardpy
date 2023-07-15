@@ -86,11 +86,15 @@ class PathType(str):
 
 
 class FrameEnum(str, Enum):
+    """Config section for list of frames on creating a SkyCoord object."""
+
     icrs = "icrs"
     galactic = "galactic"
 
 
 class TimeFormatEnum(str, Enum):
+    """Config section for list of formats for creating a Time object."""
+
     datetime = "datetime"
     fits = "fits"
     iso = "iso"
@@ -101,6 +105,10 @@ class TimeFormatEnum(str, Enum):
 
 
 class BaseConfig(BaseModel):
+    """
+    Base Config class for creating other Config sections with specific encoders.
+    """
+
     class Config:
         validate_all = True
         validate_assignment = True
@@ -114,11 +122,16 @@ class BaseConfig(BaseModel):
 
 
 class AnalysisStepBase(abc.ABC):
+    """Config section for creating a basic AsgardpyAnalysis Step."""
+
     tag = "analysis-step"
 
     def __init__(self, config, log=None, overwrite=True):
         self.config = config
         self.overwrite = overwrite
+
+        self.datasets = None
+        self.instrument_spectral_info = None
 
         if log is None:
             log = logging.getLogger(__name__)
@@ -156,6 +169,8 @@ class AnalysisStep:
 
 
 class AnalysisStepEnum(str, Enum):
+    """Config section for list of Analysis Steps."""
+
     datasets_1d = "datasets-1d"
     datasets_3d = "datasets-3d"
     fit = "fit"
@@ -164,15 +179,30 @@ class AnalysisStepEnum(str, Enum):
 
 # Basic Quantity ranges Type for building the Config
 class TimeRangeConfig(BaseConfig):
+    """
+    Config section for getting a time range information for creating a Time
+    object.
+    """
+
     start: TimeType = Time("0", format="mjd")
     stop: TimeType = Time("0", format="mjd")
 
 
 class TimeIntervalsConfig(BaseConfig):
+    """
+    Config section for getting main information for creating a Time Intervals
+    object.
+    """
+
     format: TimeFormatEnum = TimeFormatEnum.iso
     intervals: List[TimeRangeConfig] = [TimeRangeConfig()]
 
 
 class EnergyRangeConfig(BaseConfig):
+    """
+    Config section for getting a energy range information for creating an
+    Energy type Quantity object.
+    """
+
     min: EnergyType = 1 * u.GeV
     max: EnergyType = 1 * u.TeV

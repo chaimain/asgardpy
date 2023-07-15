@@ -51,6 +51,10 @@ __all__ = [
 
 # Basic components to define the Target Config and any Models Config
 class EBLAbsorptionModel(BaseConfig):
+    """
+    Config section for parameters to use for EBLAbsorptionNormSpectralModel.
+    """
+
     filename: PathType = PathType(".")
     reference: str = "dominguez"
     type: str = "EBLAbsorptionNormSpectralModel"
@@ -59,6 +63,8 @@ class EBLAbsorptionModel(BaseConfig):
 
 
 class ModelParams(BaseConfig):
+    """Config section for parameters to use for a basic Parameter object."""
+
     name: str = ""
     value: float = 1
     unit: str = " "
@@ -69,17 +75,27 @@ class ModelParams(BaseConfig):
 
 
 class SpectralModelConfig(BaseConfig):
+    """
+    Config section for parameters to use for creating a SpectralModel object.
+    """
+
     type: str = ""
     parameters: List[ModelParams] = [ModelParams()]
     ebl_abs: EBLAbsorptionModel = EBLAbsorptionModel()
 
 
 class SpatialModelConfig(BaseConfig):
+    """
+    Config section for parameters to use for creating a SpatialModel object.
+    """
+
     type: str = ""
     parameters: List[ModelParams] = [ModelParams()]
 
 
 class SkyModelComponent(BaseConfig):
+    """Config section for parameters to use for creating a SkyModel object."""
+
     name: str = ""
     type: str = "SkyModel"
     spectral: SpectralModelConfig = SpectralModelConfig()
@@ -87,17 +103,26 @@ class SkyModelComponent(BaseConfig):
 
 
 class RoISelectionConfig(BaseConfig):
+    """
+    Config section for parameters to perform some selection on FoV source
+    models.
+    """
+
     roi_radius: AngleType = 0 * u.deg
     free_sources: List[str] = []
 
 
 class CatalogConfig(BaseConfig):
+    """Config section for parameters to use information from Catalog."""
+
     name: str = ""
     selection_radius: AngleType = 0 * u.deg
     exclusion_radius: AngleType = 0 * u.deg
 
 
 class Target(BaseConfig):
+    """Config section for main information on creating various Models."""
+
     source_name: str = ""
     sky_position: SkyPositionConfig = SkyPositionConfig()
     use_uniform_position: bool = True
@@ -153,11 +178,11 @@ class ExpCutoffLogParabolaSpectralModel(SpectralModel):
     @staticmethod
     def evaluate(energy, amplitude, reference, alpha_1, beta, lambda_, alpha_2):
         """Evaluate the model (static function)."""
-        xx = energy / reference
-        exponent = -alpha_1 - beta * np.log(xx)
+        en_ref = energy / reference
+        exponent = -alpha_1 - beta * np.log(en_ref)
         cutoff = np.exp(-np.power(energy * lambda_, alpha_2))
 
-        return amplitude * np.power(xx, exponent) * cutoff
+        return amplitude * np.power(en_ref, exponent) * cutoff
 
 
 class BrokenPowerLaw2SpectralModel(SpectralModel):
@@ -251,7 +276,7 @@ def set_models(
         Datasets object with Models assigned.
     """
     # Have some checks on argument types
-    if isinstance(models, DatasetModels) or isinstance(models, list):
+    if isinstance(models, (DatasetModels, list)):
         models = Models(models)
     elif isinstance(models, PathType):
         models = Models.read(models)
