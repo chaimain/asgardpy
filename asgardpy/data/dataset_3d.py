@@ -280,7 +280,8 @@ class Dataset3DGeneration:
                     inside_geom = base_geom.to_image().contains(catalog.positions)
 
                     idx_list = np.nonzero(inside_geom)[0]
-                    self.list_sources.append([catalog[i].sky_model() for i in idx_list])
+                    for i in idx_list:
+                        self.list_sources.append(catalog[i].sky_model())
 
             exclusion_mask = get_exclusion_region_mask(
                 exclusion_params=self.config_3d_dataset.dataset_info.background.exclusion,
