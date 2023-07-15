@@ -30,6 +30,8 @@ log = logging.getLogger(__name__)
 
 # Other general config params
 class LogConfig(BaseConfig):
+    """Config section for main logging information."""
+
     level: str = "info"
     filename: str = ""
     filemode: str = "w"
@@ -38,11 +40,15 @@ class LogConfig(BaseConfig):
 
 
 class ParallelBackendEnum(str, Enum):
+    """Config section for list of parallel processing backend methods."""
+
     multi = "multiprocessing"
     ray = "ray"
 
 
 class GeneralConfig(BaseConfig):
+    """Config section for general information for running AsgardpyAnalysis."""
+
     log: LogConfig = LogConfig()
     outdir: PathType = PathType(".")
     n_jobs: int = 1

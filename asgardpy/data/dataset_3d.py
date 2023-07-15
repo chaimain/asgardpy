@@ -70,6 +70,8 @@ log = logging.getLogger(__name__)
 
 # Defining various components of 3D Dataset Config section
 class Dataset3DInfoConfig(BaseConfig):
+    """Config section for 3D DL3 Dataset Reduction for each instrument."""
+
     name: str = "dataset-name"
     key: List = []
     observation: ObservationsConfig = ObservationsConfig()
@@ -83,12 +85,18 @@ class Dataset3DInfoConfig(BaseConfig):
 
 
 class Dataset3DBaseConfig(BaseConfig):
+    """
+    Config section for 3D DL3 Dataset base information for each instrument.
+    """
+
     name: str = "Instrument-name"
     io: List[InputConfig] = [InputConfig()]
     dataset_info: Dataset3DInfoConfig = Dataset3DInfoConfig()
 
 
 class Dataset3DConfig(BaseConfig):
+    """Config section for a list of all 3D DL3 Datasets information."""
+
     type: ReductionTypeEnum = ReductionTypeEnum.cube
     instruments: List[Dataset3DBaseConfig] = [Dataset3DBaseConfig()]
 
@@ -227,7 +235,7 @@ class Dataset3DGeneration:
 
         if self.config_3d_dataset.io[0].type == "gadf-dl3":
             observations = get_filtered_observations(
-                dl3_path=self.config_3d_dataset_io[0].input_dir,
+                dl3_path=self.config_3d_dataset.io[0].input_dir,
                 obs_config=self.config_3d_dataset.dataset_info.observation,
                 log=self.log,
             )
@@ -295,7 +303,6 @@ class Dataset3DGeneration:
             bkg_maker = get_bkg_maker(
                 bkg_config=self.config_3d_dataset.dataset_info.background,
                 exclusion_mask=exclusion_mask,
-                log=self.log,
             )
 
             dataset = generate_dl4_dataset(

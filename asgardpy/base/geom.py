@@ -34,6 +34,11 @@ __all__ = [
 
 # Basic Components to define the main GeomConfig
 class EnergyAxisConfig(BaseConfig):
+    """
+    Config section for getting main information for creating an Energy type
+    MapAxis object.
+    """
+
     min: EnergyType = 1 * u.GeV
     max: EnergyType = 1 * u.TeV
     nbins: int = 5
@@ -41,26 +46,47 @@ class EnergyAxisConfig(BaseConfig):
 
 
 class EnergyEdgesCustomConfig(BaseConfig):
+    """
+    Config section for getting information of energy edges for creating an
+    Energy type MapAxis object.
+    """
+
     edges: List[float] = []
     unit: str = "TeV"
 
 
 class MapAxesConfig(BaseConfig):
+    """
+    Config section for getting main information for creating a MapAxis object.
+    """
+
     name: str = "energy"
     axis: EnergyAxisConfig = EnergyAxisConfig()
     axis_custom: EnergyEdgesCustomConfig = EnergyEdgesCustomConfig()
 
 
 class SelectionConfig(BaseConfig):
+    """
+    Config section for extra selection criteria on creating a MapDataset object.
+    """
+
     offset_max: AngleType = 2.5 * u.deg
 
 
 class MapFrameShapeConfig(BaseConfig):
+    """
+    Config section for getting frame size information for creating a Map object.
+    """
+
     width: AngleType = 5 * u.deg
     height: AngleType = 5 * u.deg
 
 
 class SkyPositionConfig(BaseConfig):
+    """
+    Config section for getting main information for creating a SkyCoord object.
+    """
+
     frame: FrameEnum = FrameEnum.icrs
     lon: AngleType = 0 * u.deg
     lat: AngleType = 0 * u.deg
@@ -68,11 +94,18 @@ class SkyPositionConfig(BaseConfig):
 
 
 class ProjectionEnum(str, Enum):
+    """Config section for list of sky projection methods."""
+
     tan = "TAN"
     car = "CAR"
 
 
 class WcsConfig(BaseConfig):
+    """
+    Config section for getting main sky projection information for creating a
+    base Geometry.
+    """
+
     skydir: SkyPositionConfig = SkyPositionConfig()
     binsize: AngleType = 0.1 * u.deg
     proj: ProjectionEnum = ProjectionEnum.tan
@@ -81,6 +114,10 @@ class WcsConfig(BaseConfig):
 
 
 class GeomConfig(BaseConfig):
+    """
+    Config section for getting main information for creating a base Geometry.
+    """
+
     wcs: WcsConfig = WcsConfig()
     selection: SelectionConfig = SelectionConfig()
     axes: List[MapAxesConfig] = [MapAxesConfig()]

@@ -62,11 +62,20 @@ __all__ = [
 
 # Basic Components to define the various Dataset Reduction Maker Config
 class ReductionTypeEnum(str, Enum):
+    """
+    Config section for list of DL3 Dataset Reduction methods used in Gammapy.
+    """
+
     spectrum = "1d"
     cube = "3d"
 
 
 class RequiredHDUEnum(str, Enum):
+    """
+    Config section for list of HDU objects required for reading the DL3 file
+    into a Dataset object.
+    """
+
     aeff = "aeff"
     bkg = "bkg"
     edisp = "edisp"
@@ -77,6 +86,11 @@ class RequiredHDUEnum(str, Enum):
 
 
 class ObservationsConfig(BaseConfig):
+    """
+    Config section for getting main information for creating an Observations
+    object.
+    """
+
     obs_ids: List[int] = []
     obs_file: PathType = PathType(".")
     obs_time: TimeIntervalsConfig = TimeIntervalsConfig()
@@ -85,17 +99,32 @@ class ObservationsConfig(BaseConfig):
 
 
 class BackgroundMethodEnum(str, Enum):
+    """
+    Config section for list of methods for creating Background Reduction
+    Makers object.
+    """
+
     reflected = "reflected"
     fov = "fov_background"
     ring = "ring"
 
 
 class BackgroundRegionFinderMethodEnum(str, Enum):
+    """
+    Config section for list of background region finder methods for creating
+    the Background Reduction Makers object.
+    """
+
     reflected = "reflected"
     wobble = "wobble"
 
 
 class ReflectedRegionFinderConfig(BaseConfig):
+    """
+    Config section for getting main information for creating a
+    ReflectedRegionsFinder object.
+    """
+
     angle_increment: AngleType = 0.01 * u.deg
     min_distance: AngleType = 0.1 * u.deg
     min_distance_input: AngleType = 0.1 * u.deg
@@ -104,11 +133,20 @@ class ReflectedRegionFinderConfig(BaseConfig):
 
 
 class WobbleRegionsFinderConfig(BaseConfig):
+    """
+    Config section for getting main information for creating a
+    WobbleRegionsFinder object.
+    """
+
     n_off_regions: int = 1
     binsz: AngleType = 0.05 * u.deg
 
 
 class RegionsConfig(BaseConfig):
+    """
+    Config section for getting main information for creating a Regions object.
+    """
+
     type: str = ""
     name: str = ""
     position: SkyPositionConfig = SkyPositionConfig()
@@ -116,11 +154,21 @@ class RegionsConfig(BaseConfig):
 
 
 class ExclusionRegionsConfig(BaseConfig):
+    """
+    Config section for getting information on exclusion regions for creating
+    an Exclusion Mask object.
+    """
+
     target_source: bool = True
     regions: List[RegionsConfig] = []
 
 
 class SafeMaskMethodsEnum(str, Enum):
+    """
+    Config section for list of methods for creating Safe Mask Reduction Makers
+    object.
+    """
+
     aeff_default = "aeff-default"
     aeff_max = "aeff-max"
     edisp_bias = "edisp-bias"
@@ -130,6 +178,10 @@ class SafeMaskMethodsEnum(str, Enum):
 
 
 class MapSelectionEnum(str, Enum):
+    """
+    Config section for list of methods for creating a Dataset Maker object.
+    """
+
     counts = "counts"
     exposure = "exposure"
     background = "background"
@@ -139,6 +191,11 @@ class MapSelectionEnum(str, Enum):
 
 # Dataset Reduction Makers config
 class BackgroundConfig(BaseConfig):
+    """
+    Config section for getting main information for creating a Background
+    Reduction Makers object.
+    """
+
     method: BackgroundMethodEnum = BackgroundMethodEnum.reflected
     region_finder_method: BackgroundRegionFinderMethodEnum = BackgroundRegionFinderMethodEnum.wobble
     parameters: dict = {}
@@ -146,6 +203,11 @@ class BackgroundConfig(BaseConfig):
 
 
 class SafeMaskConfig(BaseConfig):
+    """
+    Config section for getting main information for creating a Safe Mask Makers
+    object.
+    """
+
     methods: List[SafeMaskMethodsEnum] = []
     parameters: dict = {}
 
@@ -425,7 +487,7 @@ def get_exclusion_region_mask(
     return exclusion_mask
 
 
-def get_bkg_maker(bkg_config, exclusion_mask, log):
+def get_bkg_maker(bkg_config, exclusion_mask):
     """
     Generate Background reduction maker by including a boolean exclusion mask,
     with methods to find background normalization using the information
@@ -438,8 +500,6 @@ def get_bkg_maker(bkg_config, exclusion_mask, log):
         normalization maker for dataset reduction.
     exclusion_mask: `gammapy.maps.WcsNDMap`
         Boolean region mask for the exclusion regions
-    log: `logging()`
-        Common log file.
 
     Return
     ------
