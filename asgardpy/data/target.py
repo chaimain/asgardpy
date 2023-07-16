@@ -986,7 +986,7 @@ def get_chi2_pval(stat_h0, stat_h1, ndof):
     counts (1D) information to evaluate the likelihood value for the signal.
 
     The alternate hypothesis is by adding the Model parameters, to the
-    likelihood evaluation of the signal. 
+    likelihood evaluation of the signal.
 
     Parameters
     ----------

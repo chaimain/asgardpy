@@ -68,13 +68,15 @@ class FitAnalysisStep(AnalysisStepBase):
         chi2_, pval_ = get_chi2_pval(
             np.sum(self.instrument_spectral_info["stat_H0"]),
             self.instrument_spectral_info["stat_H1"],
-            self.instrument_spectral_info["DoF"]
+            self.instrument_spectral_info["DoF"],
         )
         self.instrument_spectral_info["chi2"] = chi2_
         self.instrument_spectral_info["p-value"] = pval_
 
-        stat_message = f'The Chi2/dof value of the Fit is {chi2_:.2f}/{self.instrument_spectral_info["DoF"]}'
-        stat_message += f'\nand the p-value is {pval_:.3e}'
+        stat_message = (
+            f'The Chi2/dof value of the Fit is {chi2_:.2f}/{self.instrument_spectral_info["DoF"]}'
+        )
+        stat_message += f"\nand the p-value is {pval_:.3e}"
 
         self.log.info(self.fit_result)
         self.log.info(stat_message)
@@ -142,7 +144,7 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
             n_jobs=self.config.general.n_jobs,
             parallel_backend=self.config.general.parallel_backend,
             reoptimize=self.config.flux_points_params.reoptimize,
-            **fpe_settings
+            **fpe_settings,
         )
 
     def _sort_datasets_info(self):
