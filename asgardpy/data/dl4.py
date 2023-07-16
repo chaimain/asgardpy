@@ -4,12 +4,14 @@ Main classes to define High-level Analysis Config and the Analysis Steps.
 
 from enum import Enum
 
+import numpy as np
 from astropy import units as u
 from gammapy.datasets import Datasets
 from gammapy.estimators import FluxPointsEstimator
 from gammapy.modeling import Fit
 
 from asgardpy.base import AnalysisStepBase, BaseConfig, EnergyRangeConfig
+from asgardpy.data.target import get_chi2_pval
 
 __all__ = [
     "FitAnalysisStep",
@@ -61,7 +63,21 @@ class FitAnalysisStep(AnalysisStepBase):
         final_dataset = self._set_datasets()
         self.fit_result = self.fit.run(datasets=final_dataset)
 
+        self.instrument_spectral_info["stat_H1"] = self.fit_result.total_stat
+
+        chi2_, pval_ = get_chi2_pval(
+            np.sum(self.instrument_spectral_info["stat_H0"]),
+            self.instrument_spectral_info["stat_H1"],
+            self.instrument_spectral_info["DoF"]
+        )
+        self.instrument_spectral_info["chi2"] = chi2_
+        self.instrument_spectral_info["p-value"] = pval_
+
+        stat_message = f'The Chi2/dof value of the Fit is {chi2_:.2f}/{self.instrument_spectral_info["DoF"]}'
+        stat_message += f'\nand the p-value is {pval_:.3e}'
+
         self.log.info(self.fit_result)
+        self.log.info(stat_message)
 
     def _setup_fit(self):
         """

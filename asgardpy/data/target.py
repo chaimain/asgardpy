@@ -40,6 +40,7 @@ __all__ = [
     "create_gal_diffuse_skymodel",
     "create_iso_diffuse_skymodel",
     "create_source_skymodel",
+    "get_chi2_pval",
     "params_renaming_to_gammapy",
     "params_rescale_to_gammapy",
     "read_models_from_asgardpy_config",
@@ -970,21 +971,65 @@ def create_gal_diffuse_skymodel(diff_gal):
     return source
 
 
-def check_model_preference_lrt(result1, result2, model1, model2):
+def get_chi2_pval(stat_h0, stat_h1, ndof):
+    """
+    Using the log-likelihood value for the null hypothesis (H0) and the
+    alternate hypothesis (H1), along with the total degrees of freedom,
+    evaluate the chi2 value along with the p-value for the fitting statistics.
+
+    In Gammapy, for 3D analysis, cash statistics is used, while for 1D analysis,
+    wstat statistics is used. Check the documentation for more details
+    https://docs.gammapy.org/1.1/user-guide/stats/index.html
+
+    The null hypothesis here is the total statistics of the DL4 dataset without
+    using any model information, and just using the background (3D) or OFF
+    counts (1D) information to evaluate the likelihood value for the signal.
+
+    The alternate hypothesis is by adding the Model parameters, to the
+    likelihood evaluation of the signal. 
+
+    Parameters
+    ----------
+    stat_h0: float
+        log-likelihood value of the null hypothesis.
+    stat_h1: float
+        log-likelihood value of the alternate hypothesis.
+    ndof: int
+        Total number of degrees of freedom.
+
+    Returns
+    -------
+    chi2_: float
+        significance (Chi2) of the likelihood of primary fit model estimated in
+        Gaussian distribution.
+    pval: float
+        p-value or the surviving probability...
+
+    """
+    pval = chi2.sf(stat_h0 - stat_h1, ndof)
+    chi2_ = norm.isf(pval / 2)
+
+    if not np.isfinite(chi2_):
+        chi2_ = np.sqrt((stat_h0 - stat_h1))
+
+    return chi2_, pval
+
+
+def check_model_preference_lrt(stat_1, stat_2, ndof_1, ndof_2):
     """
     Log-likelihood ratio test. Checking the preference of a "nested" spectral
     model2 (observed), over a primary model1.
 
     Parameters
     ----------
-    result1: `gammapy.modeling.fit.FitResult`
-        Fit result of the primary spectral model.
-    result2: `gammapy.modeling.fit.FitResult`
-        Fit result of the nested spectral model.
-    model1: `gammapy.modeling.models.spectral.SpectralModel`
-        Primary spectral model
-    model2: `gammapy.modeling.models.spectral.SpectralModel`
-        Nested spectral model
+    stat_1: `gammapy.modeling.fit.FitResult.total_stat`
+        The total stat of the Fit result of the primary spectral model.
+    stat_2: `gammapy.modeling.fit.FitResult.total_stat`
+        The total stat of the Fit result of the nested spectral model.
+    ndof_1: 'int'
+        Number of energy bins used for spectral fit - number of free spectral parameters for the primary model
+    ndof_2: 'int'
+        Number of energy bins used for spectral fit - number of free spectral parameters for the nested model
 
     Returns
     -------
@@ -993,42 +1038,24 @@ def check_model_preference_lrt(result1, result2, model1, model2):
     gaussian_sigmas: float
         significance (Chi2) of the ratio of the likelihoods estimated in
         Gaussian distribution.
-    chi2_1: float
-        significance (Chi2) of the likelihood of primary fit model estimated in
-        Gaussian distribution.
-    chi2_2: float
-        significance (Chi2) of the likelihood of nested fit model estimated in
-        Gaussian distribution.
     n_dof: int
         number of degrees of freedom or free parameters between primary and
         nested model.
     """
-    Wstat_1 = result1.total_stat
-    Wstat_2 = result2.total_stat
+    n_dof = ndof_2 - ndof_1
 
-    pval_1 = chi2.sf(Wstat_1, len(list(model1.parameters.free_parameters)))
-    pval_2 = chi2.sf(Wstat_2, len(list(model2.parameters.free_parameters)))
-
-    chi2_1 = norm.isf(pval_1 / 2)
-    chi2_2 = norm.isf(pval_2 / 2)
-
-    n_dof = len(list(model2.parameters.free_parameters)) - len(
-        list(model1.parameters.free_parameters)
-    )
     if n_dof < 1:
-        print(
-            f"DoF is lower in {model2.spectral_model.model1.tag[0]} compared "
-            f"to {model1.spectral_model.model1.tag[0]}"
-        )
-        return np.nan, np.nan, chi2_1, chi2_2, n_dof
+        print(f"DoF is lower in {ndof_2} compared to {ndof_1}")
 
-    p_value = chi2.sf((Wstat_1 - Wstat_2), n_dof)
+        return np.nan, np.nan, n_dof
+
+    p_value = chi2.sf((stat_1 - stat_2), n_dof)
     gaussian_sigmas = norm.isf(p_value / 2)
 
     if not np.isfinite(gaussian_sigmas):
-        gaussian_sigmas = np.sqrt((Wstat_1 - Wstat_2))
+        gaussian_sigmas = np.sqrt((stat_1 - stat_2))
 
-    return p_value, gaussian_sigmas, chi2_1, chi2_2, n_dof
+    return p_value, gaussian_sigmas, n_dof
 
 
 def check_model_preference_aic(list_wstat, list_dof):

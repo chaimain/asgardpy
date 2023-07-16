@@ -132,6 +132,19 @@ class AsgardpyAnalysis:
             models=self.final_model,
         )
 
+        # Get the H0 stat (cash or wstat) value and the ndof from the datasets
+        self.instrument_spectral_info["stat_H0"] = []
+
+        for data in self.datasets:
+            self.instrument_spectral_info["stat_H0"].append(data.stat_sum())
+
+        en_bins = 0
+        for data in self.datasets:
+            en_bins += data.mask_fit.geom.axes["energy"].nbin
+
+        dof = en_bins + len(list(self.final_model.parameters.free_parameters))
+        self.instrument_spectral_info["DoF"] = dof
+
         if len(dl4_dl5_steps) > 0:
             self.log.info("Perform DL4 to DL5 processes!")
 
