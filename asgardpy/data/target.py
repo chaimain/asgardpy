@@ -971,7 +971,7 @@ def create_gal_diffuse_skymodel(diff_gal):
     return source
 
 
-def get_chi2_pval(stat_h0, stat_h1, ndof):
+def get_chi2_pval(test_stat_h0, test_stat_h1, ndof):
     """
     Using the log-likelihood value for the null hypothesis (H0) and the
     alternate hypothesis (H1), along with the total degrees of freedom,
@@ -981,19 +981,19 @@ def get_chi2_pval(stat_h0, stat_h1, ndof):
     wstat statistics is used. Check the documentation for more details
     https://docs.gammapy.org/1.1/user-guide/stats/index.html
 
-    The null hypothesis here is the total statistics of the DL4 dataset without
-    using any model information, and just using the background (3D) or OFF
-    counts (1D) information to evaluate the likelihood value for the signal.
+    The null hypothesis here is the test statistics (TS) of the DL4 dataset
+    without using any model information, and just using the background (3D) or
+    OFF counts (1D) information to evaluate the likelihood value for the signal.
 
     The alternate hypothesis is by adding the Model parameters, to the
     likelihood evaluation of the signal.
 
     Parameters
     ----------
-    stat_h0: float
-        log-likelihood value of the null hypothesis.
-    stat_h1: float
-        log-likelihood value of the alternate hypothesis.
+    test_stat_h0: float
+        The test statistic (log-likelihood) value of the null hypothesis.
+    test_stat_h1: float
+        The test statistic (log-likelihood) value of the alternate hypothesis.
     ndof: int
         Total number of degrees of freedom.
 
@@ -1006,26 +1006,26 @@ def get_chi2_pval(stat_h0, stat_h1, ndof):
         p-value or the surviving probability...
 
     """
-    pval = chi2.sf(stat_h0 - stat_h1, ndof)
+    pval = chi2.sf(test_stat_h0 - test_stat_h1, ndof)
     chi2_ = norm.isf(pval / 2)
 
     if not np.isfinite(chi2_):
-        chi2_ = np.sqrt((stat_h0 - stat_h1))
+        chi2_ = np.sqrt((test_stat_h0 - test_stat_h1))
 
     return chi2_, pval
 
 
-def check_model_preference_lrt(stat_1, stat_2, ndof_1, ndof_2):
+def check_model_preference_lrt(test_stat_1, test_stat_2, ndof_1, ndof_2):
     """
     Log-likelihood ratio test. Checking the preference of a "nested" spectral
     model2 (observed), over a primary model1.
 
     Parameters
     ----------
-    stat_1: `gammapy.modeling.fit.FitResult.total_stat`
-        The total stat of the Fit result of the primary spectral model.
-    stat_2: `gammapy.modeling.fit.FitResult.total_stat`
-        The total stat of the Fit result of the nested spectral model.
+    test_stat_1: `gammapy.modeling.fit.FitResult.total_stat`
+        The test statistic of the Fit result of the primary spectral model.
+    test_stat_2: `gammapy.modeling.fit.FitResult.total_stat`
+        The test statistic of the Fit result of the nested spectral model.
     ndof_1: 'int'
         Number of energy bins used for spectral fit - number of free spectral parameters for the primary model
     ndof_2: 'int'
@@ -1049,11 +1049,11 @@ def check_model_preference_lrt(stat_1, stat_2, ndof_1, ndof_2):
 
         return np.nan, np.nan, n_dof
 
-    p_value = chi2.sf((stat_1 - stat_2), n_dof)
+    p_value = chi2.sf((test_stat_1 - test_stat_2), n_dof)
     gaussian_sigmas = norm.isf(p_value / 2)
 
     if not np.isfinite(gaussian_sigmas):
-        gaussian_sigmas = np.sqrt((stat_1 - stat_2))
+        gaussian_sigmas = np.sqrt((test_stat_1 - test_stat_2))
 
     return p_value, gaussian_sigmas, n_dof
 
