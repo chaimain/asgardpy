@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Restructure pipeline to regroup common functions for GADF-based DL3 files for 1D and 3D dataset. (See Issue [#85](https://github.com/chaimain/asgardpy/issues/85)) [#94](https://github.com/chaimain/asgardpy/pull/94)
 - Update documentation and notebooks for the restructured pipeline. [#97](https://github.com/chaimain/asgardpy/pull/97)
 - Restructure pipeline for better handling of model association. (See Issue [#85](https://github.com/chaimain/asgardpy/issues/85)) [#98](https://github.com/chaimain/asgardpy/pull/98)
+- Update fit-statistics information for the analysis. [#101](https://github.com/chaimain/asgardpy/pull/101)
 
 ## [v0.3.4](https://github.com/chaimain/asgardpy/releases/tag/v0.3.4) - 2023-07-02
 
