@@ -971,46 +971,37 @@ def create_gal_diffuse_skymodel(diff_gal):
     return source
 
 
-def get_chi2_pval(test_stat_h0, test_stat_h1, ndof):
+def get_chi2_pval(test_stat, ndof):
     """
-    Using the log-likelihood value for the null hypothesis (H0) and the
-    alternate hypothesis (H1), along with the total degrees of freedom,
-    evaluate the chi2 value along with the p-value for the fitting statistics.
+    Using the log-likelihood value for a model fitting to data, along with the
+    total degrees of freedom, evaluate the chi2 value along with the p-value
+    for the fitting statistics.
 
     In Gammapy, for 3D analysis, cash statistics is used, while for 1D analysis,
     wstat statistics is used. Check the documentation for more details
     https://docs.gammapy.org/1.1/user-guide/stats/index.html
 
-    The null hypothesis here is the test statistics (TS) of the DL4 dataset
-    without using any model information, and just using the background (3D) or
-    OFF counts (1D) information to evaluate the likelihood value for the signal.
-
-    The alternate hypothesis is by adding the Model parameters, to the
-    likelihood evaluation of the signal.
-
     Parameters
     ----------
-    test_stat_h0: float
-        The test statistic (log-likelihood) value of the null hypothesis.
-    test_stat_h1: float
-        The test statistic (log-likelihood) value of the alternate hypothesis.
+    test_stat: float
+        The test statistic (-2 ln L) value of the fitting.
     ndof: int
         Total number of degrees of freedom.
 
     Returns
     -------
     chi2_: float
-        significance (Chi2) of the likelihood of primary fit model estimated in
+        significance (Chi2) of the likelihood of fit model estimated in
         Gaussian distribution.
     pval: float
-        p-value or the surviving probability...
+        p-value for the model fitting
 
     """
-    pval = chi2.sf(test_stat_h0 - test_stat_h1, ndof)
+    pval = chi2.sf(np.sqrt(test_stat), ndof)
     chi2_ = norm.isf(pval / 2)
 
     if not np.isfinite(chi2_):
-        chi2_ = np.sqrt((test_stat_h0 - test_stat_h1))
+        chi2_ = np.sqrt(test_stat)
 
     return chi2_, pval
 
@@ -1023,9 +1014,9 @@ def check_model_preference_lrt(test_stat_1, test_stat_2, ndof_1, ndof_2):
     Parameters
     ----------
     test_stat_1: `gammapy.modeling.fit.FitResult.total_stat`
-        The test statistic of the Fit result of the primary spectral model.
+        The test statistic (-2 ln L) of the Fit result of the primary spectral model.
     test_stat_2: `gammapy.modeling.fit.FitResult.total_stat`
-        The test statistic of the Fit result of the nested spectral model.
+        The test statistic (-2 ln L) of the Fit result of the nested spectral model.
     ndof_1: 'int'
         Number of energy bins used for spectral fit - number of free spectral parameters for the primary model
     ndof_2: 'int'
@@ -1073,27 +1064,27 @@ def check_model_preference_aic(list_wstat, list_dof):
 
     Returns
     -------
-    list_p: list
+    list_rel_p: list
         List of relative likelihood probabilities, for a list of models.
     """
-    list_aic = []
-    for w, d in zip(list_wstat, list_dof):
-        aic = 2 * w + 2 * d
-        list_aic.append(aic)
-    list_aic = np.array(list_aic)
+    list_aic_stat = []
+    for wstat, dof in zip(list_wstat, list_dof):
+        aic_stat = wstat + 2 * dof
+        list_aic_stat.append(aic_stat)
+    list_aic_stat = np.array(list_aic_stat)
 
-    aic_min = np.min(list_aic)
+    aic_stat_min = np.min(list_aic_stat)
 
-    list_b = []
-    for a in list_aic:
-        b = np.exp((aic_min - a) / 2)
-        list_b.append(b)
-    list_b = np.array(list_b)
+    list_b_stat = []
+    for aic in list_aic_stat:
+        b_stat = np.exp((aic_stat_min - aic) / 2)
+        list_b_stat.append(b_stat)
+    list_b_stat = np.array(list_b_stat)
 
-    list_p = []
-    for bb in list_b:
-        bbb = bb / np.sum(list_b)
-        list_p.append(bbb)
-    list_p = np.array(list_p)
+    list_rel_p = []
+    for b_stat in list_b_stat:
+        rel_p = b_stat / np.sum(list_b_stat)
+        list_rel_p.append(rel_p)
+    list_rel_p = np.array(list_rel_p)
 
-    return list_p
+    return list_rel_p

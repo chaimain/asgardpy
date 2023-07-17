@@ -132,15 +132,13 @@ class AsgardpyAnalysis:
             models=self.final_model,
         )
 
-        # Get the H0 stat (cash or wstat) value and the ndof from the datasets
-        self.instrument_spectral_info["stat_H0"] = []
-
-        for data in self.datasets:
-            self.instrument_spectral_info["stat_H0"].append(data.stat_sum())
-
+        # Evaluate the total degree of freedom for the model fitting to the data
         en_bins = 0
         for data in self.datasets:
-            en_bins += data.mask_fit.geom.axes["energy"].nbin
+            if data.mask:
+                en_bins += data.mask.geom.axes["energy"].nbin
+            else:
+                en_bins += data.counts.geom.axes["energy"].nbin
 
         dof = en_bins + len(list(self.final_model.parameters.free_parameters))
         self.instrument_spectral_info["DoF"] = dof
