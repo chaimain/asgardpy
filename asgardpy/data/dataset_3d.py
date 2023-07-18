@@ -113,7 +113,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
 
     def _run(self):
         instruments_list = self.config.dataset3d.instruments
-        self.log.info(f"{len(instruments_list)} number of 3D Datasets given")
+        self.log.info("%d number of 3D Datasets given", len(instruments_list))
 
         datasets_3d_final = Datasets()
         models_final = Models()
@@ -126,7 +126,8 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
 
             key_names = config_3d_dataset.dataset_info.key
             if len(key_names) > 0:
-                self.log.info(f"The different keys used: {key_names}")
+                keys_str = " ".join(map(str, key_names))
+                self.log.info("The different keys used: %s", keys_str)
             else:
                 key_names = [None]
                 self.log.info("No distinct keys used for the 3D dataset")

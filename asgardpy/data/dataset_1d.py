@@ -92,7 +92,7 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
 
     def _run(self):
         instruments_list = self.config.dataset1d.instruments
-        self.log.info(f"{len(instruments_list)} number of 1D Datasets given")
+        self.log.info("%d number of 1D Datasets given", len(instruments_list))
 
         datasets_1d_final = Datasets()
         instrument_spectral_info = {"name": [], "spectral_energy_ranges": []}

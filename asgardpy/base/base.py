@@ -146,7 +146,7 @@ class AnalysisStepBase(abc.ABC):
         self.instrument_spectral_info = instrument_spectral_info
 
         final_product = self._run()
-        self.log.info(f"Analysis Step {self.tag} completed")
+        self.log.info("Analysis Step %s completed", self.tag)
 
         return final_product
 

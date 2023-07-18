@@ -169,7 +169,7 @@ class DL3Files:
                         f"Variable self.{_v} does not contain one element after filtering by {key}"
                     )
                 else:
-                    self.log.info(f"Selecting the file with name containing {key}")
+                    self.log.info("Selecting the file with name containing %s", key)
                     setattr(self, _v.replace("_files", "_f"), filtered[0])
                 file_list[_v.replace("files", "file")] = getattr(self, _v.replace("_files", "_f"))
 
