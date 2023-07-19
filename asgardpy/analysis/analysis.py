@@ -140,7 +140,7 @@ class AsgardpyAnalysis:
             else:
                 en_bins += data.counts.geom.axes["energy"].nbin
 
-        dof = en_bins + len(list(self.final_model.parameters.free_parameters))
+        dof = en_bins - len(list(self.final_model.parameters.free_parameters))
         self.instrument_spectral_info["DoF"] = dof
 
         if len(dl4_dl5_steps) > 0:

@@ -40,7 +40,7 @@ __all__ = [
     "create_gal_diffuse_skymodel",
     "create_iso_diffuse_skymodel",
     "create_source_skymodel",
-    "get_chi2_pval",
+    "get_chi2_sig_pval",
     "params_renaming_to_gammapy",
     "params_rescale_to_gammapy",
     "read_models_from_asgardpy_config",
@@ -971,11 +971,11 @@ def create_gal_diffuse_skymodel(diff_gal):
     return source
 
 
-def get_chi2_pval(test_stat, ndof):
+def get_chi2_sig_pval(test_stat, ndof):
     """
     Using the log-likelihood value for a model fitting to data, along with the
-    total degrees of freedom, evaluate the chi2 value along with the p-value
-    for the fitting statistics.
+    total degrees of freedom, evaluate the significance value in terms of gaussian 
+    distribution along with one-tailed p-value for the fitting statistics.
 
     In Gammapy, for 3D analysis, cash statistics is used, while for 1D analysis,
     wstat statistics is used. Check the documentation for more details
@@ -990,20 +990,20 @@ def get_chi2_pval(test_stat, ndof):
 
     Returns
     -------
-    chi2_: float
+    chi2_sig: float
         significance (Chi2) of the likelihood of fit model estimated in
         Gaussian distribution.
     pval: float
         p-value for the model fitting
 
     """
-    pval = chi2.sf(np.sqrt(test_stat), ndof)
-    chi2_ = norm.isf(pval / 2)
+    pval = chi2.sf(test_stat, ndof)
+    chi2_sig = norm.isf(pval / 2)
 
-    if not np.isfinite(chi2_):
-        chi2_ = np.sqrt(test_stat)
+    if not np.isfinite(chi2_sig):
+        chi2_sig = np.sqrt(test_stat)
 
-    return chi2_, pval
+    return chi2_sig, pval
 
 
 def check_model_preference_lrt(test_stat_1, test_stat_2, ndof_1, ndof_2):
