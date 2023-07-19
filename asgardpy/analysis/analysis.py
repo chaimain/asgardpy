@@ -132,17 +132,6 @@ class AsgardpyAnalysis:
             models=self.final_model,
         )
 
-        # Evaluate the total degree of freedom for the model fitting to the data
-        en_bins = 0
-        for data in self.datasets:
-            if data.mask:
-                en_bins += data.mask.geom.axes["energy"].nbin
-            else:
-                en_bins += data.counts.geom.axes["energy"].nbin
-
-        dof = en_bins - len(list(self.final_model.parameters.free_parameters))
-        self.instrument_spectral_info["DoF"] = dof
-
         if len(dl4_dl5_steps) > 0:
             self.log.info("Perform DL4 to DL5 processes!")
 
