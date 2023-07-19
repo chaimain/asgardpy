@@ -4,15 +4,12 @@ Main classes to define High-level Analysis Config and the Analysis Steps.
 
 from enum import Enum
 
-import numpy as np
 from astropy import units as u
-from gammapy.datasets import Datasets, FluxPointsDataset
+from gammapy.datasets import Datasets
 from gammapy.estimators import FluxPointsEstimator
 from gammapy.modeling import Fit
-from gammapy.modeling.models import Models
 
 from asgardpy.base import AnalysisStepBase, BaseConfig, EnergyRangeConfig
-from asgardpy.data.target import get_chi2_sig_pval
 
 __all__ = [
     "FitAnalysisStep",
@@ -134,8 +131,6 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
             **fpe_settings,
         )
 
-        self.get_goodness_of_fit_stats()
-
     def _sort_datasets_info(self):
         """
         The given list of datasets may contain sub-instrument level datasets.
@@ -166,35 +161,3 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
                 sorted_datasets.append(dataset_list)
 
         return sorted_datasets, sorted_energy_edges
-
-    def get_goodness_of_fit_stats(self):
-        """ """
-        stat = 0
-        en_num = 0
-        n_free_param = len(list(self.final_model.parameters.free_parameters))
-
-        joint_model = self.final_model[0]
-        joint_model.spatial_model = None
-
-        for fp in self.flux_points:
-            mask = fp.sqrt_ts.data[:, 0, 0] > 0
-            en_num += np.sum(mask)
-
-            fpd = FluxPointsDataset(models=joint_model, data=fp)
-            fpd._models = Models(joint_model)
-
-            stat += np.nansum(fpd.stat_array()[mask])
-
-        ndof = en_num - n_free_param
-        fit_chi2_sig, fit_pval = get_chi2_sig_pval(stat, ndof)
-
-        self.instrument_spectral_info["fit_stat"] = stat
-        self.instrument_spectral_info["fit_ndof"] = ndof
-        self.instrument_spectral_info["fit_chi2_sig"] = fit_chi2_sig
-        self.instrument_spectral_info["fit_pval"] = fit_pval
-
-        stat_message = f"The Chi2/dof value of the goodness of Fit is {stat:.2f}/{ndof}"
-        stat_message += f"\nand the p-value is {fit_pval:.3e} and in "
-        stat_message += f"Significance {fit_chi2_sig:.2f}" + r" $\sigma$"
-
-        self.log.info(stat_message)

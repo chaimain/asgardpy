@@ -56,8 +56,8 @@ def main():
 
     steps_list = []
     for s in main_config.general.steps:
-        if s.value != "flux-points":
-            steps_list.append(s.value)
+        # if s.value != "flux-points":
+        steps_list.append(s.value)
 
     log.info("Target source is: %s", target_source_name)
 
@@ -127,7 +127,7 @@ def main():
 
     spec_models_list = np.array(spec_models_list)
 
-    # Run Analysis Steps till Fit
+    # Run Analysis all Steps
     for i, tag in enumerate(spec_models_list):
         log.info("Spectral model being tested: %s", tag)
         main_analysis_list[tag]["Analysis"].run(steps_list)
@@ -137,19 +137,19 @@ def main():
 
     fit_success_list = []
     pref_over_pl_chi2_list = []
-    stat_list = []
-    dof_list = []
+    total_stat_list = []
+    model_check_dof_list = []
 
     for tag in spec_models_list:
         # Collect parameters for AIC check
-        stat = main_analysis_list[tag]["Analysis"].fit_result.total_stat
-        dof = main_analysis_list[tag]["Analysis"].instrument_spectral_info["DoF"]
+        total_stat = main_analysis_list[tag]["Analysis"].fit_result.total_stat
+        model_check_dof = main_analysis_list[tag]["Analysis"].instrument_spectral_info["DoF"]
 
         fit_success = main_analysis_list[tag]["Analysis"].fit_result.success
 
         fit_success_list.append(fit_success)
-        stat_list.append(stat)
-        dof_list.append(dof)
+        total_stat_list.append(total_stat)
+        model_check_dof_list.append(model_check_dof)
 
         # Checking the preference of a "nested" spectral model (observed),
         # over Power Law.
@@ -175,8 +175,8 @@ def main():
     fit_success_list = np.array(fit_success_list)
 
     # Only select fit results that were successful for comparisons
-    stat_list = np.array(stat_list)[fit_success_list]
-    dof_list = np.array(dof_list)[fit_success_list]
+    total_stat_list = np.array(total_stat_list)[fit_success_list]
+    model_check_dof_list = np.array(model_check_dof_list)[fit_success_list]
     pref_over_pl_chi2_list = np.array(pref_over_pl_chi2_list)[fit_success_list]
 
     # If any spectral model has at least 5 sigmas preference over PL
@@ -189,7 +189,7 @@ def main():
             sp_idx_lrt = PL_idx
             log.info("No other model preferred over PL")
 
-    list_rel_p = check_model_preference_aic(stat_list, dof_list)
+    list_rel_p = check_model_preference_aic(total_stat_list, model_check_dof_list)
 
     for i, tag in enumerate(spec_models_list[fit_success_list]):
         best_sp_idx_aic = np.nonzero(list_rel_p == np.nanmax(list_rel_p))[0]
@@ -209,10 +209,12 @@ def main():
 
         t_fits = {
             "Spectral Model": tag.upper(),
-            "Test Statistic": round(info_["total_stat"], 3),
-            "DoF of Fit": info_["DoF"],
-            r"Significance ($\sigma$) of Fit": round(info_["chi2_sig"], 3),
-            "p-value of Fit": float("%.4g" % info_["p-value"]),
+            "TS of Fitting Model": round(info_["total_stat"], 3),
+            "DoF of Fitting Model": info_["DoF"],
+            "TS of Goodness of Fit": round(info_["fit_stat"], 3),
+            "DoF of Goodness of Fit": info_["fit_ndof"],
+            r"Significance ($\sigma$) of Goodness of Fit": round(info_["fit_chi2_sig"], 3),
+            "p-value of Goodness of Fit": float("%.4g" % info_["fit_pval"]),
             "Pref over PL (chi2)": round(t["Pref_over_pl_chi2"], 3),
             "Pref over PL (p-value)": float("%.4g" % t["Pref_over_pl_pval"]),
             "Pref over PL (DoF)": t["DoF_over_pl"],
