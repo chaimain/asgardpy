@@ -4,12 +4,12 @@ from pathlib import Path
 
 import numpy as np
 import yaml
+from astropy.table import QTable
+
 from asgardpy.analysis import AsgardpyAnalysis
 from asgardpy.config import AsgardpyConfig
 from asgardpy.config.generator import CONFIG_PATH
-from asgardpy.data.target import (check_model_preference_aic,
-                                  check_model_preference_lrt)
-from astropy.table import QTable
+from asgardpy.data.target import check_model_preference_aic, check_model_preference_lrt
 
 log = logging.getLogger(__name__)
 
@@ -117,9 +117,7 @@ def main():
 
         # Make sure the source names are the same
         temp_model_2.config.target.source_name = temp_model.config.target.source_name
-        temp_model_2.config.target.components[
-            0
-        ].name = temp_model.config.target.components[0].name
+        temp_model_2.config.target.components[0].name = temp_model.config.target.components[0].name
 
         spec_tag = temp.name.split(".")[0].split("_")[-1]
         spec_models_list.append(spec_tag)
@@ -182,15 +180,11 @@ def main():
     pref_over_pl_chi2_list = np.array(pref_over_pl_chi2_list)[fit_success_list]
 
     # If any spectral model has at least 5 sigmas preference over PL
-    best_sp_idx_lrt = np.nonzero(
-        pref_over_pl_chi2_list == np.nanmax(pref_over_pl_chi2_list)
-    )[0]
+    best_sp_idx_lrt = np.nonzero(pref_over_pl_chi2_list == np.nanmax(pref_over_pl_chi2_list))[0]
     for idx in best_sp_idx_lrt:
         if pref_over_pl_chi2_list[idx] > 5:
             sp_idx_lrt = idx
-            log.info(
-                "Best preferred spectral model over PL is %s", spec_models_list[idx]
-            )
+            log.info("Best preferred spectral model over PL is %s", spec_models_list[idx])
         else:
             sp_idx_lrt = PL_idx
             log.info("No other model preferred over PL")
@@ -231,7 +225,9 @@ def main():
     stats_table.meta["EBL model"] = args.ebl_model_name
     stats_table.meta["EBL scale factor"] = args.ebl_scale_factor
 
-    file_name = f"{config_path_file_name}_{args.ebl_model_name}_{args.ebl_scale_factor}_fit_stats.ecsv"
+    file_name = (
+        f"{config_path_file_name}_{args.ebl_model_name}_{args.ebl_scale_factor}_fit_stats.ecsv"
+    )
 
     stats_table.write(
         main_config.general.outdir / file_name,
@@ -247,10 +243,7 @@ def main():
             model_ = main_analysis_list[tag]["Analysis"].final_model[0]
             spec_model = model_.spectral_model.model1.to_dict()
 
-            path = (
-                config_path.parent
-                / f"{config_path_file_name}_model_most_pref_{name}.yaml"
-            )
+            path = config_path.parent / f"{config_path_file_name}_model_most_pref_{name}.yaml"
             # Create a temp config file
             temp_config = AsgardpyConfig()
             temp_config.target.components[0] = spec_model

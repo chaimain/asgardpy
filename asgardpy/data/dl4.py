@@ -70,10 +70,10 @@ class FitAnalysisStep(AnalysisStepBase):
         self.instrument_spectral_info["chi2_sig"] = chi2_sig
         self.instrument_spectral_info["p-value"] = pval_
 
-        stat_message = (
-            f'The Chi2/dof value of the Fit is {self.fit_result.total_stat:.2f}/{self.instrument_spectral_info["DoF"]}'
-        )
-        stat_message += f"\nand the p-value is {pval_:.3e} corresponding to a Gaussian significance of {chi2_sig}:.2f"
+        stat_message = f"The Chi2/dof value of the Fit is {self.fit_result.total_stat:.2f}/"
+        stat_message += f'{self.instrument_spectral_info["DoF"]}'
+        stat_message += f"\nand the p-value is {pval_:.3e} corresponding to a Gaussian "
+        stat_message += f"significance of {chi2_sig}:.2f"
 
         self.log.info(self.fit_result)
         self.log.info(stat_message)

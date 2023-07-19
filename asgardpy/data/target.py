@@ -974,7 +974,7 @@ def create_gal_diffuse_skymodel(diff_gal):
 def get_chi2_sig_pval(test_stat, ndof):
     """
     Using the log-likelihood value for a model fitting to data, along with the
-    total degrees of freedom, evaluate the significance value in terms of gaussian 
+    total degrees of freedom, evaluate the significance value in terms of gaussian
     distribution along with one-tailed p-value for the fitting statistics.
 
     In Gammapy, for 3D analysis, cash statistics is used, while for 1D analysis,
@@ -1033,18 +1033,14 @@ def check_model_preference_lrt(test_stat_1, test_stat_2, ndof_1, ndof_2):
         number of degrees of freedom or free parameters between primary and
         nested model.
     """
-    n_dof = ndof_2 - ndof_1
+    n_dof = ndof_1 - ndof_2
 
     if n_dof < 1:
-        print(f"DoF is lower in {ndof_2} compared to {ndof_1}")
+        print(f"DoF is lower in {ndof_1} compared to {ndof_2}")
 
         return np.nan, np.nan, n_dof
 
-    p_value = chi2.sf((test_stat_1 - test_stat_2), n_dof)
-    gaussian_sigmas = norm.isf(p_value / 2)
-
-    if not np.isfinite(gaussian_sigmas):
-        gaussian_sigmas = np.sqrt((test_stat_1 - test_stat_2))
+    gaussian_sigmas, p_value = get_chi2_sig_pval(test_stat_1 - test_stat_2, n_dof)
 
     return p_value, gaussian_sigmas, n_dof
 
