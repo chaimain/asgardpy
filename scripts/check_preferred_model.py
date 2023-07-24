@@ -9,7 +9,11 @@ from astropy.table import QTable
 from asgardpy.analysis import AsgardpyAnalysis
 from asgardpy.config import AsgardpyConfig
 from asgardpy.config.generator import CONFIG_PATH
-from asgardpy.data.target import check_model_preference_aic, check_model_preference_lrt
+from asgardpy.stats.stats import (
+    check_model_preference_aic,
+    check_model_preference_lrt,
+    get_goodness_of_fit_stats,
+)
 
 log = logging.getLogger(__name__)
 
@@ -23,11 +27,7 @@ parser.add_argument(
 
 # fetch options of spec models to test from user, or use all available...
 parser.add_argument(
-    "--ebl-scale-factor",
-    "-e",
-    help="Value of EBL Norm Scale Factor",
-    default=1.0,
-    type=float,
+    "--ebl-scale-factor", "-e", help="Value of EBL Norm Scale Factor", default=1.0, type=float
 )
 
 parser.add_argument(
@@ -56,9 +56,8 @@ def main():
 
     steps_list = []
     for s in main_config.general.steps:
-        # if s.value != "flux-points":
-        steps_list.append(s.value)
-
+        if s.value != "flux-points":
+            steps_list.append(s.value)
     log.info("Target source is: %s", target_source_name)
 
     spec_model_template_files = sorted(list(CONFIG_PATH.glob("model_template*yaml")))
@@ -127,9 +126,10 @@ def main():
 
     spec_models_list = np.array(spec_models_list)
 
-    # Run Analysis all Steps
+    # Run Analysis Steps till Fit
     for i, tag in enumerate(spec_models_list):
         log.info("Spectral model being tested: %s", tag)
+
         main_analysis_list[tag]["Analysis"].run(steps_list)
 
         if tag == "pl":
@@ -137,19 +137,19 @@ def main():
 
     fit_success_list = []
     pref_over_pl_chi2_list = []
-    total_stat_list = []
-    model_check_dof_list = []
+    stat_list = []
+    dof_list = []
 
     for tag in spec_models_list:
         # Collect parameters for AIC check
-        total_stat = main_analysis_list[tag]["Analysis"].fit_result.total_stat
-        model_check_dof = main_analysis_list[tag]["Analysis"].instrument_spectral_info["DoF"]
+        stat = main_analysis_list[tag]["Analysis"].fit_result.total_stat
+        dof = main_analysis_list[tag]["Analysis"].instrument_spectral_info["DoF"]
 
         fit_success = main_analysis_list[tag]["Analysis"].fit_result.success
 
         fit_success_list.append(fit_success)
-        total_stat_list.append(total_stat)
-        model_check_dof_list.append(model_check_dof)
+        stat_list.append(stat)
+        dof_list.append(dof)
 
         # Checking the preference of a "nested" spectral model (observed),
         # over Power Law.
@@ -175,8 +175,8 @@ def main():
     fit_success_list = np.array(fit_success_list)
 
     # Only select fit results that were successful for comparisons
-    total_stat_list = np.array(total_stat_list)[fit_success_list]
-    model_check_dof_list = np.array(model_check_dof_list)[fit_success_list]
+    stat_list = np.array(stat_list)[fit_success_list]
+    dof_list = np.array(dof_list)[fit_success_list]
     pref_over_pl_chi2_list = np.array(pref_over_pl_chi2_list)[fit_success_list]
 
     # If any spectral model has at least 5 sigmas preference over PL
@@ -189,7 +189,7 @@ def main():
             sp_idx_lrt = PL_idx
             log.info("No other model preferred over PL")
 
-    list_rel_p = check_model_preference_aic(total_stat_list, model_check_dof_list)
+    list_rel_p = check_model_preference_aic(stat_list, dof_list)
 
     for i, tag in enumerate(spec_models_list[fit_success_list]):
         best_sp_idx_aic = np.nonzero(list_rel_p == np.nanmax(list_rel_p))[0]
@@ -203,17 +203,18 @@ def main():
                 log.info("No other model preferred, hence PL is selected")
 
     fit_stats_table = []
-    for i, tag in enumerate(spec_models_list[fit_success_list]):
+    for i, tag in enumerate(spec_models_list):
         info_ = main_analysis_list[tag]["Analysis"].instrument_spectral_info
+        info_, _ = get_goodness_of_fit_stats(info_)
         t = main_analysis_list[tag]
+        delta_ts = info_["TS_H0"] - info_["TS_H1"]
 
         t_fits = {
             "Spectral Model": tag.upper(),
-            "TS of Fitting Model": round(info_["total_stat"], 3),
-            "DoF of Fitting Model": info_["DoF"],
-            "TS of Goodness of Fit": round(info_["fit_stat"], 3),
-            "DoF of Goodness of Fit": info_["fit_ndof"],
-            r"Significance ($\sigma$) of Goodness of Fit": round(info_["fit_chi2_sig"], 3),
+            "TS of Fitting Model": round(info_["TS_H1"], 3),
+            "TS of Goodness of Fit": round(delta_ts, 3),
+            "DoF of Fit": info_["DoF"],
+            "Significance ($\sigma$) of Goodness of Fit": round(info_["fit_chi2_sig"], 3),
             "p-value of Goodness of Fit": float("%.4g" % info_["fit_pval"]),
             "Pref over PL (chi2)": round(t["Pref_over_pl_chi2"], 3),
             "Pref over PL (p-value)": float("%.4g" % t["Pref_over_pl_pval"]),
@@ -230,7 +231,6 @@ def main():
     file_name = (
         f"{config_path_file_name}_{args.ebl_model_name}_{args.ebl_scale_factor}_fit_stats.ecsv"
     )
-
     stats_table.write(
         main_config.general.outdir / file_name,
         format="ascii.ecsv",
