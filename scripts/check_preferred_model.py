@@ -214,7 +214,7 @@ def main():
             "TS of Fitting Model": round(info_["TS_H1"], 3),
             "TS of Goodness of Fit": round(delta_ts, 3),
             "DoF of Fit": info_["DoF"],
-            "Significance ($\sigma$) of Goodness of Fit": round(info_["fit_chi2_sig"], 3),
+            r"Significance ($\sigma$) of Goodness of Fit": round(info_["fit_chi2_sig"], 3),
             "p-value of Goodness of Fit": float("%.4g" % info_["fit_pval"]),
             "Pref over PL (chi2)": round(t["Pref_over_pl_chi2"], 3),
             "Pref over PL (p-value)": float("%.4g" % t["Pref_over_pl_pval"]),
