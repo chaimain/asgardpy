@@ -3,14 +3,13 @@ Config-driven high level analysis interface.
 """
 import logging
 
-import numpy as np
 from gammapy.datasets import Datasets
 from gammapy.modeling.models import Models
-from gammapy.stats import CashCountsStatistic, WStatCountsStatistic
 
 from asgardpy.base import AnalysisStep
 from asgardpy.config import AsgardpyConfig
-from asgardpy.data import get_goodness_of_fit_stats, set_models
+from asgardpy.data import set_models
+from asgardpy.stats import get_goodness_of_fit_stats, get_ts_null_hypothesis
 
 log = logging.getLogger(__name__)
 
@@ -154,27 +153,7 @@ class AsgardpyAnalysis:
         self.instrument_spectral_info["DoF"] -= n_free_params
 
         # Evaluate the TS for the null hypothesis
-        for data in self.datasets:
-            region = data.counts.geom.center_skydir
-
-            if data.stat_type == "cash":
-                counts_on = (data.counts.copy() * data.mask).get_spectrum(region).data
-                mu_on = (data.npred() * data.mask).get_spectrum(region).data
-
-                stat = CashCountsStatistic(
-                    counts_on,
-                    mu_on,
-                )
-            elif data.stat_type == "wstat":
-                counts_on = (data.counts.copy() * data.mask).get_spectrum(region)
-                counts_off = np.nan_to_num((data.counts_off * data.mask).get_spectrum(region))
-                alpha = (
-                    np.nan_to_num((data.background * data.mask).get_spectrum(region)) / counts_off
-                )
-                mu_signal = np.nan_to_num((data.npred_signal() * data.mask).get_spectrum(region))
-
-                stat = WStatCountsStatistic(counts_on, counts_off, alpha, mu_signal)
-            self.instrument_spectral_info["TS_H0"] += np.nansum(stat.stat_null.ravel())
+        self.instrument_spectral_info["TS_H0"] += get_ts_null_hypothesis(self.datasets)
 
         if len(dl4_dl5_steps) > 0:
             self.log.info("Perform DL4 to DL5 processes!")
