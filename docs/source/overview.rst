@@ -14,16 +14,16 @@ Analysis Steps
 --------------
 
 The configuration-based pipeline separates the Gammapy-based High-Level Analysis into serialized intermediate steps.
-Check :doc:`_api_docs/base_base` for more details.
+Check :doc:`_api_docs/base` for more details.
 The steps are:
 
-#. datasets-3d :class:`asgardpy.data.dataset_3d.Datasets3DAnalysisStep`
+#. datasets-3d :class:`~asgardpy.data.dataset_3d.Datasets3DAnalysisStep`
 
-#. datasets-1d :class:`asgardpy.data.dataset_1d.Datasets1DAnalysisStep`
+#. datasets-1d :class:`~asgardpy.data.dataset_1d.Datasets1DAnalysisStep`
 
-#. fit :class:`asgardpy.data.dl4.FitAnalysisStep`
+#. fit :class:`~asgardpy.data.dl4.FitAnalysisStep`
 
-#. flux-points :class:`asgardpy.data.dl4.FluxPointsAnalysisStep`
+#. flux-points :class:`~asgardpy.data.dl4.FluxPointsAnalysisStep`
 
 The main purpose of this pipeline is accomplished for -
 
@@ -43,13 +43,13 @@ DL3 Data component
 ------------------
 
 The "DL3 level" data files for any instrument is read by providing the path location and a search glob pattern in the Config file. These are read
-by the :class:`asgardpy.io.io.DL3Files`.
+by the :class:`~asgardpy.io.io.DL3Files`.
 
 The main modules dealing with the 2 types of data being read are -
 
-#. 3D Dataset :doc:`_api_docs/data_3d`
+#. 3D Dataset :doc:`_api_docs/data/data_3d`
 
-#. 1D Dataset :doc:`_api_docs/data_1d`
+#. 1D Dataset :doc:`_api_docs/data/data_1d`
 
 They each build their Config components using classes defined with,
 
@@ -57,60 +57,60 @@ They each build their Config components using classes defined with,
 
 #. from distinct modules -
 
-   #. Base Geometry :doc:`_api_docs/base_geom`
+   #. Base Geometry :doc:`_api_docs/base/base_geom`
 
-   #. Dataset Reduction :doc:`_api_docs/base_reduction`
+   #. Dataset Reduction :doc:`_api_docs/base/base_reduction`
 
 #. and from their own respective modules
 
-The processing of Dataset creation is performed by :class:`asgardpy.data.dataset_3d.Dataset3DGeneration` and :class:`asgardpy.data.dataset_1d.Dataset1DGeneration`
+The processing of Dataset creation is performed by :class:`~asgardpy.data.dataset_3d.Dataset3DGeneration` and :class:`~asgardpy.data.dataset_1d.Dataset1DGeneration`
 
 For the DL3 files with energy-dependent directional (RAD_MAX) cuts, the ON region is defined by a `PointSkyRegion` whereas for files with global cuts, the ON region is defined by a `CircleSkyRegion`.
 The usage of either of these can be generalized by providing the source sky position with a value of radius as 0 deg (by default) or a non-zero angular radius, respectively.
 
 Following `Gammapy v1.1 <https://docs.gammapy.org/1.1/>`_ we have the usage of parallel processing for DL4 Dataset creation, Flux Points Estimation and also Light Curve Estimation.
-For the first two processes, here we have the parameters of `n_jobs` and `parallel_backend` defined in `asgardpy.config.generator.GeneralConfig` as can be seen in :class:`asgardpy.config.AsgardpyConfig`.
+For the first two processes, here we have the parameters of `n_jobs` and `parallel_backend` defined in :class:`~asgardpy.config.generator.GeneralConfig` as can be seen in :class:`~asgardpy.config.generator.AsgardpyConfig`.
 
 Models
 ------
 
-The :doc:`_api_docs/data_target_b` contains various classes for various Models objects and :doc:`_api_docs/data_target_f` contains various functions for handling them.
+The :doc:`_api_docs/data/target/data_target_b` contains various classes for various Models objects and :doc:`_api_docs/data/target/data_target_f` contains various functions for handling them.
 
 
-The information regarding the model to be used for the target source is given by :class:`asgardpy.data.target.Target` and the various input options are -
+The information regarding the model to be used for the target source is given by :class:`~asgardpy.data.target.Target` and the various input options are -
 
-#. Include the model information in :func:`AsgardpyConfig.target.components`
+#. Include the model information in :class:`~asgardpy.data.target.Target.components`
 
-#. Include the path for a separate model file in :attr:`AsgardpyConfig.target.models_file`
+#. Include the path for a separate model file in :class:`~asgardpy.data.target.Target.models_file`
 
-#. Use :attr:`AsgardpyConfig.target.from_3d` = True, if the model is included in the list of Models provided with the 3D Dataset
+#. Use :class:`~asgardpy.data.target.Target.from_3d` ``= True``, if the model is included in the list of Models provided with the 3D Dataset
 
 
 The list of associated Models can be provided by -
 
 #. Using a file provided along with the DL3 data of the 3D data (XML type for Fermi-LAT)
 
-#. Using a Catalog available in Gammapy, by adding information in :attr:`AsgardpyConfig.target.use_catalog`
+#. Using a Catalog available in Gammapy, by adding information in :class:`~asgardpy.data.target.Target.use_catalog`
 
 
 While combining DL4 datasets from multiple instruments, the positions of the target source, included within these data, may not be exactly the same.
-This will cause computation issue for the binned analysis performed with Gammapy. To resolve this issue, use :attr:`AsgardpyConfig.target.use_uniform_position` = True.
+This will cause computation issue for the binned analysis performed with Gammapy. To resolve this issue, use :class:`~asgardpy.data.target.Target.use_uniform_position` ``= True``.
 
 
-To add a Gammapy `FoVBackgroundModel` to the 3D dataset, use :attr:`AsgardpyConfig.target.add_fov_bkg_model` = True
+To add a Gammapy `FoVBackgroundModel` to the 3D dataset, use :class:`~asgardpy.data.target.Target.add_fov_bkg_model` ``= True``
 
 
-The :py:func:`asgardpy.data.target.apply_selection_mask_to_models` function is used to apply various selections on the given list of models.
+The :class:`~asgardpy.data.target.apply_selection_mask_to_models` function is used to apply various selections on the given list of models.
 
 
 High-level Analysis
 -------------------
 
-The various Config components and Analysis steps for the high-level analysis can be found in :doc:`_api_docs/data_dl4`.
+The various Config components and Analysis steps for the high-level analysis can be found in :doc:`_api_docs/data/data_dl4`.
 
 
 Statistics
 ----------
 
 The :doc:`_api_docs/stats` contains various functions to perform some statistics with the fitted DL4 datasets.
-One can perform tests on the preference of the assumed spectral model of the target source, by using either :func:`asgardpy.stats.stats.check_model_preference_lrt` or :func:`asgardpy.stats.stats.check_model_preference_aic`.
+One can perform tests on the preference of the assumed spectral model of the target source, by using either :class:`~asgardpy.stats.stats.check_model_preference_lrt` or :class:`~asgardpy.stats.stats.check_model_preference_aic`.

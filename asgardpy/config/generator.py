@@ -22,6 +22,7 @@ from asgardpy.data import (
 
 __all__ = [
     "AsgardpyConfig",
+    "GeneralConfig",
     "get_model_template",
     "recursive_merge_dicts",
 ]
