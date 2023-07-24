@@ -139,8 +139,7 @@ class AsgardpyAnalysis:
                 for edges in instrument_spectral_info["spectral_energy_ranges"]:
                     self.instrument_spectral_info["spectral_energy_ranges"].append(edges)
 
-                for ndof in instrument_spectral_info["DoF"]:
-                    self.instrument_spectral_info["DoF"] += ndof
+                self.instrument_spectral_info["DoF"] += instrument_spectral_info["DoF"]
 
         self.datasets, self.final_model = set_models(
             self.config.target,
