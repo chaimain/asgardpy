@@ -50,7 +50,7 @@ class InputConfig(BaseConfig):
 class DL3Files:
     """
     A general class to retrieve information from given DL3 files, along with
-    other auxillary files for neighbouring sources, if provided.
+    other auxiliary files for neighbouring sources, if provided.
     """
 
     def __init__(self, dir_dict, file_list, log=None):

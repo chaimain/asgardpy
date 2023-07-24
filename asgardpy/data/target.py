@@ -492,7 +492,7 @@ def config_to_dict(model_config):
     Parameter
     ---------
     model_config: `AsgardpyConfig`
-        Config section containg Target Model SkyModel components only.
+        Config section containing Target Model SkyModel components only.
 
     Returns
     -------
@@ -759,7 +759,7 @@ def xml_spatial_model_to_gammapy(aux_path, xml_spatial_model):
     and with examples at
     https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/xml_model_defs.html
 
-    Paramaters
+    Parameters
     ----------
     aux_path: `Path`
         Path to the template diffuse models
@@ -833,9 +833,9 @@ def create_source_skymodel(config_target, source, aux_path):
     config_target: `AsgardpyConfig`
         Config section containing the Target source information.
     source: dict
-        Dictionary containing the source models infromation from XML file.
+        Dictionary containing the source models information from XML file.
     aux_path: str
-        Path location of the LAT auxillary files.
+        Path location of the LAT auxiliary files.
 
     Returns
     -------

@@ -364,7 +364,7 @@ def get_safe_mask_maker(safe_config):
     """
     Generate Safe mask reduction maker as per the given config information.
 
-    Paramters
+    Parameters
     ---------
     safe_config: `asgardpy.base.reduction.SafeMaskConfig`
         Config information to create `gammapy.makers.SafeMaskMaker` object.

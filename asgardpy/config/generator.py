@@ -106,9 +106,7 @@ def recursive_merge_dicts(base_config, extra_config):
                 new_config.append(key_)
             final_config[key] = new_config
         elif key in final_config and isinstance(final_config[key], dict):
-            final_config[key] = recursive_merge_dicts(
-                final_config.get(key) or {}, value
-            )
+            final_config[key] = recursive_merge_dicts(final_config.get(key) or {}, value)
         else:
             final_config[key] = value
     return final_config

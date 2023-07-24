@@ -127,7 +127,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixing Flux Points Analysis step, to get instrument-specific flux points. [#44](https://github.com/chaimain/asgardpy/pull/44)
 - Cleaning of logging information and updating doc-strings. [#47](https://github.com/chaimain/asgardpy/pull/47)
 - Fix mypy check errors in default variable assignments. [#48](https://github.com/chaimain/asgardpy/pull/48)
-- Fix variable assignment issue from pervious PR. [#50](https://github.com/chaimain/asgardpy/pull/50)
+- Fix variable assignment issue from previous PR. [#50](https://github.com/chaimain/asgardpy/pull/50)
 - Clean pipeline. [#51](https://github.com/chaimain/asgardpy/pull/51)
 
 ### Changed
