@@ -1,3 +1,6 @@
+"""
+Main AsgardpyConfig Generator Module
+"""
 import json
 import logging
 from enum import Enum
@@ -70,13 +73,14 @@ def get_model_template(spec_model_tag):
     return new_model_file
 
 
-def recursive_merge_dicts(a, b):
+def recursive_merge_dicts(base_config, extra_config):
     """
     recursively merge two dictionaries.
-    Entries in b override entries in a. The built-in update function cannot be
-    used for hierarchical dicts.
+    Entries in extra_config override entries in base_config. The built-in
+    update function cannot be used for hierarchical dicts.
 
-    Also for the case when there is a list of dicts involved, one has to be more careful.
+    Also for the case when there is a list of dicts involved, one has to be
+    more careful.
 
     Combined here are 2 options from SO.
 
@@ -87,28 +91,28 @@ def recursive_merge_dicts(a, b):
 
     Parameters
     ----------
-    a : dict
+    base_config : dict
         dictionary to be merged
-    b : dict
+    extra_config : dict
         dictionary to be merged
     Returns
     -------
-    c : dict
+    final_config : dict
         merged dict
     """
-    c = a.copy()
-    for k, v in b.items():
-        if k in c and isinstance(c[k], list):
-            new_c = []
-            for cc, vv in zip(c[k], v):
-                cc = recursive_merge_dicts(cc or {}, vv)
-                new_c.append(cc)
-            c[k] = new_c
-        elif k in c and isinstance(c[k], dict):
-            c[k] = recursive_merge_dicts(c.get(k) or {}, v)
+    final_config = base_config.copy()
+    for key, value in extra_config.items():
+        if key in final_config and isinstance(final_config[key], list):
+            new_config = []
+            for key_, value_ in zip(final_config[key], value):
+                key_ = recursive_merge_dicts(key_ or {}, value_)
+                new_config.append(key_)
+            final_config[key] = new_config
+        elif key in final_config and isinstance(final_config[key], dict):
+            final_config[key] = recursive_merge_dicts(final_config.get(key) or {}, value)
         else:
-            c[k] = v
-    return c
+            final_config[key] = value
+    return final_config
 
 
 # Combine everything!

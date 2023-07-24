@@ -92,7 +92,7 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
 
     def _run(self):
         instruments_list = self.config.dataset1d.instruments
-        self.log.info(f"{len(instruments_list)} number of 1D Datasets given")
+        self.log.info("%d number of 1D Datasets given", len(instruments_list))
 
         datasets_1d_final = Datasets()
         instrument_spectral_info = {"name": [], "spectral_energy_ranges": []}
@@ -159,14 +159,18 @@ class Dataset1DGeneration:
         self.datasets = Datasets()
 
     def run(self):
+        """
+        Main function to run the creation of 1D dataset.
+        """
         # First check for the given file list if they are readable or not.
-        file_list = {}
         dl3_info = DL3Files(
             self.config_1d_dataset_io[0],
-            file_list,
             log=self.log,
         )
         dl3_info.list_dl3_files()
+
+        if len(dl3_info.events_files) == 0:
+            self.log.error("No DL3 files found at %s", dl3_info.dl3_path)
 
         # Applying all provided filters to get the Observations object
         observations = get_filtered_observations(

@@ -274,7 +274,9 @@ def get_filtered_observations(dl3_path, obs_config, log):
         obs_table = obs_table.select_observations(cone_select)
 
     filtered_obs_ids = obs_table["OBS_ID"].data
-    log.info(f"Observation ID list selected: {filtered_obs_ids}")
+
+    obs_ids_str = " ".join(map(str, filtered_obs_ids))
+    log.info("Observation ID list selected: %s", obs_ids_str)
 
     # IRFs selection
     irfs_selected = obs_config.required_irfs
@@ -362,7 +364,7 @@ def get_safe_mask_maker(safe_config):
     """
     Generate Safe mask reduction maker as per the given config information.
 
-    Paramters
+    Parameters
     ---------
     safe_config: `asgardpy.base.reduction.SafeMaskConfig`
         Config information to create `gammapy.makers.SafeMaskMaker` object.

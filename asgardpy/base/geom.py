@@ -232,7 +232,7 @@ def create_counts_map(geom_config, center_pos):
     Return
     ------
     counts_map: `gammapy.maps.Map`
-        Map object of the Counts informatio.
+        Map object of the Counts information.
     """
     energy_axes = geom_config.axes[0]
     energy_axis = get_energy_axis(energy_axes)

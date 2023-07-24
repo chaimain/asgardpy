@@ -113,7 +113,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
 
     def _run(self):
         instruments_list = self.config.dataset3d.instruments
-        self.log.info(f"{len(instruments_list)} number of 3D Datasets given")
+        self.log.info("%d number of 3D Datasets given", len(instruments_list))
 
         datasets_3d_final = Datasets()
         models_final = Models()
@@ -126,7 +126,8 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
 
             key_names = config_3d_dataset.dataset_info.key
             if len(key_names) > 0:
-                self.log.info(f"The different keys used: {key_names}")
+                keys_str = " ".join(map(str, key_names))
+                self.log.info("The different keys used: %s", keys_str)
             else:
                 key_names = [None]
                 self.log.info("No distinct keys used for the 3D dataset")
@@ -227,6 +228,9 @@ class Dataset3DGeneration:
         self.config_target = config_full.target
 
     def run(self, key_name):
+        """
+        Main function to run the creation of 3D dataset.
+        """
         # First check for the given file list if they are readable or not.
         file_list = self.read_to_objects(key_name)
 
@@ -440,11 +444,12 @@ class Dataset3DGeneration:
 
         If there are no distinct key types of files, the value is None.
         """
-        dl3_info = DL3Files(dl3_dir_dict, file_list, log=self.log)
+        dl3_info = DL3Files(dl3_dir_dict, log=self.log)
         object_list = []
 
         if dl3_dir_dict.type.lower() in ["gadf-dl3"]:
-            file_list = dl3_info.list_dl3_files()
+            dl3_info.list_dl3_files()
+            file_list = dl3_info.events_files
 
             return file_list, object_list
         else:
@@ -471,7 +476,7 @@ class Dataset3DGeneration:
 
         Currently assuming this to be applicable only for Fermi-LAT data.
         """
-        with open(xml_file) as file:
+        with open(xml_file, encoding="utf-8") as file:
             data = xmltodict.parse(file.read())["source_library"]["source"]
 
         is_target_source = False

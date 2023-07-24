@@ -63,6 +63,11 @@ jobs:
               name: Docs
               run: cd docs && make html
 
+          - python: '3.10'
+            task:
+              name: Spell check
+              run: codespell asgardpy
+
     steps:
       - uses: actions/checkout@v3
 
