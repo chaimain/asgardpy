@@ -1,3 +1,6 @@
+"""
+Data Module
+"""
 from gammapy.utils.registry import Registry
 
 from asgardpy.data.dataset_1d import (

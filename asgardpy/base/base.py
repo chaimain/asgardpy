@@ -32,6 +32,8 @@ __all__ = [
 
 # Basic Quantities Type for building the Config
 class AngleType(Angle):
+    """Base Angle Type Quantity"""
+
     @classmethod
     def __get_validators__(cls):
         yield cls.validate
@@ -42,6 +44,8 @@ class AngleType(Angle):
 
 
 class EnergyType(u.Quantity):
+    """Base Energy Type Quantity"""
+
     @classmethod
     def __get_validators__(cls):
         yield cls.validate
@@ -55,6 +59,8 @@ class EnergyType(u.Quantity):
 
 
 class TimeType(Time):
+    """Base Time Type Quantity"""
+
     @classmethod
     def __get_validators__(cls):
         yield cls.validate
@@ -65,6 +71,8 @@ class TimeType(Time):
 
 
 class PathType(str):
+    """Base Path Type Quantity"""
+
     @classmethod
     def __get_validators__(cls):
         yield cls.validate

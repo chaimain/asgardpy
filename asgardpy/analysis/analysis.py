@@ -57,6 +57,9 @@ class AsgardpyAnalysis:
 
     @property
     def models(self):
+        """
+        Display the assigned Models.
+        """
         if not self.datasets:
             raise RuntimeError("No datasets defined. Impossible to set models.")
         return self.datasets.models
@@ -78,6 +81,9 @@ class AsgardpyAnalysis:
             raise TypeError("config must be dict or AsgardpyConfig.")
 
     def run(self, steps=None, overwrite=None, **kwargs):
+        """
+        Main function to run the AnalaysisSteps provided.
+        """
         if steps is None:
             steps = self.config.general.steps
             overwrite = self.config.general.overwrite
@@ -104,11 +110,12 @@ class AsgardpyAnalysis:
                         # If the target source has Spatial model included,
                         # only then (?) get all the models as final_model.
                         # Needs reconsideration.
-                        for m in models_list:
-                            self.final_model.append(m)
+                        for model_ in models_list:
+                            self.final_model.append(model_)
                     else:
                         self.log.info(
-                            f"The target source only has spectral model:{target_source_model}"
+                            "The target source %s only has spectral model",
+                            self.config.target.source_name,
                         )
 
                 # To get all datasets_names from the datasets and update the final datasets list

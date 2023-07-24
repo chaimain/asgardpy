@@ -53,7 +53,7 @@ class DL3Files:
     other auxiliary files for neighbouring sources, if provided.
     """
 
-    def __init__(self, dir_dict, file_list, log=None):
+    def __init__(self, dir_dict, log=None):
         if not log:
             self._set_logging()
         else:
@@ -62,7 +62,7 @@ class DL3Files:
         if Path(dir_dict.input_dir).exists():
             self.dl3_path = Path(dir_dict.input_dir)
         else:
-            self.log.error(f"{dir_dict.input_dir} is not a valid file location")
+            self.log.error("%s is not a valid file location", dir_dict.input_dir)
 
         self.dl3_type = dir_dict.type
         self._check_dl3_type()
@@ -86,7 +86,7 @@ class DL3Files:
 
     def _check_dl3_type(self):
         if self.dl3_type.lower() not in EXPECTED_DL3_RANGE:
-            self.log.error(f"{self.dl3_type} is not in the expected range for DL3 files")
+            self.log.error("%s is not in the expected range for DL3 files", self.dl3_type)
 
     def prepare_lat_files(self, key, file_list):
         """
@@ -166,7 +166,9 @@ class DL3Files:
                     setattr(self, _v.replace("_files", "_f"), getattr(self, _v)[0])
                 except Exception:
                     self.log.error(
-                        f"Variable self.{_v} does not contain one element after filtering by {key}"
+                        "Variable {%s} does not contain one element after filtering by {%s}",
+                        self._v,
+                        key,
                     )
                 else:
                     self.log.info("Selecting the file with name containing %s", key)
