@@ -1,19 +1,10 @@
-asgardpy.config module
+asgardpy.config Module
 ======================
 
 .. automodule:: asgardpy.config
-   :members: AsgardpyConfig, get_model_template, recursive_merge_dicts
-   :undoc-members:
-   :show-inheritance:
 
-Template AsgardpyConfig
-=======================
+.. toctree::
+  :maxdepth: 1
+  :glob:
 
-.. literalinclude:: ../_templates/template.yaml
-   :language: yaml
-
-Template models file
-====================
-
-.. literalinclude:: ../_templates/template_model.yaml
-   :language: yaml
+  config/*
