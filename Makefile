@@ -9,4 +9,5 @@ run-checks :
 	black --check .
 	flake8 .
 	mypy .
+	codespell asgardpy
 	CUDA_VISIBLE_DEVICES='' pytest -v --color=yes --doctest-modules tests/ asgardpy/
