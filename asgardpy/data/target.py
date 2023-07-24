@@ -8,6 +8,7 @@ from typing import List
 import astropy.units as u
 import numpy as np
 from astropy.coordinates import SkyCoord
+from gammapy.datasets import FluxPointsDataset
 from gammapy.maps import Map
 from gammapy.modeling import Parameter, Parameters
 from gammapy.modeling.models import (
@@ -40,7 +41,8 @@ __all__ = [
     "create_gal_diffuse_skymodel",
     "create_iso_diffuse_skymodel",
     "create_source_skymodel",
-    "get_chi2_pval",
+    "get_chi2_sig_pval",
+    "get_goodness_of_fit_stats",
     "params_renaming_to_gammapy",
     "params_rescale_to_gammapy",
     "read_models_from_asgardpy_config",
@@ -971,11 +973,11 @@ def create_gal_diffuse_skymodel(diff_gal):
     return source
 
 
-def get_chi2_pval(test_stat, ndof):
+def get_chi2_sig_pval(test_stat, ndof):
     """
     Using the log-likelihood value for a model fitting to data, along with the
-    total degrees of freedom, evaluate the chi2 value along with the p-value
-    for the fitting statistics.
+    total degrees of freedom, evaluate the significance value in terms of gaussian
+    distribution along with one-tailed p-value for the fitting statistics.
 
     In Gammapy, for 3D analysis, cash statistics is used, while for 1D analysis,
     wstat statistics is used. Check the documentation for more details
@@ -990,20 +992,81 @@ def get_chi2_pval(test_stat, ndof):
 
     Returns
     -------
-    chi2_: float
+    chi2_sig: float
         significance (Chi2) of the likelihood of fit model estimated in
         Gaussian distribution.
     pval: float
         p-value for the model fitting
 
     """
-    pval = chi2.sf(np.sqrt(test_stat), ndof)
-    chi2_ = norm.isf(pval / 2)
+    pval = chi2.sf(test_stat, ndof)
+    chi2_sig = norm.isf(pval / 2)
 
-    if not np.isfinite(chi2_):
-        chi2_ = np.sqrt(test_stat)
+    if not np.isfinite(chi2_sig):
+        chi2_sig = np.sqrt(test_stat)
 
-    return chi2_, pval
+    return chi2_sig, pval
+
+
+def get_goodness_of_fit_stats(flux_points, models, instrument_spectral_info):
+    """
+    Evaluating the Goodness of Fit of the Flux fitting of the model
+    to the data, by using the method stat_array of FluxPointsDataset,
+    which is the Chi2 evaluation of the goodness of fit of the dnde flux.
+
+    This is performed for the reconstructed energy bins in which,
+    there are significant (sqrt (TS) > 0) flux estimation.
+
+    The Degrees of Freedom for the Fit is taken as (the number of
+    relevant energy bins used in the evaluation) - (the number of
+    free spectral model parameters).
+
+    Parameter
+    ---------
+    flux_points: `gammapy.datasets.FluxPoints`
+        List of Flux Points evaluated
+    models: `gammapy.modeling.models.Models`
+        List of Models used
+    instrument_spectral_info: dict
+        Dict of information for storing relevant fit stats
+
+    Return
+    ------
+    instrument_spectral_info: dict
+        Filled Dict of information with relevant fit statistics
+    stat_message: str
+        String for logging the fit statistics
+    """
+    stat = 0
+    en_num = 0
+    n_free_param = len(list(models[0].parameters.free_parameters))
+
+    joint_model = models[0]
+    joint_model.spatial_model = None
+
+    for fp in flux_points:
+        # Masking energy bins without significant flux estimation
+        mask = fp.sqrt_ts.data[:, 0, 0] > 0
+        en_num += np.sum(mask)
+
+        fpd = FluxPointsDataset(models=joint_model, data=fp)
+        fpd._models = Models(joint_model)
+
+        stat += np.nansum(fpd.stat_array()[mask])
+
+    ndof = en_num - n_free_param
+    fit_chi2_sig, fit_pval = get_chi2_sig_pval(stat, ndof)
+
+    instrument_spectral_info["fit_stat"] = stat
+    instrument_spectral_info["fit_ndof"] = ndof
+    instrument_spectral_info["fit_chi2_sig"] = fit_chi2_sig
+    instrument_spectral_info["fit_pval"] = fit_pval
+
+    stat_message = f"The Chi2/dof value of the goodness of Fit is {stat:.2f}/{ndof}"
+    stat_message += f"\nand the p-value is {fit_pval:.3e} and in "
+    stat_message += f"Significance {fit_chi2_sig:.2f} sigmas"
+
+    return instrument_spectral_info, stat_message
 
 
 def check_model_preference_lrt(test_stat_1, test_stat_2, ndof_1, ndof_2):
@@ -1033,18 +1096,14 @@ def check_model_preference_lrt(test_stat_1, test_stat_2, ndof_1, ndof_2):
         number of degrees of freedom or free parameters between primary and
         nested model.
     """
-    n_dof = ndof_2 - ndof_1
+    n_dof = ndof_1 - ndof_2
 
     if n_dof < 1:
-        print(f"DoF is lower in {ndof_2} compared to {ndof_1}")
+        print(f"DoF is lower in {ndof_1} compared to {ndof_2}")
 
         return np.nan, np.nan, n_dof
 
-    p_value = chi2.sf((test_stat_1 - test_stat_2), n_dof)
-    gaussian_sigmas = norm.isf(p_value / 2)
-
-    if not np.isfinite(gaussian_sigmas):
-        gaussian_sigmas = np.sqrt((test_stat_1 - test_stat_2))
+    gaussian_sigmas, p_value = get_chi2_sig_pval(test_stat_1 - test_stat_2, n_dof)
 
     return p_value, gaussian_sigmas, n_dof
 

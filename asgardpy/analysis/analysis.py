@@ -8,7 +8,7 @@ from gammapy.modeling.models import Models
 
 from asgardpy.base import AnalysisStep
 from asgardpy.config import AsgardpyConfig
-from asgardpy.data import set_models
+from asgardpy.data import get_goodness_of_fit_stats, set_models
 
 log = logging.getLogger(__name__)
 
@@ -139,7 +139,7 @@ class AsgardpyAnalysis:
             models=self.final_model,
         )
 
-        # Evaluate the total degree of freedom for the model fitting to the data
+        # Evaluate the total degree of freedom for checking model preference
         en_bins = 0
         for data in self.datasets:
             if data.mask:
@@ -147,7 +147,7 @@ class AsgardpyAnalysis:
             else:
                 en_bins += data.counts.geom.axes["energy"].nbin
 
-        dof = en_bins + len(list(self.final_model.parameters.free_parameters))
+        dof = en_bins - len(list(self.final_model.parameters.free_parameters))
         self.instrument_spectral_info["DoF"] = dof
 
         if len(dl4_dl5_steps) > 0:
@@ -164,6 +164,12 @@ class AsgardpyAnalysis:
                 for data_product in self.final_data_products:
                     if hasattr(analysis_step, data_product):
                         setattr(self, data_product, getattr(analysis_step, data_product))
+
+        if self.flux_points:
+            self.instrument_spectral_info, message = get_goodness_of_fit_stats(
+                self.flux_points, self.final_model, self.instrument_spectral_info
+            )
+            self.log.info(message)
 
     # keep these methods to be backward compatible
     def get_1d_dataset(self):
