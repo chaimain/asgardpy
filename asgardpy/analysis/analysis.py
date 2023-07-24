@@ -3,8 +3,10 @@ Config-driven high level analysis interface.
 """
 import logging
 
+import numpy as np
 from gammapy.datasets import Datasets
 from gammapy.modeling.models import Models
+from gammapy.stats import CashCountsStatistic, WStatCountsStatistic
 
 from asgardpy.base import AnalysisStep
 from asgardpy.config import AsgardpyConfig
@@ -46,7 +48,12 @@ class AsgardpyAnalysis:
 
         self.config.set_logging()
         self.datasets = Datasets()
-        self.instrument_spectral_info = {"name": [], "spectral_energy_ranges": []}
+        self.instrument_spectral_info = {
+            "name": [],
+            "spectral_energy_ranges": [],
+            "DoF": 0,
+            "TS_H0": 0,
+        }
         self.dataset_name_list = []
 
         self.final_model = Models()
@@ -124,13 +131,16 @@ class AsgardpyAnalysis:
                         self.dataset_name_list.append(data.name)
                     self.datasets.append(data)
 
-                # Update the name and spectral energy ranges for each
-                # instrument Datasets, to be used for the FluxPointsAnalysisStep.
+                # Update the name, DoF and spectral energy ranges for each
+                # instrument Datasets, to be used for the DL4 to DL5 processes.
                 for name in instrument_spectral_info["name"]:
                     self.instrument_spectral_info["name"].append(name)
 
                 for edges in instrument_spectral_info["spectral_energy_ranges"]:
                     self.instrument_spectral_info["spectral_energy_ranges"].append(edges)
+
+                for ndof in instrument_spectral_info["DoF"]:
+                    self.instrument_spectral_info["DoF"] += ndof
 
         self.datasets, self.final_model = set_models(
             self.config.target,
@@ -139,16 +149,33 @@ class AsgardpyAnalysis:
             models=self.final_model,
         )
 
-        # Evaluate the total degree of freedom for checking model preference
-        en_bins = 0
-        for data in self.datasets:
-            if data.mask:
-                en_bins += data.mask.geom.axes["energy"].nbin
-            else:
-                en_bins += data.counts.geom.axes["energy"].nbin
+        # Subtract the total number of free model parameters from the total
+        # number of degrees of freedom
+        n_free_params = len(list(self.final_model.parameters.free_parameters))
+        self.instrument_spectral_info["DoF"] -= n_free_params
 
-        dof = en_bins - len(list(self.final_model.parameters.free_parameters))
-        self.instrument_spectral_info["DoF"] = dof
+        # Evaluate the TS for the null hypothesis
+        for data in self.datasets:
+            region = data.counts.geom.center_skydir
+
+            if data.stat_type == "cash":
+                counts_on = (data.counts.copy() * data.mask).get_spectrum(region).data
+                mu_on = (data.npred() * data.mask).get_spectrum(region).data
+
+                stat = CashCountsStatistic(
+                    counts_on,
+                    mu_on,
+                )
+            elif data.stat_type == "wstat":
+                counts_on = (data.counts.copy() * data.mask).get_spectrum(region)
+                counts_off = np.nan_to_num((data.counts_off * data.mask).get_spectrum(region))
+                alpha = (
+                    np.nan_to_num((data.background * data.mask).get_spectrum(region)) / counts_off
+                )
+                mu_signal = np.nan_to_num((data.npred_signal() * data.mask).get_spectrum(region))
+
+                stat = WStatCountsStatistic(counts_on, counts_off, alpha, mu_signal)
+            self.instrument_spectral_info["TS_H0"] += np.nansum(stat.stat_null.ravel())
 
         if len(dl4_dl5_steps) > 0:
             self.log.info("Perform DL4 to DL5 processes!")
@@ -165,9 +192,9 @@ class AsgardpyAnalysis:
                     if hasattr(analysis_step, data_product):
                         setattr(self, data_product, getattr(analysis_step, data_product))
 
-        if self.flux_points:
+        if self.fit_result:
             self.instrument_spectral_info, message = get_goodness_of_fit_stats(
-                self.flux_points, self.final_model, self.instrument_spectral_info
+                self.instrument_spectral_info
             )
             self.log.info(message)
 

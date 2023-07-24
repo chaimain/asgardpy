@@ -97,6 +97,9 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
         datasets_1d_final = Datasets()
         instrument_spectral_info = {"name": [], "spectral_energy_ranges": []}
 
+        # Calculate the total number of degrees of freedom
+        dof = 0
+
         # Iterate over all instrument information given:
         for i in np.arange(len(instruments_list)):
             config_1d_dataset = instruments_list[i]
@@ -118,10 +121,23 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
 
             if self.config.general.stacked_dataset:
                 dataset = dataset.stack_reduce(name=config_1d_dataset.name)
+
+                if dataset.mask:
+                    dof += dataset.mask.geom.axes["energy"].nbin
+                else:
+                    dof += dataset.counts.geom.axes["energy"].nbin
+
                 datasets_1d_final.append(dataset)
             else:
                 for data in dataset:
+                    if data.mask:
+                        dof += data.mask.geom.axes["energy"].nbin
+                    else:
+                        dof += data.counts.geom.axes["energy"].nbin
+
                     datasets_1d_final.append(data)
+
+        instrument_spectral_info["DoF"] = dof
 
         return (
             datasets_1d_final,

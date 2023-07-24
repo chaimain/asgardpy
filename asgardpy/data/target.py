@@ -8,7 +8,6 @@ from typing import List
 import astropy.units as u
 import numpy as np
 from astropy.coordinates import SkyCoord
-from gammapy.datasets import FluxPointsDataset
 from gammapy.maps import Map
 from gammapy.modeling import Parameter, Parameters
 from gammapy.modeling.models import (
@@ -1008,25 +1007,22 @@ def get_chi2_sig_pval(test_stat, ndof):
     return chi2_sig, pval
 
 
-def get_goodness_of_fit_stats(flux_points, models, instrument_spectral_info):
+def get_goodness_of_fit_stats(instrument_spectral_info):
     """
-    Evaluating the Goodness of Fit of the Flux fitting of the model
-    to the data, by using the method stat_array of FluxPointsDataset,
-    which is the Chi2 evaluation of the goodness of fit of the dnde flux.
+    Evaluating the Goodness of Fit of the fitting of the model to the data.
 
-    This is performed for the reconstructed energy bins in which,
-    there are significant (sqrt (TS) > 0) flux estimation.
+    This is done by using the total TS of the null hypothesis for each dataset
+    used, as TS_H0, and the optimized fit statistics, as TS_H1, the alternate
+    hypothesis of the presence of target source with signal (data with the best
+    fit model), to get the final input of test_statistic for get_chi2_sig_pval
+    function to be, sqrt(TS_H0 - TS_H1).
 
     The Degrees of Freedom for the Fit is taken as (the number of
     relevant energy bins used in the evaluation) - (the number of
-    free spectral model parameters).
+    free model parameters).
 
     Parameter
     ---------
-    flux_points: `gammapy.datasets.FluxPoints`
-        List of Flux Points evaluated
-    models: `gammapy.modeling.models.Models`
-        List of Models used
     instrument_spectral_info: dict
         Dict of information for storing relevant fit stats
 
@@ -1037,32 +1033,15 @@ def get_goodness_of_fit_stats(flux_points, models, instrument_spectral_info):
     stat_message: str
         String for logging the fit statistics
     """
-    stat = 0
-    en_num = 0
-    n_free_param = len(list(models[0].parameters.free_parameters))
-
-    joint_model = models[0]
-    joint_model.spatial_model = None
-
-    for fp in flux_points:
-        # Masking energy bins without significant flux estimation
-        mask = fp.sqrt_ts.data[:, 0, 0] > 0
-        en_num += np.sum(mask)
-
-        fpd = FluxPointsDataset(models=joint_model, data=fp)
-        fpd._models = Models(joint_model)
-
-        stat += np.nansum(fpd.stat_array()[mask])
-
-    ndof = en_num - n_free_param
+    stat = np.sqrt(instrument_spectral_info["TS_H0"] - instrument_spectral_info["TS_H1"])
+    ndof = instrument_spectral_info["DoF"]
     fit_chi2_sig, fit_pval = get_chi2_sig_pval(stat, ndof)
 
     instrument_spectral_info["fit_stat"] = stat
-    instrument_spectral_info["fit_ndof"] = ndof
     instrument_spectral_info["fit_chi2_sig"] = fit_chi2_sig
     instrument_spectral_info["fit_pval"] = fit_pval
 
-    stat_message = f"The Chi2/dof value of the goodness of Fit is {stat:.2f}/{ndof}"
+    stat_message = f"The Chi2/dof value of the goodness of Fit is {stat**2:.2f}/{ndof}"
     stat_message += f"\nand the p-value is {fit_pval:.3e} and in "
     stat_message += f"Significance {fit_chi2_sig:.2f} sigmas"
 
