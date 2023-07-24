@@ -103,10 +103,14 @@ To add a Gammapy `FoVBackgroundModel` to the 3D dataset, use :attr:`AsgardpyConf
 The :py:func:`asgardpy.data.target.apply_selection_mask_to_models` function is used to apply various selections on the given list of models.
 
 
-To perform some tests on the preference of the assumed spectral model of the target source, use either :func:`asgardpy.data.target.check_model_preference_lrt` or :func:`asgardpy.data.target.check_model_preference_aic`.
-
-
 High-level Analysis
 -------------------
 
 The various Config components and Analysis steps for the high-level analysis can be found in :doc:`_api_docs/data_dl4`.
+
+
+Statistics
+----------
+
+The :doc:`_api_docs/stats` contains various functions to perform some statistics with the fitted DL4 datasets.
+One can perform tests on the preference of the assumed spectral model of the target source, by using either :func:`asgardpy.stats.stats.check_model_preference_lrt` or :func:`asgardpy.stats.stats.check_model_preference_aic`.

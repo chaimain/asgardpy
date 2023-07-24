@@ -9,6 +9,7 @@ from gammapy.modeling.models import Models
 from asgardpy.base import AnalysisStep
 from asgardpy.config import AsgardpyConfig
 from asgardpy.data import set_models
+from asgardpy.stats import get_goodness_of_fit_stats, get_ts_null_hypothesis
 
 log = logging.getLogger(__name__)
 
@@ -46,7 +47,12 @@ class AsgardpyAnalysis:
 
         self.config.set_logging()
         self.datasets = Datasets()
-        self.instrument_spectral_info = {"name": [], "spectral_energy_ranges": []}
+        self.instrument_spectral_info = {
+            "name": [],
+            "spectral_energy_ranges": [],
+            "DoF": 0,
+            "TS_H0": 0,
+        }
         self.dataset_name_list = []
 
         self.final_model = Models()
@@ -124,13 +130,15 @@ class AsgardpyAnalysis:
                         self.dataset_name_list.append(data.name)
                     self.datasets.append(data)
 
-                # Update the name and spectral energy ranges for each
-                # instrument Datasets, to be used for the FluxPointsAnalysisStep.
+                # Update the name, DoF and spectral energy ranges for each
+                # instrument Datasets, to be used for the DL4 to DL5 processes.
                 for name in instrument_spectral_info["name"]:
                     self.instrument_spectral_info["name"].append(name)
 
                 for edges in instrument_spectral_info["spectral_energy_ranges"]:
                     self.instrument_spectral_info["spectral_energy_ranges"].append(edges)
+
+                self.instrument_spectral_info["DoF"] += instrument_spectral_info["DoF"]
 
         self.datasets, self.final_model = set_models(
             self.config.target,
@@ -139,16 +147,13 @@ class AsgardpyAnalysis:
             models=self.final_model,
         )
 
-        # Evaluate the total degree of freedom for the model fitting to the data
-        en_bins = 0
-        for data in self.datasets:
-            if data.mask:
-                en_bins += data.mask.geom.axes["energy"].nbin
-            else:
-                en_bins += data.counts.geom.axes["energy"].nbin
+        # Subtract the total number of free model parameters from the total
+        # number of degrees of freedom
+        n_free_params = len(list(self.final_model.parameters.free_parameters))
+        self.instrument_spectral_info["DoF"] -= n_free_params
 
-        dof = en_bins + len(list(self.final_model.parameters.free_parameters))
-        self.instrument_spectral_info["DoF"] = dof
+        # Evaluate the TS for the null hypothesis
+        self.instrument_spectral_info["TS_H0"] += get_ts_null_hypothesis(self.datasets)
 
         if len(dl4_dl5_steps) > 0:
             self.log.info("Perform DL4 to DL5 processes!")
@@ -164,6 +169,12 @@ class AsgardpyAnalysis:
                 for data_product in self.final_data_products:
                     if hasattr(analysis_step, data_product):
                         setattr(self, data_product, getattr(analysis_step, data_product))
+
+        if self.fit_result:
+            self.instrument_spectral_info, message = get_goodness_of_fit_stats(
+                self.instrument_spectral_info
+            )
+            self.log.info(message)
 
     # keep these methods to be backward compatible
     def get_1d_dataset(self):
