@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Improve logging. [#102](https://github.com/chaimain/asgardpy/pull/102)
+- Fix estimation of Goodness of Fit statistics. [#106](https://github.com/chaimain/asgardpy/pull/106)
 
 ### Changed
 
