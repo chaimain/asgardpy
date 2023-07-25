@@ -57,7 +57,7 @@ def get_goodness_of_fit_stats(instrument_spectral_info):
     used, as TS_H0, and the optimized fit statistics, as TS_H1, the alternate
     hypothesis of the presence of target source with signal (data with the best
     fit model), to get the final input of test_statistic for get_chi2_sig_pval
-    function to be, sqrt(TS_H0 - TS_H1).
+    function to be, TS_H0 - TS_H1.
 
     The Degrees of Freedom for the Fit is taken as (the number of
     relevant energy bins used in the evaluation) - (the number of
@@ -75,7 +75,7 @@ def get_goodness_of_fit_stats(instrument_spectral_info):
     stat_message: str
         String for logging the fit statistics
     """
-    stat = np.sqrt(instrument_spectral_info["TS_H0"] - instrument_spectral_info["TS_H1"])
+    stat = instrument_spectral_info["TS_H0"] - instrument_spectral_info["TS_H1"]
     ndof = instrument_spectral_info["DoF"]
     fit_chi2_sig, fit_pval = get_chi2_sig_pval(stat, ndof)
 
@@ -83,7 +83,7 @@ def get_goodness_of_fit_stats(instrument_spectral_info):
     instrument_spectral_info["fit_chi2_sig"] = fit_chi2_sig
     instrument_spectral_info["fit_pval"] = fit_pval
 
-    stat_message = f"The Chi2/dof value of the goodness of Fit is {stat**2:.2f}/{ndof}"
+    stat_message = f"The Chi2/dof value of the goodness of Fit is {stat:.2f}/{ndof}"
     stat_message += f"\nand the p-value is {fit_pval:.3e} and in "
     stat_message += f"Significance {fit_chi2_sig:.2f} sigmas"
 
@@ -202,7 +202,11 @@ def get_ts_null_hypothesis(datasets):
         elif data.stat_type == "wstat":
             counts_on = (data.counts.copy() * data.mask).get_spectrum(region)
             counts_off = np.nan_to_num((data.counts_off * data.mask).get_spectrum(region))
-            alpha = np.nan_to_num((data.background * data.mask).get_spectrum(region)) / counts_off
+
+            with np.errstate(invalid="ignore", divide="ignore"):
+                alpha = (
+                    np.nan_to_num((data.background * data.mask).get_spectrum(region)) / counts_off
+                )
             mu_signal = np.nan_to_num((data.npred_signal() * data.mask).get_spectrum(region))
 
             stat = WStatCountsStatistic(counts_on, counts_off, alpha, mu_signal)

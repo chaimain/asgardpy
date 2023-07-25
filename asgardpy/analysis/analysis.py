@@ -9,7 +9,7 @@ from gammapy.modeling.models import Models
 from asgardpy.base import AnalysisStep
 from asgardpy.config import AsgardpyConfig
 from asgardpy.data import set_models
-from asgardpy.stats import get_goodness_of_fit_stats, get_ts_null_hypothesis
+from asgardpy.stats import get_goodness_of_fit_stats  # , get_ts_null_hypothesis
 
 log = logging.getLogger(__name__)
 
@@ -140,6 +140,9 @@ class AsgardpyAnalysis:
 
                 self.instrument_spectral_info["DoF"] += instrument_spectral_info["DoF"]
 
+        # Evaluate the TS for the null hypothesis
+        self.instrument_spectral_info["TS_H0"] += self.datasets.stat_sum()
+
         self.datasets, self.final_model = set_models(
             self.config.target,
             self.datasets,
@@ -151,9 +154,6 @@ class AsgardpyAnalysis:
         # number of degrees of freedom
         n_free_params = len(list(self.final_model.parameters.free_parameters))
         self.instrument_spectral_info["DoF"] -= n_free_params
-
-        # Evaluate the TS for the null hypothesis
-        self.instrument_spectral_info["TS_H0"] += get_ts_null_hypothesis(self.datasets)
 
         if len(dl4_dl5_steps) > 0:
             self.log.info("Perform DL4 to DL5 processes!")
