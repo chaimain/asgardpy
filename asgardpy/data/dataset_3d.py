@@ -174,7 +174,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                             model_name
                         ].spectral_model.model2
                         # For each linked model parameter, reduce the number of DoF
-                        dof -= 1
+                        dof += 1
             else:
                 models_final = None
 
