@@ -119,9 +119,12 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
         models_final = Models()
         instrument_spectral_info = {"name": [], "spectral_energy_ranges": []}
 
-        # Calculate the total number of degrees of freedom excluding the number
-        # of free parameters, as it will be calculated from the final_model
-        dof = 0
+        # Calculate the total number of reconstructed energy bins used
+        # and the number of linked model parameters to incorporate in the
+        # total number of free model parameters, for the final estimation of
+        # total number of degrees of freedom
+        free_params = 0
+        en_bins = 0
 
         # Iterate over all instrument information given:
         for i in np.arange(len(instruments_list)):
@@ -174,7 +177,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                             model_name
                         ].spectral_model.model2
                         # For each linked model parameter, reduce the number of DoF
-                        dof += 1
+                        free_params -= 1
             else:
                 models_final = None
 
@@ -192,12 +195,13 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
 
             for data in dataset_instrument:
                 if data.mask:
-                    dof += data.mask.geom.axes["energy"].nbin
+                    en_bins += data.mask.geom.axes["energy"].nbin
                 else:
-                    dof += data.counts.geom.axes["energy"].nbin
+                    en_bins += data.counts.geom.axes["energy"].nbin
                 datasets_3d_final.append(data)
 
-        instrument_spectral_info["DoF"] = dof
+        instrument_spectral_info["free_params"] = free_params
+        instrument_spectral_info["en_bins"] = en_bins
 
         return datasets_3d_final, models_final, instrument_spectral_info
 
