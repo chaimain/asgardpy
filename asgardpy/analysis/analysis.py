@@ -9,10 +9,7 @@ from gammapy.modeling.models import Models
 from asgardpy.base import AnalysisStep
 from asgardpy.config import AsgardpyConfig
 from asgardpy.data import set_models
-from asgardpy.stats import (
-    get_goodness_of_fit_stats,
-    get_ts_target,
-)
+from asgardpy.stats import get_goodness_of_fit_stats, get_ts_target
 
 log = logging.getLogger(__name__)
 

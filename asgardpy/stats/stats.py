@@ -2,12 +2,8 @@
 Module for performing some statistic functions.
 """
 import numpy as np
+from gammapy.stats import CashCountsStatistic, WStatCountsStatistic
 from scipy.stats import chi2, norm
-
-from gammapy.stats import (
-    CashCountsStatistic,
-    WStatCountsStatistic,
-)
 
 __all__ = [
     "check_model_preference_aic",
