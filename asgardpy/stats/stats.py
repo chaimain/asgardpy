@@ -2,8 +2,12 @@
 Module for performing some statistic functions.
 """
 import numpy as np
-from gammapy.stats import CashCountsStatistic, WStatCountsStatistic
 from scipy.stats import chi2, norm
+
+from gammapy.stats import (
+    CashCountsStatistic,
+    WStatCountsStatistic,
+)
 
 __all__ = [
     "check_model_preference_aic",
@@ -11,6 +15,7 @@ __all__ = [
     "get_chi2_sig_pval",
     "get_goodness_of_fit_stats",
     "get_ts_null_hypothesis",
+    "get_ts_target",
 ]
 
 
@@ -168,6 +173,45 @@ def check_model_preference_aic(list_wstat, list_dof):
     list_rel_p = np.array(list_rel_p)
 
     return list_rel_p
+
+
+def get_ts_target(datasets):
+    """
+    From a given list of DL4 datasets, with assumed associated models, estimate
+    the total test statistic value for the given target source.
+
+    Parameter
+    ---------
+    datasets: `gammapy.datasets.Datasets`
+        List of Datasets object, which can contain 3D and/or 1D datasets
+
+    Return
+    ------
+    test_stat: float
+        Total test statistic for the target source
+    """
+    test_stat = 0
+
+    for data in datasets:
+        if data.stat_type == "cash":  # 3D dataset
+            # Assuming that the central pixel is of the target source
+            central_pixel = data.counts.geom.center_pix
+            energy_idx = np.arange(data.counts.geom.axes["energy"].nbin)
+            stat_array = data.stat_array()
+
+            for en_idx in energy_idx:
+                pix_mask = tuple(
+                    [
+                        en_idx,
+                        int(central_pixel[1]),
+                        int(central_pixel[0]),
+                    ]
+                )
+                test_stat += stat_array[pix_mask]
+        else:  # 1D dataset
+            test_stat += data.stat_sum()
+
+    return test_stat
 
 
 def get_ts_null_hypothesis(datasets):

@@ -9,7 +9,10 @@ from gammapy.modeling.models import Models
 from asgardpy.base import AnalysisStep
 from asgardpy.config import AsgardpyConfig
 from asgardpy.data import set_models
-from asgardpy.stats import get_goodness_of_fit_stats  # , get_ts_null_hypothesis
+from asgardpy.stats import (
+    get_goodness_of_fit_stats,
+    get_ts_target,
+)
 
 log = logging.getLogger(__name__)
 
@@ -145,15 +148,14 @@ class AsgardpyAnalysis:
                     "free_params"
                 ]
 
-            # Evaluate the TS for the null hypothesis
-            self.instrument_spectral_info["TS_H0"] += self.datasets.stat_sum()
-
             self.datasets, self.final_model = set_models(
                 self.config.target,
                 self.datasets,
                 self.dataset_name_list,
                 models=self.final_model,
             )
+            # Evaluate the TS for the null hypothesis
+            self.instrument_spectral_info["TS_H0"] += get_ts_target(self.datasets)
 
             # Add to the total number of free model parameters
             n_free_params = len(list(self.final_model.parameters.free_parameters))
@@ -161,7 +163,8 @@ class AsgardpyAnalysis:
 
             # Get the final degrees of freedom as en_bins - free_params
             self.instrument_spectral_info["DoF"] = (
-                self.instrument_spectral_info["en_bins"] - self.instrument_spectral_info["free_params"]
+                self.instrument_spectral_info["en_bins"]
+                - self.instrument_spectral_info["free_params"]
             )
 
         if len(dl4_dl5_steps) > 0:
