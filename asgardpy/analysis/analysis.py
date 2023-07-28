@@ -152,7 +152,7 @@ class AsgardpyAnalysis:
                 models=self.final_model,
             )
             # Evaluate the TS for the null hypothesis
-            self.instrument_spectral_info["TS_H0"] += get_ts_target(self.datasets)
+            self.instrument_spectral_info["TS_H0"] += get_ts_target(self.datasets, null=True)
 
             # Add to the total number of free model parameters
             n_free_params = len(list(self.final_model.parameters.free_parameters))

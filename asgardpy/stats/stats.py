@@ -171,15 +171,21 @@ def check_model_preference_aic(list_wstat, list_dof):
     return list_rel_p
 
 
-def get_ts_target(datasets):
+def get_ts_target(datasets, null=False):
     """
     From a given list of DL4 datasets, with assumed associated models, estimate
     the total test statistic value for the given target source.
+
+    For Null hypothesis, the flux amplitude for the target source's spectral
+    model is turned to 0, before evaluating the TS, and then kept back to the
+    earlier value later.
 
     Parameter
     ---------
     datasets: `gammapy.datasets.Datasets`
         List of Datasets object, which can contain 3D and/or 1D datasets
+    null: bool
+        Boolean for evaluating TS for the null hypothesis (no signal from target)
 
     Return
     ------
@@ -189,10 +195,16 @@ def get_ts_target(datasets):
     test_stat = 0
 
     for data in datasets:
+        # For evaluating TS for Null hypothesis, turn the flux amplitude of target source, OFF
+        if null:
+            amp_def = data.models[0].spectral_model.model1.parameters["amplitude"].value
+            data.models[0].spectral_model.model1.parameters["amplitude"].value = 0
+
         if data.stat_type == "cash":  # 3D dataset
             # Assuming that the central pixel is of the target source
             central_pixel = data.counts.geom.center_pix
             energy_idx = np.arange(data.counts.geom.axes["energy"].nbin)
+
             stat_array = data.stat_array()
 
             for en_idx in energy_idx:
@@ -204,8 +216,15 @@ def get_ts_target(datasets):
                     ]
                 )
                 test_stat += stat_array[pix_mask]
+
         else:  # 1D dataset
             test_stat += data.stat_sum()
+
+        # Put the amplitude of the target back on, when evaluating TS for null hypothesis
+        if null:
+            data.models[0].spectral_model.model1.parameters["amplitude"].value = amp_def
+            # Re-evaluate the stat_array
+            data.stat_array()
 
     return test_stat
 
