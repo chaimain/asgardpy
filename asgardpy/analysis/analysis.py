@@ -9,7 +9,7 @@ from gammapy.modeling.models import Models
 from asgardpy.base import AnalysisStep
 from asgardpy.config import AsgardpyConfig
 from asgardpy.data import set_models
-from asgardpy.stats import get_goodness_of_fit_stats, get_ts_target
+from asgardpy.stats import get_goodness_of_fit_stats
 
 log = logging.getLogger(__name__)
 
@@ -151,8 +151,7 @@ class AsgardpyAnalysis:
                 self.dataset_name_list,
                 models=self.final_model,
             )
-            # Evaluate the TS for the null hypothesis
-            self.instrument_spectral_info["TS_H0"] += get_ts_target(self.datasets, null=True)
+            self.log.info("Models have been associated with the Datasets")
 
             # Add to the total number of free model parameters
             n_free_params = len(list(self.final_model.parameters.free_parameters))
@@ -181,7 +180,7 @@ class AsgardpyAnalysis:
 
         if self.fit_result:
             self.instrument_spectral_info, message = get_goodness_of_fit_stats(
-                self.instrument_spectral_info
+                self.datasets, self.instrument_spectral_info
             )
             self.log.info(message)
 

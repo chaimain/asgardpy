@@ -10,7 +10,6 @@ from gammapy.estimators import FluxPointsEstimator
 from gammapy.modeling import Fit
 
 from asgardpy.base import AnalysisStepBase, BaseConfig, EnergyRangeConfig
-from asgardpy.stats import get_ts_target
 
 __all__ = [
     "FitAnalysisStep",
@@ -61,8 +60,6 @@ class FitAnalysisStep(AnalysisStepBase):
         self._setup_fit()
         final_dataset = self._set_datasets()
         self.fit_result = self.fit.run(datasets=final_dataset)
-
-        self.instrument_spectral_info["TS_H1"] = get_ts_target(final_dataset)
 
         self.log.info(self.fit_result)
 
