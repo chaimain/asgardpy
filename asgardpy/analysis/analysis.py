@@ -53,7 +53,6 @@ class AsgardpyAnalysis:
             "en_bins": 0,
             "free_params": 0,
             "DoF": 0,
-            "TS_H0": 0,
         }
         self.dataset_name_list = []
 
