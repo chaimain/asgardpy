@@ -195,15 +195,15 @@ def get_ts_target(datasets):
 
     * stat_null:
 
-        * `Cash stat_null <https://docs.gammapy.org/1.1/api/gammapy.stats.CashCountsStatistic.html#gammapy.stats.CashCountsStatistic.stat_null>`_ # noqa
+        * `Cash stat_null <https://docs.gammapy.org/1.1/api/gammapy.stats.CashCountsStatistic.html#gammapy.stats.CashCountsStatistic.stat_null # noqa>`_
 
-        * `Wstat stat_null <https://docs.gammapy.org/1.1/api/gammapy.stats.WStatCountsStatistic.html#gammapy.stats.WStatCountsStatistic.stat_null>`_ # noqa
+        * `Wstat stat_null <https://docs.gammapy.org/1.1/api/gammapy.stats.WStatCountsStatistic.html#gammapy.stats.WStatCountsStatistic.stat_null # noqa>`_
 
     * ts:
 
-        * `Cash ts <https://docs.gammapy.org/1.1/api/gammapy.stats.CashCountsStatistic.html#gammapy.stats.CashCountsStatistic.ts>`_ # noqa
+        * `Cash ts <https://docs.gammapy.org/1.1/api/gammapy.stats.CashCountsStatistic.html#gammapy.stats.CashCountsStatistic.ts # noqa>`_
 
-        * `Wstat ts <https://docs.gammapy.org/1.1/api/gammapy.stats.WStatCountsStatistic.html#gammapy.stats.WStatCountsStatistic.ts>`_ # noqa
+        * `Wstat ts <https://docs.gammapy.org/1.1/api/gammapy.stats.WStatCountsStatistic.html#gammapy.stats.WStatCountsStatistic.ts # noqa>`_
 
     Parameter
     ---------
