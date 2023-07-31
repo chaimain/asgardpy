@@ -61,8 +61,6 @@ class FitAnalysisStep(AnalysisStepBase):
         final_dataset = self._set_datasets()
         self.fit_result = self.fit.run(datasets=final_dataset)
 
-        self.instrument_spectral_info["TS_H1"] = self.fit_result.total_stat
-
         self.log.info(self.fit_result)
 
     def _setup_fit(self):

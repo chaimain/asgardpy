@@ -9,11 +9,7 @@ from astropy.table import QTable
 from asgardpy.analysis import AsgardpyAnalysis
 from asgardpy.config import AsgardpyConfig
 from asgardpy.config.generator import CONFIG_PATH
-from asgardpy.stats.stats import (
-    check_model_preference_aic,
-    check_model_preference_lrt,
-    get_goodness_of_fit_stats,
-)
+from asgardpy.stats.stats import check_model_preference_aic, check_model_preference_lrt
 
 log = logging.getLogger(__name__)
 
@@ -141,9 +137,12 @@ def main():
     dof_list = []
 
     for tag in spec_models_list:
+        dict_tag = main_analysis_list[tag]["Analysis"].instrument_spectral_info
+        dict_pl = main_analysis_list["pl"]["Analysis"].instrument_spectral_info
+
         # Collect parameters for AIC check
-        stat = main_analysis_list[tag]["Analysis"].fit_result.total_stat
-        dof = main_analysis_list[tag]["Analysis"].instrument_spectral_info["DoF"]
+        stat = dict_tag["fit_stat"]
+        dof = dict_tag["DoF"]
 
         fit_success = main_analysis_list[tag]["Analysis"].fit_result.success
 
@@ -161,10 +160,10 @@ def main():
             continue
 
         p_pl_x, g_pl_x, ndof_pl_x = check_model_preference_lrt(
-            main_analysis_list["pl"]["Analysis"].fit_result.total_stat,
-            main_analysis_list[tag]["Analysis"].fit_result.total_stat,
-            main_analysis_list["pl"]["Analysis"].instrument_spectral_info["DoF"],
-            main_analysis_list[tag]["Analysis"].instrument_spectral_info["DoF"],
+            dict_pl["fit_stat"],
+            dict_tag["fit_stat"],
+            dict_pl["DoF"],
+            dict_tag["DoF"],
         )
 
         main_analysis_list[tag]["Pref_over_pl_chi2"] = g_pl_x
@@ -191,28 +190,27 @@ def main():
 
     list_rel_p = check_model_preference_aic(stat_list, dof_list)
 
-    for i, tag in enumerate(spec_models_list[fit_success_list]):
-        best_sp_idx_aic = np.nonzero(list_rel_p == np.nanmax(list_rel_p))[0]
+    best_sp_idx_aic = np.nonzero(list_rel_p == np.nanmax(list_rel_p))[0]
 
-        for idx in best_sp_idx_aic:
-            if list_rel_p[idx] > 0.95:
-                sp_idx_aic = idx
-                log.info("Best preferred spectral model is %s", tag)
-            else:
-                sp_idx_aic = PL_idx
-                log.info("No other model preferred, hence PL is selected")
+    for idx in best_sp_idx_aic:
+        if list_rel_p[idx] > 0.95:
+            sp_idx_aic = idx
+            log.info("Best preferred spectral model is %s", spec_models_list[fit_success_list][idx])
+        else:
+            sp_idx_aic = PL_idx
+            log.info("No other model preferred, hence PL is selected")
 
     fit_stats_table = []
-    for i, tag in enumerate(spec_models_list):
+    for i, tag in enumerate(spec_models_list[fit_success_list]):
         info_ = main_analysis_list[tag]["Analysis"].instrument_spectral_info
-        info_, _ = get_goodness_of_fit_stats(info_)
+
         t = main_analysis_list[tag]
-        delta_ts = info_["TS_H0"] - info_["TS_H1"]
 
         t_fits = {
             "Spectral Model": tag.upper(),
-            "TS of Fitting Model": round(info_["TS_H1"], 3),
-            "TS of Goodness of Fit": round(delta_ts, 3),
+            "TS of null hypothesis": round(info_["stat_h0"], 3),
+            "TS of alt hypothesis": round(info_["stat_h1"], 3),
+            "TS of Goodness of Fit": round(info_["fit_stat"], 3),
             "DoF of Fit": info_["DoF"],
             r"Significance ($\sigma$) of Goodness of Fit": round(info_["fit_chi2_sig"], 3),
             "p-value of Goodness of Fit": float("%.4g" % info_["fit_pval"]),

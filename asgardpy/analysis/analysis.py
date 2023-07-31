@@ -9,7 +9,7 @@ from gammapy.modeling.models import Models
 from asgardpy.base import AnalysisStep
 from asgardpy.config import AsgardpyConfig
 from asgardpy.data import set_models
-from asgardpy.stats import get_goodness_of_fit_stats, get_ts_null_hypothesis
+from asgardpy.stats import get_goodness_of_fit_stats
 
 log = logging.getLogger(__name__)
 
@@ -50,8 +50,9 @@ class AsgardpyAnalysis:
         self.instrument_spectral_info = {
             "name": [],
             "spectral_energy_ranges": [],
+            "en_bins": 0,
+            "free_params": 0,
             "DoF": 0,
-            "TS_H0": 0,
         }
         self.dataset_name_list = []
 
@@ -138,22 +139,28 @@ class AsgardpyAnalysis:
                 for edges in instrument_spectral_info["spectral_energy_ranges"]:
                     self.instrument_spectral_info["spectral_energy_ranges"].append(edges)
 
-                self.instrument_spectral_info["DoF"] += instrument_spectral_info["DoF"]
+                self.instrument_spectral_info["en_bins"] += instrument_spectral_info["en_bins"]
+                self.instrument_spectral_info["free_params"] += instrument_spectral_info[
+                    "free_params"
+                ]
 
-        self.datasets, self.final_model = set_models(
-            self.config.target,
-            self.datasets,
-            self.dataset_name_list,
-            models=self.final_model,
-        )
+            self.datasets, self.final_model = set_models(
+                self.config.target,
+                self.datasets,
+                self.dataset_name_list,
+                models=self.final_model,
+            )
+            self.log.info("Models have been associated with the Datasets")
 
-        # Subtract the total number of free model parameters from the total
-        # number of degrees of freedom
-        n_free_params = len(list(self.final_model.parameters.free_parameters))
-        self.instrument_spectral_info["DoF"] -= n_free_params
+            # Add to the total number of free model parameters
+            n_free_params = len(list(self.final_model.parameters.free_parameters))
+            self.instrument_spectral_info["free_params"] += n_free_params
 
-        # Evaluate the TS for the null hypothesis
-        self.instrument_spectral_info["TS_H0"] += get_ts_null_hypothesis(self.datasets)
+            # Get the final degrees of freedom as en_bins - free_params
+            self.instrument_spectral_info["DoF"] = (
+                self.instrument_spectral_info["en_bins"]
+                - self.instrument_spectral_info["free_params"]
+            )
 
         if len(dl4_dl5_steps) > 0:
             self.log.info("Perform DL4 to DL5 processes!")
@@ -172,7 +179,7 @@ class AsgardpyAnalysis:
 
         if self.fit_result:
             self.instrument_spectral_info, message = get_goodness_of_fit_stats(
-                self.instrument_spectral_info
+                self.datasets, self.instrument_spectral_info
             )
             self.log.info(message)
 

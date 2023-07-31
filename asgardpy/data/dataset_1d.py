@@ -97,8 +97,8 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
         datasets_1d_final = Datasets()
         instrument_spectral_info = {"name": [], "spectral_energy_ranges": []}
 
-        # Calculate the total number of degrees of freedom
-        dof = 0
+        # Calculate the total number of reconstructed energy bins used
+        en_bins = 0
 
         # Iterate over all instrument information given:
         for i in np.arange(len(instruments_list)):
@@ -123,21 +123,24 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
                 dataset = dataset.stack_reduce(name=config_1d_dataset.name)
 
                 if dataset.mask:
-                    dof += dataset.mask.geom.axes["energy"].nbin
+                    en_bins += dataset.mask.geom.axes["energy"].nbin
                 else:
-                    dof += dataset.counts.geom.axes["energy"].nbin
+                    en_bins += dataset.counts.geom.axes["energy"].nbin
 
                 datasets_1d_final.append(dataset)
             else:
                 for data in dataset:
                     if data.mask:
-                        dof += data.mask.geom.axes["energy"].nbin
+                        en_bins += data.mask.geom.axes["energy"].nbin
                     else:
-                        dof += data.counts.geom.axes["energy"].nbin
+                        en_bins += data.counts.geom.axes["energy"].nbin
 
                     datasets_1d_final.append(data)
 
-        instrument_spectral_info["DoF"] = dof
+        instrument_spectral_info["en_bins"] = en_bins
+
+        # No linked model parameters or other free model parameters taken here
+        instrument_spectral_info["free_params"] = 0
 
         return (
             datasets_1d_final,

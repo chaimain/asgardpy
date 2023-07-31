@@ -10,7 +10,7 @@ __all__ = [
     "check_model_preference_lrt",
     "get_chi2_sig_pval",
     "get_goodness_of_fit_stats",
-    "get_ts_null_hypothesis",
+    "get_ts_target",
 ]
 
 
@@ -49,47 +49,6 @@ def get_chi2_sig_pval(test_stat, ndof):
     return chi2_sig, pval
 
 
-def get_goodness_of_fit_stats(instrument_spectral_info):
-    """
-    Evaluating the Goodness of Fit of the fitting of the model to the data.
-
-    This is done by using the total TS of the null hypothesis for each dataset
-    used, as TS_H0, and the optimized fit statistics, as TS_H1, the alternate
-    hypothesis of the presence of target source with signal (data with the best
-    fit model), to get the final input of test_statistic for get_chi2_sig_pval
-    function to be, sqrt(TS_H0 - TS_H1).
-
-    The Degrees of Freedom for the Fit is taken as (the number of
-    relevant energy bins used in the evaluation) - (the number of
-    free model parameters).
-
-    Parameter
-    ---------
-    instrument_spectral_info: dict
-        Dict of information for storing relevant fit stats
-
-    Return
-    ------
-    instrument_spectral_info: dict
-        Filled Dict of information with relevant fit statistics
-    stat_message: str
-        String for logging the fit statistics
-    """
-    stat = np.sqrt(instrument_spectral_info["TS_H0"] - instrument_spectral_info["TS_H1"])
-    ndof = instrument_spectral_info["DoF"]
-    fit_chi2_sig, fit_pval = get_chi2_sig_pval(stat, ndof)
-
-    instrument_spectral_info["fit_stat"] = stat
-    instrument_spectral_info["fit_chi2_sig"] = fit_chi2_sig
-    instrument_spectral_info["fit_pval"] = fit_pval
-
-    stat_message = f"The Chi2/dof value of the goodness of Fit is {stat**2:.2f}/{ndof}"
-    stat_message += f"\nand the p-value is {fit_pval:.3e} and in "
-    stat_message += f"Significance {fit_chi2_sig:.2f} sigmas"
-
-    return instrument_spectral_info, stat_message
-
-
 def check_model_preference_lrt(test_stat_1, test_stat_2, ndof_1, ndof_2):
     """
     Log-likelihood ratio test. Checking the preference of a "nested" spectral
@@ -97,14 +56,14 @@ def check_model_preference_lrt(test_stat_1, test_stat_2, ndof_1, ndof_2):
 
     Parameters
     ----------
-    test_stat_1: `gammapy.modeling.fit.FitResult.total_stat`
+    test_stat_1: float
         The test statistic (-2 ln L) of the Fit result of the primary spectral model.
-    test_stat_2: `gammapy.modeling.fit.FitResult.total_stat`
+    test_stat_2: float
         The test statistic (-2 ln L) of the Fit result of the nested spectral model.
-    ndof_1: 'int'
-        Number of energy bins used for spectral fit - number of free spectral parameters for the primary model
-    ndof_2: 'int'
-        Number of energy bins used for spectral fit - number of free spectral parameters for the nested model
+    ndof_1: int
+        Number of degrees of freedom for the primary model
+    ndof_2: int
+        Number of degrees of freedom for the nested model
 
     Returns
     -------
@@ -129,16 +88,16 @@ def check_model_preference_lrt(test_stat_1, test_stat_2, ndof_1, ndof_2):
     return p_value, gaussian_sigmas, n_dof
 
 
-def check_model_preference_aic(list_wstat, list_dof):
+def check_model_preference_aic(list_stat, list_dof):
     """
-    Akaike Information Criterion (AIC) preference over a list of wstat and DoF
+    Akaike Information Criterion (AIC) preference over a list of stat and DoF
     (degree of freedom) to get relative likelihood of a given list of best-fit
     models.
 
     Parameters
     ----------
     list_wstat: list
-        List of wstat or -2 Log likelihood values for a list of models.
+        List of stat or -2 Log likelihood values for a list of models.
     list_dof: list
         List of degrees of freedom or list of free parameters, for a list of models.
 
@@ -148,8 +107,8 @@ def check_model_preference_aic(list_wstat, list_dof):
         List of relative likelihood probabilities, for a list of models.
     """
     list_aic_stat = []
-    for wstat, dof in zip(list_wstat, list_dof):
-        aic_stat = wstat + 2 * dof
+    for stat, dof in zip(list_stat, list_dof):
+        aic_stat = stat + 2 * dof
         list_aic_stat.append(aic_stat)
     list_aic_stat = np.array(list_aic_stat)
 
@@ -170,11 +129,83 @@ def check_model_preference_aic(list_wstat, list_dof):
     return list_rel_p
 
 
-def get_ts_null_hypothesis(datasets):
+def get_goodness_of_fit_stats(datasets, instrument_spectral_info):
+    """
+    Evaluating the Goodness of Fit of the fitting of the model to the dataset.
+
+    We first use the get_ts_target function to get the total test statistic of
+    the null hypothesis of absence of target source signal, over all energy
+    bins, for the given datasets and the fit statistics difference of the
+    alternative hypothesis of the presence of the target source signal from the
+    null hypothesis, summed over all energy bins for the given datasets.
+
+    We then evaluate the total number of Degrees of Freedom for the Fit as the
+    difference between the number of relevant energy bins used in the evaluation
+    and the number of free model parameters.
+
+    The fit statistics difference is used as the test statistic value for
+    get_chi2_sig_pval function along with the total number of degrees of freedom
+    to get the final statistics for the goodness of fit.
+
+    The fit statistics information is updated in the dict object provided and
+    a logging message is passed.
+
+    Parameter
+    ---------
+    datasets: `gammapy.datasets.Datasets`
+        List of Datasets object, which can contain 3D and/or 1D datasets
+    instrument_spectral_info: dict
+        Dict of information for storing relevant fit stats
+
+    Return
+    ------
+    instrument_spectral_info: dict
+        Filled Dict of information with relevant fit statistics
+    stat_message: str
+        String for logging the fit statistics
+    """
+    stat_h0, stat_ts = get_ts_target(datasets)
+
+    instrument_spectral_info["stat_h0"] = stat_h0
+    instrument_spectral_info["fit_stat"] = stat_ts
+    instrument_spectral_info["stat_h1"] = stat_h0 - stat_ts
+    ndof = instrument_spectral_info["DoF"]
+
+    fit_chi2_sig, fit_pval = get_chi2_sig_pval(stat_ts, ndof)
+
+    instrument_spectral_info["fit_chi2_sig"] = fit_chi2_sig
+    instrument_spectral_info["fit_pval"] = fit_pval
+
+    stat_message = "The Chi2/dof value of the goodness of Fit is "
+    stat_message += f"{stat_ts:.2f}/{ndof}\nand the p-value is {fit_pval:.3e} "
+    stat_message += f"and in Significance {fit_chi2_sig:.2f} sigmas"
+    stat_message += f"\nwith TS (H0) as {stat_h0:.3f} and TS (H1) as {stat_h0-stat_ts:.3f}"
+
+    return instrument_spectral_info, stat_message
+
+
+def get_ts_target(datasets):
     """
     From a given list of DL4 datasets, with assumed associated models, estimate
     the total test statistic value for the null hypothesis that the data
-    contains only background events.
+    contains only background events and also the total test statistic difference
+    between the null and alternative hypothesis.
+
+    For the different type of Statistics used in Gammapy for 3D/1D datasets,
+    use the following links for more details on the exact methods used for the
+    calculation:
+
+    * stat_null:
+
+        * `Cash stat_null <https://docs.gammapy.org/1.1/api/gammapy.stats.CashCountsStatistic.html#gammapy.stats.CashCountsStatistic.stat_null # noqa>`_
+
+        * `Wstat stat_null <https://docs.gammapy.org/1.1/api/gammapy.stats.WStatCountsStatistic.html#gammapy.stats.WStatCountsStatistic.stat_null # noqa>`_
+
+    * ts:
+
+        * `Cash ts <https://docs.gammapy.org/1.1/api/gammapy.stats.CashCountsStatistic.html#gammapy.stats.CashCountsStatistic.ts # noqa>`_
+
+        * `Wstat ts <https://docs.gammapy.org/1.1/api/gammapy.stats.WStatCountsStatistic.html#gammapy.stats.WStatCountsStatistic.ts # noqa>`_
 
     Parameter
     ---------
@@ -183,12 +214,18 @@ def get_ts_null_hypothesis(datasets):
 
     Return
     ------
-    ts_h0: float
-        Total sum of test statistic of the null hypothesis
+    stat_h0: float
+        Total sum of test statistic of the null hypothesis, summed over all
+        energy bins.
+    stat_ts: float
+        Test statistic difference of the null hypothesis and the alternative
+        hypothesis (no excess vs excess) summed over all energy bins.
     """
-    ts_h0 = 0
+    stat_h0 = 0
+    stat_ts = 0
 
     for data in datasets:
+        # Assuming that the Counts Map is created with the target source as its center
         region = data.counts.geom.center_skydir
 
         if data.stat_type == "cash":
@@ -202,10 +239,15 @@ def get_ts_null_hypothesis(datasets):
         elif data.stat_type == "wstat":
             counts_on = (data.counts.copy() * data.mask).get_spectrum(region)
             counts_off = np.nan_to_num((data.counts_off * data.mask).get_spectrum(region))
-            alpha = np.nan_to_num((data.background * data.mask).get_spectrum(region)) / counts_off
+
+            with np.errstate(invalid="ignore", divide="ignore"):
+                alpha = (
+                    np.nan_to_num((data.background * data.mask).get_spectrum(region)) / counts_off
+                )
             mu_signal = np.nan_to_num((data.npred_signal() * data.mask).get_spectrum(region))
 
             stat = WStatCountsStatistic(counts_on, counts_off, alpha, mu_signal)
-        ts_h0 += np.nansum(stat.stat_null.ravel())
+        stat_h0 += np.nansum(stat.stat_null.ravel())
+        stat_ts += np.nansum(stat.ts.ravel())
 
-    return ts_h0
+    return stat_h0, stat_ts
