@@ -9,10 +9,7 @@ from astropy.table import QTable
 from asgardpy.analysis import AsgardpyAnalysis
 from asgardpy.config import AsgardpyConfig
 from asgardpy.config.generator import CONFIG_PATH
-from asgardpy.stats.stats import (
-    check_model_preference_aic,
-    check_model_preference_lrt,
-)
+from asgardpy.stats.stats import check_model_preference_aic, check_model_preference_lrt
 
 log = logging.getLogger(__name__)
 
