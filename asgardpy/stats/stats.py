@@ -166,8 +166,9 @@ def get_goodness_of_fit_stats(datasets, instrument_spectral_info):
     """
     stat_h0, stat_ts = get_ts_target(datasets)
 
-    instrument_spectral_info["stat_null"] = stat_h0
+    instrument_spectral_info["stat_h0"] = stat_h0
     instrument_spectral_info["fit_stat"] = stat_ts
+    instrument_spectral_info["stat_h1"] = stat_h0 - stat_ts
     ndof = instrument_spectral_info["DoF"]
 
     fit_chi2_sig, fit_pval = get_chi2_sig_pval(stat_ts, ndof)
@@ -178,6 +179,7 @@ def get_goodness_of_fit_stats(datasets, instrument_spectral_info):
     stat_message = "The Chi2/dof value of the goodness of Fit is "
     stat_message += f"{stat_ts:.2f}/{ndof}\nand the p-value is {fit_pval:.3e} "
     stat_message += f"and in Significance {fit_chi2_sig:.2f} sigmas"
+    stat_message += f"\nwith TS (H0) as {stat_h0:.3f} and TS (H1) as {stat_h0-stat_ts:.3f}"
 
     return instrument_spectral_info, stat_message
 
