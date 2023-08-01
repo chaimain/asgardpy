@@ -2,7 +2,6 @@ asgardpy.base.base module
 =========================
 
 .. automodule:: asgardpy.base.base
-   :members: BaseConfig, AnalysisStep, AnalysisStepBase
+   :members: BaseConfig
    :undoc-members:
    :show-inheritance:
-

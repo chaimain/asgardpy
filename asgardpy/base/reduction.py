@@ -27,14 +27,8 @@ from gammapy.makers import (
 )
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion
 
-from asgardpy.base import (
-    AngleType,
-    BaseConfig,
-    PathType,
-    SkyPositionConfig,
-    TimeIntervalsConfig,
-)
-from asgardpy.base.geom import generate_geom, get_energy_axis
+from asgardpy.base.base import AngleType, BaseConfig, PathType, TimeIntervalsConfig
+from asgardpy.base.geom import SkyPositionConfig, generate_geom, get_energy_axis
 
 __all__ = [
     "BackgroundConfig",

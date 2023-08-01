@@ -14,7 +14,7 @@ Analysis Steps
 --------------
 
 The configuration-based pipeline separates the Gammapy-based High-Level Analysis into serialized intermediate steps.
-Check :doc:`_api_docs/base` for more details.
+Check :doc:`_api_docs/analysis/analysis_step_base` for more details.
 The steps are:
 
 #. datasets-3d :class:`~asgardpy.data.dataset_3d.Datasets3DAnalysisStep`

@@ -1,8 +1,9 @@
 """
 Data Module
-"""
-from gammapy.utils.registry import Registry
 
+# order matters to prevent circular imports
+isort:skip_file
+"""
 from asgardpy.data.dataset_1d import (
     Dataset1DConfig,
     Dataset1DGeneration,
@@ -31,15 +32,6 @@ from asgardpy.data.target import (
     set_models,
     xml_spatial_model_to_gammapy,
     xml_spectral_model_to_gammapy_params,
-)
-
-ANALYSIS_STEP_REGISTRY = Registry(
-    [
-        Datasets1DAnalysisStep,
-        Datasets3DAnalysisStep,
-        FitAnalysisStep,
-        FluxPointsAnalysisStep,
-    ]
 )
 
 __all__ = [
