@@ -1,10 +1,10 @@
 """
 Base Module
+
+# order matters to prevent circular imports
+isort:skip_file
 """
 from asgardpy.base.base import (
-    AnalysisStep,
-    AnalysisStepBase,
-    AnalysisStepEnum,
     AngleType,
     BaseConfig,
     EnergyRangeConfig,
@@ -16,30 +16,15 @@ from asgardpy.base.base import (
     TimeRangeConfig,
     TimeType,
 )
-from asgardpy.base.geom import (
-    EnergyAxisConfig,
-    EnergyEdgesCustomConfig,
-    GeomConfig,
-    MapAxesConfig,
-    MapFrameShapeConfig,
-    ProjectionEnum,
-    SelectionConfig,
-    SkyPositionConfig,
-    WcsConfig,
-    create_counts_map,
-    generate_geom,
-    get_energy_axis,
-    get_source_position,
-)
 from asgardpy.base.reduction import (
-    BackgroundConfig,
-    BackgroundMethodEnum,
-    ExclusionRegionsConfig,
-    MapSelectionEnum,
     ObservationsConfig,
     ReductionTypeEnum,
     RegionsConfig,
     RequiredHDUEnum,
+    BackgroundConfig,
+    BackgroundMethodEnum,
+    ExclusionRegionsConfig,
+    MapSelectionEnum,
     SafeMaskConfig,
     SafeMaskMethodsEnum,
     generate_dl4_dataset,
@@ -50,11 +35,23 @@ from asgardpy.base.reduction import (
     get_filtered_observations,
     get_safe_mask_maker,
 )
+from asgardpy.base.geom import (
+    MapAxesConfig,
+    MapFrameShapeConfig,
+    ProjectionEnum,
+    SelectionConfig,
+    SkyPositionConfig,
+    EnergyAxisConfig,
+    EnergyEdgesCustomConfig,
+    GeomConfig,
+    WcsConfig,
+    create_counts_map,
+    generate_geom,
+    get_energy_axis,
+    get_source_position,
+)
 
 __all__ = [
-    "AnalysisStep",
-    "AnalysisStepBase",
-    "AnalysisStepEnum",
     "AngleType",
     "BackgroundConfig",
     "BackgroundMethodEnum",

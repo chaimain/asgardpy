@@ -11,7 +11,8 @@ import yaml
 from gammapy.utils.scripts import make_path, read_yaml
 from pydantic.utils import deep_update
 
-from asgardpy.base import AnalysisStepEnum, BaseConfig, PathType
+from asgardpy.analysis.step_base import AnalysisStepEnum
+from asgardpy.base import BaseConfig, PathType
 from asgardpy.data import (
     Dataset1DConfig,
     Dataset3DConfig,

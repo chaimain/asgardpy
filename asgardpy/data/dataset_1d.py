@@ -12,21 +12,22 @@ from astropy import units as u
 # from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
 from gammapy.datasets import Datasets
 
-from asgardpy.base import (
-    AnalysisStepBase,
-    BackgroundConfig,
-    BaseConfig,
+from asgardpy.analysis.step_base import AnalysisStepBase
+from asgardpy.base.base import BaseConfig
+from asgardpy.base.geom import (
     GeomConfig,
     MapAxesConfig,
+    SkyPositionConfig,
+    generate_geom,
+    get_energy_axis,
+    get_source_position,
+)
+from asgardpy.base.reduction import (
+    BackgroundConfig,
     MapSelectionEnum,
     ObservationsConfig,
     ReductionTypeEnum,
     SafeMaskConfig,
-    SkyPositionConfig,
-    get_energy_axis,
-)
-from asgardpy.base.geom import generate_geom, get_source_position
-from asgardpy.base.reduction import (
     generate_dl4_dataset,
     get_bkg_maker,
     get_dataset_maker,

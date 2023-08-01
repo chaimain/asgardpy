@@ -6,10 +6,10 @@ import logging
 from gammapy.datasets import Datasets
 from gammapy.modeling.models import Models
 
-from asgardpy.base import AnalysisStep
-from asgardpy.config import AsgardpyConfig
-from asgardpy.data import set_models
-from asgardpy.stats import get_goodness_of_fit_stats
+from asgardpy.analysis.step import AnalysisStep
+from asgardpy.config.generator import AsgardpyConfig
+from asgardpy.data.target import set_models
+from asgardpy.stats.stats import get_goodness_of_fit_stats
 
 log = logging.getLogger(__name__)
 

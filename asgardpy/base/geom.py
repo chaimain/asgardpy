@@ -13,7 +13,7 @@ from astropy.coordinates import SkyCoord
 from gammapy.maps import Map, MapAxis, RegionGeom, WcsGeom
 from regions import CircleSkyRegion, PointSkyRegion
 
-from asgardpy.base import AngleType, BaseConfig, EnergyType, FrameEnum
+from asgardpy.base.base import AngleType, BaseConfig, EnergyType, FrameEnum
 
 __all__ = [
     "EnergyAxisConfig",

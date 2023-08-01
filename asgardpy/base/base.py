@@ -2,8 +2,6 @@
 Classes containing the Base for the Analysis steps and some Basic Config types.
 """
 
-import abc
-import logging
 from enum import Enum
 from pathlib import Path
 from typing import List
@@ -14,9 +12,6 @@ from astropy.time import Time
 from pydantic import BaseModel
 
 __all__ = [
-    "AnalysisStep",
-    "AnalysisStepBase",
-    "AnalysisStepEnum",
     "AngleType",
     "BaseConfig",
     "EnergyRangeConfig",
@@ -127,62 +122,6 @@ class BaseConfig(BaseModel):
             Time: lambda v: f"{v.value}",
             Path: lambda v: Path(v),
         }
-
-
-class AnalysisStepBase(abc.ABC):
-    """Config section for creating a basic AsgardpyAnalysis Step."""
-
-    tag = "analysis-step"
-
-    def __init__(self, config, log=None, overwrite=True):
-        self.config = config
-        self.overwrite = overwrite
-
-        self.datasets = None
-        self.instrument_spectral_info = None
-
-        if log is None:
-            log = logging.getLogger(__name__)
-            self.log = log
-
-    def run(self, datasets=None, instrument_spectral_info=None):
-        """
-        One can provide datasets and instrument_spectral_info to be used,
-        especially for the High-level Analysis steps.
-        """
-        self.datasets = datasets
-        self.instrument_spectral_info = instrument_spectral_info
-
-        final_product = self._run()
-        self.log.info("Analysis Step %s completed", self.tag)
-
-        return final_product
-
-    @abc.abstractmethod
-    def _run(self):
-        pass
-
-
-class AnalysisStep:
-    """
-    Create one of the Analysis Step class listed in the Registry.
-    """
-
-    @staticmethod
-    def create(tag, config, **kwargs):
-        from asgardpy.data import ANALYSIS_STEP_REGISTRY
-
-        cls = ANALYSIS_STEP_REGISTRY.get_cls(tag)
-        return cls(config, **kwargs)
-
-
-class AnalysisStepEnum(str, Enum):
-    """Config section for list of Analysis Steps."""
-
-    datasets_1d = "datasets-1d"
-    datasets_3d = "datasets-3d"
-    fit = "fit"
-    flux_points = "flux-points"
 
 
 # Basic Quantity ranges Type for building the Config

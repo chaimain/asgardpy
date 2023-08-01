@@ -9,7 +9,8 @@ from gammapy.datasets import Datasets
 from gammapy.estimators import FluxPointsEstimator
 from gammapy.modeling import Fit
 
-from asgardpy.base import AnalysisStepBase, BaseConfig, EnergyRangeConfig
+from asgardpy.analysis.step_base import AnalysisStepBase
+from asgardpy.base import BaseConfig, EnergyRangeConfig
 
 __all__ = [
     "FitAnalysisStep",

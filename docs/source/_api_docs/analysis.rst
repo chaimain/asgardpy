@@ -1,7 +1,10 @@
-asgardpy.analysis module
-========================
+asgardpy.analysis Main Module
+=============================
 
 .. automodule:: asgardpy.analysis
-   :members: AsgardpyAnalysis
-   :undoc-members:
-   :show-inheritance:
+
+.. toctree::
+  :maxdepth: 1
+  :glob:
+
+  analysis/*

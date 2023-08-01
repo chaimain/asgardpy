@@ -22,7 +22,8 @@ from gammapy.modeling.models import (
     create_fermi_isotropic_diffuse_model,
 )
 
-from asgardpy.base import AngleType, BaseConfig, PathType, SkyPositionConfig
+from asgardpy.base.base import AngleType, BaseConfig, PathType
+from asgardpy.base.geom import SkyPositionConfig
 
 __all__ = [
     "BrokenPowerLaw2SpectralModel",
