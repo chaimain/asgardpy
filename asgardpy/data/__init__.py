@@ -30,8 +30,6 @@ from asgardpy.data.target import (
     create_iso_diffuse_skymodel,
     create_source_skymodel,
     set_models,
-    xml_spatial_model_to_gammapy,
-    xml_spectral_model_to_gammapy_params,
 )
 
 __all__ = [
@@ -54,6 +52,4 @@ __all__ = [
     "create_iso_diffuse_skymodel",
     "create_source_skymodel",
     "set_models",
-    "xml_spatial_model_to_gammapy",
-    "xml_spectral_model_to_gammapy_params",
 ]
