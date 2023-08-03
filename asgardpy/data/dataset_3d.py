@@ -286,18 +286,8 @@ class Dataset3DGeneration:
             if len(self.list_sources) == 0:
                 # Read the SkyModel info from AsgardpyConfig.target section
                 if len(self.config_target.components) > 0:
-                    spectral_model, spatial_model = read_models_from_asgardpy_config(
-                        self.config_target
-                    )
-                    self.list_sources.append(
-                        Models(
-                            SkyModel(
-                                spectral_model=spectral_model,
-                                spatial_model=spatial_model,
-                                name=self.config_target.source_name,
-                            )
-                        )
-                    )
+                    models_ = read_models_from_asgardpy_config(self.config_target)
+                    self.list_sources.append(models_)
 
                 # If a catalog information is provided, use it to build up the list of models
                 # Check if a catalog data is given with selection radius

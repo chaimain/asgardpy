@@ -282,14 +282,7 @@ def set_models(
 
     if len(models) == 0:
         if len(config_target.components) > 0:
-            spectral_model, spatial_model = read_models_from_asgardpy_config(config_target)
-            models = Models(
-                SkyModel(
-                    spectral_model=spectral_model,
-                    spatial_model=spatial_model,
-                    name=config_target.source_name,
-                )
-            )
+            models = read_models_from_asgardpy_config(config_target)
         else:
             raise Exception("No input for Models provided for the Target source!")
     else:
@@ -306,7 +299,7 @@ def set_models(
 
         for dataset in datasets:
             if dataset.tag == "MapDataset" and dataset.background_model is None:
-                bkg_models.append(FoVBackgroundModel(dataset_name=dataset.name))
+                bkg_models.append(FoVBackgroundModel(dataset_name=f"{dataset.name}-bkg"))
 
         models.extend(bkg_models)
 
@@ -315,6 +308,13 @@ def set_models(
 
     if len(models) > 1:
         models[config_target.source_name].datasets_names = datasets_name_list
+
+        # Check if FoVBackgroundModel is provided
+        bkg_model_name = [m_name for m_name in models.names if "bkg" in m_name]
+        if len(bkg_model_name) > 0:
+            # Remove the -bkg part of the name of the FoVBackgroundModel to get
+            # the appropriate datasets name
+            models[bkg_model_name].datasets_names = [bkg_model_name[:-4]]
     else:
         models.datasets_names = datasets_name_list
 
@@ -366,7 +366,7 @@ def apply_selection_mask_to_models(
 
     # Separate the list of sources and diffuse background
     for model_ in list_sources:
-        if "diffuse" in model_.name:
+        if "diffuse" in model_.name or "bkg" in model_.name:
             list_diffuse.append(model_)
         else:
             list_sources_excluded.append(model_)
@@ -415,8 +415,8 @@ def apply_selection_mask_to_models(
 # Functions for Models generation
 def read_models_from_asgardpy_config(config):
     """
-    Reading Models information from AsgardpyConfig and return Spectral and
-    Spatial Models object to be combined later into SkyModels/Models object.
+    Reading Models information from AsgardpyConfig and return Models object.
+    If a FoVBackgroundModel information is provided, it will also be added.
 
     Parameter
     ---------
@@ -425,13 +425,10 @@ def read_models_from_asgardpy_config(config):
 
     Returns
     -------
-    spectral_model: `gammapy.modeling.models.SpectralModel`
-        Spectral Model components of a gammapy SkyModel object.
-    spatial_model: `gammapy.modeling.models.SpatialModel`
-        Spatial Model components of a gammapy SkyModel object.
+    models: `gammapy.modeling.models.Models`
+        Full gammapy Models object.
     """
     # SkyModel is the first component
-    # FoVBackgroundModel is the second component
     model_config = config.components[0]
 
     # Spectral Model
@@ -479,7 +476,42 @@ def read_models_from_asgardpy_config(config):
     else:
         spatial_model = None
 
-    return spectral_model, spatial_model
+    models = Models(
+        [
+            SkyModel(
+                spectral_model=spectral_model,
+                spatial_model=spatial_model,
+                name=config.source_name,
+            )
+        ]
+    )
+
+    if len(config.components) > 1:
+        # FoVBackgroundModel is the second component
+        model_config_fov = config.components[1]
+
+        # Spectral Model. At least this has to be provided for distinct
+        # parameter values
+        spectral_model_fov = SPECTRAL_MODEL_REGISTRY.get_cls(
+            model_config_fov.spectral.type
+        )().from_dict({"spectral": config_to_dict(model_config_fov.spectral)})
+
+        # Spatial model if provided
+        if model_config_fov.spatial.type != "":
+            spatial_model_fov = SPATIAL_MODEL_REGISTRY.get_cls(
+                model_config_fov.spatial.type
+            )().from_dict({"spatial": config_to_dict(model_config_fov.spatial)})
+        else:
+            spatial_model_fov = None
+
+        model_fov = FoVBackgroundModel(
+            spectral_model=spectral_model_fov,
+            spatial_model=spatial_model_fov,
+            name=model_config_fov.name,
+        )
+        models.append(model_fov)
+
+    return models
 
 
 def config_to_dict(model_config):
@@ -566,7 +598,8 @@ def create_source_skymodel(config_target, source, aux_path):
 
         # Only taking the spectral model information right now.
         if not config_target.from_3d:
-            spectral_model, _ = read_models_from_asgardpy_config(config_target)
+            models_ = read_models_from_asgardpy_config(config_target)
+            spectral_model = models_[0].spectral_model
 
     if spectral_model is None:
         # Define the Spectral Model type for Gammapy

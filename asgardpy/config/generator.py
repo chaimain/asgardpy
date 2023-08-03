@@ -25,6 +25,7 @@ from asgardpy.data import (
 __all__ = [
     "AsgardpyConfig",
     "GeneralConfig",
+    "gammapy_to_asgardpy_model_config",
     "get_model_template",
     "recursive_merge_dicts",
 ]
