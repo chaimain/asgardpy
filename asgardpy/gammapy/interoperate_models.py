@@ -5,10 +5,7 @@ objects.
 from astropy.coordinates import SkyCoord
 from gammapy.maps import Map
 from gammapy.modeling import Parameter, Parameters
-from gammapy.modeling.models import (
-    SPATIAL_MODEL_REGISTRY,
-    SPECTRAL_MODEL_REGISTRY,
-)
+from gammapy.modeling.models import SPATIAL_MODEL_REGISTRY
 
 __all__ = [
     "params_renaming_to_gammapy",

@@ -7,7 +7,7 @@ from typing import List
 
 import astropy.units as u
 import numpy as np
-from gammapy.modeling import Parameter, Parameters
+from gammapy.modeling import Parameter
 from gammapy.modeling.models import (
     SPATIAL_MODEL_REGISTRY,
     SPECTRAL_MODEL_REGISTRY,
@@ -516,7 +516,7 @@ def config_to_dict(model_config):
     try:
         frame_ = getattr(model_dict, "frame")
         model_dict["frame"] = frame_
-    except:
+    except KeyError:
         pass
 
     return model_dict
