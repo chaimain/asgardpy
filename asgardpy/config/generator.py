@@ -69,7 +69,7 @@ def get_model_template(spec_model_tag):
     """
     Read a particular template model yaml file into AsgardpyConfig object.
     """
-    template_files = sorted(list(CONFIG_PATH.glob("model_template*yaml")))
+    template_files = sorted(list(CONFIG_PATH.glob("model_templates/model_template*yaml")))
     new_model_file = None
     for file in template_files:
         if spec_model_tag == file.name.split("_")[-1].split(".")[0]:
