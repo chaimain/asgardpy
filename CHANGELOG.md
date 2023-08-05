@@ -21,7 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Restructure statistics functions and update computation of fit statistics. [#103](https://github.com/chaimain/asgardpy/pull/103)
 - Compress and update sphinx docs. [#105](https://github.com/chaimain/asgardpy/pull/105)
-- Update python dependency to 3.11 and update docs. [#108](https://github.com/chaimain/asgardpy/pull/108)
+- Update python dependency to 3.11 and update docs. [#109](https://github.com/chaimain/asgardpy/pull/109)
+- Restructure pipeline to prepare to use public test data. [#110](https://github.com/chaimain/asgardpy/pull/110)
 
 ## [v0.3.5](https://github.com/chaimain/asgardpy/releases/tag/v0.3.5) - 2023-07-17
 
