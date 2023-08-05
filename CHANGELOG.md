@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve logging. [#102](https://github.com/chaimain/asgardpy/pull/102)
 - Fix estimation of Goodness of Fit statistics. [#106](https://github.com/chaimain/asgardpy/pull/106)
 - Resolve the issue of circular imports. [#107](https://github.com/chaimain/asgardpy/pull/107)
+- Fix reading of models_file with correct process. [#111](https://github.com/chaimain/asgardpy/pull/111)
 
 ### Changed
 
