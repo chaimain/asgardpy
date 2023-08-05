@@ -46,6 +46,7 @@ GitHub Repository: https://github.com/chaimain/asgardpy
   License <https://github.com/chaimain/asgardpy/blob/main/LICENSE>
   CONTRIBUTING
   GitHub Repository <https://github.com/chaimain/asgardpy>
+  Issue Tracker <https://github.com/chaimain/asgardpy/issues>
 
 
 Team
