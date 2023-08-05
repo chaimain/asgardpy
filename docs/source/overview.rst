@@ -88,7 +88,7 @@ The information regarding the model to be used for the target source is given by
 
 The list of associated Models can be provided by -
 
-#. Using a file provided along with the DL3 data of the 3D data (XML type for Fermi-LAT)
+#. Using a file provided along with the DL3 data of the 3D data (for e.g. XML type for Fermi-LAT)
 
 #. Using a Catalog available in Gammapy, by adding information in :class:`~asgardpy.data.target.Target.use_catalog`
 
@@ -107,6 +107,9 @@ High-level Analysis
 -------------------
 
 The various Config components and Analysis steps for the high-level analysis can be found in :doc:`_api_docs/data/data_dl4`.
+
+For the analysis step of flux-points :class:`~asgardpy.data.dl4.FluxPointsAnalysisStep`, the flux points are estimated for each instrument dataset, using the respective energy ranges
+provided in the respective config section of `spectral_energy_range`.
 
 
 Statistics
