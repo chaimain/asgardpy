@@ -496,7 +496,10 @@ class Dataset3DGeneration:
                 source = create_gal_diffuse_skymodel(self.diffuse_models["gal_diffuse"])
             else:
                 source, is_target_source = create_source_skymodel(
-                    self.config_target, source, aux_path
+                    self.config_target,
+                    source,
+                    aux_path,
+                    base_model_type="Fermi-XML",
                 )
             if is_target_source:
                 self.list_sources.insert(0, source)

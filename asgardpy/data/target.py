@@ -23,6 +23,7 @@ from gammapy.modeling.models import (
 from asgardpy.base.base import AngleType, BaseConfig, FrameEnum, PathType
 from asgardpy.base.geom import SkyPositionConfig
 from asgardpy.gammapy.interoperate_models import (
+    get_gammapy_spectral_model,
     xml_spatial_model_to_gammapy,
     xml_spectral_model_to_gammapy,
 )
@@ -548,16 +549,16 @@ def config_to_dict(model_config):
     try:
         frame_ = getattr(model_dict, "frame")
         model_dict["frame"] = frame_
-    except KeyError:
+    except AttributeError:
         pass
 
     return model_dict
 
 
-def create_source_skymodel(config_target, source, aux_path):
+def create_source_skymodel(config_target, source, aux_path, base_model_type="Fermi-XML"):
     """
     Build SkyModels from a given AsgardpyConfig section of the target
-    source information, list of LAT files and other relevant information.
+    source information, list of XML file and other relevant information.
 
     Parameters
     ----------
@@ -566,7 +567,9 @@ def create_source_skymodel(config_target, source, aux_path):
     source: dict
         Dictionary containing the source models information from XML file.
     aux_path: str
-        Path location of the LAT auxiliary files.
+        Path location of the DL3 auxiliary files.
+    base_model_type: str
+        Name indicating the XML format used to read the skymodels from.
 
     Returns
     -------
@@ -575,8 +578,9 @@ def create_source_skymodel(config_target, source, aux_path):
     is_source_target: bool
         Boolean to check if the Models belong to the target source.
     """
+    # Following a general XML format, taking Fermi-LAT as reference.
     source_name = source["@name"]
-    spectrum_type = source["spectrum"]["@type"].split("EblAtten::")[-1]
+    spectrum_type = source["spectrum"]["@type"]
     spectrum = source["spectrum"]["parameter"]
 
     source_name_check = source_name.replace("_", "").replace(" ", "")
@@ -588,7 +592,7 @@ def create_source_skymodel(config_target, source, aux_path):
 
     # Check if target_source file exists
     is_source_target = False
-    ebl_atten_pl = False
+    ebl_atten = False
 
     # If Target source model's spectral component is to be taken from Config
     # and not from 3D dataset.
@@ -603,32 +607,21 @@ def create_source_skymodel(config_target, source, aux_path):
 
     if spectral_model is None:
         # Define the Spectral Model type for Gammapy
-        for spec in spectrum:
-            if spec["@name"] not in ["GalDiffModel", "IsoDiffModel"]:
-                if spectrum_type in ["PLSuperExpCutoff", "PLSuperExpCutoff2"]:
-                    spectrum_type_final = "ExpCutoffPowerLawSpectralModel"
-                elif spectrum_type == "PLSuperExpCutoff4":
-                    spectrum_type_final = "SuperExpCutoffPowerLaw4FGLDR3SpectralModel"
-                else:
-                    spectrum_type_final = f"{spectrum_type}SpectralModel"
-
-                spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(spectrum_type_final)()
-
-                if spectrum_type == "LogParabola":
-                    if "EblAtten" in source["spectrum"]["@type"]:
-                        spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls("PowerLawSpectralModel")()
-                        ebl_atten_pl = True
-                    else:
-                        spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(
-                            "LogParabolaSpectralModel"
-                        )()
+        # for spec in spectrum:  # Check if this for loop is necessary
+        spectral_model, ebl_atten = get_gammapy_spectral_model(
+            spectrum_type,
+            ebl_atten,
+            base_model_type,
+        )
+        spectrum_type = spectrum_type.split("EblAtten::")[-1]
 
         # Read the parameter values from XML file to create SpectralModel
         params_list = xml_spectral_model_to_gammapy(
             spectrum,
             spectrum_type,
             is_target=is_source_target,
-            keep_sign=ebl_atten_pl,
+            keep_sign=ebl_atten,
+            base_model_type=base_model_type,
         )
 
         for param_ in params_list:
@@ -651,7 +644,7 @@ def create_source_skymodel(config_target, source, aux_path):
             spectral_model = spectral_model * ebl_spectral_model
 
     # Reading Spatial model from the XML file
-    spatial_model = xml_spatial_model_to_gammapy(aux_path, source["spatialModel"])
+    spatial_model = xml_spatial_model_to_gammapy(aux_path, source["spatialModel"], base_model_type)
 
     spatial_model.freeze()
     source_sky_model = SkyModel(

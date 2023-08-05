@@ -5,14 +5,58 @@ objects.
 from astropy.coordinates import SkyCoord
 from gammapy.maps import Map
 from gammapy.modeling import Parameter, Parameters
-from gammapy.modeling.models import SPATIAL_MODEL_REGISTRY
+from gammapy.modeling.models import SPATIAL_MODEL_REGISTRY, SPECTRAL_MODEL_REGISTRY
 
 __all__ = [
+    "get_gammapy_spectral_model",
     "params_renaming_to_gammapy",
     "params_rescale_to_gammapy",
     "xml_spatial_model_to_gammapy",
     "xml_spectral_model_to_gammapy",
 ]
+
+
+def get_gammapy_spectral_model(spectrum_type, ebl_atten=False, base_model_type="Fermi-XML"):
+    """
+    Getting the correct Gammapy SpectralModel object after reading a name from a
+    different base_model_type.
+
+    Parameter
+    ---------
+    spectrum_type: str
+        Spectral Model type as written in the base model.
+    ebl_atten: bool
+        If EBL attenuated spectral model needs different treatment.
+    base_model_type: str
+        Name indicating the XML format used to read the skymodels from.
+
+    Return
+    ------
+    spectral_model: `gammapy.modleing.models.SpectralModel`
+        Gammapy SpectralModel object corresponding to the provided name.
+    ebl_atten: bool
+        Boolean for EBL attenuated spectral model.
+    """
+    if base_model_type == "Fermi-XML":
+        spectrum_type_no_ebl = spectrum_type.split("EblAtten::")[-1]
+
+        if spectrum_type_no_ebl in ["PLSuperExpCutoff", "PLSuperExpCutoff2"]:
+            spectrum_type_final = "ExpCutoffPowerLawSpectralModel"
+        elif spectrum_type_no_ebl == "PLSuperExpCutoff4":
+            spectrum_type_final = "SuperExpCutoffPowerLaw4FGLDR3SpectralModel"
+        else:
+            spectrum_type_final = f"{spectrum_type_no_ebl}SpectralModel"
+
+        spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(spectrum_type_final)()
+
+        if spectrum_type_no_ebl == "LogParabola":
+            if "EblAtten" in spectrum_type:
+                spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls("PowerLawSpectralModel")()
+                ebl_atten = True
+            else:
+                spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls("LogParabolaSpectralModel")()
+
+    return spectral_model, ebl_atten
 
 
 def params_renaming_to_gammapy(
@@ -153,7 +197,9 @@ def params_rescale_to_gammapy(params_gpy, spectrum_type, en_scale_1_to_gpy=1.0e-
     return params_gpy
 
 
-def xml_spectral_model_to_gammapy(params, spectrum_type, is_target=False, keep_sign=False):
+def xml_spectral_model_to_gammapy(
+    params, spectrum_type, is_target=False, keep_sign=False, base_model_type="Fermi-XML"
+):
     """
     Convert the Spectral Models information from XML model of FermiTools to Gammapy
     standards and return Parameters list.
@@ -180,6 +226,8 @@ def xml_spectral_model_to_gammapy(params, spectrum_type, is_target=False, keep_s
         source model or not.
     keep_sign: bool
         Boolean to keep the same sign on the parameter values or not.
+    base_model_type: str
+        Name indicating the XML format used to read the skymodels from.
 
     Returns
     -------
@@ -206,19 +254,24 @@ def xml_spectral_model_to_gammapy(params, spectrum_type, is_target=False, keep_s
 
             # Using the nomenclature as used in Gammapy
             new_par = params_renaming_to_gammapy(
-                par["@name"].lower(), new_par, spectrum_type, params_1_base_model="Fermi-XML"
+                par["@name"].lower(), new_par, spectrum_type, params_1_base_model=base_model_type
             )
 
         # Some modifications on scaling/sign:
+        if base_model_type == "Fermi-XML":
+            en_scale_1_to_gpy = 1.0e-6
+
         new_par = params_rescale_to_gammapy(
-            new_par, spectrum_type, en_scale_1_to_gpy=1.0e-6, keep_sign=keep_sign
+            new_par, spectrum_type, en_scale_1_to_gpy=en_scale_1_to_gpy, keep_sign=keep_sign
         )
 
-        if new_par["name"] == "alpha" and spectrum_type in [
-            "PLSuperExpCutoff",
-            "PLSuperExpCutoff2",
-        ]:
-            new_par["frozen"] = par["@free"] == "0"
+        # For Fermi-XML model
+        if base_model_type == "Fermi-XML":
+            if new_par["name"] == "alpha" and spectrum_type in [
+                "PLSuperExpCutoff",
+                "PLSuperExpCutoff2",
+            ]:
+                new_par["frozen"] = par["@free"] == "0"
 
         # Read into Gammapy Parameter object
         new_param = Parameter(name=new_par["name"], value=new_par["value"])
@@ -235,27 +288,33 @@ def xml_spectral_model_to_gammapy(params, spectrum_type, is_target=False, keep_s
     params_final2 = Parameters(new_params)
 
     # Modifications when different parameters are interconnected
-    if spectrum_type == "PLSuperExpCutoff2":
-        alpha_inv = 1 / params_final2["alpha"].value
-        min_sign = 1
-        if params_final2["lambda_"].min < 0:
-            min_sign = -1
+    # For Fermi-XML model
+    if base_model_type == "Fermi-XML":
+        if spectrum_type == "PLSuperExpCutoff2":
+            alpha_inv = 1 / params_final2["alpha"].value
+            min_sign = 1
+            if params_final2["lambda_"].min < 0:
+                min_sign = -1
 
-        params_final2["lambda_"].value = params_final2["lambda_"].value ** alpha_inv * 1.0e6
-        params_final2["lambda_"].min = min_sign * (
-            abs(params_final2["lambda_"].min) ** alpha_inv * 1.0e6
-        )
-        params_final2["lambda_"].max = params_final2["lambda_"].max ** alpha_inv * 1.0e6
+            params_final2["lambda_"].value = (
+                params_final2["lambda_"].value ** alpha_inv / en_scale_1_to_gpy
+            )
+            params_final2["lambda_"].min = min_sign * (
+                abs(params_final2["lambda_"].min) ** alpha_inv / en_scale_1_to_gpy
+            )
+            params_final2["lambda_"].max = (
+                params_final2["lambda_"].max ** alpha_inv / en_scale_1_to_gpy
+            )
 
     return params_final2
 
 
-def xml_spatial_model_to_gammapy(aux_path, xml_spatial_model):
+def xml_spatial_model_to_gammapy(aux_path, xml_spatial_model, base_model_type="Fermi-XML"):
     """
     Read the spatial model component of the XMl model to Gammapy SpatialModel
     object.
 
-    Details of the XML model can be seen at
+    Details of the Fermi-XML model can be seen at
     https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/source_models.html
     and with examples at
     https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/xml_model_defs.html
@@ -266,6 +325,8 @@ def xml_spatial_model_to_gammapy(aux_path, xml_spatial_model):
         Path to the template diffuse models
     xml_spatial_model: `dict`
         Spatial Model component of a particular source from the XML file
+    base_model_type: str
+        Name indicating the XML format used to read the skymodels from.
 
     Returns
     -------
@@ -274,51 +335,52 @@ def xml_spatial_model_to_gammapy(aux_path, xml_spatial_model):
     """
     spatial_pars = xml_spatial_model["parameter"]
 
-    if xml_spatial_model["@type"] == "SkyDirFunction":
-        for par_ in spatial_pars:
-            if par_["@name"] == "RA":
-                lon_0 = f"{par_['@value']} deg"
-            if par_["@name"] == "DEC":
-                lat_0 = f"{par_['@value']} deg"
-        fk5_frame = SkyCoord(
-            lon_0,
-            lat_0,
-            frame="fk5",
-        )
-        gal_frame = fk5_frame.transform_to("galactic")
-        spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("PointSpatialModel")().from_position(
-            gal_frame
-        )
+    if base_model_type == "Fermi-XML":
+        if xml_spatial_model["@type"] == "SkyDirFunction":
+            for par_ in spatial_pars:
+                if par_["@name"] == "RA":
+                    lon_0 = f"{par_['@value']} deg"
+                if par_["@name"] == "DEC":
+                    lat_0 = f"{par_['@value']} deg"
+            fk5_frame = SkyCoord(
+                lon_0,
+                lat_0,
+                frame="fk5",
+            )
+            gal_frame = fk5_frame.transform_to("galactic")
+            spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("PointSpatialModel")().from_position(
+                gal_frame
+            )
 
-    elif xml_spatial_model["@type"] == "SpatialMap":
-        file_name = xml_spatial_model["@file"].split("/")[-1]
-        file_path = aux_path / f"Templates/{file_name}"
+        elif xml_spatial_model["@type"] == "SpatialMap":
+            file_name = xml_spatial_model["@file"].split("/")[-1]
+            file_path = aux_path / f"Templates/{file_name}"
 
-        spatial_map = Map.read(file_path)
-        spatial_map = spatial_map.copy(unit="sr^-1")
+            spatial_map = Map.read(file_path)
+            spatial_map = spatial_map.copy(unit="sr^-1")
 
-        spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("TemplateSpatialModel")(
-            spatial_map, filename=file_path
-        )
+            spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("TemplateSpatialModel")(
+                spatial_map, filename=file_path
+            )
 
-    elif xml_spatial_model["@type"] == "RadialGaussian":
-        for par_ in spatial_pars:
-            if par_["@name"] == "RA":
-                lon_0 = f"{par_['@value']} deg"
-            if par_["@name"] == "DEC":
-                lat_0 = f"{par_['@value']} deg"
-            if par_["@name"] == "Sigma":
-                sigma = f"{par_['@value']} deg"
+        elif xml_spatial_model["@type"] == "RadialGaussian":
+            for par_ in spatial_pars:
+                if par_["@name"] == "RA":
+                    lon_0 = f"{par_['@value']} deg"
+                if par_["@name"] == "DEC":
+                    lat_0 = f"{par_['@value']} deg"
+                if par_["@name"] == "Sigma":
+                    sigma = f"{par_['@value']} deg"
 
-        fk5_frame = SkyCoord(
-            lon_0,
-            lat_0,
-            frame="fk5",
-        )
-        gal_frame = fk5_frame.transform_to("galactic")
+            fk5_frame = SkyCoord(
+                lon_0,
+                lat_0,
+                frame="fk5",
+            )
+            gal_frame = fk5_frame.transform_to("galactic")
 
-        spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("GaussianSpatialModel")(
-            lon_0=gal_frame.l, lat_0=gal_frame.b, sigma=sigma, frame="galactic"
-        )
+            spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("GaussianSpatialModel")(
+                lon_0=gal_frame.l, lat_0=gal_frame.b, sigma=sigma, frame="galactic"
+            )
 
     return spatial_model

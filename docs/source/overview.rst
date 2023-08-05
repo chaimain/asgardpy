@@ -97,7 +97,7 @@ While combining DL4 datasets from multiple instruments, the positions of the tar
 This will cause computation issue for the binned analysis performed with Gammapy. To resolve this issue, use :class:`~asgardpy.data.target.Target.use_uniform_position` ``= True``.
 
 
-To add a Gammapy `FoVBackgroundModel` to the 3D dataset, use :class:`~asgardpy.data.target.Target.add_fov_bkg_model` ``= True``
+To add a default Gammapy `FoVBackgroundModel` to the 3D dataset, use :class:`~asgardpy.data.target.Target.add_fov_bkg_model` ``= True``, else one can include it in the config file as well.
 
 
 The :class:`~asgardpy.data.target.apply_selection_mask_to_models` function is used to apply various selections on the given list of models.
