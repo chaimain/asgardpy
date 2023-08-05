@@ -1,7 +1,7 @@
 Installation
 ============
 
-**asgardpy** supports Python >= 3.10.
+**asgardpy** supports Python >= 3.11.
 
 ## Installing with `pip`
 
@@ -20,8 +20,14 @@ git clone https://github.com/chaimain/asgardpy.git
 cd asgardpy
 ```
 
-Then run
+Then for users, run
 
 ```bash
 pip install -e .
+```
+
+and for developers, run
+
+```bash
+pip install -e .[dev]
 ```

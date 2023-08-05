@@ -77,7 +77,7 @@ When you're ready to contribute code to address an open issue, please follow the
 
     Then you can create and activate a new Python environment by running:
 
-        conda create -n asgardpy python=3.10
+        conda create -n asgardpy python=3.11
         conda activate asgardpy
 
     Once your virtual environment is activated, you can install your local clone in "editable mode" with
