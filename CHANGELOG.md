@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.3.6](https://github.com/chaimain/asgardpy/releases/tag/v0.3.6) - 2023-08-05
+
 ### Added
 
 - Add codespell to dev-requirements. [#104](https://github.com/chaimain/asgardpy/pull/104)

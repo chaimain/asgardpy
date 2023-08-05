@@ -45,7 +45,7 @@ setup(
     ],
     keywords="",
     url="https://github.com/chaimain/asgardpy",
-    download_url="https://github.com/chaimain/asgardpy/archive/refs/tags/v0.3.5.tar.gz",
+    download_url="https://github.com/chaimain/asgardpy/archive/refs/tags/v0.3.6.tar.gz",
     author="Chaitanya Priyadarshi",
     author_email="chaitanya.p.astrphys@gmail.com",
     license="Apache",
