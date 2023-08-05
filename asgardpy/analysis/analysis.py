@@ -43,14 +43,13 @@ class AsgardpyAnalysis:
 
         if self.config.target.models_file.is_file():
             try:
-                other_config = AsgardpyConfig.read(self.config.target.models_file)
-                self.config = self.config.update(other_config)
-            except ValueError:
+                if AsgardpyConfig.read(self.config.target.models_file):
+                    other_config = AsgardpyConfig.read(self.config.target.models_file)
+                else:
+                    other_config = gammapy_to_asgardpy_model_config(self.config.target.models_file)
+            except OSError:
                 self.log.error("Provided models file is not readable")
-            else:
-                # If only readable by Gammapy Models (YAML serialization)
-                other_config = gammapy_to_asgardpy_model_config(self.config.target.models_file)
-                self.config = self.config.update(other_config)
+            self.config = self.config.update(other_config)
 
         self.config.set_logging()
         self.datasets = Datasets()
