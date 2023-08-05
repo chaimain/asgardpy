@@ -7,7 +7,7 @@ from gammapy.datasets import Datasets
 from gammapy.modeling.models import Models
 
 from asgardpy.analysis.step import AnalysisStep
-from asgardpy.config.generator import AsgardpyConfig
+from asgardpy.config.generator import AsgardpyConfig, gammapy_to_asgardpy_model_config
 from asgardpy.data.target import set_models
 from asgardpy.stats.stats import get_goodness_of_fit_stats
 
@@ -42,8 +42,15 @@ class AsgardpyAnalysis:
         self.config = config
 
         if self.config.target.models_file.is_file():
-            other_config = AsgardpyConfig.read(self.config.target.models_file)
-            self.config = self.config.update(other_config)
+            try:
+                other_config = AsgardpyConfig.read(self.config.target.models_file)
+                self.config = self.config.update(other_config)
+            except ValueError:
+                self.log.error("Provided models file is not readable")
+            else:
+                # If only readable by Gammapy Models (YAML serialization)
+                other_config = gammapy_to_asgardpy_model_config(self.config.target.models_file)
+                self.config = self.config.update(other_config)
 
         self.config.set_logging()
         self.datasets = Datasets()

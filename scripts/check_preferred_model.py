@@ -56,7 +56,9 @@ def main():
             steps_list.append(s.value)
     log.info("Target source is: %s", target_source_name)
 
-    spec_model_template_files = sorted(list(CONFIG_PATH.glob("model_template*yaml")))
+    spec_model_template_files = sorted(
+        list(CONFIG_PATH.glob("model_templates/model_template*yaml"))
+    )
 
     # Only use the following spectral model templates for comparison
     select_model_tags = ["lp", "bpl", "ecpl", "pl", "eclp", "sbpl"]

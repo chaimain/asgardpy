@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import List
 
 import yaml
+from gammapy.modeling.models import Models
 from gammapy.utils.scripts import make_path, read_yaml
 from pydantic.utils import deep_update
 
@@ -24,6 +25,7 @@ from asgardpy.data import (
 __all__ = [
     "AsgardpyConfig",
     "GeneralConfig",
+    "gammapy_to_asgardpy_model_config",
     "get_model_template",
     "recursive_merge_dicts",
 ]
@@ -67,7 +69,7 @@ def get_model_template(spec_model_tag):
     """
     Read a particular template model yaml file into AsgardpyConfig object.
     """
-    template_files = sorted(list(CONFIG_PATH.glob("model_template*yaml")))
+    template_files = sorted(list(CONFIG_PATH.glob("model_templates/model_template*yaml")))
     new_model_file = None
     for file in template_files:
         if spec_model_tag == file.name.split("_")[-1].split(".")[0]:
@@ -115,6 +117,32 @@ def recursive_merge_dicts(base_config, extra_config):
         else:
             final_config[key] = value
     return final_config
+
+
+def gammapy_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=None):
+    """
+    Read the Gammapy Models YAML file and save it as AsgardpyConfig object.
+
+    Return
+    ------
+    asgardpy_config: `asgardpy.config.generator.AsgardpyConfig`
+        Updated AsgardpyConfig object
+    """
+    models_gpy = Models.read(gammapy_model)
+
+    if not asgardpy_config_file:
+        asgardpy_config = AsgardpyConfig()  # Default object
+    elif isinstance(asgardpy_config_file, str):  # File path
+        asgardpy_config = AsgardpyConfig.read(asgardpy_config_file)
+    # also for YAML object?
+
+    models_gpy_dict = models_gpy.to_dict()
+    asgardpy_config_target_dict = asgardpy_config.dict()["target"]
+
+    temp_target_dict = recursive_merge_dicts(asgardpy_config_target_dict, models_gpy_dict)
+    asgardpy_config.target = temp_target_dict
+
+    return asgardpy_config
 
 
 # Combine everything!
