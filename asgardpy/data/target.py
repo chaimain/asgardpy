@@ -607,7 +607,6 @@ def create_source_skymodel(config_target, source, aux_path, base_model_type="Fer
 
     if spectral_model is None:
         # Define the Spectral Model type for Gammapy
-        # for spec in spectrum:  # Check if this for loop is necessary
         spectral_model, ebl_atten = get_gammapy_spectral_model(
             spectrum_type,
             ebl_atten,

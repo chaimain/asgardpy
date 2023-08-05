@@ -24,10 +24,13 @@ ANALYSIS_STEP_REGISTRY = Registry(
 
 class AnalysisStep:
     """
-    Create one of the Analysis Step class listed in the Registry.
+    Base class for creating Asgardpy Analysis Steps.
     """
 
     @staticmethod
     def create(tag, config, **kwargs):
+        """
+        Create one of the Analysis Step class listed in the Registry.
+        """
         cls = ANALYSIS_STEP_REGISTRY.get_cls(tag)
         return cls(config, **kwargs)
