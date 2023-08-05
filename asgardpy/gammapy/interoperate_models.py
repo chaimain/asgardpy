@@ -163,7 +163,10 @@ def xml_spectral_model_to_gammapy(params, spectrum_type, is_target=False, keep_s
     https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/xml_model_defs.html
 
     Models from the XML model, not read are -
-    ExpCutoff, BPLExpCutoff, PLSuperExpCutoff3, Gaussian, BandFunction
+    ExpCutoff (Blazar modeling with EBL absorption included),
+    BPLExpCutoff,
+    PLSuperExpCutoff3 (Pulsar modeling),
+    BandFunction (GRB analysis)
 
     Parameters
     ----------
