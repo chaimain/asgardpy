@@ -44,6 +44,7 @@ GitHub Repository: https://github.com/chaimain/asgardpy
   :caption: Development
 
   License <https://github.com/chaimain/asgardpy/blob/main/LICENSE>
+  CODE_OF_CONDUCT
   CONTRIBUTING
   GitHub Repository <https://github.com/chaimain/asgardpy>
   Issue Tracker <https://github.com/chaimain/asgardpy/issues>
