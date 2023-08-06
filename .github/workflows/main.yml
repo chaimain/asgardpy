@@ -89,16 +89,19 @@ jobs:
           name: package
           path: dist
 
-      - name: Clean up
-        if: always()
-        run: |
-          . .venv/bin/activate
-          pip uninstall -y asgardpy
+      - name: Run tests and collect coverage
+        run: pytest --cov --cov-report=xml asgardpy
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Clean up
+        if: always()
+        run: |
+          . .venv/bin/activate
+          pip uninstall -y asgardpy
 
   release:
     name: Release
