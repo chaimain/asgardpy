@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add Code of Conduct and Codacy Security scan. [#113](https://github.com/chaimain/asgardpy/pull/113)
+
 ## [v0.3.6](https://github.com/chaimain/asgardpy/releases/tag/v0.3.6) - 2023-08-05
 
 ### Added
@@ -18,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve logging. [#102](https://github.com/chaimain/asgardpy/pull/102)
 - Fix estimation of Goodness of Fit statistics. [#106](https://github.com/chaimain/asgardpy/pull/106)
 - Resolve the issue of circular imports. [#107](https://github.com/chaimain/asgardpy/pull/107)
-- Fix reading of models_file with correct process. [#111](https://github.com/chaimain/asgardpy/pull/111)
+- Fix reading of models_file with correct process. [#112](https://github.com/chaimain/asgardpy/pull/112)
 
 ### Changed
 
