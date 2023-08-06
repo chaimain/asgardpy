@@ -12,7 +12,7 @@ from pathlib import Path
 
 from asgardpy.base import BaseConfig, PathType
 
-__all__ = ["InputFilePatterns", "InputConfig", "DL3Files"]
+__all__ = ["InputFilePatterns", "InputDL3Config", "DL3Files"]
 
 EXPECTED_DL3_RANGE = ["gadf-dl3", "lat", "lat-aux"]
 
@@ -36,7 +36,7 @@ class InputFilePatterns(BaseConfig):
     iso_diffuse: str = "iso_P8R3_SOURCE_V*_*.txt"
 
 
-class InputConfig(BaseConfig):
+class InputDL3Config(BaseConfig):
     """
     Config section for main information on getting the relevant DL3 files.
     """

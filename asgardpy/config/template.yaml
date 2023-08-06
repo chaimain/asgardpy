@@ -76,7 +76,7 @@ dataset3d:
   type: "3d"
   instruments:
   -   name: Fermi-LAT
-      io:
+      input_dl3:
       -   type: lat
           input_dir: "."
           glob_pattern:
@@ -90,6 +90,7 @@ dataset3d:
           glob_pattern:
             gal_diffuse: "gll_iem_v07.fits*"
             iso_diffuse: "iso_P8R3_SOURCE_V3_*.txt"
+      input_dl4: false
       dataset_info:
         name: Fermi-LAT
         key: ["FRONT", "BACK"]
@@ -133,6 +134,12 @@ dataset3d:
         on_region: *source_pos
           # radius: 0.4 deg
         containment_correction: true
+      dl4_dataset_info:
+        # dl4_dataset:
+          # type: MapDatasetOnOff
+          # input_dir: "."
+          # glob_pattern: "pha*fits"
+          # dl4_format: "ogip"
         spectral_energy_range:
           name: energy
           axis:
@@ -151,11 +158,12 @@ dataset1d:
   type: "1d"
   instruments:
   -   name: LST-1
-      io:
+      input_dl3:
       -   type: gadf-dl3
           input_dir: "."
           glob_pattern:
             dl3: ""
+      input_dl4: false
       dataset_info:
         name: LST-1
         geom:
@@ -200,6 +208,12 @@ dataset1d:
         on_region: *source_pos
         containment_correction: false
         map_selection: [counts, exposure, edisp]
+      dl4_dataset_info:
+        # dl4_dataset:
+          # type: SpectrumDatasetOnOff
+          # input_dir: "."
+          # glob_pattern: "obs_*fits"
+          # dl4_format: "gadf"
         spectral_energy_range:
           name: energy
           axis:

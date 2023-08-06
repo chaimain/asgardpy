@@ -1,7 +1,10 @@
-asgardpy.io module
-==================
+asgardpy.io Main module
+=======================
 
 .. automodule:: asgardpy.io
-   :members: DL3Files, InputConfig
-   :undoc-members:
-   :show-inheritance:
+
+.. toctree::
+  :maxdepth: 1
+  :glob:
+
+  io/*
