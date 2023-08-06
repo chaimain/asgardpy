@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add Code of Conduct and Codacy Security scan. [#113](https://github.com/chaimain/asgardpy/pull/113)
+- Add Code of Conduct and Codecov support. [#113](https://github.com/chaimain/asgardpy/pull/113)
 
 ## [v0.3.6](https://github.com/chaimain/asgardpy/releases/tag/v0.3.6) - 2023-08-05
 
