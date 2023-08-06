@@ -31,7 +31,7 @@ jobs:
         task:
           - name: Test
             run: |
-              pytest -v --color=yes tests/
+              pytest  --cov --cov-report=xml -v --color=yes tests/
 
         include:
           - python: '3.11'
@@ -88,9 +88,6 @@ jobs:
         with:
           name: package
           path: dist
-
-      - name: Run tests and collect coverage
-        run: pytest --cov --cov-report=xml asgardpy
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
