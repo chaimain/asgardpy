@@ -72,18 +72,15 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "gammapy": ("https://docs.gammapy.org/1.1/", None),
     "astropy": ("https://docs.astropy.org/en/latest/", None),
-    # Uncomment these if you use them in your codebase:
-    #  "torch": ("https://pytorch.org/docs/stable", None),
-    #  "datasets": ("https://huggingface.co/docs/datasets/master/en", None),
-    #  "transformers": ("https://huggingface.co/docs/transformers/master/en", None),
 }
 
 # By default, sort documented members by type within classes and modules.
 autodoc_member_order = "groupwise"
 
 autodoc_pydantic_model_show_json = False
+autodoc_pydantic_settings_show_json = False
 autodoc_pydantic_model_show_config = False
-autodoc_pydantic_model_show_config_member = False
+# autodoc_pydantic_model_show_config_member = False - Deprecated
 autodoc_pydantic_model_show_config_summary = False
 autodoc_pydantic_model_show_field_summary = True
 
