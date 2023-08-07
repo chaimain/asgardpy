@@ -40,6 +40,7 @@ __pycache__
 
 # testing and continuous integration
 
+test_data
 .coverage
 .pytest_cache/
 .benchmarks
