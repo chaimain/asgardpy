@@ -32,6 +32,7 @@ __all__ = [
 # Following suggested answers from
 # https://stackoverflow.com/questions/76686888/using-bson-objectid-in-pydantic-v2/
 
+
 # Basic Quantities Type for building the Config
 def validate_angle_type(v: str) -> u.Quantity:
     """Validation for Base Angle Type Quantity"""
