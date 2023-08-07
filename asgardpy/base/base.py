@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import List
 
 from astropy import units as u
-from astropy.coordinates import Angle
 from astropy.time import Time
 from pydantic import BaseModel, ConfigDict, GetCoreSchemaHandler
 from pydantic_core import CoreSchema, core_schema
@@ -124,18 +123,11 @@ class BaseConfig(BaseModel):
     Base Config class for creating other Config sections with specific encoders.
     """
 
-    # class Config:
     model_config = ConfigDict(
         validate_default=True,
         validate_assignment=True,
         extra="forbid",
         arbitrary_types_allowed=True,
-        #json_encoders={
-        #    Angle: lambda v: f"{v.value} {v.unit}",
-        #    u.Quantity: lambda v: f"{v.value} {v.unit}",
-        #    Time: lambda v: f"{v.value}",
-        #    Path: lambda v: Path(v),
-        #},
     )
 
 
