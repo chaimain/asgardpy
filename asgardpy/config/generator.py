@@ -10,7 +10,7 @@ from typing import List
 import yaml
 from gammapy.modeling.models import Models
 from gammapy.utils.scripts import make_path, read_yaml
-from pydantic.utils import deep_update
+from pydantic.v1.utils import deep_update
 
 from asgardpy.analysis.step_base import AnalysisStepEnum
 from asgardpy.base import BaseConfig, PathType

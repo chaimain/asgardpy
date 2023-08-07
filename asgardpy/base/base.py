@@ -9,7 +9,8 @@ from typing import List
 from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.time import Time
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, GetCoreSchemaHandler
+from pydantic_core import CoreSchema, core_schema
 
 __all__ = [
     "AngleType",
@@ -26,24 +27,31 @@ __all__ = [
 
 
 # Basic Quantities Type for building the Config
-class AngleType(Angle):
+class AngleType(u.Quantity):
     """Base Angle Type Quantity"""
 
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+    def __get_pydantic_core_schema__(
+        cls, AngleType: u.Quantity, handler: GetCoreSchemaHandler
+    ) -> CoreSchema:
+        return core_schema.no_info_after_validator_function(cls, handler(u.Quantity))
 
     @classmethod
     def validate(cls, v):
-        return Angle(v)
+        v = u.Quantity(v)
+        if v.unit.physical_type != "angle":
+            raise ValueError(f"Invalid unit for angle: {v.unit!r}")
+        return v
 
 
 class EnergyType(u.Quantity):
     """Base Energy Type Quantity"""
 
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+    def __get_pydantic_core_schema__(
+        cls, EnergyType: u.Quantity, handler: GetCoreSchemaHandler
+    ) -> CoreSchema:
+        return core_schema.no_info_after_validator_function(cls, handler(u.Quantity))
 
     @classmethod
     def validate(cls, v):
@@ -57,8 +65,10 @@ class TimeType(Time):
     """Base Time Type Quantity"""
 
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+    def __get_pydantic_core_schema__(
+        cls, TimeType: Time, handler: GetCoreSchemaHandler
+    ) -> CoreSchema:
+        return core_schema.no_info_after_validator_function(cls, handler(Time))
 
     @classmethod
     def validate(cls, v):
@@ -69,8 +79,10 @@ class PathType(str):
     """Base Path Type Quantity"""
 
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+    def __get_pydantic_core_schema__(
+        cls, PathType: str, handler: GetCoreSchemaHandler
+    ) -> CoreSchema:
+        return core_schema.no_info_after_validator_function(cls, handler(str))
 
     @classmethod
     def validate(cls, v):
@@ -112,16 +124,19 @@ class BaseConfig(BaseModel):
     Base Config class for creating other Config sections with specific encoders.
     """
 
-    class Config:
-        validate_all = True
-        validate_assignment = True
-        extra = "forbid"
-        json_encoders = {
-            Angle: lambda v: f"{v.value} {v.unit}",
-            u.Quantity: lambda v: f"{v.value} {v.unit}",
-            Time: lambda v: f"{v.value}",
-            Path: lambda v: Path(v),
-        }
+    # class Config:
+    model_config = ConfigDict(
+        validate_default=True,
+        validate_assignment=True,
+        extra="forbid",
+        arbitrary_types_allowed=True,
+        #json_encoders={
+        #    Angle: lambda v: f"{v.value} {v.unit}",
+        #    u.Quantity: lambda v: f"{v.value} {v.unit}",
+        #    Time: lambda v: f"{v.value}",
+        #    Path: lambda v: Path(v),
+        #},
+    )
 
 
 # Basic Quantity ranges Type for building the Config
