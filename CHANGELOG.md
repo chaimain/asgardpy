@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Migrate from pydantic <2 to >2. (See Issue [#91](https://github.com/chaimain/asgardpy/issues/91)) [#115](https://github.com/chaimain/asgardpy/pull/115)
+- Constrain pydantic and autodoc_pydantic to 2.0. [#116](https://github.com/chaimain/asgardpy/pull/116)
 
 ## [v0.3.6](https://github.com/chaimain/asgardpy/releases/tag/v0.3.6) - 2023-08-05
 
