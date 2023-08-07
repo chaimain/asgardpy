@@ -10,4 +10,4 @@ seaborn
 iminuit>=2.8.0
 ruamel.yaml
 xmltodict
-pydantic>2
+pydantic~=2.0
