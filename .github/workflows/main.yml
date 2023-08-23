@@ -27,6 +27,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        python: ['3.11']
+        task:
+          - name: Install dependencies
+            run: |
+              python --version
+              echo "Installing additional pip packages"
+
+              echo "pip install -e ."
+              pip install -e .
+
+              which pip
+              pip freeze
+
         include:
           - python: '3.11'
             task:
