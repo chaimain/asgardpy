@@ -9,5 +9,6 @@ OUT_ZIP="fermipy_crab_zipped.zip"
 #  --output ${OUT_ZIP}
 
 unzip \
+  -n \
   ${OUT_ZIP} \
   -d $GAMMAPY_DATA"fermipy-crab/"
