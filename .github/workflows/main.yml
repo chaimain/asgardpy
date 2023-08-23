@@ -84,7 +84,7 @@ jobs:
           path: dist
 
       - name: Download Gammapy Datasets
-         run: |
+        run: |
           python -m pip install tqdm requests
           gammapy download datasets
 
