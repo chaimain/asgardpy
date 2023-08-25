@@ -42,7 +42,7 @@ sphinx-autobuild>=2021.3.14
 sphinx-autodoc-typehints
 
 # For documenting pydantic modules, classes and fields
-autodoc_pydantic~=2.0
+autodoc_pydantic>=2.0
 
 # For parsing and comparing version numbers.
 packaging
