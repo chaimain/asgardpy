@@ -237,12 +237,17 @@ def get_filtered_observations(dl3_path, obs_config, log):
 
     # Use the given list of Observation IDs to select Observations
     if len(obs_list) > 0:
-        id_select = {
-            "type": "par_box",
-            "variable": "OBS_ID",
-            "value_range": obs_list,
-        }
-        obs_table = obs_table.select_observations(id_select)
+        if len(obs_list) > 2:
+            # list of observation ids to be included
+            filtered_obs_ids = obs_list
+        else:
+            # the list has a min and max value to use this method
+            id_select = {
+                "type": "par_box",
+                "variable": "OBS_ID",
+                "value_range": obs_list,
+            }
+            obs_table = obs_table.select_observations(id_select)
 
     # Filter the Observations using the Time interval range provided
     if obs_time.intervals[0].start != Time("0", format="mjd"):
@@ -267,7 +272,10 @@ def get_filtered_observations(dl3_path, obs_config, log):
         }
         obs_table = obs_table.select_observations(cone_select)
 
-    filtered_obs_ids = obs_table["OBS_ID"].data
+    if filtered_obs_ids:
+        filtered_obs_ids = np.intersect1d(filtered_obs_ids, obs_table["OBS_ID"].data)
+    else:
+        filtered_obs_ids = obs_table["OBS_ID"].data
 
     obs_ids_str = " ".join(map(str, filtered_obs_ids))
     log.info("Observation ID list selected: %s", obs_ids_str)

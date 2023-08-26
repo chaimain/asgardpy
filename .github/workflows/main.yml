@@ -31,7 +31,7 @@ jobs:
         task:
           - name: Test
             run: |
-              pytest -v --color=yes tests/
+              pytest -m "test_data or not test_data" --cov --cov-report=xml -v --color=yes asgardpy
 
         include:
           - python: '3.11'
@@ -77,11 +77,6 @@ jobs:
           python-version: ${{ matrix.python }}
           cache-prefix: ${{ env.CACHE_PREFIX }}
 
-      - name: ${{ matrix.task.name }}
-        run: |
-          . .venv/bin/activate
-          ${{ matrix.task.run }}
-
       - name: Upload package distribution files
         if: matrix.task.name == 'Build'
         uses: actions/upload-artifact@v3
@@ -89,16 +84,36 @@ jobs:
           name: package
           path: dist
 
-      - name: Clean up
-        if: always()
+      - name: Download Gammapy Datasets
+        if: matrix.task.name == 'Test'
+        run: |
+          python -m pip install tqdm requests
+          python -m pip install -e .
+          gammapy download datasets
+
+      - name: Download test data
+        if: matrix.task.name == 'Test'
+        env:
+          ASGARDPY_DATA: ${{ secrets.asgardpy_data }}
+          GAMMAPY_DATA: /home/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
+        run: |
+          ./download_asgardpy_data.sh
+
+      - name: ${{ matrix.task.name }}
         run: |
           . .venv/bin/activate
-          pip uninstall -y asgardpy
+          ${{ matrix.task.run }}
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Clean up
+        if: always()
+        run: |
+          . .venv/bin/activate
+          pip uninstall -y asgardpy
 
   release:
     name: Release

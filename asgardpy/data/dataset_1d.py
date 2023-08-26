@@ -16,10 +16,8 @@ from asgardpy.analysis.step_base import AnalysisStepBase
 from asgardpy.base.base import BaseConfig
 from asgardpy.base.geom import (
     GeomConfig,
-    MapAxesConfig,
     SkyPositionConfig,
     generate_geom,
-    get_energy_axis,
     get_source_position,
 )
 from asgardpy.base.reduction import (
@@ -36,7 +34,8 @@ from asgardpy.base.reduction import (
     get_filtered_observations,
     get_safe_mask_maker,
 )
-from asgardpy.io import DL3Files, InputConfig
+from asgardpy.io.input_dl3 import DL3Files, InputDL3Config
+from asgardpy.io.io_dl4 import DL4BaseConfig, DL4Files, get_reco_energy_bins
 
 __all__ = [
     "Datasets1DAnalysisStep",
@@ -61,7 +60,6 @@ class Dataset1DInfoConfig(BaseConfig):
     on_region: SkyPositionConfig = SkyPositionConfig()
     containment_correction: bool = True
     map_selection: List[MapSelectionEnum] = []
-    spectral_energy_range: MapAxesConfig = MapAxesConfig()
 
 
 class Dataset1DBaseConfig(BaseConfig):
@@ -70,8 +68,10 @@ class Dataset1DBaseConfig(BaseConfig):
     """
 
     name: str = "Instrument-name"
-    io: List[InputConfig] = [InputConfig()]
+    input_dl3: List[InputDL3Config] = [InputDL3Config()]
+    input_dl4: bool = False
     dataset_info: Dataset1DInfoConfig = Dataset1DInfoConfig()
+    dl4_dataset_info: DL4BaseConfig = DL4BaseConfig()
 
 
 class Dataset1DConfig(BaseConfig):
@@ -105,37 +105,26 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
         for i in np.arange(len(instruments_list)):
             config_1d_dataset = instruments_list[i]
             instrument_spectral_info["name"].append(config_1d_dataset.name)
+            dl4_files = DL4Files(config_1d_dataset.dl4_dataset_info, self.log)
 
-            generate_1d_dataset = Dataset1DGeneration(self.log, config_1d_dataset, self.config)
-            dataset = generate_1d_dataset.run()
-
-            # Get the spectral energy information for each Instrument Dataset
-            energy_axes = config_1d_dataset.dataset_info.spectral_energy_range
-            if len(energy_axes.axis_custom.edges) > 0:
-                energy_bin_edges = get_energy_axis(energy_axes, only_edges=True, custom_range=True)
+            if not config_1d_dataset.input_dl4:
+                generate_1d_dataset = Dataset1DGeneration(self.log, config_1d_dataset, self.config)
+                dataset = generate_1d_dataset.run()
             else:
-                energy_bin_edges = get_energy_axis(
-                    energy_axes,
-                    only_edges=True,
-                )
+                dl4_file_list = dl4_files.get_dl4_files(config_1d_dataset.dataset_info.observation)
+                dataset = dl4_files.get_dl4_dataset(dl4_file_list)
+
+            energy_bin_edges = dl4_files.get_spectral_energies()
             instrument_spectral_info["spectral_energy_ranges"].append(energy_bin_edges)
 
             if self.config.general.stacked_dataset:
                 dataset = dataset.stack_reduce(name=config_1d_dataset.name)
 
-                if dataset.mask:
-                    en_bins += dataset.mask.geom.axes["energy"].nbin
-                else:
-                    en_bins += dataset.counts.geom.axes["energy"].nbin
-
+                en_bins = get_reco_energy_bins(dataset, en_bins)
                 datasets_1d_final.append(dataset)
             else:
                 for data in dataset:
-                    if data.mask:
-                        en_bins += data.mask.geom.axes["energy"].nbin
-                    else:
-                        en_bins += data.counts.geom.axes["energy"].nbin
-
+                    en_bins = get_reco_energy_bins(data, en_bins)
                     datasets_1d_final.append(data)
 
         instrument_spectral_info["en_bins"] = en_bins
@@ -169,7 +158,7 @@ class Dataset1DGeneration:
     """
 
     def __init__(self, log, config_1d_dataset, config_full):
-        self.config_1d_dataset_io = config_1d_dataset.io
+        self.config_1d_dataset_io = config_1d_dataset.input_dl3
         self.log = log
         self.config_1d_dataset_info = config_1d_dataset.dataset_info
         self.config_target = config_full.target
