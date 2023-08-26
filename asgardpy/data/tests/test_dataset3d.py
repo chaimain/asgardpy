@@ -10,10 +10,11 @@ def test_dataset3d_full(base_config_path):
 
     config = AsgardpyConfig.read(base_config_path)
 
-    #if $GAMMAPY_DATA:
-    #    GAMMAPY_DATA = $GAMMAPY_DATA
-    #else:
-    GAMMAPY_DATA = os.environ.get("GAMMAPY_DATA", "not set")
+    if os.environ["GAMMAPY_DATA"]:
+        GAMMAPY_DATA = os.environ.get("GAMMAPY_DATA", "not set")
+    else:
+        GAMMAPY_DATA = "gammapy-data/1.1/"
+    # print(GAMMAPY_DATA)
 
     # Update DL3 file paths
     config.dataset3d.instruments[0].input_dl3[0].input_dir = f"{GAMMAPY_DATA}fermipy-crab/"

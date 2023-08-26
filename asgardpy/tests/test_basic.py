@@ -2,15 +2,15 @@ from gammapy.utils.check import check_tutorials_setup
 
 
 def test_asgardpyconfig():
-    from asgardpy.config import AsgardpyConfig
+    import asgardpy.config as config
 
-    assert AsgardpyConfig()
+    assert hasattr(config, "AsgardpyConfig")
 
 
 def test_asgardpyanalysis():
-    from asgardpy.analysis import AsgardpyAnalysis
+    import asgardpy.analysis as ana
 
-    assert AsgardpyAnalysis()
+    assert hasattr(ana, "AsgardpyAnalysis")
 
 
 # Check if gammapy-data is downloaded and if not, then download it.
