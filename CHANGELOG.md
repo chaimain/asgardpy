@@ -11,10 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add Code of Conduct and Codecov support. [#113](https://github.com/chaimain/asgardpy/pull/113)
 
-### Fixed
-
-- Migrate from pydantic <2 to >2. (See Issue [#91](https://github.com/chaimain/asgardpy/issues/91)) [#115](https://github.com/chaimain/asgardpy/pull/115)
-
 ### Changed
 
 - Restructure io module to support DL4 dataset IO. [#114](https://github.com/chaimain/asgardpy/pull/114)
@@ -65,7 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Combine the various Sky Position configs into a single SkyPositionConfig. [#88](https://github.com/chaimain/asgardpy/pull/88)
 - Update documentation for the extended support. [#89](https://github.com/chaimain/asgardpy/pull/89)
 - Update with usage of common multiprocessing with Gammapy. [#90](https://github.com/chaimain/asgardpy/pull/90)
-- Constrain pydantic and autodoc-pydantic versions. (See Issue [#91](https://github.com/chaimain/asgardpy/issues/91)) [#92](https://github.com/chaimain/asgardpy/pull/92)
+- Constrain pydantic and autodoc-pydantic versions. [#92](https://github.com/chaimain/asgardpy/pull/92)
 
 ## [v0.3.3](https://github.com/chaimain/asgardpy/releases/tag/v0.3.3) - 2023-06-20
 
