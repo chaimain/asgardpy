@@ -30,42 +30,42 @@ jobs:
         python: ['3.11']
 
         include:
-          - python: ${{ matrix.python }}
+          - python: '3.11'
             task:
               name: Test
               run: |
                 pytest --cov --cov-report=xml -v --color=yes tests/
 
-          - python: ${{ matrix.python }}
+          - python: '3.11'
             task:
               name: Lint
               run: flake8 .
 
-          - python: ${{ matrix.python }}
+          - python: '3.11'
             task:
               name: Type check
               run: mypy .
 
-          - python: ${{ matrix.python }}
+          - python: '3.11'
             task:
               name: Build
               run: |
                 python setup.py check
                 python setup.py bdist_wheel sdist
 
-          - python: ${{ matrix.python }}
+          - python: '3.11'
             task:
               name: Style
               run: |
                 isort --check .
                 black --check .
 
-          - python: ${{ matrix.python }}
+          - python: '3.11'
             task:
               name: Docs
               run: cd docs && make html
 
-          - python: ${{ matrix.python }}
+          - python: '3.11'
             task:
               name: Spell check
               run: codespell asgardpy
