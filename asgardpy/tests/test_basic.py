@@ -10,7 +10,7 @@ def test_asgardpyconfig():
 def test_asgardpyanalysis():
     from asgardpy.analysis import AsgardpyAnalysis
 
-    assert AsgardpyAnalysis
+    assert AsgardpyAnalysis()
 
 
 # Check if gammapy-data is downloaded and if not, then download it.
