@@ -28,14 +28,12 @@ jobs:
       fail-fast: false
       matrix:
         python: ['3.11']
+        task:
+          - name: Test
+            run: |
+              pytest --cov --cov-report=xml -v --color=yes tests/
 
         include:
-          - python: '3.11'
-            task:
-              name: Test
-              run: |
-                pytest --cov --cov-report=xml -v --color=yes tests/
-
           - python: '3.11'
             task:
               name: Lint
