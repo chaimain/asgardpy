@@ -101,7 +101,7 @@ jobs:
           ASGARDPY_DATA: ${{ secrets.asgardpy_data }}
           GAMMAPY_DATA: ${{ matrix.gammapy_data_path }}
         run: |
-          ./download_test_data.sh
+          ./download_asgardpy_data.sh
 
       - name: Test
         run: |

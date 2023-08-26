@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set  -eu
+
 #ASGARDPY_DATA=${ASGARDPY_DATA:-""}
 
 OUT_ZIP="fermipy_crab_zipped.zip"
@@ -9,6 +11,7 @@ OUT_ZIP="fermipy_crab_zipped.zip"
 #  --output ${OUT_ZIP}
 
 unzip \
-  -n \
+  -u \
+  -v \
   ${OUT_ZIP} \
-  -d $GAMMAPY_DATA"fermipy-crab/"
+  -exdir $GAMMAPY_DATA"fermipy-crab/"
