@@ -10,14 +10,14 @@ def test_dataset3d_full(base_config_path):
 
     config = AsgardpyConfig.read(base_config_path)
 
-    print(os.environ["GAMMAPY_DATA"], "from saved environ path")
+    # Check first for the path used in CI test
     if os.path.exists("./gammapy-datasets/1.1/"):
         GAMMAPY_DATA = "./gammapy-datasets/1.1/"
+        # Update the environ for builtin EBL models
         os.environ["GAMMAPY_DATA"] = GAMMAPY_DATA
-        print(GAMMAPY_DATA, "from existing folder path")
     else:
+        # Using the saved path in the environ for users
         GAMMAPY_DATA = os.environ.get("GAMMAPY_DATA", "not set")
-        print(GAMMAPY_DATA, "fetched from saved environ path")
 
     # Update DL3 file paths
     config.dataset3d.instruments[0].input_dl3[0].input_dir = f"{GAMMAPY_DATA}fermipy-crab/"
