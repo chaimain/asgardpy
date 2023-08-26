@@ -86,7 +86,7 @@ class ObservationsConfig(BaseConfig):
     """
 
     obs_ids: List[int] = []
-    obs_file: PathType = "."
+    obs_file: PathType = PathType(".")
     obs_time: TimeIntervalsConfig = TimeIntervalsConfig()
     obs_cone: SkyPositionConfig = SkyPositionConfig()
     required_irfs: List[RequiredHDUEnum] = [RequiredHDUEnum.aeff]
