@@ -31,7 +31,7 @@ jobs:
         task:
           - name: Test
             run: |
-              pytest --cov --cov-report=xml -v --color=yes tests/
+              pytest -m "test_data or not test_data" --cov --cov-report=xml -v --color=yes asgardpy
 
         include:
           - python: '3.11'
