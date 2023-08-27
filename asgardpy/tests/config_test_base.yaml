@@ -192,7 +192,7 @@ dataset1d:
                 parameters:
                   region_radius: 0.5 deg
         safe_mask:
-          methods: ["aeff-max"]
+          methods: ["aeff-max"] # custom-mask
           parameters:
             aeff_percent: 10
             # min: "100 GeV"
