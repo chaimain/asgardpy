@@ -65,7 +65,7 @@ target:
   covariance: None
   from_3d: false
   roi_selection:
-    roi_radius: 5 deg
+    # roi_radius: 5 deg
     free_sources: ["4FGL J0521.7+2112", "4FGL J0528.3+1817", "4FGL J0536.2+1733", "4FGL J0534.5+2200"]
 
 # Instrument datasets with 3D info
@@ -192,10 +192,11 @@ dataset1d:
                 parameters:
                   region_radius: 0.5 deg
         safe_mask:
-          methods: ["custom-mask"] #aeff-max 10
+          methods: ["aeff-max"]
           parameters:
-            min: "100 GeV"
-            max: "40 TeV"
+            aeff_percent: 10
+            # min: "100 GeV"
+            # max: "40 TeV"
         on_region: {frame: icrs, lon: 83.633 deg, lat: 22.02 deg, radius: 0.2 deg}
         #on_region: # Define PointSkyRegion. New PR - use this attribute as well when generating the geom
         containment_correction: true
@@ -210,7 +211,7 @@ dataset1d:
           name: energy
           axis:
             min: "100 GeV"
-            max: "40 TeV"
+            max: "100 TeV"
             nbins: 5
             per_decade: true
 

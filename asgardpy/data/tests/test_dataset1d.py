@@ -7,4 +7,4 @@ def test_dataset1d_full(base_config_1d):
 
     analysis = AsgardpyAnalysis(base_config_1d)
 
-    analysis.run(["datasets-1d"])
+    analysis.get_1d_dataset()
