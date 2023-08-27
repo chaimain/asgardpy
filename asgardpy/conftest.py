@@ -1,6 +1,6 @@
 import os
-import pytest
 
+import pytest
 from gammapy.utils.check import check_tutorials_setup
 
 
