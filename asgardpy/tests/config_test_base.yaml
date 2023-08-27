@@ -18,7 +18,7 @@ general:
 # Target settings
 target:
   source_name: &source_name "4FGL J0534.5+2201i"
-  sky_position: &source_pos {frame: icrs, lon: 83.633 deg, lat: 22.02 deg, radius: 0.2 deg}
+  sky_position: &source_pos {frame: icrs, lon: 83.633 deg, lat: 22.02 deg}
   use_uniform_position: true
   # models_file: /data/magic/users-ifae/cpriyada/lst/software/model_template.yaml
   # use_catalog: 4fgl
@@ -196,7 +196,7 @@ dataset1d:
           parameters:
             min: "100 GeV"
             max: "40 TeV"
-        #on_region: {frame: icrs, lon: 83.633 deg, lat: 22.02 deg, radius: 0.2 deg}
+        on_region: {frame: icrs, lon: 83.633 deg, lat: 22.02 deg, radius: 0.2 deg}
         #on_region: # Define PointSkyRegion. New PR - use this attribute as well when generating the geom
         containment_correction: true
         map_selection: [counts, exposure, edisp]

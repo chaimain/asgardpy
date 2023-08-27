@@ -49,3 +49,18 @@ def base_config(base_config_path):
     config.dataset1d.instruments[0].input_dl3[0].input_dir = f"{GAMMAPY_DATA}hess-dl3-dr1/"
 
     return config
+
+
+@pytest.mark.test_data
+@pytest.fixture  # (scope="session")
+def base_config_1d(base_config):
+    base_config_1d = base_config
+    base_config_1d.target.source_name = "Crab Nebula"
+
+    base_config_1d.target.components[0].spectral.parameters[0].value = 1.0e-8
+    base_config_1d.target.components[0].spectral.parameters[1].value = 400
+    base_config_1d.target.components[0].spectral.parameters[2].value = 2.5
+
+    base_config_1d.fit_params.fit_range.min = "100 GeV"
+
+    return base_config_1d

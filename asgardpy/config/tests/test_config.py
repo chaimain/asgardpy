@@ -20,7 +20,7 @@ def test_config_update_gammapy():
 
 
 def test_config_update():
-    from asgardpy.config.generator import AsgardpyConfig, CONFIG_PATH
+    from asgardpy.config.generator import CONFIG_PATH, AsgardpyConfig
 
     main_config = AsgardpyConfig()
 
