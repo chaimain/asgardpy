@@ -26,12 +26,7 @@ def base_config_path():
 
 @pytest.mark.test_data
 @pytest.fixture  # (scope="session")
-def base_config(base_config_path):
-    """Define the base config for basic tests."""
-    from asgardpy.config import AsgardpyConfig
-
-    config = AsgardpyConfig().read(base_config_path)
-
+def gammapy_data_path():
     # Check first for the path used in CI test
     if os.path.exists("./gammapy-datasets/1.1/"):
         GAMMAPY_DATA = "./gammapy-datasets/1.1/"
@@ -41,12 +36,23 @@ def base_config(base_config_path):
         # Using the saved path in the environ for users
         GAMMAPY_DATA = os.environ.get("GAMMAPY_DATA", "not set")
 
+    return GAMMAPY_DATA
+
+
+@pytest.mark.test_data
+@pytest.fixture  # (scope="session")
+def base_config(base_config_path, gammapy_data_path):
+    """Define the base config for basic tests."""
+    from asgardpy.config import AsgardpyConfig
+
+    config = AsgardpyConfig().read(base_config_path)
+
     # Update DL3 file paths
-    config.dataset3d.instruments[0].input_dl3[0].input_dir = f"{GAMMAPY_DATA}fermipy-crab/"
+    config.dataset3d.instruments[0].input_dl3[0].input_dir = f"{gammapy_data_path}fermipy-crab/"
 
-    config.dataset3d.instruments[0].input_dl3[1].input_dir = f"{GAMMAPY_DATA}fermipy-crab/"
+    config.dataset3d.instruments[0].input_dl3[1].input_dir = f"{gammapy_data_path}fermipy-crab/"
 
-    config.dataset1d.instruments[0].input_dl3[0].input_dir = f"{GAMMAPY_DATA}hess-dl3-dr1/"
+    config.dataset1d.instruments[0].input_dl3[0].input_dir = f"{gammapy_data_path}hess-dl3-dr1/"
 
     return config
 

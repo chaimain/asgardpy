@@ -190,7 +190,7 @@ class AsgardpyAnalysis:
             self.log.info(message)
 
     # keep these methods to be backward compatible
-    def get_1d_dataset(self):
+    def get_1d_datasets(self):
         """Produce stacked 1D datasets."""
         self.run(steps=["datasets-1d"])
 

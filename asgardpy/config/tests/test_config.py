@@ -4,12 +4,12 @@ import pytest
 
 
 @pytest.mark.test_data
-def test_config_update_gammapy():
+def test_config_update_gammapy(gammapy_data_path):
     from asgardpy.config import AsgardpyConfig, gammapy_to_asgardpy_model_config
 
     main_config = AsgardpyConfig()
 
-    other_config_path = f"{os.environ['GAMMAPY_DATA']}fermi-3fhl-crab/Fermi-LAT-3FHL_models.yaml"
+    other_config_path = f"{gammapy_data_path}fermi-3fhl-crab/Fermi-LAT-3FHL_models.yaml"
     other_config = gammapy_to_asgardpy_model_config(other_config_path)
 
     main_config = main_config.update(other_config)
