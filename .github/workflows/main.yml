@@ -32,6 +32,7 @@ jobs:
         task:
           - name: Test
             run: |
+              pip install pytest-cov pytest-xdist coverage
               pytest -n auto --dist loadscope --cov --cov-report=xml -m 'test_data or not test_data' asgardpy
 
         include:
@@ -91,7 +92,6 @@ jobs:
           python -m pip install tqdm requests
           python -m pip install -e .
 
-          pip install pytest-cov pytest-xdist coverage
           gammapy download datasets
 
       - name: Download test data
