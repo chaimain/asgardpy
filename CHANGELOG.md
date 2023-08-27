@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add Code of Conduct and Codecov support. [#113](https://github.com/chaimain/asgardpy/pull/113)
+- Add tests and update notebooks with test data. (See Issue [#55](https://github.com/chaimain/asgardpy/issues/55))[#120](https://github.com/chaimain/asgardpy/pull/120)
 
 ### Changed
 

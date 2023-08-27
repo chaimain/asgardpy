@@ -18,6 +18,7 @@ env:
   # Change this to invalidate existing cache.
   CACHE_PREFIX: v0
   PYTHONPATH: ./
+  PYTEST_ADDOPTS: -v --color=yes
 
 jobs:
   checks:
@@ -31,7 +32,7 @@ jobs:
         task:
           - name: Test
             run: |
-              pytest -m "test_data or not test_data" --cov --cov-report=xml -v --color=yes asgardpy
+              pytest -n auto --dist loadscope --cov --cov-report=xml -m 'test_data or not test_data' asgardpy
 
         include:
           - python: '3.11'
@@ -89,6 +90,8 @@ jobs:
         run: |
           python -m pip install tqdm requests
           python -m pip install -e .
+
+          pip install pytest-cov pytest-xdist coverage
           gammapy download datasets
 
       - name: Download test data
@@ -135,8 +138,8 @@ jobs:
 
       - name: Prepare environment
         run: |
-          echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
-          echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          echo 'RELEASE_VERSION=${GITHUB_REF#refs/tags/v}' >> $GITHUB_ENV
+          echo 'TAG=${GITHUB_REF#refs/tags/}' >> $GITHUB_ENV
 
       - name: Download package distribution files
         uses: actions/download-artifact@v3

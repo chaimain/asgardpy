@@ -11,7 +11,7 @@ general:
   outdir: .
   n_jobs: 10
   parallel_backend: multiprocessing
-  steps: [datasets-3d, datasets-1d] #, fit, flux-points]
+  steps: [datasets-3d, datasets-1d, fit, flux-points]
   overwrite: true
   stacked_dataset: true
 
