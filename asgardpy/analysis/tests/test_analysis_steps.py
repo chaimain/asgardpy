@@ -11,7 +11,7 @@ def test_only_3d(base_config):
 
     analysis.run(["datasets-3d"])
     analysis.run(["fit"])
-    # analysis.run(["flux-points"])
+    analysis.run(["flux-points"])
 
 
 @pytest.mark.test_data
@@ -32,4 +32,4 @@ def test_joint_3d_1d(base_config):
     analysis.run(["datasets-3d"])
     analysis.run(["datasets-1d"])
     analysis.run(["fit"])
-    # analysis.run(["flux-points"])
+    analysis.run(["flux-points"])
