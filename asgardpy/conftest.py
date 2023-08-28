@@ -63,10 +63,10 @@ def base_config_1d(base_config):
     base_config_1d = base_config
     base_config_1d.target.source_name = "Crab Nebula"
 
-    base_config_1d.target.components[0].spectral.parameters[0].value = 1.0e-8
-    base_config_1d.target.components[0].spectral.parameters[1].value = 400
-    base_config_1d.target.components[0].spectral.parameters[2].value = 2.5
+    base_config_1d.target.components[0].spectral.parameters[0].value = 1.0e-9
+    base_config_1d.target.components[0].spectral.parameters[1].value = 0.4
+    base_config_1d.target.components[0].spectral.parameters[2].value = 2.0
 
-    base_config_1d.fit_params.fit_range.min = "100 GeV"
+    base_config_1d.fit_params.fit_range.min = "600 GeV"
 
     return base_config_1d

@@ -175,7 +175,7 @@ dataset1d:
           -   name: energy_true
               axis: *hess_energy
         observation:
-          obs_ids: [23523, 23526, 23559, 23592]
+          obs_ids: [23523, 23526]
           # obs_file: None
           # obs_time:
           required_irfs: ["aeff", "edisp"]
@@ -198,7 +198,6 @@ dataset1d:
             # min: "100 GeV"
             # max: "40 TeV"
         on_region: {frame: icrs, lon: 83.633 deg, lat: 22.02 deg, radius: 0.2 deg}
-        #on_region: # Define PointSkyRegion. New PR - use this attribute as well when generating the geom
         containment_correction: true
         map_selection: [counts, exposure, edisp]
       dl4_dataset_info:
