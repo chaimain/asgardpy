@@ -28,7 +28,7 @@ from gammapy.makers import (
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion
 
 from asgardpy.base.base import AngleType, BaseConfig, PathType, TimeIntervalsConfig
-from asgardpy.base.geom import SkyPositionConfig, generate_geom, get_energy_axis
+from asgardpy.base.geom import SkyPositionConfig, get_energy_axis
 
 __all__ = [
     "BackgroundConfig",
@@ -237,17 +237,17 @@ def get_filtered_observations(dl3_path, obs_config, log):
 
     # Use the given list of Observation IDs to select Observations
     if len(obs_list) > 0:
-        if len(obs_list) > 2:
-            # list of observation ids to be included
-            filtered_obs_ids = obs_list
-        else:
-            # the list has a min and max value to use this method
-            id_select = {
-                "type": "par_box",
-                "variable": "OBS_ID",
-                "value_range": obs_list,
-            }
-            obs_table = obs_table.select_observations(id_select)
+        # if len(obs_list) > 2:
+        # list of observation ids to be included
+        filtered_obs_ids = obs_list
+        # else:  # Find another way to make the distinction between list and range
+        # the list has a min and max value to use this method
+        #    id_select = {
+        #        "type": "par_box",
+        #        "variable": "OBS_ID",
+        #        "value_range": obs_list,
+        #    }
+        #    obs_table = obs_table.select_observations(id_select)
 
     # Filter the Observations using the Time interval range provided
     if obs_time.intervals[0].start != Time("0", format="mjd"):
@@ -448,22 +448,6 @@ def get_exclusion_region_mask(
             else:
                 log.error(f"Unknown type of region passed {region.type}")
             exclusion_regions.append(excluded_region)
-    else:
-        # By default, have the target sky center position as the center for the
-        # exclusion refions mask.
-        center_ex = SkyCoord(
-            u.Quantity(config_target.sky_position.lon),
-            u.Quantity(config_target.sky_position.lat),
-            frame=config_target.sky_position.frame,
-        )
-
-    if excluded_geom is None:
-        # Create the base geometry for the exclusion regions from config
-        excluded_geom = generate_geom(
-            tag="excluded",
-            geom_config=geom_config,
-            center_pos={"center": center_ex},
-        )
 
     # Check if a catalog data is given with exclusion radius
     if config_target.use_catalog.exclusion_radius != 0 * u.deg:

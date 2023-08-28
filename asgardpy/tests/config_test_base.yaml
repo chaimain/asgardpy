@@ -11,16 +11,16 @@ general:
   outdir: .
   n_jobs: 10
   parallel_backend: multiprocessing
-  steps: [datasets-3d, datasets-1d] #, fit, flux-points]
+  steps: [datasets-3d, datasets-1d, fit, flux-points]
   overwrite: true
   stacked_dataset: true
 
 # Target settings
 target:
   source_name: &source_name "4FGL J0534.5+2201i"
-  sky_position: &source_pos {frame: icrs, lon: 83.633 deg, lat: 22.02 deg, radius: 0.2 deg}
+  sky_position: &source_pos {frame: icrs, lon: 83.633 deg, lat: 22.02 deg}
   use_uniform_position: true
-  # models_file: /data/magic/users-ifae/cpriyada/lst/software/model_template.yaml
+  # models_file: 
   # use_catalog: 4fgl
   add_fov_bkg_model: false
   components:
@@ -51,7 +51,7 @@ target:
               max: 5.0
               frozen: false
           -   name: beta
-              value: 0.01
+              value: 0.1
               unit: ''
               error: 0.001
               min: 1.0e-6
@@ -65,7 +65,7 @@ target:
   covariance: None
   from_3d: false
   roi_selection:
-    roi_radius: 5 deg
+    # roi_radius: 5 deg
     free_sources: ["4FGL J0521.7+2112", "4FGL J0528.3+1817", "4FGL J0536.2+1733", "4FGL J0534.5+2200"]
 
 # Instrument datasets with 3D info
@@ -97,8 +97,8 @@ dataset3d:
             binsize: 0.1 deg
             proj: TAN
             map_frame_shape:
-              width: 10 deg
-              height: 10 deg
+              width: 4 deg
+              height: 4 deg
           axes:
           -   name: energy
               axis:
@@ -116,7 +116,7 @@ dataset3d:
                 name: *source_name
                 position: *source_pos
                 parameters:
-                  rad_0: 8 deg
+                  rad_0: 5 deg
                   rad_1: 30 deg
             -   type: CircleSkyRegion
                 name: "4FGL J0521.7+2112"
@@ -141,7 +141,7 @@ dataset3d:
           axis:
             min: "1 GeV"
             max: "562.34132519 GeV"
-            nbins: 4
+            nbins: 2
             per_decade: true
 
 # Instrument datasets with 1D info
@@ -151,7 +151,7 @@ dataset1d:
   -   name: HESS
       input_dl3:
       -   type: gadf-dl3
-          input_dir: "." #"../../gammapy-datasets/1.1/hess-dl3-dr1/"
+          input_dir: "." #../../gammapy-datasets/1.1/hess-dl3-dr1/
           glob_pattern:
             dl3: "data/hess_*fits.gz"
       dataset_info:
@@ -175,7 +175,7 @@ dataset1d:
           -   name: energy_true
               axis: *hess_energy
         observation:
-          obs_ids: [23523, 23526, 23559, 23592]
+          obs_ids: [23523, 23526]
           # obs_file: None
           # obs_time:
           required_irfs: ["aeff", "edisp"]
@@ -192,12 +192,12 @@ dataset1d:
                 parameters:
                   region_radius: 0.5 deg
         safe_mask:
-          methods: ["custom-mask"] #aeff-max 10
+          methods: ["aeff-max"] # custom-mask
           parameters:
-            min: "100 GeV"
-            max: "40 TeV"
-        #on_region: {frame: icrs, lon: 83.633 deg, lat: 22.02 deg, radius: 0.2 deg}
-        #on_region: # Define PointSkyRegion. New PR - use this attribute as well when generating the geom
+            aeff_percent: 10
+            # min: "100 GeV"
+            # max: "40 TeV"
+        on_region: {frame: icrs, lon: 83.633 deg, lat: 22.02 deg, radius: 0.2 deg}
         containment_correction: true
         map_selection: [counts, exposure, edisp]
       dl4_dataset_info:
@@ -210,7 +210,7 @@ dataset1d:
           name: energy
           axis:
             min: "100 GeV"
-            max: "40 TeV"
+            max: "100 TeV"
             nbins: 5
             per_decade: true
 

@@ -18,6 +18,7 @@ env:
   # Change this to invalidate existing cache.
   CACHE_PREFIX: v0
   PYTHONPATH: ./
+  PYTEST_ADDOPTS: -v --color=yes
 
 jobs:
   checks:
@@ -31,7 +32,8 @@ jobs:
         task:
           - name: Test
             run: |
-              pytest -m "test_data or not test_data" --cov --cov-report=xml -v --color=yes asgardpy
+              pip install pytest-cov pytest-xdist coverage
+              pytest -n auto --dist loadscope --cov --cov-report=xml -m 'test_data or not test_data' asgardpy
 
         include:
           - python: '3.11'
@@ -69,6 +71,15 @@ jobs:
               run: codespell asgardpy
 
     steps:
+      - name: Increase swapfile
+        run: |
+          sudo swapoff -a
+          sudo fallocate -l 15G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          sudo swapon --show
+
       - uses: actions/checkout@v3
 
       - name: Setup Python environment
@@ -89,6 +100,7 @@ jobs:
         run: |
           python -m pip install tqdm requests
           python -m pip install -e .
+
           gammapy download datasets
 
       - name: Download test data
@@ -135,8 +147,8 @@ jobs:
 
       - name: Prepare environment
         run: |
-          echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
-          echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          echo 'RELEASE_VERSION=${GITHUB_REF#refs/tags/v}' >> $GITHUB_ENV
+          echo 'TAG=${GITHUB_REF#refs/tags/}' >> $GITHUB_ENV
 
       - name: Download package distribution files
         uses: actions/download-artifact@v3

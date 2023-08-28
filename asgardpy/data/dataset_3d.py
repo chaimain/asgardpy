@@ -259,7 +259,7 @@ class Dataset3DGeneration:
                 obs_config=self.config_3d_dataset.dataset_info.observation,
                 log=self.log,
             )
-            center_pos = get_source_position(config_target=self.config_target)
+            center_pos = get_source_position(target_region=self.config_target.sky_position)
             geom = generate_geom(
                 tag="3d",
                 geom_config=self.config_3d_dataset.dataset_info.geom,
@@ -301,10 +301,16 @@ class Dataset3DGeneration:
                     for i in idx_list:
                         self.list_sources.append(catalog[i].sky_model())
 
+            excluded_geom = generate_geom(
+                tag="3d-ex",
+                geom_config=self.config_3d_dataset.dataset_info.geom,
+                center_pos=center_pos,
+            )
+
             exclusion_mask = get_exclusion_region_mask(
                 exclusion_params=self.config_3d_dataset.dataset_info.background.exclusion,
                 exclusion_regions=exclusion_regions,
-                excluded_geom=None,
+                excluded_geom=excluded_geom,
                 config_target=self.config_target,
                 geom_config=self.config_3d_dataset.dataset_info.geom,
                 log=self.log,
@@ -331,7 +337,7 @@ class Dataset3DGeneration:
             self.set_energy_dispersion_matrix()
 
             center_pos = get_source_position(
-                config_target=self.config_target,
+                target_region=self.config_target.sky_position,
                 fits_header=self.events["event_fits"][1].header,
             )
 

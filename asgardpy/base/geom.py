@@ -161,15 +161,15 @@ def get_energy_axis(axes_config, only_edges=False, custom_range=False):
     return energy_range
 
 
-def get_source_position(config_target, fits_header=None):
+def get_source_position(target_region, fits_header=None):
     """
     Function to fetch the target source position and the angular radius for
     the generating the Counts Map or ON region.
 
     Parameters
     ----------
-    config_target: `asgardpy.config.AsgardpyConfig.target`
-        Config containing the information on the target source
+    target_region: `asgardpy.data.geom.SkyPositionConfig`
+        Config containing the information on the target source position
     fits_header: `astropy.io.fits.Header`
         FITS Header information of the events fits file, only for Fermi-LAT
         DL3 files. If None is passed, the information is collected from the
@@ -194,20 +194,12 @@ def get_source_position(config_target, fits_header=None):
 
         source_pos = SkyCoord(ra_pos, dec_pos, unit="deg", frame="fk5")
     else:
-        # Fetching info from the config_target section
-        src_name = config_target.source_name
-
-        # First check by Sesame name resolver
-        if src_name is not None:
-            source_pos = SkyCoord.from_name(src_name)
-        # Next use the sky position information given in the config
-        else:
-            source_pos = SkyCoord(
-                u.Quantity(config_target.sky_position.lon),
-                u.Quantity(config_target.sky_position.lat),
-                frame=config_target.sky_position.frame,
-            )
-        events_radius = config_target.sky_position.radius
+        source_pos = SkyCoord(
+            u.Quantity(target_region.lon),
+            u.Quantity(target_region.lat),
+            frame=target_region.frame,
+        )
+        events_radius = target_region.radius
 
     center_pos = {"center": source_pos, "radius": events_radius}
 
@@ -303,7 +295,7 @@ def generate_geom(tag, geom_config, center_pos):
             energy_axis = get_energy_axis(axes_)
 
     if tag == "1d":
-        # Defining the ON region's geometry
+        # Defining the ON region's geometry for DL4 dataset
         if center_pos["radius"] == 0 * u.deg:
             on_region = PointSkyRegion(center_pos["center"])
             # Hack to allow for the joint fit
@@ -315,7 +307,6 @@ def generate_geom(tag, geom_config, center_pos):
                 radius=u.Quantity(center_pos["radius"]),
             )
 
-        # Main geom for 1D Dataset
         geom = RegionGeom.create(region=on_region, axes=[energy_axis])
 
     else:
@@ -324,18 +315,24 @@ def generate_geom(tag, geom_config, center_pos):
 
         geom_params = {}
 
-        if tag != "3d":  # For exclusion regions
+        if "ex" in tag:  # For exclusion regions - include for 1D data as well
             bin_size = geom_config.wcs.binsize.to_value("deg")
             width_ = int(width_ / bin_size)
             height_ = int(height_ / bin_size)
+
+            if "1d" in tag:
+                geom_params["npix"] = (width_, height_)
+            else:
+                # 3D-ex
+                geom_params["width"] = (width_, height_)
         else:
+            # 3D dataset for DL4 creation
             geom_params["axes"] = [energy_axis]
 
         geom_params["skydir"] = center_pos["center"]
         geom_params["frame"] = center_pos["center"].frame
         geom_params["binsz"] = geom_config.wcs.binsize
         geom_params["proj"] = geom_config.wcs.proj
-        geom_params["width"] = (width_, height_)
 
         # Main geom for 3D Dataset
         geom = WcsGeom.create(**geom_params)

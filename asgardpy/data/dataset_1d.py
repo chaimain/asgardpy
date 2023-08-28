@@ -188,7 +188,7 @@ class Dataset1DGeneration:
             log=self.log,
         )
         # Get dict information of the ON region, with its SkyCoord position and angular radius
-        center_pos = get_source_position(config_target=self.config_target)
+        center_pos = get_source_position(target_region=self.config_1d_dataset_info.on_region)
 
         # Create the main counts geometry
         geom = generate_geom(
@@ -207,10 +207,13 @@ class Dataset1DGeneration:
 
         safe_maker = get_safe_mask_maker(safe_config=self.config_1d_dataset_info.safe_mask)
 
+        excluded_geom = generate_geom(
+            tag="1d-ex", geom_config=self.config_1d_dataset_info.geom, center_pos=center_pos
+        )
         exclusion_mask = get_exclusion_region_mask(
             exclusion_params=self.config_1d_dataset_info.background.exclusion,
             exclusion_regions=self.exclusion_regions,
-            excluded_geom=None,
+            excluded_geom=excluded_geom,
             config_target=self.config_target,
             geom_config=self.config_1d_dataset_info.geom,
             log=self.log,

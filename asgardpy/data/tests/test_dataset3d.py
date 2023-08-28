@@ -1,33 +1,30 @@
-import os
-
 import pytest
+
+from asgardpy.analysis import AsgardpyAnalysis
 
 
 @pytest.mark.test_data
-def test_dataset3d_full(base_config_path):
-    from asgardpy.analysis import AsgardpyAnalysis
-    from asgardpy.config import AsgardpyConfig
+def test_dataset3d(base_config):
+    analysis = AsgardpyAnalysis(base_config)
 
-    config = AsgardpyConfig.read(base_config_path)
+    analysis.get_3d_datasets
 
-    # Check first for the path used in CI test
-    if os.path.exists("./gammapy-datasets/1.1/"):
-        GAMMAPY_DATA = "./gammapy-datasets/1.1/"
-        # Update the environ for builtin EBL models
-        os.environ["GAMMAPY_DATA"] = GAMMAPY_DATA
-    else:
-        # Using the saved path in the environ for users
-        GAMMAPY_DATA = os.environ.get("GAMMAPY_DATA", "not set")
 
-    # Update DL3 file paths
-    config.dataset3d.instruments[0].input_dl3[0].input_dir = f"{GAMMAPY_DATA}fermipy-crab/"
+@pytest.mark.test_data
+def test_dataset3d_different_config(base_config):
+    analysis = AsgardpyAnalysis(base_config)
 
-    config.dataset3d.instruments[0].input_dl3[1].input_dir = f"{GAMMAPY_DATA}fermipy-crab/"
+    analysis.config.target.from_3d = True
 
-    config.dataset1d.instruments[0].input_dl3[0].input_dir = f"{GAMMAPY_DATA}hess-dl3-dr1/"
+    analysis.get_3d_datasets
 
-    analysis = AsgardpyAnalysis(config)
+
+@pytest.mark.test_data
+def test_only_3d_full_analysis(base_config):
+    analysis = AsgardpyAnalysis(base_config)
+
+    analysis.config.fit_params.fit_range.max = "500 GeV"
 
     analysis.run(["datasets-3d"])
-
-    # assert
+    analysis.run(["fit"])
+    analysis.run(["flux-points"])
