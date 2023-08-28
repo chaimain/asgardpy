@@ -1,10 +1,10 @@
 import pytest
 
+from asgardpy.analysis import AsgardpyAnalysis
+
 
 @pytest.mark.test_data
 def test_dataset1d(base_config_1d):
-    from asgardpy.analysis import AsgardpyAnalysis
-
     analysis = AsgardpyAnalysis(base_config_1d)
 
     analysis.get_1d_datasets
