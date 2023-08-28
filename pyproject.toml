@@ -28,3 +28,7 @@ build-backend = "setuptools.build_meta"
 markers = [
 	"test_data"
 ]
+filterwarnings = [
+    "error::astropy.utils.exceptions.AstropyDeprecationWarning",
+    "error::gammapy.utils.deprecation.GammapyDeprecationWarning",
+]
