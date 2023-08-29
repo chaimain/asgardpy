@@ -14,7 +14,7 @@ def test_dataset1d(base_config_1d):
 def test_only_1d_full_analysis(base_config_1d):
     analysis = AsgardpyAnalysis(base_config_1d)
 
-    analysis.config.fit_params.fit_range.min = "500 GeV"
+    analysis.config.fit_params.fit_range.min = "100 GeV"
 
     analysis.run(["datasets-1d"])
     analysis.run(["fit"])

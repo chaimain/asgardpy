@@ -119,6 +119,7 @@ dataset3d:
         # parameters:
           exclusion:
             target_source: true
+            # exclusion_file: "./exclusion_mask.fits.gz"
             regions:
             -   type: CircleAnnulusSkyRegion
                 name: None
