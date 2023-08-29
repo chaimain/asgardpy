@@ -1,8 +1,12 @@
 import pytest
 
+from asgardpy.config import AsgardpyConfig
+
 
 def test_get_model_template():
-    from asgardpy.config.generator import AsgardpyConfig, get_model_template
+    """Test for reading a model template by a given tag."""
+
+    from asgardpy.config.generator import get_model_template
 
     new_model = get_model_template("eclp")
 
@@ -13,7 +17,9 @@ def test_get_model_template():
 
 @pytest.mark.test_data
 def test_config_update_gammapy(gammapy_data_path, base_config_1d):
-    from asgardpy.config import AsgardpyConfig, gammapy_to_asgardpy_model_config
+    """Tests to update target model config from Gammapy-based YAML files."""
+
+    from asgardpy.config.generator import gammapy_to_asgardpy_model_config
 
     main_config = AsgardpyConfig()
 
@@ -37,7 +43,9 @@ def test_config_update_gammapy(gammapy_data_path, base_config_1d):
 
 
 def test_config_update():
-    from asgardpy.config.generator import CONFIG_PATH, AsgardpyConfig
+    """Tests to update target model config from other AsgardpyConfig file."""
+
+    from asgardpy.config.generator import CONFIG_PATH
 
     main_config = AsgardpyConfig()
 

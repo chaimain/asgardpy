@@ -5,6 +5,10 @@ from asgardpy.analysis import AsgardpyAnalysis
 
 @pytest.mark.test_data
 def test_gpy_mwl(gpy_mwl_config, gammapy_data_path):
+    """
+    Test for running the 3D+1D joint analysis tutorial example from Gammapy.
+    """
+
     from gammapy.datasets import FluxPointsDataset
     from gammapy.estimators import FluxPoints
     from gammapy.modeling.models import create_crab_spectral_model
@@ -91,6 +95,8 @@ def test_gpy_mwl(gpy_mwl_config, gammapy_data_path):
 
 @pytest.mark.test_data
 def test_3d_hess_1d_magic(gpy_hess_magic):
+    """Test for running HESS (3D) + MAGIC (1D) joint analysis."""
+
     analysis = AsgardpyAnalysis(gpy_hess_magic)
 
     analysis.run(["datasets-3d"])

@@ -3,6 +3,10 @@ import pytest
 
 @pytest.mark.test_data
 def test_preferred_model(base_config_1d):
+    """
+    Testing the script code of checking the preferred spectral model.
+    """
+
     import numpy as np
 
     from asgardpy.analysis import AsgardpyAnalysis
