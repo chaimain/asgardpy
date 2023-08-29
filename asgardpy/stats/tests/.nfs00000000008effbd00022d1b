@@ -1,0 +1,21 @@
+import subprocess as sp
+import pytest
+
+
+def run_program(*args):
+    result = sp.run(args, stdout=sp.PIPE, stderr=sp.STDOUT, encoding='utf-8')
+
+    if result.returncode != 0:
+        raise ValueError(
+            f"Running {args[0]} failed with return code {result.returncode}"
+            f", output: \n {result.stdout}"
+        )
+    else:
+        return result
+
+
+@pytest.mark.test_data
+def test_preferred_model(base_config_1d):
+    base_config_1d.write("test.yaml")
+
+    run_program("check_preferred_model", "-c", "test.yaml", "--write-config", "False")
