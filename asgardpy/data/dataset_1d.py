@@ -111,8 +111,7 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
                 generate_1d_dataset = Dataset1DGeneration(self.log, config_1d_dataset, self.config)
                 dataset = generate_1d_dataset.run()
             else:
-                dl4_file_list = dl4_files.get_dl4_files(config_1d_dataset.dataset_info.observation)
-                dataset = dl4_files.get_dl4_dataset(dl4_file_list)
+                dataset = dl4_files.get_dl4_dataset(config_1d_dataset.dataset_info.observation)
 
             energy_bin_edges = dl4_files.get_spectral_energies()
             instrument_spectral_info["spectral_energy_ranges"].append(energy_bin_edges)

@@ -225,29 +225,35 @@ def get_ts_target(datasets):
     stat_ts = 0
 
     for data in datasets:
-        # Assuming that the Counts Map is created with the target source as its center
-        region = data.counts.geom.center_skydir
+        if data.stat_type != "chi2":
+            # Assuming that the Counts Map is created with the target source as its center
+            region = data.counts.geom.center_skydir
 
-        if data.stat_type == "cash":
-            counts_on = (data.counts.copy() * data.mask).get_spectrum(region).data
-            mu_on = (data.npred() * data.mask).get_spectrum(region).data
+            if data.stat_type == "cash":
+                counts_on = (data.counts.copy() * data.mask).get_spectrum(region).data
+                mu_on = (data.npred() * data.mask).get_spectrum(region).data
 
-            stat = CashCountsStatistic(
-                counts_on,
-                mu_on,
-            )
-        elif data.stat_type == "wstat":
-            counts_on = (data.counts.copy() * data.mask).get_spectrum(region)
-            counts_off = np.nan_to_num((data.counts_off * data.mask).get_spectrum(region))
-
-            with np.errstate(invalid="ignore", divide="ignore"):
-                alpha = (
-                    np.nan_to_num((data.background * data.mask).get_spectrum(region)) / counts_off
+                stat = CashCountsStatistic(
+                    counts_on,
+                    mu_on,
                 )
-            mu_signal = np.nan_to_num((data.npred_signal() * data.mask).get_spectrum(region))
+            elif data.stat_type == "wstat":
+                counts_on = (data.counts.copy() * data.mask).get_spectrum(region)
+                counts_off = np.nan_to_num((data.counts_off * data.mask).get_spectrum(region))
 
-            stat = WStatCountsStatistic(counts_on, counts_off, alpha, mu_signal)
-        stat_h0 += np.nansum(stat.stat_null.ravel())
-        stat_ts += np.nansum(stat.ts.ravel())
+                with np.errstate(invalid="ignore", divide="ignore"):
+                    alpha = (
+                        np.nan_to_num((data.background * data.mask).get_spectrum(region))
+                        / counts_off
+                    )
+                mu_signal = np.nan_to_num((data.npred_signal() * data.mask).get_spectrum(region))
+
+                stat = WStatCountsStatistic(counts_on, counts_off, alpha, mu_signal)
+            stat_h0 += np.nansum(stat.stat_null.ravel())
+            stat_ts += np.nansum(stat.ts.ravel())
+        else:
+            # For FluxxPointsDataset
+            print("For FPD: ", data.stat_array())
+            stat_ts += np.nansum(data.stat_array())
 
     return stat_h0, stat_ts

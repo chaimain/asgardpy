@@ -73,11 +73,16 @@ class DL4Files:
         self.dl4_dataset_info = dl4_dataset_info
         self.dl4_dataset = dl4_dataset_info.dl4_dataset
         self.dl4_type = self.dl4_dataset.type
+        self.dl4_path = None
+        self.dl4_file = None
 
         self._check_dl4_type()
 
         if Path(self.dl4_dataset.input_dir).exists():
-            self.dl4_path = Path(self.dl4_dataset.input_dir)
+            if Path(self.dl4_dataset.input_dir).is_file():
+                self.dl4_file = Path(self.dl4_dataset.input_dir)
+            else:
+                self.dl4_path = Path(self.dl4_dataset.input_dir)
         else:
             self.log.error("%s is not a valid file location", self.dl4_dataset.input_dir)
 
@@ -106,7 +111,7 @@ class DL4Files:
         all_dl4_files = sorted(list(self.dl4_path.glob(self.dl4_dataset.glob_pattern)))
 
         if len(all_dl4_files) == 0:
-            self.log.error("%s No datasets found in ", self.dl4_path)
+            self.log.error("No datasets found in %s", self.dl4_path)
 
         obs_ids = observation_config.obs_ids
         if len(obs_ids) == 0:
@@ -122,19 +127,27 @@ class DL4Files:
                 if obs_num in obs_ids:
                     dl4_file_list.append(dl4_files)
 
+        self.log.info("List of DL4 files are: %s", dl4_file_list)
+
         return dl4_file_list
 
-    def get_dl4_dataset(self, dl4_file_list):
+    def get_dl4_dataset(self, observation_config=None):
         """
         Read the corresponding DL4 dataset with the list of files provided,
         along with the dataset format and stack them in a Datasets object.
         """
-        datasets = Datasets()
-        for dl4_file in dl4_file_list:
-            dataset = DATASET_REGISTRY.get_cls(self.dl4_type)().read(
-                filename=dl4_file, format=self.dl4_dataset.dl4_format
-            )
-            datasets.append(dataset)
+        if self.dl4_file:
+            datasets = Datasets.read(filename=self.dl4_file)
+
+        elif self.dl4_path:
+            dl4_file_list = self.get_dl4_files(observation_config)
+
+            datasets = Datasets()
+            for dl4_file in dl4_file_list:
+                dataset = DATASET_REGISTRY.get_cls(self.dl4_type)().read(
+                    filename=dl4_file, format=self.dl4_dataset.dl4_format
+                )
+                datasets.append(dataset)
 
         return datasets
 

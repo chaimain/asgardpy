@@ -134,10 +134,12 @@ def gammapy_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=None):
         asgardpy_config = AsgardpyConfig()  # Default object
     elif isinstance(asgardpy_config_file, str):  # File path
         asgardpy_config = AsgardpyConfig.read(asgardpy_config_file)
+    elif isinstance(asgardpy_config_file, AsgardpyConfig):
+        asgardpy_config = asgardpy_config_file
     # also for YAML object?
 
     models_gpy_dict = models_gpy.to_dict()
-    asgardpy_config_target_dict = asgardpy_config.dict()["target"]
+    asgardpy_config_target_dict = asgardpy_config.dict(exclude_defaults=True)["target"]
 
     temp_target_dict = recursive_merge_dicts(asgardpy_config_target_dict, models_gpy_dict)
     asgardpy_config.target = temp_target_dict

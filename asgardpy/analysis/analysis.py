@@ -5,6 +5,7 @@ import logging
 
 from gammapy.datasets import Datasets
 from gammapy.modeling.models import Models
+from pydantic import ValidationError
 
 from asgardpy.analysis.step import AnalysisStep
 from asgardpy.config.generator import AsgardpyConfig, gammapy_to_asgardpy_model_config
@@ -43,13 +44,16 @@ class AsgardpyAnalysis:
 
         if self.config.target.models_file.is_file():
             try:
-                if AsgardpyConfig.read(self.config.target.models_file):
-                    other_config = AsgardpyConfig.read(self.config.target.models_file)
-                else:
-                    other_config = gammapy_to_asgardpy_model_config(self.config.target.models_file)
-            except OSError:
-                self.log.error("Provided models file is not readable")
-            self.config = self.config.update(other_config)
+                other_config = AsgardpyConfig.read(self.config.target.models_file)
+                self.config = self.config.update(other_config)
+            except ValidationError:
+                try:
+                    self.config = gammapy_to_asgardpy_model_config(
+                        gammapy_model=self.config.target.models_file,
+                        asgardpy_config_file=self.config,
+                    )
+                except OSError:
+                    self.log.error("Provided models file is not readable")
 
         self.config.set_logging()
         self.datasets = Datasets()

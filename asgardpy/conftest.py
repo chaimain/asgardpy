@@ -26,6 +26,13 @@ def base_config_path():
 
 @pytest.mark.test_data
 @pytest.fixture  # (scope="session")
+def mwl_config_path():
+    """Get the Gammapy MWL tutorial config path."""
+    return "asgardpy/tests/config_gpy_mwl.yaml"
+
+
+@pytest.mark.test_data
+@pytest.fixture  # (scope="session")
 def gammapy_data_path():
     # Check first for the path used in CI test
     if os.path.exists("./gammapy-datasets/1.1/"):
@@ -63,6 +70,7 @@ def base_config_1d(base_config):
     base_config_1d = base_config
     base_config_1d.target.source_name = "Crab Nebula"
 
+    # Update model parameters
     base_config_1d.target.components[0].spectral.parameters[0].value = 1.0e-9
     base_config_1d.target.components[0].spectral.parameters[1].value = 0.4
     base_config_1d.target.components[0].spectral.parameters[2].value = 2.0
@@ -70,3 +78,25 @@ def base_config_1d(base_config):
     base_config_1d.fit_params.fit_range.min = "600 GeV"
 
     return base_config_1d
+
+
+@pytest.mark.test_data
+@pytest.fixture  # (scope="session")
+def gpy_mwl_config(mwl_config_path, gammapy_data_path):
+    """Define the Gammapy MWL Tutorial config."""
+    from asgardpy.config import AsgardpyConfig
+
+    config = AsgardpyConfig().read(mwl_config_path)
+
+    # Update DL4 file paths and models file path
+    config.target.models_file = f"{gammapy_data_path}fermi-3fhl-crab/Fermi-LAT-3FHL_models.yaml"
+    config.dataset3d.instruments[
+        0
+    ].dl4_dataset_info.dl4_dataset.input_dir = (
+        f"{gammapy_data_path}fermi-3fhl-crab/Fermi-LAT-3FHL_datasets.yaml"
+    )
+    config.dataset1d.instruments[
+        0
+    ].dl4_dataset_info.dl4_dataset.input_dir = f"{gammapy_data_path}joint-crab/spectra/hess/"
+
+    return config

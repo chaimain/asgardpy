@@ -154,10 +154,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                     )
                     dataset, models = generate_3d_dataset.run(key)
                 else:
-                    dl4_file_list = dl4_files.get_dl4_files(
-                        config_3d_dataset.dataset_info.observation
-                    )
-                    dataset = dl4_files.get_dl4_dataset(dl4_file_list)
+                    dataset = dl4_files.get_dl4_dataset(config_3d_dataset.dataset_info.observation)
                     models = []
 
                 # Assigning datasets_names and including them in the final
@@ -174,7 +171,11 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                         else:
                             models_final.append(model_)
 
-                dataset_instrument.append(dataset)
+                if isinstance(dataset, Datasets):
+                    for data in dataset:
+                        dataset_instrument.append(data)
+                else:
+                    dataset_instrument.append(dataset)
 
             if len(models_final) > 0:
                 # Linking the spectral model of the diffuse model for each key
