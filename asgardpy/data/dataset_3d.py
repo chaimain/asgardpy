@@ -157,6 +157,10 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                     dataset = dl4_files.get_dl4_dataset(config_3d_dataset.dataset_info.observation)
                     models = []
 
+                # Use the individual Dataset type object for following tasks
+                if isinstance(dataset, Datasets):
+                    dataset = dataset[0]
+
                 # Assigning datasets_names and including them in the final
                 # model list
 
@@ -171,11 +175,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                         else:
                             models_final.append(model_)
 
-                if isinstance(dataset, Datasets):
-                    for data in dataset:
-                        dataset_instrument.append(data)
-                else:
-                    dataset_instrument.append(dataset)
+                dataset_instrument.append(dataset)
 
             if len(models_final) > 0:
                 # Linking the spectral model of the diffuse model for each key
@@ -250,8 +250,8 @@ class Dataset3DGeneration:
         """
         # First check for the given file list if they are readable or not.
         file_list = self.read_to_objects(key_name)
+        # self.log.info(file_list)
 
-        self.load_events(file_list["events_file"])
         exclusion_regions = []
 
         if self.config_3d_dataset.input_dl3[0].type == "gadf-dl3":
@@ -260,12 +260,16 @@ class Dataset3DGeneration:
                 obs_config=self.config_3d_dataset.dataset_info.observation,
                 log=self.log,
             )
-            center_pos = get_source_position(target_region=self.config_target.sky_position)
+            center_pos = get_source_position(
+                target_region=self.config_3d_dataset.dataset_info.on_region
+            )
+
             geom = generate_geom(
                 tag="3d",
                 geom_config=self.config_3d_dataset.dataset_info.geom,
                 center_pos=center_pos,
             )
+
             dataset_reference = get_dataset_reference(
                 tag="3d", geom=geom, geom_config=self.config_3d_dataset.dataset_info.geom
             )
@@ -286,7 +290,7 @@ class Dataset3DGeneration:
                 # Read the SkyModel info from AsgardpyConfig.target section
                 if len(self.config_target.components) > 0:
                     models_ = read_models_from_asgardpy_config(self.config_target)
-                    self.list_sources.append(models_)
+                    self.list_sources = models_
 
                 # If a catalog information is provided, use it to build up the list of models
                 # Check if a catalog data is given with selection radius
@@ -295,7 +299,7 @@ class Dataset3DGeneration:
 
                     # One can also provide a separate file, but one has to add
                     # another config option for reading Catalog file paths.
-                    base_geom = self.events["counts_map"].geom.copy()
+                    base_geom = geom.copy()  # self.events["counts_map"].
                     inside_geom = base_geom.to_image().contains(catalog.positions)
 
                     idx_list = np.nonzero(inside_geom)[0]
@@ -334,6 +338,8 @@ class Dataset3DGeneration:
             )
 
         elif "lat" in self.config_3d_dataset.input_dl3[0].type:
+            self.load_events(file_list["events_file"])
+
             # Start preparing objects to create the counts map
             self.set_energy_dispersion_matrix()
 

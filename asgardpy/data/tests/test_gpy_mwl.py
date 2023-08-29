@@ -87,3 +87,13 @@ def test_gpy_mwl(gpy_mwl_config, gammapy_data_path):
 
     analysis.run(["fit"])
     analysis.run(["flux-points"])
+
+
+@pytest.mark.test_data
+def test_3d_hess_1d_magic(gpy_hess_magic):
+    analysis = AsgardpyAnalysis(gpy_hess_magic)
+
+    analysis.run(["datasets-3d"])
+    analysis.run(["datasets-1d"])
+    analysis.run(["fit"])
+    analysis.run(["flux-points"])

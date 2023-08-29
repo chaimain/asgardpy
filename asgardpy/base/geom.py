@@ -327,6 +327,7 @@ def generate_geom(tag, geom_config, center_pos):
                 geom_params["width"] = (width_, height_)
         else:
             # 3D dataset for DL4 creation
+            geom_params["width"] = (width_, height_)
             geom_params["axes"] = [energy_axis]
 
         geom_params["skydir"] = center_pos["center"]
