@@ -3,6 +3,10 @@ import pytest
 
 @pytest.mark.test_data
 def test_preferred_model(base_config_1d):
+    """
+    Testing the script code of checking the preferred spectral model.
+    """
+
     import numpy as np
 
     from asgardpy.analysis import AsgardpyAnalysis
@@ -15,7 +19,7 @@ def test_preferred_model(base_config_1d):
     spec_model_template_files = sorted(
         list(CONFIG_PATH.glob("model_templates/model_template*yaml"))
     )
-    select_model_tags = ["lp", "bpl", "ecpl", "pl"]
+    select_model_tags = ["lp", "bpl2", "ecpl", "pl", "eclp"]
     spec_model_temp_files = []
 
     for p in spec_model_template_files:
@@ -143,4 +147,4 @@ def test_preferred_model(base_config_1d):
     aic_best_model = select_model_tags[best_sp_idx_aic[0]]
 
     assert lrt_best_model == "lp"
-    assert aic_best_model == "ecpl"
+    assert aic_best_model == "bpl2"
