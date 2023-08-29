@@ -95,6 +95,11 @@ dataset3d:
         # map_selection: []
         observation:
           obs_cone: {frame: icrs, lon: 83.633 deg, lat: 22.014 deg, radius: 5 deg}
+          obs_time:
+            format: "iso"
+            intervals:
+              - start: "2004-12-04"
+                stop: "2004-12-07"
           required_irfs: ["aeff", "edisp", "psf", "bkg"]
         geom:
           from_events_file: False
