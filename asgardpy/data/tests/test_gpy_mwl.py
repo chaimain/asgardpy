@@ -45,7 +45,7 @@ def test_gpy_mwl(gpy_mwl_config, gammapy_data_path):
     analysis.config.target.components[0].spatial.parameters[1].min = -90
     analysis.config.target.components[0].spatial.parameters[1].max = +90
 
-    # FoV-bkg-Norm
+    # FoV-bkg-Norm - Not being read exactly
     # analysis.config.target.components[1].spectral.parameters[0].min = 0.0
     # analysis.config.target.components[1].spectral.parameters[0].max = 10.0
     # analysis.config.target.components[1].spectral.parameters[0].frozen = False
@@ -63,7 +63,9 @@ def test_gpy_mwl(gpy_mwl_config, gammapy_data_path):
 
     # Update other dataset info
     analysis.dataset_name_list.append("HAWC")
+
     """
+    # FPE to only run for Fermi and HESS datasets, as HAWC is already estimated.
     analysis.instrument_spectral_info["name"].append("HAWC")
 
     hawc_en = np.array([1, 1.78, 3.16, 5.62, 10.0, 17.8, 31.6, 56.2, 100, 177, 316]) * u.TeV
