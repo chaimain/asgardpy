@@ -1,0 +1,100 @@
+# Configuration file template for Data analysis of 3D+1D DL3 datasets
+
+# General settings
+general:
+  log:
+    level: info
+    # filename: ../test_log.log
+    # filemode: a
+    # format: "%(asctime)s - %(message)s"
+    # datefmt: "%d-%b-%y %H:%M:%S"
+  outdir: .
+  n_jobs: 10
+  parallel_backend: multiprocessing
+  steps: [datasets-3d, datasets-1d, fit, flux-points]
+  overwrite: true
+  stacked_dataset: true
+
+# Target settings
+target:
+  source_name: &source_name "Crab Nebula"
+  sky_position: &source_pos {frame: icrs, lon: 83.633 deg, lat: 22.02 deg}
+  use_uniform_position: true
+  models_file: "." #"../gammapy-datasets/1.1/fermi-3fhl-crab/Fermi-LAT-3FHL_models.yaml" #
+  # use_catalog: 4fgl
+  add_fov_bkg_model: false
+  components:
+  -   name: *source_name
+      type: SkyModel
+      spectral:
+          type: LogParabolaSpectralModel
+          ebl_abs:
+            reference: dominguez
+            type: EBLAbsorptionNormSpectralModel
+            redshift: 0.0
+            alpha_norm: 1.0
+
+  covariance: None
+  from_3d: false
+
+# Instrument datasets with 3D info
+dataset3d:
+  type: "3d"
+  instruments:
+  -   name: Fermi-LAT
+      input_dl4: true
+      dl4_dataset_info:
+        dl4_dataset:
+          # type: SpectrumDatasetOnOff
+          input_dir: "." # ../gammapy-datasets/1.1/fermi-3fhl-crab/Fermi-LAT-3FHL_datasets.yaml
+          # glob_pattern: "obs_*fits"
+          dl4_format: "gadf"
+        spectral_energy_range:
+          name: energy
+          axis:
+            min: "10 GeV"
+            max: "2 TeV"
+            nbins: 5
+            per_decade: false
+
+# Instrument datasets with 1D info
+dataset1d:
+  type: "1d"
+  instruments:
+  -   name: HESS
+      input_dl4: true
+      dataset_info:
+        observation:
+          obs_ids: [23523, 23526]
+      dl4_dataset_info:
+        dl4_dataset:
+          type: SpectrumDatasetOnOff
+          input_dir: "." #../gammapy-datasets/1.1/joint-crab/spectra/hess/
+          glob_pattern: "pha_obs*fits"
+          dl4_format: "ogip"
+        spectral_energy_range:
+          name: energy
+          axis:
+            min: "1 TeV"
+            max: "10 TeV"
+            nbins: 5
+            per_decade: true
+          axis_custom:
+            unit: TeV
+            edges: [1.0, 1.5704178, 2.46621207, 3.87298335, 6.082202, 9.55159829, 15.]
+
+# Fit parameters
+fit_params:
+  fit_range:
+    min: "10 GeV"
+    max: "10 TeV"
+  backend: minuit
+  optimize_opts: {}
+  covariance_opts: {}
+  confidence_opts: {}
+  store_trace: true
+
+flux_points_params:
+  parameters:
+    selection_optional: "all"
+  reoptimize: false

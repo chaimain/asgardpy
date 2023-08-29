@@ -25,6 +25,8 @@ from gammapy.makers import (
     SpectrumDatasetMaker,
     WobbleRegionsFinder,
 )
+from gammapy.maps import Map
+from gammapy.utils.scripts import make_path
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion
 
 from asgardpy.base.base import AngleType, BaseConfig, PathType, TimeIntervalsConfig
@@ -155,6 +157,7 @@ class ExclusionRegionsConfig(BaseConfig):
 
     target_source: bool = True
     regions: List[RegionsConfig] = []
+    exclusion_file: PathType = PathType(".")
 
 
 class SafeMaskMethodsEnum(str, Enum):
@@ -231,6 +234,7 @@ def get_filtered_observations(dl3_path, obs_config, log):
     obs_time = obs_config.obs_time
     obs_list = obs_config.obs_ids
     obs_cone = obs_config.obs_cone
+    filtered_obs_ids = []
 
     # In case the obs_table is not sorted.
     obs_table = datastore.obs_table.group_by("OBS_ID")
@@ -272,7 +276,7 @@ def get_filtered_observations(dl3_path, obs_config, log):
         }
         obs_table = obs_table.select_observations(cone_select)
 
-    if filtered_obs_ids:
+    if len(filtered_obs_ids) > 0:
         filtered_obs_ids = np.intersect1d(filtered_obs_ids, obs_table["OBS_ID"].data)
     else:
         filtered_obs_ids = obs_table["OBS_ID"].data
@@ -401,6 +405,7 @@ def get_exclusion_region_mask(
     Generate from a given parameters, base geometry for exclusion mask, list
     of exclusion regions, config information on the target source and the base
     geometry for the exclusion mask, a background exclusion region mask.
+    # Create exclusion mask either by given regions, catalog or from a file.
 
     Parameters
     ----------
@@ -422,6 +427,8 @@ def get_exclusion_region_mask(
     exclusion_mask: `gammapy.maps.WcsNDMap`
         Boolean region mask for the exclusion regions
     """
+    exclusion_mask = None
+
     if len(exclusion_params.regions) != 0:
         # Fetch information from config
         for region in exclusion_params.regions:
@@ -449,6 +456,12 @@ def get_exclusion_region_mask(
                 log.error(f"Unknown type of region passed {region.type}")
             exclusion_regions.append(excluded_region)
 
+    elif exclusion_params.exclusion_file.is_file():
+        path = make_path(exclusion_params.exclusion_file)
+
+        exclusion_mask = Map.read(path)
+        exclusion_mask.data = exclusion_mask.data.astype(bool)
+
     # Check if a catalog data is given with exclusion radius
     if config_target.use_catalog.exclusion_radius != 0 * u.deg:
         catalog = CATALOG_REGISTRY.get_cls(config_target.use_catalog.name)()
@@ -469,8 +482,6 @@ def get_exclusion_region_mask(
     # boolean mask
     if len(exclusion_regions) > 0:
         exclusion_mask = ~excluded_geom.region_mask(exclusion_regions)
-    else:
-        exclusion_mask = None
 
     return exclusion_mask
 

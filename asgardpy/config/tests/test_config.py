@@ -8,7 +8,7 @@ def test_config_update_gammapy(gammapy_data_path):
     main_config = AsgardpyConfig()
 
     other_config_path = f"{gammapy_data_path}fermi-3fhl-crab/Fermi-LAT-3FHL_models.yaml"
-    other_config = gammapy_to_asgardpy_model_config(other_config_path)
+    other_config = gammapy_to_asgardpy_model_config(other_config_path, recursive_merge=False)
 
     main_config = main_config.update(other_config)
 

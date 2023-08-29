@@ -20,7 +20,7 @@ target:
   source_name: &source_name "4FGL J0534.5+2201i"
   sky_position: &source_pos {frame: icrs, lon: 83.633 deg, lat: 22.02 deg}
   use_uniform_position: true
-  # models_file: 
+  # models_file:
   # use_catalog: 4fgl
   add_fov_bkg_model: false
   components:
@@ -173,7 +173,11 @@ dataset1d:
                 nbins: 5
                 per_decade: true
           -   name: energy_true
-              axis: *hess_energy
+              axis:
+                min: "0.1 TeV"
+                max: "100 TeV"
+                nbins: 10
+                per_decade: true
         observation:
           obs_ids: [23523, 23526]
           # obs_file: None
@@ -213,6 +217,78 @@ dataset1d:
             max: "100 TeV"
             nbins: 5
             per_decade: true
+  -   name: MAGIC
+      input_dl3:
+      -   type: gadf-dl3
+          input_dir: "." #../../gammapy-datasets/1.1/magic/rad_max/data
+          glob_pattern:
+            dl3: "2013*fits"
+      dataset_info:
+        name: MAGIC
+        geom:
+          wcs:
+            binsize: 0.02 deg
+            proj: TAN
+            map_frame_shape:
+              width: 6.0 deg
+              height: 6.0 deg
+          selection:
+            offset_max: "2.5 deg"
+          axes:
+          -   name: energy
+              axis: &magic_energy
+                min: "0.05 TeV"
+                max: "100 TeV"
+                nbins: 5
+                per_decade: true
+          -   name: energy_true
+              axis:
+                min: "0.01 TeV"
+                max: "100 TeV"
+                nbins: 10
+                per_decade: true
+        observation:
+          # obs_ids: [23523, 23526]
+          # obs_file: None
+          # obs_time:
+          required_irfs: ["aeff", "edisp", "rad_max"]
+        background:
+          method: reflected
+          region_finder_method: wobble
+          parameters:
+            n_off_regions: 3
+          exclusion:
+            target_source: true
+            regions:
+            -   type: CircleSkyRegion
+                name: "4FGL J0521.7+2112"
+                parameters:
+                  region_radius: 0.5 deg
+        safe_mask:
+          methods: ["aeff-default"] # custom-mask
+          # parameters:
+            # aeff_percent: 10
+            # min: "100 GeV"
+            # max: "40 TeV"
+        on_region: *source_pos # {frame: icrs, lon: 83.633 deg, lat: 22.02 deg, radius: 0.2 deg}
+        containment_correction: false
+        map_selection: [counts, exposure, edisp]
+      dl4_dataset_info:
+        # dl4_dataset:
+          # type: SpectrumDatasetOnOff
+          # input_dir: "."
+          # glob_pattern: "obs_*fits"
+          # dl4_format: "gadf"
+        spectral_energy_range:
+          name: energy
+          axis:
+            min: "100 GeV"
+            max: "100 TeV"
+            nbins: 5
+            per_decade: true
+          axis_custom:
+            unit: TeV
+            edges: [0.0631, 0.1, 0.1585, 0.2512, 0.3981, 0.631, 1.0, 1.585, 2.512]
 
 # Fit parameters
 fit_params:
