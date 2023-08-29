@@ -299,12 +299,16 @@ class Dataset3DGeneration:
 
                     # One can also provide a separate file, but one has to add
                     # another config option for reading Catalog file paths.
-                    base_geom = geom.copy()  # self.events["counts_map"].
-                    inside_geom = base_geom.to_image().contains(catalog.positions)
+                    sep = catalog.positions.separation(center_pos["center"].galactic)
 
-                    idx_list = np.nonzero(inside_geom)[0]
-                    for i in idx_list:
-                        self.list_sources.append(catalog[i].sky_model())
+                    # base_geom = geom.copy()
+                    # inside_geom = base_geom.to_image().contains(catalog.positions)
+
+                    # idx_list = np.nonzero(inside_geom)[0]
+                    # for i in idx_list:
+                    for k, cat_ in enumerate(catalog):
+                        if sep[k] < self.config_target.use_catalog.selection_radius:
+                            self.list_sources.append(cat_.sky_model())
 
             excluded_geom = generate_geom(
                 tag="3d-ex",

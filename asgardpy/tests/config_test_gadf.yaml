@@ -21,7 +21,10 @@ target:
   sky_position: &source_pos {frame: icrs, lon: 83.633 deg, lat: 22.014 deg}
   use_uniform_position: true
   # models_file:
-  # use_catalog: 4fgl
+  use_catalog:
+    name: 3fhl
+    # selection_radius: 5 deg
+    exclusion_radius: 0.2 deg
   add_fov_bkg_model: true
   components:
   -   name: *source_name
