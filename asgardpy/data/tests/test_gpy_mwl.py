@@ -46,9 +46,9 @@ def test_gpy_mwl(gpy_mwl_config, gammapy_data_path):
     analysis.config.target.components[0].spatial.parameters[1].max = +90
 
     # FoV-bkg-Norm - Not being read exactly
-    # analysis.config.target.components[1].spectral.parameters[0].min = 0.0
-    # analysis.config.target.components[1].spectral.parameters[0].max = 10.0
-    # analysis.config.target.components[1].spectral.parameters[0].frozen = False
+    analysis.config.target.components[1].spectral.parameters[0].min = 0.0
+    analysis.config.target.components[1].spectral.parameters[0].max = 10.0
+    analysis.config.target.components[1].spectral.parameters[0].frozen = False
 
     analysis.run(["datasets-3d"])
     analysis.run(["datasets-1d"])

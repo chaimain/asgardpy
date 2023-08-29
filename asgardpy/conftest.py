@@ -61,7 +61,9 @@ def base_config(base_config_path, gammapy_data_path):
 
     config.dataset1d.instruments[0].input_dl3[0].input_dir = f"{gammapy_data_path}hess-dl3-dr1/"
 
-    config.dataset1d.instruments[1].input_dl3[0].input_dir = f"{gammapy_data_path}magic/rad_max/data/"
+    config.dataset1d.instruments[1].input_dl3[
+        0
+    ].input_dir = f"{gammapy_data_path}magic/rad_max/data/"
 
     return config
 
@@ -86,7 +88,7 @@ def base_config_1d(base_config):
 @pytest.fixture  # (scope="session")
 def gpy_mwl_config(mwl_config_path, gammapy_data_path):
     """Define the Gammapy MWL Tutorial config."""
-    from asgardpy.config import AsgardpyConfig
+    from asgardpy.config import AsgardpyConfig, gammapy_to_asgardpy_model_config
 
     config = AsgardpyConfig().read(mwl_config_path)
 
@@ -100,5 +102,11 @@ def gpy_mwl_config(mwl_config_path, gammapy_data_path):
     config.dataset1d.instruments[
         0
     ].dl4_dataset_info.dl4_dataset.input_dir = f"{gammapy_data_path}joint-crab/spectra/hess/"
+
+    other_config = gammapy_to_asgardpy_model_config(
+        config.target.models_file, recursive_merge=False
+    )
+
+    config = config.update(other_config)
 
     return config
