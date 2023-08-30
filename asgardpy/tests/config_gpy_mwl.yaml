@@ -1,4 +1,5 @@
-# Configuration file template for Data analysis of 3D+1D DL3 datasets
+# Configuration file template for testing Fermi-LAT (3D, from DL4 dataset) +
+# HESS (1D, from DL4 dataset) joint analysis.
 
 # General settings
 general:

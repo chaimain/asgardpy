@@ -1,7 +1,6 @@
 """
 Main Analysis Module
 
-# order matters to prevent circular imports
 isort:skip_file
 """
 from asgardpy.analysis.analysis import AsgardpyAnalysis

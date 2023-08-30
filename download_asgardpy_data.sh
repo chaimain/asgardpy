@@ -2,7 +2,6 @@
 
 set  -eu
 
-ASGARDPY_DATA=${ASGARDPY_DATA:-""}
 GAMMAPY_DATA=${GAMMAPY_DATA:-""}
 
 OUT_ZIP="fermipy_crab_zipped.zip"

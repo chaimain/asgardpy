@@ -253,7 +253,6 @@ def get_ts_target(datasets):
             stat_ts += np.nansum(stat.ts.ravel())
         else:
             # For FluxxPointsDataset
-            print("For FPD: ", data.stat_array())
             stat_ts += np.nansum(data.stat_array())
 
     return stat_h0, stat_ts

@@ -45,6 +45,8 @@ def test_config_update_gammapy(gammapy_data_path, base_config_1d):
 def test_config_update():
     """Tests to update target model config from other AsgardpyConfig file."""
 
+    import os
+
     from asgardpy.config.generator import CONFIG_PATH
 
     main_config = AsgardpyConfig()
@@ -58,5 +60,9 @@ def test_config_update():
     main_config = main_config.update(other_config)
 
     new_spectral_model_name = main_config.target.components[0].spectral.type
+
+    main_config.write("test_updated_config.yaml", overwrite=True)
+
+    os.remove("test_updated_config.yaml")
 
     assert new_spectral_model_name == "BrokenPowerLawSpectralModel"

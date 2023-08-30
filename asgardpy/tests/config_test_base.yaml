@@ -1,4 +1,5 @@
-# Configuration file template for Data analysis of 3D+1D DL3 datasets
+# Configuration file template for testing Fermi-LAT (3D, fermipy DL3 files) +
+# HESS (1D, CircleSkyRegion) + MAGIC (1D, PointSkyRegion) joint analysis.
 
 # General settings
 general:
