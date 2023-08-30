@@ -88,7 +88,7 @@ class ObservationsConfig(BaseConfig):
     """
 
     obs_ids: List[int] = []
-    obs_file: PathType = PathType(".")
+    obs_file: PathType = PathType("None")
     obs_time: TimeIntervalsConfig = TimeIntervalsConfig()
     obs_cone: SkyPositionConfig = SkyPositionConfig()
     required_irfs: List[RequiredHDUEnum] = [RequiredHDUEnum.aeff]
@@ -157,7 +157,7 @@ class ExclusionRegionsConfig(BaseConfig):
 
     target_source: bool = True
     regions: List[RegionsConfig] = []
-    exclusion_file: PathType = PathType(".")
+    exclusion_file: PathType = PathType("None")
 
 
 class SafeMaskMethodsEnum(str, Enum):

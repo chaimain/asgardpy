@@ -57,7 +57,7 @@ class GeneralConfig(BaseConfig):
     """Config section for general information for running AsgardpyAnalysis."""
 
     log: LogConfig = LogConfig()
-    outdir: PathType = PathType(".")
+    outdir: PathType = PathType("None")
     n_jobs: int = 1
     parallel_backend: ParallelBackendEnum = ParallelBackendEnum.multi
     steps: List[AnalysisStepEnum] = []

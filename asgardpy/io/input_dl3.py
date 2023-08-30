@@ -42,7 +42,7 @@ class InputDL3Config(BaseConfig):
     """
 
     type: str = "type"
-    input_dir: PathType = PathType(".")
+    input_dir: PathType = PathType("None")
     glob_pattern: dict = {}
 
 
