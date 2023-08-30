@@ -109,7 +109,7 @@ jobs:
           ASGARDPY_DATA: ${{ secrets.asgardpy_data }}
           GAMMAPY_DATA: /home/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
         run: |
-          ./download_asgardpy_data.sh
+          ./scripts/download_asgardpy_data.sh
 
       - name: ${{ matrix.task.name }}
         run: |

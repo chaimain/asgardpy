@@ -18,7 +18,7 @@ The pipeline can be further expanded to support more types of DL3 files of gamma
 # Examples with Data
 An example of configuration file that can be used with asgardpy can be found at ``asgardpy/config/template.yaml``
 
-For working with some public data to check the pipeline functionality, one should first download the public dataset available with gammapy as indicated in [Gammapy v1.1 Introduction](https://docs.gammapy.org/1.1/getting-started/index.html) and then run the ``download_asgardpy_data.sh`` script to add separate Fermi-LAT dataset for the usecase of the pipeline.
+For working with some public data to check the pipeline functionality, one should first download the public dataset available with gammapy as indicated in [Gammapy v1.1 Introduction](https://docs.gammapy.org/1.1/getting-started/index.html) and then run the ``scripts/download_asgardpy_data.sh`` script to add separate Fermi-LAT dataset for the usecase of the pipeline.
 
 Examples of usage of asgardpy is shown in jupyter notebooks in ``notebooks/``.
 

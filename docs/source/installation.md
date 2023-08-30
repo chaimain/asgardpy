@@ -51,5 +51,5 @@ export GAMMAPY_DATA=$PWD/gammapy-datasets/1.1
 Next, to add the extra test data for asgardpy tests, run the following,
 
 ```bash
-./download_asgardpy_data.sh
+./scripts/download_asgardpy_data.sh
 ```
