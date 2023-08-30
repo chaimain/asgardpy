@@ -46,6 +46,7 @@ def test_config_update():
     """Tests to update target model config from other AsgardpyConfig file."""
 
     import os
+
     from asgardpy.config.generator import CONFIG_PATH
 
     main_config = AsgardpyConfig()
