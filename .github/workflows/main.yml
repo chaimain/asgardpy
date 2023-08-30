@@ -50,7 +50,8 @@ jobs:
             task:
               name: Build
               run: |
-                python -m build
+                python setup.py check
+                python setup.py bdist_wheel sdist
 
           - python: '3.11'
             task:
