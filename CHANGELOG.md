@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Restructure io and tests modules and add test data. (See Issue [#55](https://github.com/chaimain/asgardpy/issues/55))[#114](https://github.com/chaimain/asgardpy/pull/114)
+- Restructure tests to reduce overall test time. [#123](https://github.com/chaimain/asgardpy/pull/123)
+- Perform general cleanup and fix minor pending issues. [#124](https://github.com/chaimain/asgardpy/pull/124)
 
 ## [v0.3.6](https://github.com/chaimain/asgardpy/releases/tag/v0.3.6) - 2023-08-05
 

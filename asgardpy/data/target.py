@@ -63,7 +63,7 @@ class EBLAbsorptionModel(BaseConfig):
     Config section for parameters to use for EBLAbsorptionNormSpectralModel.
     """
 
-    filename: PathType = PathType(".")
+    filename: PathType = PathType("None")
     reference: str = "dominguez"
     type: str = "EBLAbsorptionNormSpectralModel"
     redshift: float = 0.4
@@ -136,7 +136,7 @@ class Target(BaseConfig):
     source_name: str = ""
     sky_position: SkyPositionConfig = SkyPositionConfig()
     use_uniform_position: bool = True
-    models_file: PathType = PathType(".")
+    models_file: PathType = PathType("None")
     add_fov_bkg_model: bool = False
     use_catalog: CatalogConfig = CatalogConfig()
     components: List[ModelComponent] = [ModelComponent()]

@@ -120,7 +120,7 @@ class BaseConfig(BaseModel):
             Angle: lambda v: f"{v.value} {v.unit}",
             u.Quantity: lambda v: f"{v.value} {v.unit}",
             Time: lambda v: f"{v.value}",
-            Path: lambda v: Path(v),
+            Path: lambda v: PathType(v),
         }
 
 

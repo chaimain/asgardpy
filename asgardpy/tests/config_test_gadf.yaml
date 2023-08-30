@@ -1,4 +1,5 @@
-# Configuration file template for Data analysis of 3D+1D DL3 datasets
+# Configuration file template for testing HESS (3D) + MAGIC (1D) joint analysis
+# with both DL3 files being GADF compliant
 
 # General settings
 general:

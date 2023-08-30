@@ -19,5 +19,6 @@ def test_dataset3d_different_config(base_config):
     analysis = AsgardpyAnalysis(base_config)
 
     analysis.config.target.from_3d = True
+    analysis.config.dataset3d.instruments[0].dataset_info.geom.from_events_file = False
 
     analysis.get_3d_datasets
