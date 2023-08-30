@@ -1,7 +1,6 @@
 """
 Input/Output Module
 
-# order matters to prevent circular imports
 isort:skip_file
 """
 from asgardpy.io.input_dl3 import InputDL3Config, InputFilePatterns, DL3Files

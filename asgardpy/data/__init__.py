@@ -1,7 +1,6 @@
 """
 Data Module
 
-# order matters to prevent circular imports
 isort:skip_file
 """
 from asgardpy.data.dataset_1d import (
