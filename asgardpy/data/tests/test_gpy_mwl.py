@@ -102,3 +102,4 @@ def test_3d_hess_1d_magic(gpy_hess_magic):
     analysis.run(["datasets-3d"])
     analysis.run(["datasets-1d"])
     analysis.run(["fit"])
+    analysis.get_flux_points
