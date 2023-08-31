@@ -146,6 +146,7 @@ jobs:
         run: |
           pip install --upgrade pip setuptools wheel build
           pip install -r dev-requirements.txt
+          python -m build --sdist
 
       - name: Prepare environment
         run: |
