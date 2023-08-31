@@ -88,13 +88,6 @@ jobs:
           python-version: ${{ matrix.python }}
           cache-prefix: ${{ env.CACHE_PREFIX }}
 
-      - name: Upload package distribution files
-        if: matrix.task.name == 'Build'
-        uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: dist
-
       - name: Download Gammapy Datasets
         if: matrix.task.name == 'Test'
         run: |
@@ -117,9 +110,17 @@ jobs:
           ${{ matrix.task.run }}
 
       - name: Upload coverage reports to Codecov
+        if: matrix.task.name == 'Test'
         uses: codecov/codecov-action@v3
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload package distribution files
+        if: matrix.task.name == 'Build'
+        uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: dist
 
       - name: Clean up
         if: always()
@@ -146,12 +147,6 @@ jobs:
         run: |
           pip install --upgrade pip setuptools wheel
           pip install -r dev-requirements.txt
-
-      - name: Upload package distribution files
-        uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: dist
 
       - name: Prepare environment
         run: |
