@@ -23,3 +23,12 @@ multi_line_output = 3
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+markers = [
+	"test_data"
+]
+filterwarnings = [
+    "error::astropy.utils.exceptions.AstropyDeprecationWarning",
+    "error::gammapy.utils.deprecation.GammapyDeprecationWarning",
+]

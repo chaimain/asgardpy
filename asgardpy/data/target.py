@@ -3,6 +3,7 @@ Classes containing the Target config parameters for the high-level interface and
 also the functions involving Models generation and assignment to datasets.
 """
 
+from enum import Enum
 from typing import List
 
 import astropy.units as u
@@ -32,6 +33,7 @@ __all__ = [
     "BrokenPowerLaw2SpectralModel",
     "EBLAbsorptionModel",
     "ExpCutoffLogParabolaSpectralModel",
+    "ModelTypeEnum",
     "RoISelectionConfig",
     "SpatialModelConfig",
     "SpectralModelConfig",
@@ -47,12 +49,21 @@ __all__ = [
 
 
 # Basic components to define the Target Config and any Models Config
+class ModelTypeEnum(str, Enum):
+    """
+    Config section for Different Gammapy Model type.
+    """
+
+    skymodel = "SkyModel"
+    fovbkgmodel = "FoVBackgroundModel"
+
+
 class EBLAbsorptionModel(BaseConfig):
     """
     Config section for parameters to use for EBLAbsorptionNormSpectralModel.
     """
 
-    filename: PathType = "."
+    filename: PathType = PathType("None")
     reference: str = "dominguez"
     type: str = "EBLAbsorptionNormSpectralModel"
     redshift: float = 0.4
@@ -91,11 +102,12 @@ class SpatialModelConfig(BaseConfig):
     parameters: List[ModelParams] = [ModelParams()]
 
 
-class SkyModelComponent(BaseConfig):
+class ModelComponent(BaseConfig):
     """Config section for parameters to use for creating a SkyModel object."""
 
     name: str = ""
-    type: str = "SkyModel"
+    type: ModelTypeEnum = ModelTypeEnum.skymodel
+    datasets_names: List[str] = [""]
     spectral: SpectralModelConfig = SpectralModelConfig()
     spatial: SpatialModelConfig = SpatialModelConfig()
 
@@ -124,10 +136,10 @@ class Target(BaseConfig):
     source_name: str = ""
     sky_position: SkyPositionConfig = SkyPositionConfig()
     use_uniform_position: bool = True
-    models_file: PathType = "."
+    models_file: PathType = PathType("None")
     add_fov_bkg_model: bool = False
     use_catalog: CatalogConfig = CatalogConfig()
-    components: List[SkyModelComponent] = [SkyModelComponent()]
+    components: List[ModelComponent] = [ModelComponent()]
     covariance: str = ""
     from_3d: bool = False
     roi_selection: RoISelectionConfig = RoISelectionConfig()
@@ -276,7 +288,7 @@ def set_models(
     # Have some checks on argument types
     if isinstance(models, (DatasetModels, list)):
         models = Models(models)
-    elif isinstance(models, PathType()):
+    elif isinstance(models, PathType):
         models = Models.read(models)
     else:
         raise TypeError(f"Invalid type: {type(models)}")
@@ -312,10 +324,12 @@ def set_models(
 
         # Check if FoVBackgroundModel is provided
         bkg_model_name = [m_name for m_name in models.names if "bkg" in m_name]
+
         if len(bkg_model_name) > 0:
             # Remove the -bkg part of the name of the FoVBackgroundModel to get
-            # the appropriate datasets name
-            models[bkg_model_name].datasets_names = [bkg_model_name[:-4]]
+            # the appropriate datasets name.
+            for bkg_name in bkg_model_name:
+                models[bkg_name].datasets_names = [bkg_name[:-4]]
     else:
         models.datasets_names = datasets_name_list
 
@@ -389,8 +403,8 @@ def apply_selection_mask_to_models(
     if roi_radius.to_value("deg") != 0:
         for model_ in list_sources_excluded:
             model_pos = model_.spatial_model.position
-            separation = target_source_pos.separation(model_pos).to_value("deg")
-            if separation >= roi_radius.to_value("deg"):
+            separation = target_source_pos.separation(model_pos).deg
+            if separation >= roi_radius.deg:
                 model_.spectral_model.freeze()
     else:
         # For a given list of non free sources, unfreeze the spectral amplitude
@@ -429,88 +443,86 @@ def read_models_from_asgardpy_config(config):
     models: `gammapy.modeling.models.Models`
         Full gammapy Models object.
     """
-    # SkyModel is the first component
-    model_config = config.components[0]
+    models = Models()
 
-    # Spectral Model
-    if model_config.spectral.ebl_abs.reference != "":
-        model1 = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
-            {"spectral": config_to_dict(model_config.spectral)}
-        )
+    for model_config in config.components:
+        if model_config.type == "SkyModel":
+            # Spectral Model
+            if model_config.spectral.ebl_abs.reference != "":
+                model1 = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
+                    {"spectral": config_to_dict(model_config.spectral)}
+                )
 
-        ebl_model = model_config.spectral.ebl_abs
+                ebl_model = model_config.spectral.ebl_abs
 
-        # First check for filename of a custom EBL model
-        if ebl_model.filename.is_file():
-            model2 = EBLAbsorptionNormSpectralModel.read(
-                str(ebl_model.filename), redshift=ebl_model.redshift
+                # First check for filename of a custom EBL model
+                if ebl_model.filename.is_file():
+                    model2 = EBLAbsorptionNormSpectralModel.read(
+                        str(ebl_model.filename), redshift=ebl_model.redshift
+                    )
+                    # Update the reference name when using the custom EBL model for logging
+                    ebl_model.reference = ebl_model.filename.name[:-8].replace("-", "_")
+                else:
+                    model2 = EBLAbsorptionNormSpectralModel.read_builtin(
+                        ebl_model.reference, redshift=ebl_model.redshift
+                    )
+                if ebl_model.alpha_norm:
+                    model2.alpha_norm.value = ebl_model.alpha_norm
+                spectral_model = model1 * model2
+            else:
+                if model_config.spectral.type == "ExpCutoffLogParabolaSpectralModel":
+                    spectral_model = ExpCutoffLogParabolaSpectralModel().from_dict(
+                        {"spectral": config_to_dict(model_config.spectral)}
+                    )
+                elif model_config.spectral.type == "BrokenPowerLaw2SpectralModel":
+                    model1 = BrokenPowerLaw2SpectralModel().from_dict(
+                        {"spectral": config_to_dict(model_config.spectral)}
+                    )
+                else:
+                    spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(
+                        model_config.spectral.type
+                    )().from_dict({"spectral": config_to_dict(model_config.spectral)})
+            spectral_model.name = config.source_name
+
+            # Spatial model if provided
+            if model_config.spatial.type != "":
+                spatial_model = SPATIAL_MODEL_REGISTRY.get_cls(
+                    model_config.spatial.type
+                )().from_dict({"spatial": config_to_dict(model_config.spatial)})
+            else:
+                spatial_model = None
+
+            models.append(
+                SkyModel(
+                    spectral_model=spectral_model,
+                    spatial_model=spatial_model,
+                    name=config.source_name,
+                )
             )
-            # Update the reference name when using the custom EBL model for logging
-            ebl_model.reference = ebl_model.filename.name[:-8].replace("-", "_")
-        else:
-            model2 = EBLAbsorptionNormSpectralModel.read_builtin(
-                ebl_model.reference, redshift=ebl_model.redshift
-            )
-        if ebl_model.alpha_norm:
-            model2.alpha_norm.value = ebl_model.alpha_norm
-        spectral_model = model1 * model2
-    else:
-        if model_config.spectral.type == "ExpCutoffLogParabolaSpectralModel":
-            spectral_model = ExpCutoffLogParabolaSpectralModel().from_dict(
-                {"spectral": config_to_dict(model_config.spectral)}
-            )
-        elif model_config.spectral.type == "BrokenPowerLaw2SpectralModel":
-            model1 = BrokenPowerLaw2SpectralModel().from_dict(
-                {"spectral": config_to_dict(model_config.spectral)}
-            )
-        else:
-            spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(
+
+        # FoVBackgroundModel is the second component
+        if model_config.type == "FoVBackgroundModel":
+            # Spectral Model. At least this has to be provided for distinct
+            # parameter values
+            spectral_model_fov = SPECTRAL_MODEL_REGISTRY.get_cls(
                 model_config.spectral.type
             )().from_dict({"spectral": config_to_dict(model_config.spectral)})
-    spectral_model.name = config.source_name
 
-    # Spatial model if provided
-    if model_config.spatial.type != "":
-        spatial_model = SPATIAL_MODEL_REGISTRY.get_cls(model_config.spatial.type)().from_dict(
-            {"spatial": config_to_dict(model_config.spatial)}
-        )
-    else:
-        spatial_model = None
+            # Spatial model if provided
+            if model_config.spatial.type != "":
+                spatial_model_fov = SPATIAL_MODEL_REGISTRY.get_cls(
+                    model_config.spatial.type
+                )().from_dict({"spatial": config_to_dict(model_config.spatial)})
+            else:
+                spatial_model_fov = None
 
-    models = Models(
-        [
-            SkyModel(
-                spectral_model=spectral_model,
-                spatial_model=spatial_model,
-                name=config.source_name,
+            models.append(
+                FoVBackgroundModel(
+                    spectral_model=spectral_model_fov,
+                    spatial_model=spatial_model_fov,
+                    dataset_name=model_config.datasets_names[0],
+                )
             )
-        ]
-    )
-
-    if len(config.components) > 1:
-        # FoVBackgroundModel is the second component
-        model_config_fov = config.components[1]
-
-        # Spectral Model. At least this has to be provided for distinct
-        # parameter values
-        spectral_model_fov = SPECTRAL_MODEL_REGISTRY.get_cls(
-            model_config_fov.spectral.type
-        )().from_dict({"spectral": config_to_dict(model_config_fov.spectral)})
-
-        # Spatial model if provided
-        if model_config_fov.spatial.type != "":
-            spatial_model_fov = SPATIAL_MODEL_REGISTRY.get_cls(
-                model_config_fov.spatial.type
-            )().from_dict({"spatial": config_to_dict(model_config_fov.spatial)})
-        else:
-            spatial_model_fov = None
-
-        model_fov = FoVBackgroundModel(
-            spectral_model=spectral_model_fov,
-            spatial_model=spatial_model_fov,
-            name=model_config_fov.name,
-        )
-        models.append(model_fov)
 
     return models
 

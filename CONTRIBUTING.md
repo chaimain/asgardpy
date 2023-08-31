@@ -139,11 +139,11 @@ When you're ready to contribute code to address an open issue, please follow the
 
     For example, if you've fixed a bug in `asgardpy/a/b.py`, you can run the tests specific to that module with
 
-        pytest -v tests/a/b_test.py
+        pytest -v -m "test_data or not test_data" tests/a/b_test.py
 
     To check the code coverage locally in this example, you could run
 
-        pytest -v --cov asgardpy.a.b tests/a/b_test.py
+        pytest -v -m "test_data or not test_data" --cov asgardpy.a.b tests/a/b_test.py
 
     If your contribution involves additions to any public part of the API, we require that you write docstrings
     for each function, method, class, or module that you add.

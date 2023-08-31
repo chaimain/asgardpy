@@ -16,10 +16,8 @@ from asgardpy.analysis.step_base import AnalysisStepBase
 from asgardpy.base.base import BaseConfig
 from asgardpy.base.geom import (
     GeomConfig,
-    MapAxesConfig,
     SkyPositionConfig,
     generate_geom,
-    get_energy_axis,
     get_source_position,
 )
 from asgardpy.base.reduction import (
@@ -36,7 +34,8 @@ from asgardpy.base.reduction import (
     get_filtered_observations,
     get_safe_mask_maker,
 )
-from asgardpy.io import DL3Files, InputConfig
+from asgardpy.io.input_dl3 import DL3Files, InputDL3Config
+from asgardpy.io.io_dl4 import DL4BaseConfig, DL4Files, get_reco_energy_bins
 
 __all__ = [
     "Datasets1DAnalysisStep",
@@ -61,7 +60,6 @@ class Dataset1DInfoConfig(BaseConfig):
     on_region: SkyPositionConfig = SkyPositionConfig()
     containment_correction: bool = True
     map_selection: List[MapSelectionEnum] = []
-    spectral_energy_range: MapAxesConfig = MapAxesConfig()
 
 
 class Dataset1DBaseConfig(BaseConfig):
@@ -70,8 +68,10 @@ class Dataset1DBaseConfig(BaseConfig):
     """
 
     name: str = "Instrument-name"
-    io: List[InputConfig] = [InputConfig()]
+    input_dl3: List[InputDL3Config] = [InputDL3Config()]
+    input_dl4: bool = False
     dataset_info: Dataset1DInfoConfig = Dataset1DInfoConfig()
+    dl4_dataset_info: DL4BaseConfig = DL4BaseConfig()
 
 
 class Dataset1DConfig(BaseConfig):
@@ -105,37 +105,25 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
         for i in np.arange(len(instruments_list)):
             config_1d_dataset = instruments_list[i]
             instrument_spectral_info["name"].append(config_1d_dataset.name)
+            dl4_files = DL4Files(config_1d_dataset.dl4_dataset_info, self.log)
 
-            generate_1d_dataset = Dataset1DGeneration(self.log, config_1d_dataset, self.config)
-            dataset = generate_1d_dataset.run()
-
-            # Get the spectral energy information for each Instrument Dataset
-            energy_axes = config_1d_dataset.dataset_info.spectral_energy_range
-            if len(energy_axes.axis_custom.edges) > 0:
-                energy_bin_edges = get_energy_axis(energy_axes, only_edges=True, custom_range=True)
+            if not config_1d_dataset.input_dl4:
+                generate_1d_dataset = Dataset1DGeneration(self.log, config_1d_dataset, self.config)
+                dataset = generate_1d_dataset.run()
             else:
-                energy_bin_edges = get_energy_axis(
-                    energy_axes,
-                    only_edges=True,
-                )
+                dataset = dl4_files.get_dl4_dataset(config_1d_dataset.dataset_info.observation)
+
+            energy_bin_edges = dl4_files.get_spectral_energies()
             instrument_spectral_info["spectral_energy_ranges"].append(energy_bin_edges)
 
             if self.config.general.stacked_dataset:
                 dataset = dataset.stack_reduce(name=config_1d_dataset.name)
 
-                if dataset.mask:
-                    en_bins += dataset.mask.geom.axes["energy"].nbin
-                else:
-                    en_bins += dataset.counts.geom.axes["energy"].nbin
-
+                en_bins = get_reco_energy_bins(dataset, en_bins)
                 datasets_1d_final.append(dataset)
             else:
                 for data in dataset:
-                    if data.mask:
-                        en_bins += data.mask.geom.axes["energy"].nbin
-                    else:
-                        en_bins += data.counts.geom.axes["energy"].nbin
-
+                    en_bins = get_reco_energy_bins(data, en_bins)
                     datasets_1d_final.append(data)
 
         instrument_spectral_info["en_bins"] = en_bins
@@ -169,7 +157,7 @@ class Dataset1DGeneration:
     """
 
     def __init__(self, log, config_1d_dataset, config_full):
-        self.config_1d_dataset_io = config_1d_dataset.io
+        self.config_1d_dataset_io = config_1d_dataset.input_dl3
         self.log = log
         self.config_1d_dataset_info = config_1d_dataset.dataset_info
         self.config_target = config_full.target
@@ -199,7 +187,7 @@ class Dataset1DGeneration:
             log=self.log,
         )
         # Get dict information of the ON region, with its SkyCoord position and angular radius
-        center_pos = get_source_position(config_target=self.config_target)
+        center_pos = get_source_position(target_region=self.config_1d_dataset_info.on_region)
 
         # Create the main counts geometry
         geom = generate_geom(
@@ -218,10 +206,13 @@ class Dataset1DGeneration:
 
         safe_maker = get_safe_mask_maker(safe_config=self.config_1d_dataset_info.safe_mask)
 
+        excluded_geom = generate_geom(
+            tag="1d-ex", geom_config=self.config_1d_dataset_info.geom, center_pos=center_pos
+        )
         exclusion_mask = get_exclusion_region_mask(
             exclusion_params=self.config_1d_dataset_info.background.exclusion,
             exclusion_regions=self.exclusion_regions,
-            excluded_geom=None,
+            excluded_geom=excluded_geom,
             config_target=self.config_target,
             geom_config=self.config_1d_dataset_info.geom,
             log=self.log,

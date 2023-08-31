@@ -18,6 +18,7 @@ env:
   # Change this to invalidate existing cache.
   CACHE_PREFIX: v0
   PYTHONPATH: ./
+  PYTEST_ADDOPTS: -v --color=yes
 
 jobs:
   checks:
@@ -31,7 +32,8 @@ jobs:
         task:
           - name: Test
             run: |
-              pytest -v --color=yes tests/
+              pip install pytest-cov pytest-xdist coverage
+              pytest -n auto --dist loadscope --cov --cov-report=xml -m 'test_data or not test_data' asgardpy
 
         include:
           - python: '3.11'
@@ -69,6 +71,15 @@ jobs:
               run: codespell asgardpy
 
     steps:
+      - name: Increase swapfile
+        run: |
+          sudo swapoff -a
+          sudo fallocate -l 15G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          sudo swapon --show
+
       - uses: actions/checkout@v3
 
       - name: Setup Python environment
@@ -77,10 +88,32 @@ jobs:
           python-version: ${{ matrix.python }}
           cache-prefix: ${{ env.CACHE_PREFIX }}
 
+      - name: Download Gammapy Datasets
+        if: matrix.task.name == 'Test'
+        run: |
+          python -m pip install tqdm requests
+          python -m pip install -e .
+
+          gammapy download datasets
+
+      - name: Download test data
+        if: matrix.task.name == 'Test'
+        env:
+          ASGARDPY_DATA: ${{ secrets.asgardpy_data }}
+          GAMMAPY_DATA: /home/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
+        run: |
+          ./scripts/download_asgardpy_data.sh
+
       - name: ${{ matrix.task.name }}
         run: |
           . .venv/bin/activate
           ${{ matrix.task.run }}
+
+      - name: Upload coverage reports to Codecov
+        if: matrix.task.name == 'Test'
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload package distribution files
         if: matrix.task.name == 'Build'
@@ -95,11 +128,6 @@ jobs:
           . .venv/bin/activate
           pip uninstall -y asgardpy
 
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -107,6 +135,8 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v4

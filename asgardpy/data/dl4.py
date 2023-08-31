@@ -5,7 +5,7 @@ Main classes to define High-level Analysis Config and the Analysis Steps.
 from enum import Enum
 
 from astropy import units as u
-from gammapy.datasets import Datasets
+from gammapy.datasets import Datasets, FluxPointsDataset
 from gammapy.estimators import FluxPointsEstimator
 from gammapy.modeling import Fit
 
@@ -87,8 +87,9 @@ class FitAnalysisStep(AnalysisStepBase):
 
         final_dataset = Datasets()
         for data in self.datasets:
-            geom = data.counts.geom
-            data.mask_fit = geom.energy_mask(en_min, en_max)
+            if not isinstance(data, FluxPointsDataset):
+                geom = data.counts.geom
+                data.mask_fit = geom.energy_mask(en_min, en_max)
             final_dataset.append(data)
 
         return final_dataset

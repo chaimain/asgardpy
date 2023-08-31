@@ -25,10 +25,12 @@ from gammapy.makers import (
     SpectrumDatasetMaker,
     WobbleRegionsFinder,
 )
+from gammapy.maps import Map
+from gammapy.utils.scripts import make_path
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion
 
 from asgardpy.base.base import AngleType, BaseConfig, PathType, TimeIntervalsConfig
-from asgardpy.base.geom import SkyPositionConfig, generate_geom, get_energy_axis
+from asgardpy.base.geom import SkyPositionConfig, get_energy_axis
 
 __all__ = [
     "BackgroundConfig",
@@ -86,7 +88,7 @@ class ObservationsConfig(BaseConfig):
     """
 
     obs_ids: List[int] = []
-    obs_file: PathType = "."
+    obs_file: PathType = PathType("None")
     obs_time: TimeIntervalsConfig = TimeIntervalsConfig()
     obs_cone: SkyPositionConfig = SkyPositionConfig()
     required_irfs: List[RequiredHDUEnum] = [RequiredHDUEnum.aeff]
@@ -155,6 +157,7 @@ class ExclusionRegionsConfig(BaseConfig):
 
     target_source: bool = True
     regions: List[RegionsConfig] = []
+    exclusion_file: PathType = PathType("None")
 
 
 class SafeMaskMethodsEnum(str, Enum):
@@ -231,18 +234,24 @@ def get_filtered_observations(dl3_path, obs_config, log):
     obs_time = obs_config.obs_time
     obs_list = obs_config.obs_ids
     obs_cone = obs_config.obs_cone
+    filtered_obs_ids = []
 
     # In case the obs_table is not sorted.
     obs_table = datastore.obs_table.group_by("OBS_ID")
 
     # Use the given list of Observation IDs to select Observations
     if len(obs_list) > 0:
-        id_select = {
-            "type": "par_box",
-            "variable": "OBS_ID",
-            "value_range": obs_list,
-        }
-        obs_table = obs_table.select_observations(id_select)
+        # if len(obs_list) > 2:
+        # list of observation ids to be included
+        filtered_obs_ids = obs_list
+        # else:  # Find another way to make the distinction between list and range
+        # the list has a min and max value to use this method
+        #    id_select = {
+        #        "type": "par_box",
+        #        "variable": "OBS_ID",
+        #        "value_range": obs_list,
+        #    }
+        #    obs_table = obs_table.select_observations(id_select)
 
     # Filter the Observations using the Time interval range provided
     if obs_time.intervals[0].start != Time("0", format="mjd"):
@@ -267,7 +276,10 @@ def get_filtered_observations(dl3_path, obs_config, log):
         }
         obs_table = obs_table.select_observations(cone_select)
 
-    filtered_obs_ids = obs_table["OBS_ID"].data
+    if len(filtered_obs_ids) > 0:
+        filtered_obs_ids = np.intersect1d(filtered_obs_ids, obs_table["OBS_ID"].data)
+    else:
+        filtered_obs_ids = obs_table["OBS_ID"].data
 
     obs_ids_str = " ".join(map(str, filtered_obs_ids))
     log.info("Observation ID list selected: %s", obs_ids_str)
@@ -393,6 +405,7 @@ def get_exclusion_region_mask(
     Generate from a given parameters, base geometry for exclusion mask, list
     of exclusion regions, config information on the target source and the base
     geometry for the exclusion mask, a background exclusion region mask.
+    # Create exclusion mask either by given regions, catalog or from a file.
 
     Parameters
     ----------
@@ -414,6 +427,8 @@ def get_exclusion_region_mask(
     exclusion_mask: `gammapy.maps.WcsNDMap`
         Boolean region mask for the exclusion regions
     """
+    exclusion_mask = None
+
     if len(exclusion_params.regions) != 0:
         # Fetch information from config
         for region in exclusion_params.regions:
@@ -440,22 +455,12 @@ def get_exclusion_region_mask(
             else:
                 log.error(f"Unknown type of region passed {region.type}")
             exclusion_regions.append(excluded_region)
-    else:
-        # By default, have the target sky center position as the center for the
-        # exclusion refions mask.
-        center_ex = SkyCoord(
-            u.Quantity(config_target.sky_position.lon),
-            u.Quantity(config_target.sky_position.lat),
-            frame=config_target.sky_position.frame,
-        )
 
-    if excluded_geom is None:
-        # Create the base geometry for the exclusion regions from config
-        excluded_geom = generate_geom(
-            tag="excluded",
-            geom_config=geom_config,
-            center_pos={"center": center_ex},
-        )
+    elif exclusion_params.exclusion_file.is_file():
+        path = make_path(exclusion_params.exclusion_file)
+
+        exclusion_mask = Map.read(path)
+        exclusion_mask.data = exclusion_mask.data.astype(bool)
 
     # Check if a catalog data is given with exclusion radius
     if config_target.use_catalog.exclusion_radius != 0 * u.deg:
@@ -477,8 +482,6 @@ def get_exclusion_region_mask(
     # boolean mask
     if len(exclusion_regions) > 0:
         exclusion_mask = ~excluded_geom.region_mask(exclusion_regions)
-    else:
-        exclusion_mask = None
 
     return exclusion_mask
 

@@ -29,11 +29,9 @@ from asgardpy.analysis.step_base import AnalysisStepBase
 from asgardpy.base.base import BaseConfig
 from asgardpy.base.geom import (
     GeomConfig,
-    MapAxesConfig,
     SkyPositionConfig,
     create_counts_map,
     generate_geom,
-    get_energy_axis,
     get_source_position,
 )
 from asgardpy.base.reduction import (
@@ -57,7 +55,8 @@ from asgardpy.data.target import (
     create_source_skymodel,
     read_models_from_asgardpy_config,
 )
-from asgardpy.io import DL3Files, InputConfig
+from asgardpy.io.input_dl3 import DL3Files, InputDL3Config
+from asgardpy.io.io_dl4 import DL4BaseConfig, DL4Files, get_reco_energy_bins
 
 __all__ = [
     "Datasets3DAnalysisStep",
@@ -83,7 +82,6 @@ class Dataset3DInfoConfig(BaseConfig):
     safe_mask: SafeMaskConfig = SafeMaskConfig()
     on_region: SkyPositionConfig = SkyPositionConfig()
     containment_correction: bool = True
-    spectral_energy_range: MapAxesConfig = MapAxesConfig()
 
 
 class Dataset3DBaseConfig(BaseConfig):
@@ -92,8 +90,10 @@ class Dataset3DBaseConfig(BaseConfig):
     """
 
     name: str = "Instrument-name"
-    io: List[InputConfig] = [InputConfig()]
+    input_dl3: List[InputDL3Config] = [InputDL3Config()]
+    input_dl4: bool = False
     dataset_info: Dataset3DInfoConfig = Dataset3DInfoConfig()
+    dl4_dataset_info: DL4BaseConfig = DL4BaseConfig()
 
 
 class Dataset3DConfig(BaseConfig):
@@ -144,11 +144,22 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             # Extra Datasets object to differentiate between datasets obtained
             # from various "keys" of each instrument.
             dataset_instrument = Datasets()
+            dl4_files = DL4Files(config_3d_dataset.dl4_dataset_info, self.log)
 
             # Retrieving a single dataset for each instrument.
             for key in key_names:
-                generate_3d_dataset = Dataset3DGeneration(self.log, config_3d_dataset, self.config)
-                dataset, models = generate_3d_dataset.run(key)
+                if not config_3d_dataset.input_dl4:
+                    generate_3d_dataset = Dataset3DGeneration(
+                        self.log, config_3d_dataset, self.config
+                    )
+                    dataset, models = generate_3d_dataset.run(key)
+                else:
+                    dataset = dl4_files.get_dl4_dataset(config_3d_dataset.dataset_info.observation)
+                    models = []
+
+                # Use the individual Dataset type object for following tasks
+                if isinstance(dataset, Datasets):
+                    dataset = dataset[0]
 
                 # Assigning datasets_names and including them in the final
                 # model list
@@ -183,23 +194,11 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             else:
                 models_final = None
 
-            # Get the spectral energy information for each Instrument Dataset
-            energy_axes = config_3d_dataset.dataset_info.spectral_energy_range
-            if len(energy_axes.axis_custom.edges) > 0:
-                energy_bin_edges = get_energy_axis(energy_axes, only_edges=True, custom_range=True)
-            else:
-                energy_bin_edges = get_energy_axis(
-                    energy_axes,
-                    only_edges=True,
-                )
-
+            energy_bin_edges = dl4_files.get_spectral_energies()
             instrument_spectral_info["spectral_energy_ranges"].append(energy_bin_edges)
 
             for data in dataset_instrument:
-                if data.mask:
-                    en_bins += data.mask.geom.axes["energy"].nbin
-                else:
-                    en_bins += data.counts.geom.axes["energy"].nbin
+                en_bins = get_reco_energy_bins(data, en_bins)
                 datasets_3d_final.append(data)
 
         instrument_spectral_info["free_params"] = free_params
@@ -251,22 +250,26 @@ class Dataset3DGeneration:
         """
         # First check for the given file list if they are readable or not.
         file_list = self.read_to_objects(key_name)
+        # self.log.info(file_list)
 
-        self.load_events(file_list["events_file"])
         exclusion_regions = []
 
-        if self.config_3d_dataset.io[0].type == "gadf-dl3":
+        if self.config_3d_dataset.input_dl3[0].type == "gadf-dl3":
             observations = get_filtered_observations(
-                dl3_path=self.config_3d_dataset.io[0].input_dir,
+                dl3_path=self.config_3d_dataset.input_dl3[0].input_dir,
                 obs_config=self.config_3d_dataset.dataset_info.observation,
                 log=self.log,
             )
-            center_pos = get_source_position(config_target=self.config_target)
+            center_pos = get_source_position(
+                target_region=self.config_3d_dataset.dataset_info.on_region
+            )
+
             geom = generate_geom(
                 tag="3d",
                 geom_config=self.config_3d_dataset.dataset_info.geom,
                 center_pos=center_pos,
             )
+
             dataset_reference = get_dataset_reference(
                 tag="3d", geom=geom, geom_config=self.config_3d_dataset.dataset_info.geom
             )
@@ -287,7 +290,7 @@ class Dataset3DGeneration:
                 # Read the SkyModel info from AsgardpyConfig.target section
                 if len(self.config_target.components) > 0:
                     models_ = read_models_from_asgardpy_config(self.config_target)
-                    self.list_sources.append(models_)
+                    self.list_sources = models_
 
                 # If a catalog information is provided, use it to build up the list of models
                 # Check if a catalog data is given with selection radius
@@ -296,17 +299,27 @@ class Dataset3DGeneration:
 
                     # One can also provide a separate file, but one has to add
                     # another config option for reading Catalog file paths.
-                    base_geom = self.events["counts_map"].geom.copy()
-                    inside_geom = base_geom.to_image().contains(catalog.positions)
+                    sep = catalog.positions.separation(center_pos["center"].galactic)
 
-                    idx_list = np.nonzero(inside_geom)[0]
-                    for i in idx_list:
-                        self.list_sources.append(catalog[i].sky_model())
+                    # base_geom = geom.copy()
+                    # inside_geom = base_geom.to_image().contains(catalog.positions)
+
+                    # idx_list = np.nonzero(inside_geom)[0]
+                    # for i in idx_list:
+                    for k, cat_ in enumerate(catalog):
+                        if sep[k] < self.config_target.use_catalog.selection_radius:
+                            self.list_sources.append(cat_.sky_model())
+
+            excluded_geom = generate_geom(
+                tag="3d-ex",
+                geom_config=self.config_3d_dataset.dataset_info.geom,
+                center_pos=center_pos,
+            )
 
             exclusion_mask = get_exclusion_region_mask(
                 exclusion_params=self.config_3d_dataset.dataset_info.background.exclusion,
                 exclusion_regions=exclusion_regions,
-                excluded_geom=None,
+                excluded_geom=excluded_geom,
                 config_target=self.config_target,
                 geom_config=self.config_3d_dataset.dataset_info.geom,
                 log=self.log,
@@ -328,12 +341,14 @@ class Dataset3DGeneration:
                 parallel_backend=self.config_full.general.parallel_backend,
             )
 
-        elif "lat" in self.config_3d_dataset.io[0].type:
+        elif "lat" in self.config_3d_dataset.input_dl3[0].type:
+            self.load_events(file_list["events_file"])
+
             # Start preparing objects to create the counts map
             self.set_energy_dispersion_matrix()
 
             center_pos = get_source_position(
-                config_target=self.config_target,
+                target_region=self.config_target.sky_position,
                 fits_header=self.events["event_fits"][1].header,
             )
 
@@ -388,7 +403,7 @@ class Dataset3DGeneration:
         # Read the first IO list for events, IRFs and XML files
 
         # Get the Diffuse models files list
-        for io_ in self.config_3d_dataset.io:
+        for io_ in self.config_3d_dataset.input_dl3:
             if io_.type in ["gadf-dl3"]:
                 file_list, _ = self.get_base_objects(io_, key_name, file_list)
 

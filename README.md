@@ -15,8 +15,12 @@ The various Data Levels	used here follow the descriptions suggested by [GADF v0.
 The pipeline was developed with first testing with Fermi-LAT ([enrico](https://enrico.readthedocs.io/en/latest/) and [fermipy](https://fermipy.readthedocs.io/en/latest/)) files and LST-1 ([cta-lstchain](https://cta-observatory.github.io/cta-lstchain/)) DL3 files (with energy-dependent and global directional cuts) for point-like sources.
 The pipeline can be further expanded to support more types of DL3 files of gamma-ray instruments.
 
+# Examples with Data
 An example of configuration file that can be used with asgardpy can be found at ``asgardpy/config/template.yaml``
-Examples of usage of asgardpy is shown in jupyter notebooks in ``notebooks/`` but as there are no public test data included with the pipeline yet, the results are empty.
+
+For working with some public data to check the pipeline functionality, one should first download the public dataset available with gammapy as indicated in [Gammapy v1.1 Introduction](https://docs.gammapy.org/1.1/getting-started/index.html) and then run the ``scripts/download_asgardpy_data.sh`` script to add separate Fermi-LAT dataset for the usecase of the pipeline.
+
+Examples of usage of asgardpy is shown in jupyter notebooks in ``notebooks/``.
 
 # Cite
 If you use Asgardpy in a publication, please cite the exact version you used from Zenodo _Cite as_ https://doi.org/10.5281/zenodo.8106369

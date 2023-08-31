@@ -7,14 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- Add Code of Conduct and Codecov support. [#113](https://github.com/chaimain/asgardpy/pull/113)
-
-### Fixed
+### Changed
 
 - Migrate from pydantic <2 to >2. (See Issue [#91](https://github.com/chaimain/asgardpy/issues/91)) [#115](https://github.com/chaimain/asgardpy/pull/115)
 - Resolve the migration to pydantic and autodoc_pydantic. [#116](https://github.com/chaimain/asgardpy/pull/116)
+
+## [v0.4.0](https://github.com/chaimain/asgardpy/releases/tag/v0.4.0) - 2023-08-31
+
+### Added
+
+- Add Code of Conduct and Codecov support. [#113](https://github.com/chaimain/asgardpy/pull/113)
+- Add tests and update notebooks with test data. (See Issue [#55](https://github.com/chaimain/asgardpy/issues/55))[#120](https://github.com/chaimain/asgardpy/pull/120)
+- Add tests to cover some of the Gammapy tutorial examples. [#121](https://github.com/chaimain/asgardpy/pull/121)
+- Add more tests to increase coverage. [#122](https://github.com/chaimain/asgardpy/pull/122)
+
+### Changed
+
+- Restructure io and tests modules and add test data. (See Issue [#55](https://github.com/chaimain/asgardpy/issues/55))[#114](https://github.com/chaimain/asgardpy/pull/114)
+- Restructure tests to reduce overall test time. [#123](https://github.com/chaimain/asgardpy/pull/123)
+- Perform general cleanup and fix minor pending issues. [#124](https://github.com/chaimain/asgardpy/pull/124)
 
 ## [v0.3.6](https://github.com/chaimain/asgardpy/releases/tag/v0.3.6) - 2023-08-05
 
@@ -62,7 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Combine the various Sky Position configs into a single SkyPositionConfig. [#88](https://github.com/chaimain/asgardpy/pull/88)
 - Update documentation for the extended support. [#89](https://github.com/chaimain/asgardpy/pull/89)
 - Update with usage of common multiprocessing with Gammapy. [#90](https://github.com/chaimain/asgardpy/pull/90)
-- Constrain pydantic and autodoc-pydantic versions. (See Issue [#91](https://github.com/chaimain/asgardpy/issues/91)) [#92](https://github.com/chaimain/asgardpy/pull/92)
+- Constrain pydantic and autodoc-pydantic versions. [#92](https://github.com/chaimain/asgardpy/pull/92)
 
 ## [v0.3.3](https://github.com/chaimain/asgardpy/releases/tag/v0.3.3) - 2023-06-20
 

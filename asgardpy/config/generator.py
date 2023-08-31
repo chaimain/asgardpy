@@ -10,7 +10,7 @@ from typing import List
 import yaml
 from gammapy.modeling.models import Models
 from gammapy.utils.scripts import make_path, read_yaml
-from pydantic.v1.utils import deep_update
+from pydantic.utils import deep_update
 
 from asgardpy.analysis.step_base import AnalysisStepEnum
 from asgardpy.base import BaseConfig, PathType
@@ -57,7 +57,7 @@ class GeneralConfig(BaseConfig):
     """Config section for general information for running AsgardpyAnalysis."""
 
     log: LogConfig = LogConfig()
-    outdir: PathType = "."
+    outdir: PathType = PathType("None")
     n_jobs: int = 1
     parallel_backend: ParallelBackendEnum = ParallelBackendEnum.multi
     steps: List[AnalysisStepEnum] = []
@@ -119,7 +119,9 @@ def recursive_merge_dicts(base_config, extra_config):
     return final_config
 
 
-def gammapy_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=None):
+def gammapy_to_asgardpy_model_config(
+    gammapy_model, asgardpy_config_file=None, recursive_merge=True
+):
     """
     Read the Gammapy Models YAML file and save it as AsgardpyConfig object.
 
@@ -134,12 +136,20 @@ def gammapy_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=None):
         asgardpy_config = AsgardpyConfig()  # Default object
     elif isinstance(asgardpy_config_file, str):  # File path
         asgardpy_config = AsgardpyConfig.read(asgardpy_config_file)
+    elif isinstance(asgardpy_config_file, AsgardpyConfig):
+        asgardpy_config = asgardpy_config_file
     # also for YAML object?
 
     models_gpy_dict = models_gpy.to_dict()
     asgardpy_config_target_dict = asgardpy_config.dict()["target"]
 
-    temp_target_dict = recursive_merge_dicts(asgardpy_config_target_dict, models_gpy_dict)
+    if recursive_merge:
+        temp_target_dict = recursive_merge_dicts(asgardpy_config_target_dict, models_gpy_dict)
+    else:
+        # Use when there are nans present in the other config file, which are
+        # the defaults in Gammapy, but NOT in Asgardpy.
+        # E.g. test data Fermi-3fhl-crab model file
+        temp_target_dict = deep_update(asgardpy_config_target_dict, models_gpy_dict)
     asgardpy_config.target = temp_target_dict
 
     return asgardpy_config
