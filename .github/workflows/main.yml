@@ -144,9 +144,14 @@ jobs:
 
       - name: Install requirements
         run: |
-          pip install --upgrade pip setuptools wheel build
+          pip install --upgrade pip setuptools wheel
           pip install -r dev-requirements.txt
-          python -m build --sdist
+
+      - name: Upload package distribution files
+        uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: dist
 
       - name: Prepare environment
         run: |
