@@ -24,9 +24,11 @@ def get_change_log_notes() -> str:
         for line in changelog:
             if line.startswith("## "):
                 if line.startswith("## [Unreleased]"):
+                    print("Unreleased line found!")
                     continue
                 if line.startswith(f"## [{TAG}]"):
                     in_current_section = True
+                    print("Current version found!")
                     continue
                 break
             if in_current_section:
@@ -39,6 +41,7 @@ def get_change_log_notes() -> str:
                 elif line.startswith("### Removed"):
                     line = REMOVED_HEADER + "\n"
                 current_section_notes.append(line)
+    print(current_section_notes)
     assert current_section_notes
     return "## What's new\n\n" + "".join(current_section_notes).strip() + "\n"
 
