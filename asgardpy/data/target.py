@@ -137,7 +137,7 @@ class Target(BaseConfig):
     sky_position: SkyPositionConfig = SkyPositionConfig()
     use_uniform_position: bool = True
     models_file: PathType = PathType("None")
-    add_fov_bkg_model: bool = False
+    datasets_with_fov_bkg_model: List[str] = []
     use_catalog: CatalogConfig = CatalogConfig()
     components: List[ModelComponent] = [ModelComponent()]
     covariance: str = ""
@@ -306,13 +306,16 @@ def set_models(
             free_sources=config_target.roi_selection.free_sources,
         )
 
-    if config_target.add_fov_bkg_model:
-        # For extending a Background Model for each 3D dataset
+    if len(config_target.datasets_with_fov_bkg_model) > 0:
+        # For extending a Background Model for a given 3D dataset name
         bkg_models = []
 
         for dataset in datasets:
-            if dataset.tag == "MapDataset" and dataset.background_model is None:
-                bkg_models.append(FoVBackgroundModel(dataset_name=f"{dataset.name}-bkg"))
+            if dataset.name in config_target.datasets_with_fov_bkg_model:
+                # Check if it is of MapDataset or MapDatasetOnOff type and
+                # no associated background model exists already.
+                if "MapDataset" in dataset.tag and dataset.background_model is None:
+                    bkg_models.append(FoVBackgroundModel(dataset_name=f"{dataset.name}-bkg"))
 
         models.extend(bkg_models)
 
