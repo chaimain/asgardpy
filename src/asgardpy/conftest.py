@@ -22,7 +22,7 @@ check_tutorials_setup(download_datasets_path="./gammapy-data")
 def base_config_path():
     """Get the base config path for basic tests."""
 
-    return "asgardpy/tests/config_test_base.yaml"
+    return "src/asgardpy/tests/config_test_base.yaml"
 
 
 @pytest.mark.test_data
@@ -30,7 +30,7 @@ def base_config_path():
 def mwl_config_path():
     """Get the Gammapy MWL tutorial config path."""
 
-    return "asgardpy/tests/config_gpy_mwl.yaml"
+    return "src/asgardpy/tests/config_gpy_mwl.yaml"
 
 
 @pytest.mark.test_data
@@ -38,7 +38,7 @@ def mwl_config_path():
 def hess_magic_config_path():
     """Get the config path for HESS (3D) + MAGIC (1D)."""
 
-    return "asgardpy/tests/config_test_gadf.yaml"
+    return "src/asgardpy/tests/config_test_gadf.yaml"
 
 
 @pytest.mark.test_data
@@ -74,9 +74,7 @@ def base_config(base_config_path, gammapy_data_path):
 
     config.dataset1d.instruments[0].input_dl3[0].input_dir = f"{gammapy_data_path}hess-dl3-dr1/"
 
-    config.dataset1d.instruments[1].input_dl3[
-        0
-    ].input_dir = f"{gammapy_data_path}magic/rad_max/data/"
+    config.dataset1d.instruments[1].input_dl3[0].input_dir = f"{gammapy_data_path}magic/rad_max/data/"
 
     return config
 
@@ -112,16 +110,12 @@ def gpy_mwl_config(mwl_config_path, gammapy_data_path):
     config.target.models_file = f"{gammapy_data_path}fermi-3fhl-crab/Fermi-LAT-3FHL_models.yaml"
     config.dataset3d.instruments[
         0
-    ].dl4_dataset_info.dl4_dataset.input_dir = (
-        f"{gammapy_data_path}fermi-3fhl-crab/Fermi-LAT-3FHL_datasets.yaml"
-    )
+    ].dl4_dataset_info.dl4_dataset.input_dir = f"{gammapy_data_path}fermi-3fhl-crab/Fermi-LAT-3FHL_datasets.yaml"
     config.dataset1d.instruments[
         0
     ].dl4_dataset_info.dl4_dataset.input_dir = f"{gammapy_data_path}joint-crab/spectra/hess/"
 
-    other_config = gammapy_to_asgardpy_model_config(
-        config.target.models_file, recursive_merge=False
-    )
+    other_config = gammapy_to_asgardpy_model_config(config.target.models_file, recursive_merge=False)
 
     config = config.update(other_config)
 
@@ -146,8 +140,6 @@ def gpy_hess_magic(hess_magic_config_path, gammapy_data_path):
         f"{gammapy_data_path}joint-crab/exclusion/exclusion_mask_crab.fits.gz"
     )
 
-    config.dataset1d.instruments[0].input_dl3[
-        0
-    ].input_dir = f"{gammapy_data_path}magic/rad_max/data/"
+    config.dataset1d.instruments[0].input_dl3[0].input_dir = f"{gammapy_data_path}magic/rad_max/data/"
 
     return config

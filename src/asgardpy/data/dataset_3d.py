@@ -149,9 +149,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             # Retrieving a single dataset for each instrument.
             for key in key_names:
                 if not config_3d_dataset.input_dl4:
-                    generate_3d_dataset = Dataset3DGeneration(
-                        self.log, config_3d_dataset, self.config
-                    )
+                    generate_3d_dataset = Dataset3DGeneration(self.log, config_3d_dataset, self.config)
                     dataset, models = generate_3d_dataset.run(key)
                 else:
                     dataset = dl4_files.get_dl4_dataset(config_3d_dataset.dataset_info.observation)
@@ -260,9 +258,7 @@ class Dataset3DGeneration:
                 obs_config=self.config_3d_dataset.dataset_info.observation,
                 log=self.log,
             )
-            center_pos = get_source_position(
-                target_region=self.config_3d_dataset.dataset_info.on_region
-            )
+            center_pos = get_source_position(target_region=self.config_3d_dataset.dataset_info.on_region)
 
             geom = generate_geom(
                 tag="3d",
@@ -279,9 +275,7 @@ class Dataset3DGeneration:
                 dataset_config=self.config_3d_dataset.dataset_info,
             )
 
-            safe_maker = get_safe_mask_maker(
-                safe_config=self.config_3d_dataset.dataset_info.safe_mask
-            )
+            safe_maker = get_safe_mask_maker(safe_config=self.config_3d_dataset.dataset_info.safe_mask)
 
             # If there is no explicit list of models provided for the 3D data,
             # one can use one of the several catalogs available in Gammapy.
@@ -417,13 +411,9 @@ class Dataset3DGeneration:
 
             if io_.type in ["lat-aux"]:
                 if io_.glob_pattern["iso_diffuse"] == "":
-                    io_ = self.update_aux_info_from_xml(
-                        io_, file_list["xml_file"], fetch_iso_diff=True
-                    )
+                    io_ = self.update_aux_info_from_xml(io_, file_list["xml_file"], fetch_iso_diff=True)
                 if io_.glob_pattern["gal_diffuse"] == "":
-                    io_ = self.update_aux_info_from_xml(
-                        io_, file_list["xml_file"], fetch_gal_diff=True
-                    )
+                    io_ = self.update_aux_info_from_xml(io_, file_list["xml_file"], fetch_gal_diff=True)
 
                 file_list, [
                     self.diffuse_models["gal_diffuse"],
@@ -433,9 +423,7 @@ class Dataset3DGeneration:
 
         return file_list
 
-    def update_aux_info_from_xml(
-        self, io_dict, xml_file, fetch_iso_diff=False, fetch_gal_diff=False
-    ):
+    def update_aux_info_from_xml(self, io_dict, xml_file, fetch_iso_diff=False, fetch_gal_diff=False):
         """
         When no glob_search patterns on axuillary files are provided, fetch
         them from the XML file and update the AsgardpyConfig object.
@@ -534,12 +522,8 @@ class Dataset3DGeneration:
                 if source.name == self.config_target.source_name:
                     source_position_from_3d = source.spatial_model.position.icrs
 
-                    self.config_full.target.sky_position.lon = str(
-                        u.Quantity(source_position_from_3d.ra)
-                    )
-                    self.config_full.target.sky_position.lat = str(
-                        u.Quantity(source_position_from_3d.dec)
-                    )
+                    self.config_full.target.sky_position.lon = str(u.Quantity(source_position_from_3d.ra))
+                    self.config_full.target.sky_position.lat = str(u.Quantity(source_position_from_3d.dec))
 
                     self.config_full.update(self.config_full)
                     self.config_target = self.config_full.target
@@ -571,9 +555,7 @@ class Dataset3DGeneration:
         drm = self.irfs["edisp"]["DRM"].data["MATRIX"]
         drm_matrix = np.array(list(drm))
 
-        self.irfs["edisp_kernel"] = EDispKernel(
-            axes=[energy_axis_true, energy_axis], data=drm_matrix
-        )
+        self.irfs["edisp_kernel"] = EDispKernel(axes=[energy_axis_true, energy_axis], data=drm_matrix)
 
     def load_events(self, events_file):
         """
@@ -629,9 +611,7 @@ class Dataset3DGeneration:
         drm_interp = self.irfs["edisp_kernel"].evaluate(
             "linear", **{"energy": energy_reco, "energy_true": energy_true}
         )
-        self.irfs["edisp_interp_kernel"] = EDispKernel(
-            axes=[axis_true, axis_reco], data=np.asarray(drm_interp)
-        )
+        self.irfs["edisp_interp_kernel"] = EDispKernel(axes=[axis_true, axis_reco], data=np.asarray(drm_interp))
 
     def set_exposure_interpolator(self):
         """

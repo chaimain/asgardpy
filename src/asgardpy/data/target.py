@@ -479,16 +479,16 @@ def read_models_from_asgardpy_config(config):
                         {"spectral": config_to_dict(model_config.spectral)}
                     )
                 else:
-                    spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(
-                        model_config.spectral.type
-                    )().from_dict({"spectral": config_to_dict(model_config.spectral)})
+                    spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
+                        {"spectral": config_to_dict(model_config.spectral)}
+                    )
             spectral_model.name = config.source_name
 
             # Spatial model if provided
             if model_config.spatial.type != "":
-                spatial_model = SPATIAL_MODEL_REGISTRY.get_cls(
-                    model_config.spatial.type
-                )().from_dict({"spatial": config_to_dict(model_config.spatial)})
+                spatial_model = SPATIAL_MODEL_REGISTRY.get_cls(model_config.spatial.type)().from_dict(
+                    {"spatial": config_to_dict(model_config.spatial)}
+                )
             else:
                 spatial_model = None
 
@@ -504,15 +504,15 @@ def read_models_from_asgardpy_config(config):
         if model_config.type == "FoVBackgroundModel":
             # Spectral Model. At least this has to be provided for distinct
             # parameter values
-            spectral_model_fov = SPECTRAL_MODEL_REGISTRY.get_cls(
-                model_config.spectral.type
-            )().from_dict({"spectral": config_to_dict(model_config.spectral)})
+            spectral_model_fov = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
+                {"spectral": config_to_dict(model_config.spectral)}
+            )
 
             # Spatial model if provided
             if model_config.spatial.type != "":
-                spatial_model_fov = SPATIAL_MODEL_REGISTRY.get_cls(
-                    model_config.spatial.type
-                )().from_dict({"spatial": config_to_dict(model_config.spatial)})
+                spatial_model_fov = SPATIAL_MODEL_REGISTRY.get_cls(model_config.spatial.type)().from_dict(
+                    {"spatial": config_to_dict(model_config.spatial)}
+                )
             else:
                 spatial_model_fov = None
 
@@ -673,9 +673,7 @@ def create_iso_diffuse_skymodel(iso_file, key):
     name as per the observation key. If there are no distinct key types of
     files, the value is None.
     """
-    diff_iso = create_fermi_isotropic_diffuse_model(
-        filename=iso_file, interp_kwargs={"fill_value": None}
-    )
+    diff_iso = create_fermi_isotropic_diffuse_model(filename=iso_file, interp_kwargs={"fill_value": None})
     if key:
         diff_iso._name = f"{diff_iso.name}-{key}"
 

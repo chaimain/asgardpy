@@ -220,7 +220,7 @@ def get_ts_target(datasets):
     stat_ts: float
         Test statistic difference of the null hypothesis and the alternative
         hypothesis (no excess vs excess) summed over all energy bins.
-    """
+    """  # noqa
     stat_h0 = 0
     stat_ts = 0
 
@@ -242,10 +242,7 @@ def get_ts_target(datasets):
                 counts_off = np.nan_to_num((data.counts_off * data.mask).get_spectrum(region))
 
                 with np.errstate(invalid="ignore", divide="ignore"):
-                    alpha = (
-                        np.nan_to_num((data.background * data.mask).get_spectrum(region))
-                        / counts_off
-                    )
+                    alpha = np.nan_to_num((data.background * data.mask).get_spectrum(region)) / counts_off
                 mu_signal = np.nan_to_num((data.npred_signal() * data.mask).get_spectrum(region))
 
                 stat = WStatCountsStatistic(counts_on, counts_off, alpha, mu_signal)

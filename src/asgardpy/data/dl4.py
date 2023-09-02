@@ -154,9 +154,7 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
                 if name in dataset_names:
                     dataset_list.append(self.datasets[j])
             if len(dataset_list) != 0:
-                sorted_energy_edges.append(
-                    self.instrument_spectral_info["spectral_energy_ranges"][i]
-                )
+                sorted_energy_edges.append(self.instrument_spectral_info["spectral_energy_ranges"][i])
                 dataset_list = Datasets(dataset_list)
                 sorted_datasets.append(dataset_list)
 

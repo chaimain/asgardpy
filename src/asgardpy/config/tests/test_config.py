@@ -51,9 +51,7 @@ def test_config_update():
 
     main_config = AsgardpyConfig()
 
-    spec_model_template_files = sorted(
-        list(CONFIG_PATH.glob("model_templates/model_template*yaml"))
-    )
+    spec_model_template_files = sorted(list(CONFIG_PATH.glob("model_templates/model_template*yaml")))
 
     other_config = AsgardpyConfig.read(spec_model_template_files[0])
 

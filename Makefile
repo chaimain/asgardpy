@@ -7,7 +7,7 @@ docs :
 run-checks :
 	isort --check .
 	black --check .
-	flake8 .
+	ruff check .
 	mypy .
-	codespell asgardpy
-	CUDA_VISIBLE_DEVICES='' pytest -v --color=yes --doctest-modules tests/ asgardpy/
+	codespell src/asgardpy
+	CUDA_VISIBLE_DEVICES='' pytest -v --color=yes --doctest-modules tests/ src/asgardpy/

@@ -16,9 +16,7 @@ def test_preferred_model(base_config_1d):
         check_model_preference_lrt,
     )
 
-    spec_model_template_files = sorted(
-        list(CONFIG_PATH.glob("model_templates/model_template*yaml"))
-    )
+    spec_model_template_files = sorted(list(CONFIG_PATH.glob("model_templates/model_template*yaml")))
     select_model_tags = ["lp", "bpl2", "ecpl", "pl", "eclp"]
     spec_model_temp_files = []
 
@@ -50,15 +48,11 @@ def test_preferred_model(base_config_1d):
             temp_model.config.target.components[0].spectral.parameters[1].value
         )
         # Have the same value of redshift value and EBL reference model
-        temp_model_2.config.target.components[
-            0
-        ].spectral.ebl_abs.redshift = temp_model.config.target.components[
+        temp_model_2.config.target.components[0].spectral.ebl_abs.redshift = temp_model.config.target.components[
             0
         ].spectral.ebl_abs.redshift
 
-        temp_model_2.config.target.components[
-            0
-        ].spectral.ebl_abs.reference = temp_model.config.target.components[
+        temp_model_2.config.target.components[0].spectral.ebl_abs.reference = temp_model.config.target.components[
             0
         ].spectral.ebl_abs.reference
 

@@ -22,9 +22,7 @@ parser.add_argument(
 )
 
 # fetch options of spec models to test from user, or use all available...
-parser.add_argument(
-    "--ebl-scale-factor", "-e", help="Value of EBL Norm Scale Factor", default=1.0, type=float
-)
+parser.add_argument("--ebl-scale-factor", "-e", help="Value of EBL Norm Scale Factor", default=1.0, type=float)
 
 parser.add_argument(
     "--ebl-model-name",
@@ -56,9 +54,7 @@ def main():
             steps_list.append(s.value)
     log.info("Target source is: %s", target_source_name)
 
-    spec_model_template_files = sorted(
-        list(CONFIG_PATH.glob("model_templates/model_template*yaml"))
-    )
+    spec_model_template_files = sorted(list(CONFIG_PATH.glob("model_templates/model_template*yaml")))
 
     # Only use the following spectral model templates for comparison
     select_model_tags = ["lp", "bpl", "ecpl", "pl", "eclp", "sbpl"]
@@ -90,27 +86,21 @@ def main():
             temp_model.config.target.components[0].spectral.parameters[1].value
         )
         # Have the same value of redshift value and EBL reference model
-        temp_model_2.config.target.components[
-            0
-        ].spectral.ebl_abs.redshift = temp_model.config.target.components[
+        temp_model_2.config.target.components[0].spectral.ebl_abs.redshift = temp_model.config.target.components[
             0
         ].spectral.ebl_abs.redshift
 
         if args.ebl_scale_factor != 1.0:
-            temp_model_2.config.target.components[
-                0
-            ].spectral.ebl_abs.alpha_norm = args.ebl_scale_factor
+            temp_model_2.config.target.components[0].spectral.ebl_abs.alpha_norm = args.ebl_scale_factor
 
         if args.ebl_model_name != "dominguez":
-            temp_model_2.config.target.components[
-                0
-            ].spectral.ebl_abs.reference = args.ebl_model_name.replace("_", "-")
+            temp_model_2.config.target.components[0].spectral.ebl_abs.reference = args.ebl_model_name.replace(
+                "_", "-"
+            )
         else:
             temp_model_2.config.target.components[
                 0
-            ].spectral.ebl_abs.reference = temp_model.config.target.components[
-                0
-            ].spectral.ebl_abs.reference
+            ].spectral.ebl_abs.reference = temp_model.config.target.components[0].spectral.ebl_abs.reference
 
         # Make sure the source names are the same
         temp_model_2.config.target.source_name = temp_model.config.target.source_name
@@ -228,9 +218,7 @@ def main():
     stats_table.meta["EBL model"] = args.ebl_model_name
     stats_table.meta["EBL scale factor"] = args.ebl_scale_factor
 
-    file_name = (
-        f"{config_path_file_name}_{args.ebl_model_name}_{args.ebl_scale_factor}_fit_stats.ecsv"
-    )
+    file_name = f"{config_path_file_name}_{args.ebl_model_name}_{args.ebl_scale_factor}_fit_stats.ecsv"
     stats_table.write(
         main_config.general.outdir / file_name,
         format="ascii.ecsv",

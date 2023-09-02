@@ -33,13 +33,16 @@ jobs:
           - name: Test
             run: |
               pip install pytest-cov pytest-xdist coverage
-              pytest -n auto --dist loadscope --cov --cov-report=xml -m 'test_data or not test_data' asgardpy
+              pytest -n auto --dist loadscope \
+                --cov --cov-report=xml \
+                -m 'test_data or not test_data' asgardpy \
+                -v
 
         include:
           - python: '3.11'
             task:
               name: Lint
-              run: flake8 .
+              run: ruff check .
 
           - python: '3.11'
             task:
@@ -50,8 +53,7 @@ jobs:
             task:
               name: Build
               run: |
-                python setup.py check
-                python setup.py bdist_wheel sdist
+                python -m build
 
           - python: '3.11'
             task:
@@ -146,7 +148,7 @@ jobs:
       - name: Install requirements
         run: |
           pip install --upgrade pip setuptools wheel
-          pip install -r dev-requirements.txt
+          pip install -e .[dev]
 
       - name: Prepare environment
         run: |

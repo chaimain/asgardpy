@@ -59,9 +59,7 @@ def get_gammapy_spectral_model(spectrum_type, ebl_atten=False, base_model_type="
     return spectral_model, ebl_atten
 
 
-def params_renaming_to_gammapy(
-    params_1_name, params_gpy, spectrum_type, params_1_base_model="Fermi-XML"
-):
+def params_renaming_to_gammapy(params_1_name, params_gpy, spectrum_type, params_1_base_model="Fermi-XML"):
     """
     Reading from a given parameter name, get basic parameters details like name,
     unit and is_norm as per Gammapy definition.
@@ -128,35 +126,19 @@ def params_rescale_to_gammapy(params_gpy, spectrum_type, en_scale_1_to_gpy=1.0e-
     """
     if params_gpy["name"] in ["reference", "ebreak", "emin", "emax"]:
         params_gpy["unit"] = "TeV"
-        params_gpy["value"] = (
-            float(params_gpy["value"]) * float(params_gpy["scale"]) * en_scale_1_to_gpy
-        )
+        params_gpy["value"] = float(params_gpy["value"]) * float(params_gpy["scale"]) * en_scale_1_to_gpy
         if "error" in params_gpy:
-            params_gpy["error"] = (
-                float(params_gpy["error"]) * float(params_gpy["scale"]) * en_scale_1_to_gpy
-            )
-        params_gpy["min"] = (
-            float(params_gpy["min"]) * float(params_gpy["scale"]) * en_scale_1_to_gpy
-        )
-        params_gpy["max"] = (
-            float(params_gpy["max"]) * float(params_gpy["scale"]) * en_scale_1_to_gpy
-        )
+            params_gpy["error"] = float(params_gpy["error"]) * float(params_gpy["scale"]) * en_scale_1_to_gpy
+        params_gpy["min"] = float(params_gpy["min"]) * float(params_gpy["scale"]) * en_scale_1_to_gpy
+        params_gpy["max"] = float(params_gpy["max"]) * float(params_gpy["scale"]) * en_scale_1_to_gpy
         params_gpy["scale"] = 1.0
 
     if params_gpy["name"] in ["amplitude"]:
-        params_gpy["value"] = (
-            float(params_gpy["value"]) * float(params_gpy["scale"]) / en_scale_1_to_gpy
-        )
+        params_gpy["value"] = float(params_gpy["value"]) * float(params_gpy["scale"]) / en_scale_1_to_gpy
         if "error" in params_gpy:
-            params_gpy["error"] = (
-                float(params_gpy["error"]) * float(params_gpy["scale"]) / en_scale_1_to_gpy
-            )
-        params_gpy["min"] = (
-            float(params_gpy["min"]) * float(params_gpy["scale"]) / en_scale_1_to_gpy
-        )
-        params_gpy["max"] = (
-            float(params_gpy["max"]) * float(params_gpy["scale"]) / en_scale_1_to_gpy
-        )
+            params_gpy["error"] = float(params_gpy["error"]) * float(params_gpy["scale"]) / en_scale_1_to_gpy
+        params_gpy["min"] = float(params_gpy["min"]) * float(params_gpy["scale"]) / en_scale_1_to_gpy
+        params_gpy["max"] = float(params_gpy["max"]) * float(params_gpy["scale"]) / en_scale_1_to_gpy
         params_gpy["scale"] = 1.0
 
     if params_gpy["name"] in ["index", "index_1", "index_2", "beta"] and not keep_sign:
@@ -296,15 +278,11 @@ def xml_spectral_model_to_gammapy(
             if params_final2["lambda_"].min < 0:
                 min_sign = -1
 
-            params_final2["lambda_"].value = (
-                params_final2["lambda_"].value ** alpha_inv / en_scale_1_to_gpy
-            )
+            params_final2["lambda_"].value = params_final2["lambda_"].value ** alpha_inv / en_scale_1_to_gpy
             params_final2["lambda_"].min = min_sign * (
                 abs(params_final2["lambda_"].min) ** alpha_inv / en_scale_1_to_gpy
             )
-            params_final2["lambda_"].max = (
-                params_final2["lambda_"].max ** alpha_inv / en_scale_1_to_gpy
-            )
+            params_final2["lambda_"].max = params_final2["lambda_"].max ** alpha_inv / en_scale_1_to_gpy
 
     return params_final2
 
@@ -348,9 +326,7 @@ def xml_spatial_model_to_gammapy(aux_path, xml_spatial_model, base_model_type="F
                 frame="fk5",
             )
             gal_frame = fk5_frame.transform_to("galactic")
-            spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("PointSpatialModel")().from_position(
-                gal_frame
-            )
+            spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("PointSpatialModel")().from_position(gal_frame)
 
         elif xml_spatial_model["@type"] == "SpatialMap":
             file_name = xml_spatial_model["@file"].split("/")[-1]
@@ -359,9 +335,7 @@ def xml_spatial_model_to_gammapy(aux_path, xml_spatial_model, base_model_type="F
             spatial_map = Map.read(file_path)
             spatial_map = spatial_map.copy(unit="sr^-1")
 
-            spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("TemplateSpatialModel")(
-                spatial_map, filename=file_path
-            )
+            spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("TemplateSpatialModel")(spatial_map, filename=file_path)
 
         elif xml_spatial_model["@type"] == "RadialGaussian":
             for par_ in spatial_pars:
