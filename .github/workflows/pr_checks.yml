@@ -9,7 +9,7 @@ on:
     branches:
       - main
     paths:
-      - 'asgardpy/**'
+      - 'src/asgardpy/**'
 
 jobs:
   changelog:
@@ -24,4 +24,4 @@ jobs:
       run: |
         # If this step fails, this means you haven't updated the CHANGELOG.md
         # file with notes on your contribution.
-        git diff --name-only $(git merge-base origin/main HEAD) | grep '^CHANGELOG.md$' && echo "Thanks for helping keep our CHANGELOG up-to-date!"
+        git diff --name-only $(git merge-base main HEAD) | grep '^CHANGELOG.md$' && echo "Thanks for helping keep our CHANGELOG up-to-date!"

@@ -35,7 +35,7 @@ jobs:
               pip install pytest-cov pytest-xdist coverage
               pytest -n auto --dist loadscope \
                 --cov --cov-report=xml \
-                -m 'test_data or not test_data' asgardpy \
+                -m 'test_data or not test_data' src/asgardpy \
                 -v
 
         include:
@@ -70,7 +70,7 @@ jobs:
           - python: '3.11'
             task:
               name: Spell check
-              run: codespell asgardpy
+              run: codespell src/asgardpy
 
     steps:
       - name: Increase swapfile
@@ -101,7 +101,6 @@ jobs:
       - name: Download test data
         if: matrix.task.name == 'Test'
         env:
-          ASGARDPY_DATA: ${{ secrets.asgardpy_data }}
           GAMMAPY_DATA: /home/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
         run: |
           ./scripts/download_asgardpy_data.sh
