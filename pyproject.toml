@@ -18,6 +18,10 @@ dynamic = ["version"]
 readme = "README.md"
 authors = [
   {name = "Chaitanya Priyadarshi", email = "chaitanya.p.astrphys@gmail.com"},
+  {name = "Mireia Nievas Rosillo", email = "mnievas.work@gmail.com"},
+]
+maintainers = [
+  {name = "Chaitanya Priyadarshi", email = "chaitanya.p.astrphys@gmail.com"},
 ]
 license = {file = "LICENSE"}
 

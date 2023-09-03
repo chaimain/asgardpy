@@ -5,9 +5,9 @@ docs :
 
 .PHONY : run-checks
 run-checks :
-	isort --check .
-	black --check .
-	ruff check .
-	mypy .
+	isort --check src/
+	black --check src/
+	ruff check src/
+	mypy src/
 	codespell src/asgardpy
 	CUDA_VISIBLE_DEVICES='' pytest -v --color=yes --doctest-modules tests/ src/asgardpy/
