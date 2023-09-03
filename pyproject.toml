@@ -147,6 +147,7 @@ exclude = '''
     | \.venv
     | \bdist\b
     | \bdoc\b
+    | src/asgardpy/_version.py
 )
 '''
 
