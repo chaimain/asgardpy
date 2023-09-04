@@ -24,9 +24,7 @@ def test_dataset1d_no_stack(base_config_1d):
     analysis = AsgardpyAnalysis(base_config_1d)
 
     analysis.config.general.stacked_dataset = False
-    analysis.config.dataset1d.instruments[
-        0
-    ].dataset_info.background.region_finder_method = "reflected"
+    analysis.config.dataset1d.instruments[0].dataset_info.background.region_finder_method = "reflected"
     analysis.config.dataset1d.instruments[0].dataset_info.background.parameters = {}
     analysis.config.dataset1d.instruments[0].dataset_info.safe_mask.methods = []
 

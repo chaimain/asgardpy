@@ -190,9 +190,7 @@ class Dataset1DGeneration:
         center_pos = get_source_position(target_region=self.config_1d_dataset_info.on_region)
 
         # Create the main counts geometry
-        geom = generate_geom(
-            tag="1d", geom_config=self.config_1d_dataset_info.geom, center_pos=center_pos
-        )
+        geom = generate_geom(tag="1d", geom_config=self.config_1d_dataset_info.geom, center_pos=center_pos)
 
         # Get all the Dataset reduction makers
         dataset_reference = get_dataset_reference(

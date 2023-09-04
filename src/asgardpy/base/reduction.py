@@ -435,9 +435,7 @@ def get_exclusion_region_mask(
             if region.name == "":
                 # Using the sky position information without the source name.
                 coord = region.position
-                center_ex = SkyCoord(
-                    u.Quantity(coord.lon), u.Quantity(coord.lat), frame=coord.frame
-                ).icrs
+                center_ex = SkyCoord(u.Quantity(coord.lon), u.Quantity(coord.lat), frame=coord.frame).icrs
             else:
                 # Using Sesame name resolver
                 center_ex = SkyCoord.from_name(region.name)
@@ -511,9 +509,7 @@ def get_bkg_maker(bkg_config, exclusion_mask):
         elif bkg_config.region_finder_method == "reflected":
             region_finder = ReflectedRegionsFinder(**bkg_config.parameters)
 
-        bkg_maker = ReflectedRegionsBackgroundMaker(
-            region_finder=region_finder, exclusion_mask=exclusion_mask
-        )
+        bkg_maker = ReflectedRegionsBackgroundMaker(region_finder=region_finder, exclusion_mask=exclusion_mask)
     elif bkg_config.method == "fov_background":
         bkg_maker = FoVBackgroundMaker(exclusion_mask=exclusion_mask, **bkg_config.parameters)
     elif bkg_config.method == "ring":

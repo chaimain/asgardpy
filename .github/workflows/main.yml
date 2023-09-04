@@ -24,7 +24,7 @@ jobs:
   checks:
     name: Python ${{ matrix.python }} - ${{ matrix.task.name }}
     runs-on: [ubuntu-latest]
-    timeout-minutes: 15
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -33,13 +33,16 @@ jobs:
           - name: Test
             run: |
               pip install pytest-cov pytest-xdist coverage
-              pytest -n auto --dist loadscope --cov --cov-report=xml -m 'test_data or not test_data' asgardpy
+              pytest -n auto --dist loadscope \
+                --cov --cov-report=xml \
+                -m 'test_data or not test_data' src/asgardpy \
+                -v
 
         include:
           - python: '3.11'
             task:
               name: Lint
-              run: flake8 .
+              run: ruff check .
 
           - python: '3.11'
             task:
@@ -50,8 +53,7 @@ jobs:
             task:
               name: Build
               run: |
-                python setup.py check
-                python setup.py bdist_wheel sdist
+                python -m build
 
           - python: '3.11'
             task:
@@ -68,7 +70,7 @@ jobs:
           - python: '3.11'
             task:
               name: Spell check
-              run: codespell asgardpy
+              run: codespell src/asgardpy
 
     steps:
       - name: Increase swapfile
@@ -92,14 +94,13 @@ jobs:
         if: matrix.task.name == 'Test'
         run: |
           python -m pip install tqdm requests
-          python -m pip install -e .
+          python -m pip install -e .[dev]
 
           gammapy download datasets
 
       - name: Download test data
         if: matrix.task.name == 'Test'
         env:
-          ASGARDPY_DATA: ${{ secrets.asgardpy_data }}
           GAMMAPY_DATA: /home/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
         run: |
           ./scripts/download_asgardpy_data.sh
@@ -146,7 +147,7 @@ jobs:
       - name: Install requirements
         run: |
           pip install --upgrade pip setuptools wheel
-          pip install -r dev-requirements.txt
+          pip install -e .[dev]
 
       - name: Prepare environment
         run: |

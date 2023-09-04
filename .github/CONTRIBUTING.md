@@ -82,7 +82,6 @@ When you're ready to contribute code to address an open issue, please follow the
 
     Once your virtual environment is activated, you can install your local clone in "editable mode" with
 
-        pip install -U pip setuptools wheel
         pip install -e .[dev]
 
     The "editable mode" comes from the `-e` argument to `pip`, and essential just creates a symbolic link from the site-packages directory of your virtual environment to the source code in your local clone. That way any changes you make will be immediately reflected in your virtual environment.
@@ -126,14 +125,14 @@ When you're ready to contribute code to address an open issue, please follow the
     For example, [`black.vim`](https://github.com/psf/black/tree/master/plugin) will give you this functionality in Vim. But both `isort` and `black` are also easy to run directly from the command line.
     Just run this from the root of your clone:
 
-        isort .
-        black .
+        isort src/asgardpy
+        black src/asgardpy
 
-    Our CI also uses [`flake8`](https://github.com/chaimain/asgardpy/tree/main/tests) to lint the code base, [`mypy`](http://mypy-lang.org/) for type-checking and [`codespell`](https://github.com/codespell-project/codespell) for a basic spelling check. You should run these next with
+    Our CI also uses [`ruff`](https://github.com/chaimain/asgardpy/tree/main/tests) to lint the code base, [`mypy`](http://mypy-lang.org/) for type-checking and [`codespell`](https://github.com/codespell-project/codespell) for a basic spelling check. You should run these next with
 
-        flake8 .
-        mypy .
-        codespell asgardpy
+        ruff check src/asgardpy
+        mypy src/asgardpy
+        codespell src/asgardpy
 
     We also strive to maintain high test coverage, so most contributions should include additions to [the unit tests](https://github.com/chaimain/asgardpy/tree/main/tests). These tests are run with [`pytest`](https://docs.pytest.org/en/latest/), which you can use to locally run any test modules that you've added or changed.
 

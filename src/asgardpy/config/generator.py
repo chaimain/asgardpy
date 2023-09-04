@@ -119,9 +119,7 @@ def recursive_merge_dicts(base_config, extra_config):
     return final_config
 
 
-def gammapy_to_asgardpy_model_config(
-    gammapy_model, asgardpy_config_file=None, recursive_merge=True
-):
+def gammapy_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=None, recursive_merge=True):
     """
     Read the Gammapy Models YAML file and save it as AsgardpyConfig object.
 
@@ -253,11 +251,7 @@ class AsgardpyConfig(BaseConfig):
             merge_recursive = True
 
         if merge_recursive:
-            config_new = recursive_merge_dicts(
-                self.dict(exclude_defaults=True), other.dict(exclude_defaults=True)
-            )
+            config_new = recursive_merge_dicts(self.dict(exclude_defaults=True), other.dict(exclude_defaults=True))
         else:
-            config_new = deep_update(
-                self.dict(exclude_defaults=True), other.dict(exclude_defaults=True)
-            )
+            config_new = deep_update(self.dict(exclude_defaults=True), other.dict(exclude_defaults=True))
         return AsgardpyConfig(**config_new)

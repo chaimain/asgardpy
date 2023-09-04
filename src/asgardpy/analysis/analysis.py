@@ -150,9 +150,7 @@ class AsgardpyAnalysis:
                     self.instrument_spectral_info["spectral_energy_ranges"].append(edges)
 
                 self.instrument_spectral_info["en_bins"] += instrument_spectral_info["en_bins"]
-                self.instrument_spectral_info["free_params"] += instrument_spectral_info[
-                    "free_params"
-                ]
+                self.instrument_spectral_info["free_params"] += instrument_spectral_info["free_params"]
 
             self.datasets, self.final_model = set_models(
                 self.config.target,
@@ -168,8 +166,7 @@ class AsgardpyAnalysis:
 
             # Get the final degrees of freedom as en_bins - free_params
             self.instrument_spectral_info["DoF"] = (
-                self.instrument_spectral_info["en_bins"]
-                - self.instrument_spectral_info["free_params"]
+                self.instrument_spectral_info["en_bins"] - self.instrument_spectral_info["free_params"]
             )
 
         if len(dl4_dl5_steps) > 0:
@@ -178,9 +175,7 @@ class AsgardpyAnalysis:
             for step in dl4_dl5_steps:
                 analysis_step = AnalysisStep.create(step, self.config, **kwargs)
 
-                analysis_step.run(
-                    datasets=self.datasets, instrument_spectral_info=self.instrument_spectral_info
-                )
+                analysis_step.run(datasets=self.datasets, instrument_spectral_info=self.instrument_spectral_info)
 
                 # Update the final data product objects
                 for data_product in self.final_data_products:
