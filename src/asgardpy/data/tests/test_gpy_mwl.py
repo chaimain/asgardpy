@@ -1,4 +1,5 @@
 import pytest
+from regions import PointSkyRegion
 
 from asgardpy.analysis import AsgardpyAnalysis
 
@@ -92,6 +93,11 @@ def test_gpy_mwl(gpy_mwl_config, gammapy_data_path):
     analysis.run(["fit"])
     analysis.run(["flux-points"])
 
+    assert analysis.fit_result.success is True
+    assert len(analysis.datasets) == 3
+    assert len(analysis.flux_points) == 2
+    assert analysis.datasets[1].counts.geom.region is None
+
 
 @pytest.mark.test_data
 def test_3d_hess_1d_magic(gpy_hess_magic):
@@ -102,4 +108,6 @@ def test_3d_hess_1d_magic(gpy_hess_magic):
     analysis.run(["datasets-3d"])
     analysis.run(["datasets-1d"])
     analysis.run(["fit"])
-    analysis.get_flux_points
+
+    assert int(analysis.datasets[0].gti.time_sum.value) == 1687
+    assert isinstance(analysis.datasets[1].counts.geom.region, PointSkyRegion)
