@@ -52,7 +52,7 @@ dependencies = [
   "ruamel.yaml",
   "xmltodict",
   "tqdm",
-  "pydantic<2",
+  "pydantic<3",
 ]
 
 [project.urls]
