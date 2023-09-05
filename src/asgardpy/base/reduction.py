@@ -254,7 +254,7 @@ def get_filtered_observations(dl3_path, obs_config, log):
         #    obs_table = obs_table.select_observations(id_select)
 
     # Filter the Observations using the Time interval range provided
-    if obs_time.intervals[0].start != Time("0", format="mjd"):
+    if obs_time.intervals[0].start != Time("1970-01-01", format="iso"):
         t_start = Time(obs_time.intervals[0].start, format=obs_time.format)
         t_stop = Time(obs_time.intervals[0].stop, format=obs_time.format)
 
