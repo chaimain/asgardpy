@@ -264,6 +264,6 @@ def get_ts_target(datasets):
         else:
             # For FluxxPointsDataset
             stat_best_fit += np.nansum(data.stat_array())
-            stat_max_fit += len(data.data)
+            stat_max_fit += len(data.data.dnde.data)
 
     return stat_best_fit, stat_max_fit
