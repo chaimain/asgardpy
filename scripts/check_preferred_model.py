@@ -133,7 +133,7 @@ def main():
         dict_pl = main_analysis_list["pl"]["Analysis"].instrument_spectral_info
 
         # Collect parameters for AIC check
-        stat = dict_tag["fit_stat"]
+        stat = dict_tag["best_fit_stat"]
         dof = dict_tag["DoF"]
 
         fit_success = main_analysis_list[tag]["Analysis"].fit_result.success
@@ -152,8 +152,8 @@ def main():
             continue
 
         p_pl_x, g_pl_x, ndof_pl_x = check_model_preference_lrt(
-            dict_pl["fit_stat"],
-            dict_tag["fit_stat"],
+            dict_pl["best_fit_stat"],
+            dict_tag["best_fit_stat"],
             dict_pl["DoF"],
             dict_tag["DoF"],
         )
@@ -198,11 +198,12 @@ def main():
 
         t = main_analysis_list[tag]
 
+        ts_gof = round(info_["best_fit_stat"] - info_["max_fit_stat"], 3)
         t_fits = {
             "Spectral Model": tag.upper(),
-            "TS of null hypothesis": round(info_["stat_h0"], 3),
-            "TS of alt hypothesis": round(info_["stat_h1"], 3),
-            "TS of Goodness of Fit": round(info_["fit_stat"], 3),
+            "TS of Best Fit": round(info_["best_fit_stat"], 3),
+            "TS of Max Fit": round(info_["max_fit_stat"], 3),
+            "TS of Goodness of Fit": ts_gof,
             "DoF of Fit": info_["DoF"],
             r"Significance ($\sigma$) of Goodness of Fit": round(info_["fit_chi2_sig"], 3),
             "p-value of Goodness of Fit": float("%.4g" % info_["fit_pval"]),

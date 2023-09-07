@@ -2,7 +2,7 @@
 Module for performing some statistic functions.
 """
 import numpy as np
-from gammapy.stats import CashCountsStatistic, WStatCountsStatistic
+from gammapy.stats.fit_statistics import cash, wstat
 from scipy.stats import chi2, norm
 
 __all__ = [
@@ -131,13 +131,13 @@ def check_model_preference_aic(list_stat, list_dof):
 
 def get_goodness_of_fit_stats(datasets, instrument_spectral_info):
     """
-    Evaluating the Goodness of Fit of the fitting of the model to the dataset.
+    Evaluating the Goodness of Fit statistics of the fitting of the model to
+    the dataset.
 
-    We first use the get_ts_target function to get the total test statistic of
-    the null hypothesis of absence of target source signal, over all energy
-    bins, for the given datasets and the fit statistics difference of the
-    alternative hypothesis of the presence of the target source signal from the
-    null hypothesis, summed over all energy bins for the given datasets.
+    We first use the get_ts_target function to get the total test statistic for
+    the (observed) best fit of the model to the data, and the (expected)
+    perfect fit of model and data (model = data), for the given target source
+    region/pixel.
 
     We then evaluate the total number of Degrees of Freedom for the Fit as the
     difference between the number of relevant energy bins used in the evaluation
@@ -164,22 +164,23 @@ def get_goodness_of_fit_stats(datasets, instrument_spectral_info):
     stat_message: str
         String for logging the fit statistics
     """
-    stat_h0, stat_ts = get_ts_target(datasets)
+    stat_best_fit, stat_max_fit = get_ts_target(datasets)
 
-    instrument_spectral_info["stat_h0"] = stat_h0
-    instrument_spectral_info["fit_stat"] = stat_ts
-    instrument_spectral_info["stat_h1"] = stat_h0 - stat_ts
+    instrument_spectral_info["max_fit_stat"] = stat_max_fit
+    instrument_spectral_info["best_fit_stat"] = stat_best_fit
     ndof = instrument_spectral_info["DoF"]
+    stat_diff_gof = stat_best_fit - stat_max_fit
 
-    fit_chi2_sig, fit_pval = get_chi2_sig_pval(stat_ts, ndof)
+    fit_chi2_sig, fit_pval = get_chi2_sig_pval(stat_diff_gof, ndof)
 
     instrument_spectral_info["fit_chi2_sig"] = fit_chi2_sig
     instrument_spectral_info["fit_pval"] = fit_pval
 
     stat_message = "The Chi2/dof value of the goodness of Fit is "
-    stat_message += f"{stat_ts:.2f}/{ndof}\nand the p-value is {fit_pval:.3e} "
+    stat_message += f"{stat_diff_gof:.2f}/{ndof}\nand the p-value is {fit_pval:.3e} "
     stat_message += f"and in Significance {fit_chi2_sig:.2f} sigmas"
-    stat_message += f"\nwith TS (H0) as {stat_h0:.3f} and TS (H1) as {stat_h0-stat_ts:.3f}"
+    stat_message += f"\nwith best fit TS (Observed) as {stat_best_fit:.3f} "
+    stat_message += f"and max fit TS (Expected) as {stat_max_fit:.3f}"
 
     return instrument_spectral_info, stat_message
 
@@ -187,25 +188,32 @@ def get_goodness_of_fit_stats(datasets, instrument_spectral_info):
 def get_ts_target(datasets):
     """
     From a given list of DL4 datasets, with assumed associated models, estimate
-    the total test statistic value for the null hypothesis that the data
-    contains only background events and also the total test statistic difference
-    between the null and alternative hypothesis.
+    the total test statistic values, in the given target source region/pixel,
+    for the (observed) best fit of the model to the data, and the (expected)
+    perfect fit of model and data (model = data).
+
+    For consistency in the evaluation of the statistic values, we will use the
+    basic Fit Statistic functions in Gammapy for Poisson Data:
+
+    * `cash <https://docs.gammapy.org/1.1/api/gammapy.stats.cash.html>`_
+
+    * `wstat <https://docs.gammapy.org/1.1/api/gammapy.stats.wstat.html>`_
 
     For the different type of Statistics used in Gammapy for 3D/1D datasets,
-    use the following links for more details on the exact methods used for the
-    calculation:
+    and for our use case of getting the best fit and perfect fit, we will pass
+    the appropriate values, by adapting to the following methods,
 
-    * stat_null:
+    * Best Fit (Observed):
 
-        * `Cash stat_null <https://docs.gammapy.org/1.1/api/gammapy.stats.CashCountsStatistic.html#gammapy.stats.CashCountsStatistic.stat_null # noqa>`_
+        * `Cash stat_array <https://docs.gammapy.org/1.1/api/gammapy.datasets.MapDataset.html#gammapy.datasets.MapDataset.stat_array # noqa>`_
 
-        * `Wstat stat_null <https://docs.gammapy.org/1.1/api/gammapy.stats.WStatCountsStatistic.html#gammapy.stats.WStatCountsStatistic.stat_null # noqa>`_
+        * `Wstat stat_array https://docs.gammapy.org/1.1/api/gammapy.datasets.MapDatasetOnOff.html#gammapy.datasets.MapDatasetOnOff.stat_array # noqa>`_
 
-    * ts:
+    * Perfect Fit (Expected):
 
-        * `Cash ts <https://docs.gammapy.org/1.1/api/gammapy.stats.CashCountsStatistic.html#gammapy.stats.CashCountsStatistic.ts # noqa>`_
+        * `Cash stat_max <https://docs.gammapy.org/1.1/api/gammapy.stats.CashCountsStatistic.html#gammapy.stats.CashCountsStatistic.stat_max # noqa>`_
 
-        * `Wstat ts <https://docs.gammapy.org/1.1/api/gammapy.stats.WStatCountsStatistic.html#gammapy.stats.WStatCountsStatistic.ts # noqa>`_
+        * `Wstat stat_max <https://docs.gammapy.org/1.1/api/gammapy.stats.WStatCountsStatistic.html#gammapy.stats.WStatCountsStatistic.stat_max # noqa>`_
 
     Parameter
     ---------
@@ -214,15 +222,15 @@ def get_ts_target(datasets):
 
     Return
     ------
-    stat_h0: float
-        Total sum of test statistic of the null hypothesis, summed over all
-        energy bins.
-    stat_ts: float
-        Test statistic difference of the null hypothesis and the alternative
-        hypothesis (no excess vs excess) summed over all energy bins.
+    stat_best_fit: float
+        Total sum of test statistic of the best fit of model to data, summed
+        over all energy bins.
+    stat_max_fit: float
+        Test statistic difference of the perfect fit of model to data summed
+        over all energy bins.
     """  # noqa
-    stat_h0 = 0
-    stat_ts = 0
+    stat_best_fit = 0
+    stat_max_fit = 0
 
     for data in datasets:
         if data.stat_type != "chi2":
@@ -233,23 +241,29 @@ def get_ts_target(datasets):
                 counts_on = (data.counts.copy() * data.mask).get_spectrum(region).data
                 mu_on = (data.npred() * data.mask).get_spectrum(region).data
 
-                stat = CashCountsStatistic(
-                    counts_on,
-                    mu_on,
-                )
+                stat_best_fit += np.nansum(cash(n_on=counts_on, mu_on=mu_on).ravel())
+                stat_max_fit = np.nansum(cash(n_on=counts_on, mu_on=counts_on).ravel())
+
             elif data.stat_type == "wstat":
-                counts_on = (data.counts.copy() * data.mask).get_spectrum(region)
-                counts_off = np.nan_to_num((data.counts_off * data.mask).get_spectrum(region))
+                counts_on = (data.counts.copy() * data.mask).get_spectrum(region).data
+                counts_off = np.nan_to_num((data.counts_off * data.mask).get_spectrum(region)).data
+
+                # alpha is evaluated by acceptance ratios, and
+                # Background is evaluated with given alpha and counts_off,
+                # but for alpha to be of the same shape (in the target region),
+                # it will be reevaluated
+                bkg = np.nan_to_num((data.background * data.mask).get_spectrum(region))
 
                 with np.errstate(invalid="ignore", divide="ignore"):
-                    alpha = np.nan_to_num((data.background * data.mask).get_spectrum(region)) / counts_off
-                mu_signal = np.nan_to_num((data.npred_signal() * data.mask).get_spectrum(region))
+                    alpha = bkg / counts_off
+                mu_signal = np.nan_to_num((data.npred_signal() * data.mask).get_spectrum(region)).data
+                max_pred = counts_on - bkg
 
-                stat = WStatCountsStatistic(counts_on, counts_off, alpha, mu_signal)
-            stat_h0 += np.nansum(stat.stat_null.ravel())
-            stat_ts += np.nansum(stat.ts.ravel())
+                stat_best_fit += np.nansum(wstat(n_on=counts_on, n_off=counts_off, alpha=alpha, mu_sig=mu_signal))
+                stat_max_fit = np.nansum(wstat(n_on=counts_on, n_off=counts_off, alpha=alpha, mu_sig=max_pred))
         else:
             # For FluxxPointsDataset
-            stat_ts += np.nansum(data.stat_array())
+            stat_best_fit += np.nansum(data.stat_array())
+            stat_max_fit += len(data.data)
 
-    return stat_h0, stat_ts
+    return stat_best_fit, stat_max_fit
