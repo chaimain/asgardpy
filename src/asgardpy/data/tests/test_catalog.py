@@ -11,9 +11,11 @@ def test_3d_hess_1d_magic_catalog(gpy_hess_magic):
 
     analysis = AsgardpyAnalysis(gpy_hess_magic)
 
-    analysis.config.target.use_catalog.selection_radius = "2 deg"
-    analysis.config.target.roi_selection.roi_radius = "1.8 deg"
+    analysis.config.target.use_catalog.selection_radius = "10 deg"
+    analysis.config.target.roi_selection.roi_radius = "2.8 deg"
 
     analysis.run(["datasets-3d"])
     analysis.run(["datasets-1d"])
-    analysis.run(["fit"])
+
+    assert "3FHL J0536.2+1733" in analysis.final_model.names
+    assert len(list(analysis.final_model.parameters.free_parameters)) == 32

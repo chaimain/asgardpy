@@ -38,7 +38,7 @@ target:
               max: 0.01
               frozen: false
           -   name: reference
-              value: 0.01
+              value: 0.015
               unit: TeV
               error: 0.0
               min: 0.0001

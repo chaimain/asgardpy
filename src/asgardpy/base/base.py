@@ -131,8 +131,8 @@ class TimeRangeConfig(BaseConfig):
     object.
     """
 
-    start: TimeType = Time("0", format="mjd")
-    stop: TimeType = Time("0", format="mjd")
+    start: TimeType = Time("1970-01-01", format="iso")
+    stop: TimeType = Time("2000-01-01", format="iso")
 
 
 class TimeIntervalsConfig(BaseConfig):
