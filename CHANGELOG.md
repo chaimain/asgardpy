@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Restructure package to follow some PEP guidelines. [#126](https://github.com/chaimain/asgardpy/pull/126)
+- Updated pytests to follow proper code style. (See Issue [#127](https://github.com/chaimain/asgardpy/issues/127))[#130](https://github.com/chaimain/asgardpy/pull/130)
 
 ## [v0.4.0](https://github.com/chaimain/asgardpy/releases/tag/v0.4.0) - 2023-08-31
 
