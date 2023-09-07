@@ -47,13 +47,10 @@ class AsgardpyAnalysis:
                 other_config = AsgardpyConfig.read(self.config.target.models_file)
                 self.config = self.config.update(other_config)
             except ValidationError:
-                try:
-                    self.config = gammapy_to_asgardpy_model_config(
-                        gammapy_model=self.config.target.models_file,
-                        asgardpy_config_file=self.config,
-                    )
-                except OSError:
-                    self.log.error("Provided models file is not readable")
+                self.config = gammapy_to_asgardpy_model_config(
+                    gammapy_model=self.config.target.models_file,
+                    asgardpy_config_file=self.config,
+                )
 
         self.config.set_logging()
         self.datasets = Datasets()

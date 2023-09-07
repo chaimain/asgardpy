@@ -9,6 +9,9 @@ def test_dataset3d(base_config):
 
     from gammapy.datasets import MapDataset
 
+    # base_config.dataset3d.instruments[0].input_dl3[1].glob_pattern["gal_diffuse"] = ""
+    # base_config.dataset3d.instruments[0].input_dl3[1].glob_pattern["iso_diffuse"] = ""
+
     analysis = AsgardpyAnalysis(base_config)
 
     analysis.get_3d_datasets()
