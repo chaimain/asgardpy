@@ -36,4 +36,4 @@ def test_dataset1d_no_stack(base_config_1d):
     analysis.get_1d_datasets()
 
     assert len(analysis.datasets) == 4
-    assert int(analysis.datasets[0].energy_range[-1].data[0][0]) == 100
+    assert int(round(analysis.datasets[0].energy_range[-1].data[0][0])) == 100
