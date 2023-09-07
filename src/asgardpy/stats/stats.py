@@ -242,7 +242,7 @@ def get_ts_target(datasets):
                 mu_on = (data.npred() * data.mask).get_spectrum(region).data
 
                 stat_best_fit += np.nansum(cash(n_on=counts_on, mu_on=mu_on).ravel())
-                stat_max_fit = np.nansum(cash(n_on=counts_on, mu_on=counts_on).ravel())
+                stat_max_fit += np.nansum(cash(n_on=counts_on, mu_on=counts_on).ravel())
 
             elif data.stat_type == "wstat":
                 counts_on = (data.counts.copy() * data.mask).get_spectrum(region).data
@@ -260,7 +260,7 @@ def get_ts_target(datasets):
                 max_pred = counts_on - bkg
 
                 stat_best_fit += np.nansum(wstat(n_on=counts_on, n_off=counts_off, alpha=alpha, mu_sig=mu_signal))
-                stat_max_fit = np.nansum(wstat(n_on=counts_on, n_off=counts_off, alpha=alpha, mu_sig=max_pred))
+                stat_max_fit += np.nansum(wstat(n_on=counts_on, n_off=counts_off, alpha=alpha, mu_sig=max_pred))
         else:
             # For FluxxPointsDataset
             stat_best_fit += np.nansum(data.stat_array())
