@@ -207,7 +207,7 @@ def get_ts_target(datasets):
 
         * `Cash stat_array <https://docs.gammapy.org/1.1/api/gammapy.datasets.MapDataset.html#gammapy.datasets.MapDataset.stat_array # noqa>`_
 
-        * `Wstat stat_array https://docs.gammapy.org/1.1/api/gammapy.datasets.MapDatasetOnOff.html#gammapy.datasets.MapDatasetOnOff.stat_array # noqa>`_
+        * `Wstat stat_array <https://docs.gammapy.org/1.1/api/gammapy.datasets.MapDatasetOnOff.html#gammapy.datasets.MapDatasetOnOff.stat_array # noqa>`_
 
     * Perfect Fit (Expected):
 

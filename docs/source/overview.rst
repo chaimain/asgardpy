@@ -117,3 +117,5 @@ Statistics
 
 The :doc:`_api_docs/stats` contains various functions to perform some statistics with the fitted DL4 datasets.
 One can perform tests on the preference of the assumed spectral model of the target source, by using either :class:`~asgardpy.stats.stats.check_model_preference_lrt` or :class:`~asgardpy.stats.stats.check_model_preference_aic`.
+
+Along with the Fit result, the Goodness of Fit is also evaluated for the target source region using :class:`~asgardpy.stats.stats.get_goodness_of_fit_stats` and :class:`~asgardpy.stats.stats.get_goodness_of_fit_stats`.
