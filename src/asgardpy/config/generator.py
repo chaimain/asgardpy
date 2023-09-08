@@ -128,7 +128,11 @@ def gammapy_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=None, r
     asgardpy_config: `asgardpy.config.generator.AsgardpyConfig`
         Updated AsgardpyConfig object
     """
-    models_gpy = Models.read(gammapy_model)
+    try:
+        models_gpy = Models.read(gammapy_model)
+    except KeyError:
+        log.error("%s File cannot be read by Gammapy Models", gammapy_model)
+        return None
 
     if not asgardpy_config_file:
         asgardpy_config = AsgardpyConfig()  # Default object

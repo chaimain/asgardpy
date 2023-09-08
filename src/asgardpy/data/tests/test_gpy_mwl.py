@@ -91,7 +91,7 @@ def test_gpy_mwl(gpy_mwl_config, gammapy_data_path):
     analysis.config.fit_params.fit_range.max = "300 TeV"
 
     analysis.run(["fit"])
-    analysis.run(["flux-points"])
+    analysis.get_flux_points()
 
     assert analysis.fit_result.success is True
     assert len(analysis.datasets) == 3

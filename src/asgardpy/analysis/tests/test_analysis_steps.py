@@ -11,9 +11,39 @@ def test_joint_3d_1d(base_config):
 
     analysis = AsgardpyAnalysis(base_config)
 
+    extra_config = base_config.copy()
+    extra_config.general.n_jobs = 33
+    analysis.update_config(extra_config)
+
     analysis.run(["datasets-3d"])
     analysis.run(["datasets-1d"])
     analysis.run_fit()
 
+    assert analysis.config.general.n_jobs == 33
     assert len(analysis.datasets) == 4
     assert analysis.fit_result.success is True
+
+
+@pytest.mark.test_data
+def test_analysis_basics(gammapy_data_path, base_config):
+    """Testing some basic analysis functions."""
+
+    other_config_path_1 = f"{gammapy_data_path}fermi-3fhl-crab/Fermi-LAT-3FHL_models.yaml"
+
+    base_config.target.models_file = other_config_path_1
+
+    analysis_1 = AsgardpyAnalysis(base_config)
+
+    with pytest.raises(RuntimeError):
+        print(analysis_1.models)
+
+    spec_model_name = analysis_1.config.target.components[0].spectral.type
+
+    assert spec_model_name == "LogParabolaSpectralModel"
+
+    other_config_path_2 = f"{gammapy_data_path}fermi-3fhl-crab/Fermi-LAT-3FHL_datasets.yaml"
+
+    base_config.target.models_file = other_config_path_2
+
+    with pytest.raises(TypeError):
+        AsgardpyAnalysis(base_config)

@@ -82,7 +82,7 @@ def test_preferred_model(base_config_1d):
         dict_pl = main_analysis_list["pl"]["Analysis"].instrument_spectral_info
 
         # Collect parameters for AIC check
-        stat = dict_tag["fit_stat"]
+        stat = dict_tag["best_fit_stat"]
         dof = dict_tag["DoF"]
 
         fit_success = main_analysis_list[tag]["Analysis"].fit_result.success
@@ -101,8 +101,8 @@ def test_preferred_model(base_config_1d):
             continue
 
         p_pl_x, g_pl_x, ndof_pl_x = check_model_preference_lrt(
-            dict_pl["fit_stat"],
-            dict_tag["fit_stat"],
+            dict_pl["best_fit_stat"],
+            dict_tag["best_fit_stat"],
             dict_pl["DoF"],
             dict_tag["DoF"],
         )
@@ -142,3 +142,8 @@ def test_preferred_model(base_config_1d):
 
     assert lrt_best_model == "lp"
     assert aic_best_model == "bpl2"
+
+    # Check for bad comparisons, same dof
+    p_val_0, g_sig_0, dof_0 = check_model_preference_lrt(4.4, 2.2, 2, 2)
+
+    assert np.isnan(p_val_0)

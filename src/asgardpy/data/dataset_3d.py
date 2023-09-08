@@ -407,7 +407,6 @@ class Dataset3DGeneration:
                     self.irfs["psf"],
                     self.irfs["edisp"],
                 ] = self.get_base_objects(io_, key_name, file_list)
-                self.update_source_pos_from_3d_dataset()
 
             if io_.type in ["lat-aux"]:
                 if io_.glob_pattern["iso_diffuse"] == "":
@@ -420,6 +419,10 @@ class Dataset3DGeneration:
                     self.diffuse_models["iso_diffuse"],
                 ] = self.get_base_objects(io_, key_name, file_list)
                 self.get_list_objects(io_.input_dir, file_list["xml_file"])
+
+        # After reading the list of source objects, check if the source position needs to be
+        # updated from the list provided.
+        self.update_source_pos_from_3d_dataset()
 
         return file_list
 
