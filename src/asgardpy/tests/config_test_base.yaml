@@ -19,7 +19,7 @@ general:
 # Target settings
 target:
   source_name: &source_name "4FGL J0534.5+2201i"
-  sky_position: &source_pos {frame: icrs, lon: 83.633 deg, lat: 22.02 deg}
+  sky_position: &source_pos {frame: icrs, lon: 83.6338333 deg, lat: 22.0145 deg}
   use_uniform_position: true
   # models_file:
   # use_catalog: 4fgl
