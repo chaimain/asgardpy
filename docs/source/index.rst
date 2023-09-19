@@ -29,6 +29,9 @@ GitHub Repository: https://github.com/chaimain/asgardpy
    :name: _introduction
 
    overview
+   additional_dataset_input
+   additional_model_input
+   additional_stats
    installation
    CHANGELOG
 

@@ -27,7 +27,7 @@ The steps are:
 
 The main purpose of this pipeline is accomplished for -
 
-#. performing DL3 data from multiple gamma-ray astronomical instruments to a joint DL4 dataset.
+#. Reducing DL3 data from multiple gamma-ray astronomical instruments to a joint DL4 dataset.
 
 #. update the joint DL4 data with appropriate Gammapy Models object.
 
@@ -38,6 +38,7 @@ The main purpose of this pipeline is accomplished for -
     :width: 600px
     :align: center
 
+.. _dataset-intro:
 
 DL3 Data component
 ------------------
@@ -71,6 +72,8 @@ The usage of either of these can be generalized by providing the source sky posi
 Following `Gammapy v1.1 <https://docs.gammapy.org/1.1/>`_ we have the usage of parallel processing for DL4 Dataset creation, Flux Points Estimation and also Light Curve Estimation.
 For the first two processes, here we have the parameters of `n_jobs` and `parallel_backend` defined in :class:`~asgardpy.config.generator.GeneralConfig` as can be seen in :class:`~asgardpy.config.generator.AsgardpyConfig`.
 
+.. _models-intro:
+
 Models
 ------
 
@@ -86,18 +89,8 @@ The information regarding the model to be used for the target source is given by
 #. Use :class:`~asgardpy.data.target.Target.from_3d` ``= True``, if the model is included in the list of Models provided with the 3D Dataset
 
 
-The list of associated Models can be provided by -
-
-#. Using a file provided along with the DL3 data of the 3D data (for e.g. XML type for Fermi-LAT)
-
-#. Using a Catalog available in Gammapy, by adding information in :class:`~asgardpy.data.target.Target.use_catalog`
-
-
 While combining DL4 datasets from multiple instruments, the positions of the target source, included within these data, may not be exactly the same.
 This will cause computation issue for the binned analysis performed with Gammapy. To resolve this issue, use :class:`~asgardpy.data.target.Target.use_uniform_position` ``= True``.
-
-
-To add a default Gammapy `FoVBackgroundModel` to the 3D dataset, use :class:`~asgardpy.data.target.Target.add_fov_bkg_model` ``= True``, else one can include it in the config file as well.
 
 
 The :class:`~asgardpy.data.target.apply_selection_mask_to_models` function is used to apply various selections on the given list of models.
@@ -112,10 +105,10 @@ For the analysis step of flux-points :class:`~asgardpy.data.dl4.FluxPointsAnalys
 provided in the respective config section of `spectral_energy_range`.
 
 
+.. _stats-intro:
+
 Statistics
 ----------
 
 The :doc:`_api_docs/stats` contains various functions to perform some statistics with the fitted DL4 datasets.
 One can perform tests on the preference of the assumed spectral model of the target source, by using either :class:`~asgardpy.stats.stats.check_model_preference_lrt` or :class:`~asgardpy.stats.stats.check_model_preference_aic`.
-
-Along with the Fit result, the Goodness of Fit is also evaluated for the target source region using :class:`~asgardpy.stats.stats.get_goodness_of_fit_stats` and :class:`~asgardpy.stats.stats.get_goodness_of_fit_stats`.

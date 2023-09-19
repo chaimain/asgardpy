@@ -43,9 +43,6 @@ def get_chi2_sig_pval(test_stat, ndof):
     pval = chi2.sf(test_stat, ndof)
     chi2_sig = norm.isf(pval / 2)
 
-    if not np.isfinite(chi2_sig):
-        chi2_sig = np.sqrt(test_stat)
-
     return chi2_sig, pval
 
 
