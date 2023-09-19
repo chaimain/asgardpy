@@ -8,7 +8,6 @@ for 1D Dataset.
 """
 
 import logging
-from pathlib import Path
 
 from asgardpy.base import BaseConfig, PathType
 
@@ -59,10 +58,7 @@ class DL3Files:
         else:
             self.log = log
 
-        if Path(dir_dict.input_dir).exists():
-            self.dl3_path = Path(dir_dict.input_dir)
-        else:
-            self.log.error("%s is not a valid file location", dir_dict.input_dir)
+        self.dl3_path = dir_dict.input_dir
 
         self.dl3_type = dir_dict.type
         self._check_dl3_type()
