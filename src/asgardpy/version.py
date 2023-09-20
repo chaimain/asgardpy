@@ -5,7 +5,7 @@ MAJOR = "0"
 MINOR = "4"
 # On main and in a nightly release the patch should be one ahead of the last
 # released build.
-PATCH = "0"
+PATCH = "1"
 # This is mainly for nightly builds which have the suffix ".dev$DATE". See
 # https://semver.org/#is-v123-a-semantic-version for the semantics.
 SUFFIX = ""
