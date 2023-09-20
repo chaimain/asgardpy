@@ -29,8 +29,10 @@ def test_io_dl4(caplog):
 
     dl4_files = DL4Files(dl4_dataset_info=dl4_info, log=None)
 
-    dl4_files_list = dl4_files.get_dl4_files(obs_config)
+    d_list = dl4_files.get_dl4_files(obs_config)
 
     assert dl4_files.log.name == "asgardpy.io.io_dl4"
     assert dl4_files.log.level == 20
     assert caplog.record_tuples[0][2] == "No datasets found in ."
+    with pytest.raises(ZeroDivisionError):
+        1 / len(d_list)
