@@ -21,6 +21,7 @@ def test_joint_3d_1d(base_config):
 
     assert analysis.config.general.n_jobs == 33
     assert len(analysis.datasets) == 4
+    assert len(analysis.models) == 11
     assert analysis.fit_result.success is True
 
 

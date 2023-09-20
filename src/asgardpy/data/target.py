@@ -475,7 +475,7 @@ def read_models_from_asgardpy_config(config):
                         {"spectral": config_to_dict(model_config.spectral)}
                     )
                 elif model_config.spectral.type == "BrokenPowerLaw2SpectralModel":
-                    model1 = BrokenPowerLaw2SpectralModel().from_dict(
+                    spectral_model = BrokenPowerLaw2SpectralModel().from_dict(
                         {"spectral": config_to_dict(model_config.spectral)}
                     )
                 else:
@@ -559,8 +559,7 @@ def config_to_dict(model_config):
 
     # For spatial model, include frame info
     try:
-        frame_ = getattr(model_dict, "frame")
-        model_dict["frame"] = frame_
+        getattr(model_dict, "frame")
     except AttributeError:
         pass
 

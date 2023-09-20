@@ -76,15 +76,10 @@ class DL4Files:
         self.dl4_path = None
         self.dl4_file = None
 
-        self._check_dl4_type()
-
-        if Path(self.dl4_dataset.input_dir).exists():
-            if Path(self.dl4_dataset.input_dir).is_file():
-                self.dl4_file = Path(self.dl4_dataset.input_dir)
-            else:
-                self.dl4_path = Path(self.dl4_dataset.input_dir)
+        if Path(self.dl4_dataset.input_dir).is_file():
+            self.dl4_file = Path(self.dl4_dataset.input_dir)
         else:
-            self.log.error("%s is not a valid file location", self.dl4_dataset.input_dir)
+            self.dl4_path = Path(self.dl4_dataset.input_dir)
 
         if not log:
             self._set_logging()
@@ -94,12 +89,6 @@ class DL4Files:
     def _set_logging(self):
         self.log = logging.getLogger(__name__)
         self.log.setLevel(logging.INFO)
-
-    def _check_dl4_type(self):
-        try:
-            DATASET_REGISTRY.get_cls(self.dl4_type)
-        except KeyError:
-            self.log.error("Incorrect DL4 Type passed!")
 
     def get_dl4_files(self, observation_config):
         """
@@ -173,9 +162,6 @@ def get_reco_energy_bins(dataset, en_bins):
     Calculate the total number of fit reco energy bins in the given dataset
     and add to the total value.
     """
-    if dataset.mask:
-        en_bins += dataset.mask.geom.axes["energy"].nbin
-    else:
-        en_bins += dataset.counts.geom.axes["energy"].nbin
+    en_bins += dataset.mask.geom.axes["energy"].nbin
 
     return en_bins
