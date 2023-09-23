@@ -1,24 +1,27 @@
 """
 Asgardpy version
 """
-MAJOR = "0"
-MINOR = "4"
+# MAJOR = "0"
+# MINOR = "4"
 # On main and in a nightly release the patch should be one ahead of the last
 # released build.
-PATCH = "1"
+# PATCH = "1"
 # This is mainly for nightly builds which have the suffix ".dev$DATE". See
 # https://semver.org/#is-v123-a-semantic-version for the semantics.
-SUFFIX = ""
+# SUFFIX = ""
 
-VERSION_SHORT = f"{MAJOR}.{MINOR}"
-VERSION = f"{MAJOR}.{MINOR}.{PATCH}{SUFFIX}"
+# VERSION_SHORT = f"{MAJOR}.{MINOR}"
+# VERSION = f"{MAJOR}.{MINOR}.{PATCH}{SUFFIX}"
 
 
-"""
 try:
-    from .version import VERSION
+    try:
+        from ._dev_version import version
+    except Exception:
+        from ._version import version
 except Exception:
     import warnings
+
     warnings.warn(
         "Could not determine version; this indicates a broken installation."
         " Install from PyPI or from a local git repository."
@@ -27,6 +30,11 @@ except Exception:
     )
     del warnings
     version = "0.0.0"
-"""
 
-__version__ = VERSION
+__version__ = version
+
+# Save the base version for creating Tags for release
+from packaging.version import Version
+
+base_version = Version(__version__).base_version
+__base_version__ = base_version

@@ -18,15 +18,15 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.abspath("../../"))
 
-from asgardpy import VERSION, VERSION_SHORT  # noqa: E402
+from asgardpy.version import base_version, version  # noqa: E402
 
 # -- Project information -----------------------------------------------------
 
 project = "asgardpy"
 copyright = f"{datetime.today().year}, Allen Institute for Artificial Intelligence"
 author = "Allen Institute for Artificial Intelligence"
-version = VERSION_SHORT
-release = VERSION
+version = version
+release = base_version
 
 
 # -- General configuration ---------------------------------------------------
@@ -97,7 +97,7 @@ typehints_defaults = "comma"
 #
 html_theme = "furo"
 
-html_title = f"asgardpy v{VERSION}"
+html_title = f"asgardpy v{base_version}"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

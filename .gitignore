@@ -1,3 +1,6 @@
+# setuptools_scm generated version file
+._version.py
+
 # build artifacts
 
 .eggs/
