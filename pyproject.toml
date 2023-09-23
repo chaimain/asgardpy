@@ -72,7 +72,6 @@ dev = [
   "pytest>7.0",
   "pytest-sphinx",
   "pytest-cov",
-  "twine>=1.11.0",
   "build",
   "setuptools_scm",
   "Sphinx>=6.0,<8",

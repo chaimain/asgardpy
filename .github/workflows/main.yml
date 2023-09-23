@@ -146,8 +146,8 @@ jobs:
 
       - name: Install requirements
         run: |
-          pip install --upgrade pip setuptools wheel
-          pip install -e .[dev]
+          pip install --upgrade build
+          python -m build
 
       - name: Prepare environment
         run: |
@@ -165,8 +165,10 @@ jobs:
           python scripts/release_notes.py > ${{ github.workspace }}-RELEASE_NOTES.md
 
       - name: Publish package to PyPI
-        run: |
-          twine upload -u '${{ secrets.PYPI_USERNAME }}' -p '${{ secrets.PYPI_PASSWORD }}' dist/*
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: ${{ secrets.PYPI_USERNAME }}
+          password: ${{ secrets.PYPI_PASSWORD }}
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v1
