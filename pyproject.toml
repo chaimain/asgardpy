@@ -87,12 +87,12 @@ dev = [
 [tool.setuptools.packages.find]
 where = ["src"]
 exclude = [
-    "*.tests",
-    "*.tests.*",
-    "tests.*",
-    "tests",
-    "docs",
-    "scripts",
+    # "*.tests",
+    # "*.tests.*",
+    # "tests.*",
+    # "tests",
+    # "docs",
+    # "scripts",
     "asgardpy._dev_version"
 ]
 
