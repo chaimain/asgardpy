@@ -133,7 +133,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs: [checks]
-    if: startsWith(github.ref, 'refs/tags/')
+    if: ${{ startsWith(github.ref, 'refs/tags/') && !endsWith(github.ref, '.dev') }}
     # Specifying a GitHub environment is optional, but strongly encouraged
     environment: release
     permissions:
@@ -148,9 +148,6 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-
-      # make sure we have version info
-      - run: git fetch --tags
 
       - name: Install requirements
         run: |
