@@ -2,6 +2,3 @@
 # included in built tarballs
 prune src/asgardpy/_dev_version
 prune .github
-
-prune docs/_build
-prune build
