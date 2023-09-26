@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.4.1](https://github.com/chaimain/asgardpy/releases/tag/v0.4.1) - 2023-09-27
+
 ### Fixed
 
 - Restructure package to follow some PEP guidelines. [#126](https://github.com/chaimain/asgardpy/pull/126)
