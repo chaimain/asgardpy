@@ -172,9 +172,9 @@ jobs:
 
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        # with:
-        #  user: ${{ secrets.PYPI_USERNAME }}
-        #  password: ${{ secrets.PYPI_PASSWORD }}
+        with:
+          skip-existing: true  # remove this for post 0.4.1 releases
+          verbose: true
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v1
