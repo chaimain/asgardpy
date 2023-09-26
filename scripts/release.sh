@@ -2,7 +2,7 @@
 
 set -e
 
-TAG=$(python -c 'from asgardpy.version import __base_version__; print("v" + __base_version__)')
+TAG=$(python -c 'from asgardpy.version import VERSION; print("v" + VERSION)')
 
 read -p "Creating new release for $TAG. Do you want to continue? [Y/n] " prompt
 

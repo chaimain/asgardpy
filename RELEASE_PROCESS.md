@@ -2,9 +2,9 @@
 
 ## Steps
 
-<!--- 1. Update the version in `src/asgardpy/version.py`. --->
+1. Update the version in `src/asgardpy/version.py`.
 
-Run the release script:
+2. Run the release script:
 
     ```bash
     ./scripts/release.sh

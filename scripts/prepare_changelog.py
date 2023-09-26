@@ -1,7 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 
-from asgardpy.version import base_version
+from asgardpy.version import VERSION
 
 
 def main():
@@ -15,7 +15,7 @@ def main():
         line = lines[i]
         if line.startswith("## [Unreleased]"):
             insert_index = i + 1
-        elif line.startswith(f"## [v{base_version}]"):
+        elif line.startswith(f"## [v{VERSION}]"):
             print("CHANGELOG already up-to-date")
             return
         elif line.startswith("## [v"):
@@ -27,7 +27,7 @@ def main():
     lines.insert(insert_index, "\n")
     lines.insert(
         insert_index + 1,
-        f"## [v{base_version}](https://github.com/chaimain/asgardpy/releases/tag/v{base_version}) - "
+        f"## [v{VERSION}](https://github.com/chaimain/asgardpy/releases/tag/v{VERSION}) - "
         f"{datetime.now().strftime('%Y-%m-%d')}\n",
     )
 
