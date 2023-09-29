@@ -56,12 +56,8 @@ def test_set_models(base_config, gammapy_data_path):
     model_file_0 = f"{gammapy_data_path}fermi-3fhl-crab/Fermi-LAT-3FHL_models.yaml"
     model_file_1 = f"{gammapy_data_path}fermi-3fhl-crab/Fermi-LAT-3FHL_datasets.yaml"
 
-    analysis_0.config.target.components[
-        0
-    ].spectral.ebl_abs.filename = ebl_file
-    analysis_1.config.target.components[
-        0
-    ].spectral.ebl_abs.filename = ebl_file
+    analysis_0.config.target.components[0].spectral.ebl_abs.filename = ebl_file
+    analysis_1.config.target.components[0].spectral.ebl_abs.filename = ebl_file
 
     data_0, model_0 = set_models(
         analysis_0.config.target,
