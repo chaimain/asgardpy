@@ -277,7 +277,7 @@ def set_models(
     dataset_name_list: List
         List of datasets_names to be used on the Models, before assigning them
         to the given datasets.
-    models : `~gammapy.modeling.models.Models` or str
+    models : `~gammapy.modeling.models.Models` or str of file location or None
         Models object or YAML models string
 
     Returns
@@ -290,11 +290,13 @@ def set_models(
         models = Models(models)
     elif isinstance(models, PathType):
         models = Models.read(models)
+    elif models is None:
+        models = Models(models)
     else:
         raise TypeError(f"Invalid type: {type(models)}")
 
     if len(models) == 0:
-        if len(config_target.components) > 0:
+        if config_target.components[0].name != "":
             models = read_models_from_asgardpy_config(config_target)
         else:
             raise Exception("No input for Models provided for the Target source!")

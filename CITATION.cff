@@ -1,11 +1,11 @@
 # Metadata for citation of this software according to the CFF format (https://citation-file-format.github.io/)
 cff-version: 1.2.0
 title: 'Asgardpy: Gammapy-based pipeline to support high-level analysis for multi-instruments joint datasets'
-abstract: 'User-friendly configuration-centred pipeline built over Gammapy to allow for easy 
+abstract: 'User-friendly configuration-centred pipeline built over Gammapy to allow for easy
   simultaneous analysis of various datasets of different formats.
 
-  Example: 3D Fermi-LAT (with various source models in the Region of Interest stored in XML file) 
-  + 1D energy-dependent directional cuts MAGIC/LST [PointSkyRegion geometry for ON region] 
+  Example: 3D Fermi-LAT (with various source models in the Region of Interest stored in XML file)
+  + 1D energy-dependent directional cuts MAGIC/LST [PointSkyRegion geometry for ON region]
   + 1D global directional cut VERITAS [CircleSkyRegion geometry for ON region]'
 type: software
 message: "If you use this software, please cite it using the metadata from this file."
@@ -17,7 +17,7 @@ keywords:
 - "Data analysis"
 version: v0.4.0
 repository-code: "https://github.com/chaimain/asgardpy"
-license: Apache License 2.0
+license: Apache-2.0
 contact:
 - email: chaitanya.p.astrphys@gmail.com
   name: "Project manager"

@@ -124,19 +124,10 @@ def test_preferred_model(base_config_1d):
     for idx in best_sp_idx_lrt:
         if pref_over_pl_chi2_list[idx] > 5:
             lrt_best_model = spec_models_list[idx]
-            print("Best preferred spectral model over PL is ", spec_models_list[idx])
-        else:
-            print("No other model preferred over PL")
 
     list_rel_p = check_model_preference_aic(stat_list, dof_list)
 
     best_sp_idx_aic = np.nonzero(list_rel_p == np.nanmax(list_rel_p))[0]
-
-    for idx in best_sp_idx_aic:
-        if list_rel_p[idx] > 0.95:
-            print("Best preferred spectral model is ", spec_models_list[fit_success_list][idx])
-        else:
-            print("No other model preferred, hence PL is selected")
 
     aic_best_model = select_model_tags[best_sp_idx_aic[0]]
 

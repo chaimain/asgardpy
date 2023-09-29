@@ -23,7 +23,8 @@ authors = [
 maintainers = [
   {name = "Chaitanya Priyadarshi", email = "chaitanya.p.astrphys@gmail.com"},
 ]
-license = {file = "LICENSE"}
+license = {text = "Apache-2.0"}
+# license_files = "LICENSE" For when PEP 639 is approved
 
 keywords = [
   "Astronomy",
@@ -58,7 +59,7 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/chaimain/asgardpy"
 Repository = "https://github.com/chaimain/asgardpy"
-Changelog = "https://github.com/chaimain/asgardpy/blob/main/CHANGELOG.mc"
+Changelog = "https://github.com/chaimain/asgardpy/blob/main/CHANGELOG.md"
 Documentation = "https://asgardpy.readthedocs.io/en/latest/"
 
 [project.optional-dependencies]
