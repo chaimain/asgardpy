@@ -52,7 +52,8 @@ def test_set_models(base_config, gammapy_data_path):
     analysis_0.config.target.source_name = "Crab Nebula"
     analysis_1.config.target.source_name = "Crab Nebula"
 
-    ebl_file = f"{gammapy_data_path}ebl/ebl_franceschini_2017.fits.gz"
+    ebl_file_name = "ebl_franceschini_2017.fits.gz"
+    ebl_file = f"{gammapy_data_path}ebl/{ebl_file_name}"
     model_file_0 = f"{gammapy_data_path}fermi-3fhl-crab/Fermi-LAT-3FHL_models.yaml"
     model_file_1 = f"{gammapy_data_path}fermi-3fhl-crab/Fermi-LAT-3FHL_datasets.yaml"
 
@@ -85,5 +86,5 @@ def test_set_models(base_config, gammapy_data_path):
             models=model_file_1,
         )
     assert model_0[0].datasets_names == ["Fermi-LAT_00", "Fermi-LAT_01"]
-    assert str(model_1[0].spectral_model.model2.filename) == ebl_file
-    assert str(model_2[0].spectral_model.model2.filename) == ebl_file
+    assert model_1[0].spectral_model.model2.filename.name == ebl_file_name
+    assert model_2[0].spectral_model.model2.filename.name == ebl_file_name
