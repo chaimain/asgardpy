@@ -9,12 +9,28 @@ def test_config_basic():
     config = AsgardpyConfig()
     assert "AsgardpyConfig" in str(config)
 
-    new_config_str = """
+    config_str_0 = """
     general:
       n_jobs: 100
     """
-    config_100 = AsgardpyConfig.from_yaml(new_config_str)
+    config_100 = AsgardpyConfig.from_yaml(config_str_0)
     assert config_100.general.n_jobs == 100
+
+    with pytest.raises(ValueError):
+        config_str_1 = """
+        fit_params:
+          fit_range:
+            min: 10 s
+            max: 10 TeV
+        """
+        AsgardpyConfig.from_yaml(config_str_1)
+
+    with pytest.raises(ValueError):
+        config_str_2 = """
+        general:
+          outdir: ./bla/
+        """
+        AsgardpyConfig.from_yaml(config_str_2)
 
 
 def test_get_model_template():

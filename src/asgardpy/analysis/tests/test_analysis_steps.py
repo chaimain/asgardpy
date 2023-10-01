@@ -48,3 +48,8 @@ def test_analysis_basics(gammapy_data_path, base_config):
 
     with pytest.raises(TypeError):
         AsgardpyAnalysis(base_config)
+
+    config_dict = {"general": {"n_jobs": 111}}
+    analysis_1.config = config_dict
+
+    assert analysis_1.config.general.n_jobs == 111

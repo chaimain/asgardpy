@@ -154,21 +154,23 @@ class DL3Files:
 
         if len(var_list) > 0:
             for _v in var_list:
-                try:
-                    filtered = [K for K in getattr(self, _v) if key in str(K.name)]
-                    assert len(filtered) == 1
-                except TypeError:
+                if key is not None:
+                    try:
+                        filtered = [K for K in getattr(self, _v) if key in str(K.name)]
+                        assert len(filtered) == 1
+                    except Exception:
+                        self.log.error(
+                            "Variable {%s} does not contain one element after filtering by {%s}",
+                            self._v,
+                            key,
+                        )
+                    else:
+                        self.log.info("Selecting the file with name containing %s", key)
+                        setattr(self, _v.replace("_files", "_f"), filtered[0])
+                else:
                     self.log.info("No distinct key provided, selecting the first file in the list")
                     setattr(self, _v.replace("_files", "_f"), getattr(self, _v)[0])
-                except Exception:
-                    self.log.error(
-                        "Variable {%s} does not contain one element after filtering by {%s}",
-                        self._v,
-                        key,
-                    )
-                else:
-                    self.log.info("Selecting the file with name containing %s", key)
-                    setattr(self, _v.replace("_files", "_f"), filtered[0])
+
                 file_list[_v.replace("files", "file")] = getattr(self, _v.replace("_files", "_f"))
 
         return file_list

@@ -629,10 +629,10 @@ class Dataset3DGeneration:
         Generate MapDataset for the given Instrument files using the Counts Map,
         and IRFs objects.
         """
-        try:
+        if self.exclusion_mask is not None:
             mask_safe = self.exclusion_mask
             self.log.info("Using the exclusion mask to create a safe mask")
-        except ValueError:
+        else:
             self.log.info("Using counts_map to create safe mask")
             mask_bool = np.zeros(self.events["counts_map"].geom.data_shape).astype("bool")
             mask_safe = Map.from_geom(self.events["counts_map"].geom, mask_bool)

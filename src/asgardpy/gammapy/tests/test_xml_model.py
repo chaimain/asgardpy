@@ -27,7 +27,7 @@ def test_xml(gammapy_data_path):
     data_3d.list_sources = Models(data_3d.list_sources)
 
     assert data_3d.list_sources[0].spatial_model.tag[0] == "GaussianSpatialModel"
-    assert data_3d.list_sources[0].spectral_model.model1.tag[1] == "lp"
+    assert data_3d.list_sources[0].spectral_model.tag[1] == "lp"
     assert data_3d.list_sources[1].spatial_model.tag[0] == "TemplateSpatialModel"
     assert data_3d.list_sources[2].spatial_model.tag[0] == "PointSpatialModel"
     assert data_3d.list_sources[2].spectral_model.tag[1] == "ecpl"
