@@ -185,12 +185,12 @@ def get_source_position(target_region, fits_header=None):
         try:
             dsval2 = fits_header["DSVAL2"]
             list_str_check = re.findall(r"[-+]?\d*\.\d+|\d+", dsval2)
-            ra_pos, dec_pos, events_radius = [float(k) for k in list_str_check]
-        except IndexError:
+        except KeyError:
             history = str(fits_header["HISTORY"])
             str_ = history.split("angsep(RA,DEC,")[1]
+            print("This is the string", str_)
             list_str_check = re.findall(r"[-+]?\d*\.\d+|\d+", str_)[:3]
-            ra_pos, dec_pos, events_radius = [float(k) for k in list_str_check]
+        ra_pos, dec_pos, events_radius = [float(k) for k in list_str_check]
 
         source_pos = SkyCoord(ra_pos, dec_pos, unit="deg", frame="fk5")
     else:

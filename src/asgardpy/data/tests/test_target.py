@@ -41,24 +41,24 @@ def test_set_models(base_config, gammapy_data_path):
     from asgardpy.base.base import PathType
     from asgardpy.data.target import set_models
 
-    analysis_0 = AsgardpyAnalysis(base_config)
-    analysis_1 = AsgardpyAnalysis(base_config)
-
-    # Check when using create_source_skymodel function
-    analysis_0.run(["datasets-3d"])
-    # Check when using read_models_from_asgardpy_config
-    analysis_1.run(["datasets-1d"])
-
-    analysis_0.config.target.source_name = "Crab Nebula"
-    analysis_1.config.target.source_name = "Crab Nebula"
-
     ebl_file_name = "ebl_franceschini_2017.fits.gz"
     ebl_file = f"{gammapy_data_path}ebl/{ebl_file_name}"
     model_file_0 = f"{gammapy_data_path}fermi-3fhl-crab/Fermi-LAT-3FHL_models.yaml"
     model_file_1 = f"{gammapy_data_path}fermi-3fhl-crab/Fermi-LAT-3FHL_datasets.yaml"
 
-    analysis_0.config.target.components[0].spectral.ebl_abs.filename = ebl_file
-    analysis_1.config.target.components[0].spectral.ebl_abs.filename = ebl_file
+    base_config.target.components[0].spectral.ebl_abs.filename = ebl_file
+
+    analysis_0 = AsgardpyAnalysis(base_config)
+    analysis_1 = AsgardpyAnalysis(base_config)
+
+    # Check when using create_source_skymodel function
+    analysis_0.config.target.from_3d = True
+    analysis_0.run(["datasets-3d"])
+    # Check when using read_models_from_asgardpy_config
+    analysis_1.run(["datasets-1d"])
+
+    analysis_1.config.target.source_name = "4FGL J0534.5+2201i"
+    analysis_0.config.target.source_name = "Crab Nebula"
 
     data_0, model_0 = set_models(
         analysis_0.config.target,
@@ -88,3 +88,5 @@ def test_set_models(base_config, gammapy_data_path):
     assert model_0[0].datasets_names == ["Fermi-LAT_00", "Fermi-LAT_01"]
     assert model_1[0].spectral_model.model2.filename.name == ebl_file_name
     assert model_2[0].spectral_model.model2.filename.name == ebl_file_name
+    assert analysis_0.final_model[0].spectral_model.model2.filename.name == ebl_file_name
+    # assert 1 == 2

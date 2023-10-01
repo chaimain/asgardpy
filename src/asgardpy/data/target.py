@@ -64,9 +64,9 @@ class EBLAbsorptionModel(BaseConfig):
     """
 
     filename: PathType = PathType("None")
-    reference: str = "dominguez"
+    reference: str = ""  # dominguez
     type: str = "EBLAbsorptionNormSpectralModel"
-    redshift: float = 0.4
+    redshift: float = 0.0
     alpha_norm: float = 1.0
 
 
@@ -639,7 +639,7 @@ def create_source_skymodel(config_target, source, aux_path, base_model_type="Fer
         for param_ in params_list:
             setattr(spectral_model, param_.name, param_)
         config_spectral = config_target.components[0].spectral
-        ebl_absorption_included = config_spectral.ebl_abs is not None
+        ebl_absorption_included = config_spectral.ebl_abs.reference != ""
 
         if is_source_target and ebl_absorption_included:
             ebl_model = config_spectral.ebl_abs

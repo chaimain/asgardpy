@@ -4,6 +4,7 @@ set  -eu
 
 GAMMAPY_DATA=${GAMMAPY_DATA:-""}
 
+# Used "zip -r9 fermipy_crab_zipped.zip ./" to zip the files
 OUT_ZIP="dev/fermipy_crab_zipped.zip"
 
 echo $GAMMAPY_DATA" is the path to Gammapy datasets"
