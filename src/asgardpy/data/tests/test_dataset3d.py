@@ -55,9 +55,10 @@ def test_dataset3d_different_config(base_config, caplog):
 def test_fermi_fits_file(gammapy_data_path):
     """Basic test on I/O of Fermi-LAT Fits files."""
 
-    from asgardpy.config import AsgardpyConfig
-    from asgardpy.base.geom import get_source_position
     from astropy.io import fits
+
+    from asgardpy.base.geom import get_source_position
+    from asgardpy.config import AsgardpyConfig
 
     config = AsgardpyConfig()
     fits_file = f"{gammapy_data_path}fermipy-crab/ft1_test.fits"

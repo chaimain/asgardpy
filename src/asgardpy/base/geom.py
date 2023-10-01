@@ -188,7 +188,6 @@ def get_source_position(target_region, fits_header=None):
         except KeyError:
             history = str(fits_header["HISTORY"])
             str_ = history.split("angsep(RA,DEC,")[1]
-            print("This is the string", str_)
             list_str_check = re.findall(r"[-+]?\d*\.\d+|\d+", str_)[:3]
         ra_pos, dec_pos, events_radius = [float(k) for k in list_str_check]
 

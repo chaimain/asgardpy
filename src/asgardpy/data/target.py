@@ -64,7 +64,7 @@ class EBLAbsorptionModel(BaseConfig):
     """
 
     filename: PathType = PathType("None")
-    reference: str = ""  # dominguez
+    reference: str = ""
     type: str = "EBLAbsorptionNormSpectralModel"
     redshift: float = 0.0
     alpha_norm: float = 1.0
