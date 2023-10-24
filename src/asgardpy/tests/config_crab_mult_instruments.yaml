@@ -1,16 +1,13 @@
-# Configuration file template for testing HESS (3D) + MAGIC (1D) joint analysis
-# with both DL3 files being GADF compliant
+# Configuration file template for Data analysis of multi instruments datasets,
+# reading from 3D and 1D DL3 files and SED DL5 file to create joint DL4 dataset
+# for the joint likelihood fit
 
 # General settings
 general:
   log:
     level: info
-    # filename: ../test_log.log
-    # filemode: a
-    # format: "%(asctime)s - %(message)s"
-    # datefmt: "%d-%b-%y %H:%M:%S"
   outdir: .
-  n_jobs: 10
+  n_jobs: 50
   parallel_backend: multiprocessing
   steps: [datasets-3d, datasets-1d, fit, flux-points]
   overwrite: true
@@ -18,15 +15,10 @@ general:
 
 # Target settings
 target:
-  source_name: &source_name "Crab Nebula"
-  sky_position: &source_pos {frame: icrs, lon: 83.633 deg, lat: 22.014 deg}
+  source_name: &source_name "4FGL J0534.5+2201i"
+  sky_position: &source_pos {frame: icrs, lon: 83.63308333 deg, lat: 22.0145 deg}
   use_uniform_position: true
-  # models_file:
-  use_catalog:
-    name: 3fhl
-    # selection_radius: 5 deg
-    exclusion_radius: 0.2 deg
-  datasets_with_fov_bkg_model: ["HESS"]
+  datasets_with_fov_bkg_model: []
   components:
   -   name: *source_name
       type: SkyModel
@@ -41,7 +33,7 @@ target:
               max: 0.01
               frozen: false
           -   name: reference
-              value: 0.01
+              value: 0.015
               unit: TeV
               error: 0.0
               min: 0.0001
@@ -55,7 +47,7 @@ target:
               max: 5.0
               frozen: false
           -   name: beta
-              value: 0.1
+              value: 0.01
               unit: ''
               error: 0.001
               min: 1.0e-6
@@ -66,27 +58,78 @@ target:
             type: EBLAbsorptionNormSpectralModel
             redshift: 0.0
             alpha_norm: 1.0
-      spatial:
-          type: PointSpatialModel
-          frame: icrs
-          parameters:
-          -   name: lon_0
-              value: 83.63
-              unit: deg
-          -   name: lat_0
-              value: 22.014
-              unit: deg
-
   covariance: None
   from_3d: false
-  # roi_selection:
+  roi_selection:
     # roi_radius: 5 deg
-    # free_sources: ["4FGL J0521.7+2112", "4FGL J0528.3+1817", "4FGL J0536.2+1733", "4FGL J0534.5+2200"]
+    free_sources: ["4FGL J0521.7+2112", "4FGL J0528.3+1817", "4FGL J0536.2+1733", "4FGL J0534.5+2200"]
 
 # Instrument datasets with 3D info
 dataset3d:
   type: "3d"
   instruments:
+  -   name: Fermi-LAT
+      input_dl3:
+      -   type: lat
+          input_dir: "." #../../gammapy-datasets/1.1/fermipy-crab/
+          glob_pattern:
+            events: "ft1*.fits*"
+            edisp: "drm*.fits*"
+            xml_model: "srcmdl*.xml"
+            exposure: "bexpmap*.fits*"
+            psf: "psf*.fits*"
+      -   type: lat-aux
+          input_dir: "." #../../gammapy-datasets/1.1/fermipy-crab/
+          glob_pattern:
+            gal_diffuse: "gll_iem_v07_cutout.fits*"
+            iso_diffuse: "iso_P8R3_SOURCE_V3_*.txt"
+      dataset_info:
+        name: Fermi-LAT
+        key: ["00", "01"]
+        # map_selection: []
+        geom:
+          from_events_file: true
+          wcs:
+            binsize: 0.1 deg
+            proj: TAN
+            map_frame_shape:
+              width: 4 deg
+              height: 4 deg
+          axes:
+          -   name: energy
+              axis:
+                min: "1 GeV"
+                max: "1 TeV"
+                nbins: 8
+                per_decade: true
+        background:
+          # method: reflected
+          # parameters:
+          exclusion:
+            target_source: true
+            regions:
+            -   type: CircleAnnulusSkyRegion
+                name: *source_name
+                position: *source_pos
+                parameters:
+                  rad_0: 5 deg
+                  rad_1: 30 deg
+            -   type: CircleSkyRegion
+                name: "4FGL J0521.7+2112"
+                parameters:
+                  region_radius: 0.5 deg
+        # safe_mask:
+        on_region: *source_pos
+          # radius: 0.4 deg
+        containment_correction: true
+      dl4_dataset_info:
+        spectral_energy_range:
+          name: energy
+          axis:
+            min: 1 GeV
+            max: 562.34132519 GeV
+            nbins: 2
+            per_decade: true
   -   name: HESS
       input_dl3:
       -   type: gadf-dl3
@@ -99,11 +142,6 @@ dataset3d:
         # map_selection: []
         observation:
           obs_cone: {frame: icrs, lon: 83.633 deg, lat: 22.014 deg, radius: 5 deg}
-          obs_time:
-            format: "iso"
-            intervals:
-              - start: "2004-12-04"
-                stop: "2004-12-07"
           required_irfs: ["aeff", "edisp", "psf", "bkg"]
         geom:
           from_events_file: False
@@ -140,7 +178,6 @@ dataset3d:
           #  min: 1 GeV
           #  max: 1 TeV
         on_region: {frame: icrs, lon: 83.633 deg, lat: 22.014 deg, radius: 5 deg}
-          # radius: 0.4 deg # Have to figure how to use this later
         containment_correction: true
       dl4_dataset_info:
         # dl4_dataset:
@@ -213,7 +250,7 @@ dataset1d:
             # aeff_percent: 10
             # min: "100 GeV"
             # max: "40 TeV"
-        on_region: *source_pos # {frame: icrs, lon: 83.633 deg, lat: 22.02 deg, radius: 0.2 deg}
+        on_region: *source_pos # {frame: icrs, lon: 83.633 deg, lat: 22.0145 deg, radius: 0.2 deg}
         containment_correction: false
         map_selection: [counts, exposure, edisp]
       dl4_dataset_info:
@@ -233,11 +270,12 @@ dataset1d:
             unit: TeV
             edges: [0.0631, 0.1, 0.1585, 0.2512, 0.3981, 0.631, 1.0, 1.585, 2.512]
 
+
 # Fit parameters
 fit_params:
   fit_range:
-    min: "100 GeV"
-    max: "10 TeV"
+    min: "1 GeV"
+    max: "300 TeV"
   backend: minuit
   optimize_opts: {}
   covariance_opts: {}
@@ -248,3 +286,4 @@ flux_points_params:
   parameters:
     selection_optional: "all"
   reoptimize: false
+
