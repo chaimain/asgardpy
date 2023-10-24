@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix minor project descriptions. [#137](https://github.com/chaimain/asgardpy/pull/137)
+- Further update test coverage. [#138](https://github.com/chaimain/asgardpy/pull/138)
+
+## [v0.4.1](https://github.com/chaimain/asgardpy/releases/tag/v0.4.1) - 2023-09-27
+
+### Fixed
+
+- Restructure package to follow some PEP guidelines. [#126](https://github.com/chaimain/asgardpy/pull/126)
+- Updated pytests to follow proper code style. (See Issue [#127](https://github.com/chaimain/asgardpy/issues/127))[#131](https://github.com/chaimain/asgardpy/pull/131)
+- Correct the calculation of Goodness of Fit stats. (See Issue [#130](https://github.com/chaimain/asgardpy/issues/130))[#132](https://github.com/chaimain/asgardpy/pull/132)
+- Update test coverage on reading XML models. [#133](https://github.com/chaimain/asgardpy/pull/133)
+- Update documentation and test coverage. [#134](https://github.com/chaimain/asgardpy/pull/134)
+- Replaced dynamic versioning to static versioning. (See Issue [#135](https://github.com/chaimain/asgardpy/issues/135))[#136](https://github.com/chaimain/asgardpy/pull/136)
+
 ## [v0.4.0](https://github.com/chaimain/asgardpy/releases/tag/v0.4.0) - 2023-08-31
 
 ### Added

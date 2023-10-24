@@ -1,19 +1,33 @@
+# setuptools_scm generated version file
+_version.py
+
 # build artifacts
 
 .eggs/
 .mypy_cache
 *.egg-info/
+*.egg
 build/
 dist/
+sdist/
+lib/
+lib64/
 pip-wheel-metadata/
+MANIFEST
 
 
 # dev tools
 
+.env
+env/
 .envrc
 .python-version
 .idea
 .venv/
+venv/
+ENV/
+env.bak/
+venv.bak/
 .vscode/
 /*.iml
 
@@ -36,6 +50,10 @@ doc/_build/
 *.pyc
 *.pyo
 __pycache__
+
+
+# PEP 582; used by e.g. github.com/David-OConnor/pyflow
+__pypackages__/
 
 
 # testing and continuous integration
