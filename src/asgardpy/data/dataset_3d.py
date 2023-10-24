@@ -155,9 +155,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             # Retrieving a single dataset for each instrument.
             for key in key_names:
                 if not config_3d_dataset.input_dl4:
-                    generate_3d_dataset = Dataset3DGeneration(
-                        self.log, config_3d_dataset, self.config
-                    )
+                    generate_3d_dataset = Dataset3DGeneration(self.log, config_3d_dataset, self.config)
                     dataset, models = generate_3d_dataset.run(key, filled_skymodel)
                 else:
                     dataset = dl4_files.get_dl4_dataset(config_3d_dataset.dataset_info.observation)

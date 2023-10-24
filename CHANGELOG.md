@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix minor project descriptions. [#137](https://github.com/chaimain/asgardpy/pull/137)
 - Further update test coverage. [#138](https://github.com/chaimain/asgardpy/pull/138)
+- Update a notebook to show full capability of Asgardpy . [#139](https://github.com/chaimain/asgardpy/pull/139)
 
 ## [v0.4.1](https://github.com/chaimain/asgardpy/releases/tag/v0.4.1) - 2023-09-27
 
