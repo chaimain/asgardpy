@@ -18,15 +18,31 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.abspath("../../"))
 
-from asgardpy.version import VERSION, VERSION_SHORT  # noqa: E402
+from asgardpy.version import __base_version__, __version__  # noqa: E402
+import tomllib
 
 # -- Project information -----------------------------------------------------
 
-project = "asgardpy"
-copyright = f"{datetime.today().year}, Allen Institute for Artificial Intelligence"
-author = "Allen Institute for Artificial Intelligence"
-version = VERSION
-release = VERSION_SHORT
+with open(
+    os.path.join(
+        os.path.dirname(__file__), "../../", "pyproject.toml"
+    ), "rb"
+) as f:
+    project_info = tomllib.load(f)
+
+project = project_info["project"]["name"]
+
+# Read the list of author names
+author = ""
+for auth in project_info["project"]["authors"]:
+    author += auth["name"] + ", "
+author = author[:-2]
+
+copyright = f"{datetime.today().year}, {author}"
+
+version = __version__
+# The full version contains alpha, beta, rc tags
+release = __base_version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -64,7 +80,7 @@ templates_path = ["_templates"]
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ["_build"]
+exclude_patterns = ["_build", "changes"]
 
 source_suffix = [".rst", ".md"]
 
@@ -90,6 +106,26 @@ autodoc_pydantic_model_show_field_summary = True
 # Include default values when documenting parameter types.
 typehints_defaults = "comma"
 
+
+# Define the json_url for our version switcher.
+# json_url = "https://asgardpy.readthedocs.io/en/latest/_static/switcher.json"
+
+# Define the version we use for matching in the version switcher.,
+# version_match = os.getenv("READTHEDOCS_VERSION")
+# If READTHEDOCS_VERSION doesn't exist, we're not on RTD
+# If it is an integer, we're in a PR build and the version isn't correct.
+# if not version_match or version_match.isdigit():
+    # For local development, infer the version to match from the package.
+    # if "dev" in release or "rc" in release:
+    #     version_match = "latest"
+    # else:
+    #     version_match = release
+
+    # We want to keep the relative reference when on a pull request or locally
+    # json_url = "_static/switcher.json"
+
+
+
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -97,7 +133,7 @@ typehints_defaults = "comma"
 #
 html_theme = "furo"
 
-html_title = f"asgardpy v{VERSION}"
+html_title = f"{project} v{__base_version__}"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -121,6 +157,11 @@ html_theme_options = {
             "class": "",
         },
     ],
+    # "navbar_start": ["navbar-logo", "version-switcher"],
+    # "switcher": {
+    #     "version_match": version_match,
+    #     "json_url": json_url,
+    # },
 }
 
 # -- Hack to get rid of stupid warnings from sphinx_autodoc_typehints --------

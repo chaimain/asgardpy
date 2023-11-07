@@ -19,6 +19,7 @@ env:
   CACHE_PREFIX: v0
   PYTHONPATH: ./
   PYTEST_ADDOPTS: -v --color=yes
+  GITHUB_PR_NUMBER: ${{ github.event.number }}
 
 jobs:
   checks:
@@ -90,6 +91,12 @@ jobs:
           python-version: ${{ matrix.python }}
           cache-prefix: ${{ env.CACHE_PREFIX }}
 
+      - name: Produce Changelog
+        if: matrix.task.name == 'Docs'
+        run: |
+          python -m pip install towncrier
+          towncrier build --yes
+
       - name: Download Gammapy Datasets
         if: matrix.task.name == 'Test'
         run: |
@@ -152,7 +159,7 @@ jobs:
 
       - name: Install requirements
         run: |
-          pip install --upgrade build
+          pip install --upgrade build towncrier
           python -m build
 
       - name: Prepare environment
