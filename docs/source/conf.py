@@ -23,11 +23,7 @@ sys.path.insert(0, os.path.abspath("../../"))
 
 # -- Project information -----------------------------------------------------
 
-with open(
-    os.path.join(
-        os.path.dirname(__file__), "../../", "pyproject.toml"
-    ), "rb"
-) as f:
+with open(os.path.join(os.path.dirname(__file__), "../../", "pyproject.toml"), "rb") as f:
     project_info = tomllib.load(f)
 
 project = project_info["project"]["name"]
@@ -115,15 +111,14 @@ typehints_defaults = "comma"
 # If READTHEDOCS_VERSION doesn't exist, we're not on RTD
 # If it is an integer, we're in a PR build and the version isn't correct.
 # if not version_match or version_match.isdigit():
-    # For local development, infer the version to match from the package.
-    # if "dev" in release or "rc" in release:
-    #     version_match = "latest"
-    # else:
-    #     version_match = release
+# For local development, infer the version to match from the package.
+# if "dev" in release or "rc" in release:
+#     version_match = "latest"
+# else:
+#     version_match = release
 
-    # We want to keep the relative reference when on a pull request or locally
-    # json_url = "_static/switcher.json"
-
+# We want to keep the relative reference when on a pull request or locally
+# json_url = "_static/switcher.json"
 
 
 # -- Options for HTML output -------------------------------------------------

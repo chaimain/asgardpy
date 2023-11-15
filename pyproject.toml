@@ -152,7 +152,8 @@ exclude = [
     "docs/build",
     "dist",
     ".mypy_cache",
-    "src/asgardpy/version.py"
+    "src/asgardpy/version.py",
+    "src/asgardpy/_version.py"
 ]
 
 [tool.ruff.per-file-ignores]
@@ -182,6 +183,7 @@ exclude = '''
     | \.venv
     | \bdist\b
     | \bdoc\b
+    | src/asgardpy/_version.py
 )
 '''
 
