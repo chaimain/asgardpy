@@ -95,6 +95,7 @@ jobs:
         if: matrix.task.name == 'Docs'
         run: |
           python -m pip install towncrier
+          python -m pip install -e .[dev]
           towncrier build --yes
 
       - name: Download Gammapy Datasets
@@ -172,11 +173,11 @@ jobs:
         with:
           name: package
           path: dist
-
+"""
       - name: Generate release notes
         run: |
           python scripts/release_notes.py > ${{ github.workspace }}-RELEASE_NOTES.md
-
+"""
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:

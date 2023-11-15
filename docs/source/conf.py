@@ -7,7 +7,10 @@
 import logging
 import os
 import sys
+import tomllib
 from datetime import datetime
+
+from asgardpy.version import __base_version__, __version__  # noqa: E402
 
 # -- Path setup --------------------------------------------------------------
 
@@ -17,9 +20,6 @@ from datetime import datetime
 #
 
 sys.path.insert(0, os.path.abspath("../../"))
-
-from asgardpy.version import __base_version__, __version__  # noqa: E402
-import tomllib
 
 # -- Project information -----------------------------------------------------
 
