@@ -1,8 +1,178 @@
+# For more information on the content of this file,
+# the developer documentation and the PyPA packaging documentation
+# * https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#declaring-project-metadata
+# * The setuptools and setuptools_scm documentation for the respective sections
+[build-system]
+requires = ["setuptools", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+# See https://setuptools.pypa.io/en/latest/userguide/quickstart.html for more project configuration options.
+name = "asgardpy"
+
+description = "Gammapy-based pipeline for easy joint analysis of different gamma-ray datasets"
+
+# needed for setuptools_scm, we don't define a static version
+dynamic = ["version"]
+
+readme = "README.md"
+authors = [
+  {name = "Chaitanya Priyadarshi", email = "chaitanya.p.astrphys@gmail.com"},
+  {name = "Mireia Nievas Rosillo", email = "mnievas.work@gmail.com"},
+]
+maintainers = [
+  {name = "Chaitanya Priyadarshi", email = "chaitanya.p.astrphys@gmail.com"},
+]
+license = {text = "Apache-2.0"}
+# license_files = "LICENSE" For when PEP 639 is approved
+
+keywords = [
+  "Astronomy",
+  "Gamma-rays",
+  "Data analysis",
+]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Astronomy",
+]
+
+requires-python = ">=3.11"
+dependencies = [
+  "numpy",
+  "scipy>=1.4,!=1.10",
+  "astropy>=5.1",
+  "jupyter",
+  "gammapy~=1.1",
+  "regions>0.5",
+  "matplotlib>=3.4",
+  "seaborn",
+  "iminuit>=2.8.0",
+  "ruamel.yaml",
+  "xmltodict",
+  "tqdm",
+  "pydantic<2",
+  "towncrier",
+]
+
+[project.urls]
+Homepage = "https://github.com/chaimain/asgardpy"
+Repository = "https://github.com/chaimain/asgardpy"
+# Changelog = "https://github.com/chaimain/asgardpy/blob/main/CHANGELOG.md"
+Documentation = "https://asgardpy.readthedocs.io/en/latest/"
+
+[project.optional-dependencies]
+# Have more references like doc, test, etc?
+dev = [
+  "ruff",
+  "codespell",
+  "mypy>=1.2",
+  "black>=22.10",
+  "isort>=5.10",
+  "pytest>7.0",
+  "pytest-sphinx",
+  "pytest-cov",
+  "build",
+  "setuptools_scm",
+  "Sphinx>=6.0,<8",
+  "furo>=2022.12.7",
+  "myst-parser>=2.0",
+  "sphinx-copybutton>=0.5.0",
+  "sphinx-autobuild>=2021.3.14",
+  "sphinx-autodoc-typehints",
+  "autodoc_pydantic<2",
+  "packaging",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+exclude = [
+    "asgardpy._dev_version",
+    # "*.tests",
+    # "*.tests.*",
+    # "tests.*",
+    "tests",
+    "docs",
+    "scripts",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+asgardpy = ["py.typed"]
+
+# [tool.setuptools.dynamic]
+# version = {attr = "asgardpy.version.VERSION"}
+
+[tool.setuptools_scm]
+write_to = 'src/asgardpy/_version.py'
+
+[tool.towncrier]
+    package = "asgardpy"
+    directory = "docs/changes"
+    filename = "CHANGES.rst"
+    template = "docs/changes/template.rst"
+    # let towncrier create proper links to the merged PR
+    issue_format = "`#{issue} <https://github.com/chaimain/asgardpy/pull/{issue}>`__"
+
+    [tool.towncrier.fragment.feature]
+        name = "New Features"
+        showcontent = true
+
+    [tool.towncrier.fragment.bugfix]
+        name = "Bug Fixes"
+        showcontent = true
+
+    [tool.towncrier.fragment.api]
+        name = "API Changes"
+        showcontent = true
+
+    [tool.towncrier.fragment.maintenance]
+        name = "Maintenance"
+        showcontent = true
+
+    [[tool.towncrier.section]]
+        name = ""
+        path = ""
+
+
+[tool.ruff]
+src = ["src"]
+line-length = 115
+target-version = "py311"
+ignore = ["E203"]
+# whitespace before : E203
+exclude = [
+    ".venv",
+    ".git",
+    "__pycache__",
+    "docs/build",
+    "dist",
+    ".mypy_cache",
+    "src/asgardpy/version.py",
+    "src/asgardpy/_version.py"
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+"*/**/**/__init__.py" = ["F401", "E501"]
+
+[tool.mypy]
+ignore_missing_imports = true
+no_site_packages = true
+show_error_codes = true
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+strict_optional = false
+
 [tool.black]
-line-length = 100
-
+line-length = 115
 include = '\.pyi?$'
-
 exclude = '''
 (
       __pycache__
@@ -13,22 +183,34 @@ exclude = '''
     | \.venv
     | \bdist\b
     | \bdoc\b
+    | src/asgardpy/_version.py
 )
 '''
+
+[tool.codespell]
+skip = '*.ipynb,*.map,*.css,*.js'
+ignore-words = "dev/codespell_ignore_words.txt"
+count = ''
+quiet-level = 3
 
 [tool.isort]
 profile = "black"
 multi_line_output = 3
 
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [tool.pytest.ini_options]
-markers = [
-	"test_data"
+minversion = "6.0"
+addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
+xfail_strict = true
+testpaths = "tests/"
+python_classes = [
+  "Test*",
+  "*Test"
 ]
+markers = ["test_data"]
 filterwarnings = [
     "error::astropy.utils.exceptions.AstropyDeprecationWarning",
     "error::gammapy.utils.deprecation.GammapyDeprecationWarning",
 ]
+log_format = "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+log_level = "INFO"
+log_cli_level = "INFO"

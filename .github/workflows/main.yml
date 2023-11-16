@@ -19,12 +19,13 @@ env:
   CACHE_PREFIX: v0
   PYTHONPATH: ./
   PYTEST_ADDOPTS: -v --color=yes
+  GITHUB_PR_NUMBER: ${{ github.event.number }}
 
 jobs:
   checks:
     name: Python ${{ matrix.python }} - ${{ matrix.task.name }}
     runs-on: [ubuntu-latest]
-    timeout-minutes: 15
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -33,13 +34,16 @@ jobs:
           - name: Test
             run: |
               pip install pytest-cov pytest-xdist coverage
-              pytest -n auto --dist loadscope --cov --cov-report=xml -m 'test_data or not test_data' asgardpy
+              pytest -n auto --dist loadscope \
+                --cov --cov-report=xml \
+                -m 'test_data or not test_data' src/asgardpy \
+                -v
 
         include:
           - python: '3.11'
             task:
               name: Lint
-              run: flake8 .
+              run: ruff check .
 
           - python: '3.11'
             task:
@@ -50,8 +54,7 @@ jobs:
             task:
               name: Build
               run: |
-                python setup.py check
-                python setup.py bdist_wheel sdist
+                python -m build
 
           - python: '3.11'
             task:
@@ -68,7 +71,7 @@ jobs:
           - python: '3.11'
             task:
               name: Spell check
-              run: codespell asgardpy
+              run: codespell src/asgardpy
 
     steps:
       - name: Increase swapfile
@@ -80,7 +83,7 @@ jobs:
           sudo swapon /swapfile
           sudo swapon --show
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Python environment
         uses: ./.github/actions/setup-venv
@@ -88,18 +91,24 @@ jobs:
           python-version: ${{ matrix.python }}
           cache-prefix: ${{ env.CACHE_PREFIX }}
 
+      - name: Produce Changelog
+        if: matrix.task.name == 'Docs'
+        run: |
+          python -m pip install towncrier
+          python -m pip install -e .[dev]
+          towncrier build --yes
+
       - name: Download Gammapy Datasets
         if: matrix.task.name == 'Test'
         run: |
           python -m pip install tqdm requests
-          python -m pip install -e .
+          python -m pip install -e .[dev]
 
           gammapy download datasets
 
       - name: Download test data
         if: matrix.task.name == 'Test'
         env:
-          ASGARDPY_DATA: ${{ secrets.asgardpy_data }}
           GAMMAPY_DATA: /home/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
         run: |
           ./scripts/download_asgardpy_data.sh
@@ -132,9 +141,15 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs: [checks]
-    if: startsWith(github.ref, 'refs/tags/')
+    if: startsWith(github.ref, 'refs/tags/v')
+    # Specifying a GitHub environment is optional, but strongly encouraged
+    environment: release
+    permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
+      contents: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -145,8 +160,8 @@ jobs:
 
       - name: Install requirements
         run: |
-          pip install --upgrade pip setuptools wheel
-          pip install -r dev-requirements.txt
+          pip install --upgrade build towncrier
+          python -m build
 
       - name: Prepare environment
         run: |
@@ -159,13 +174,11 @@ jobs:
           name: package
           path: dist
 
-      - name: Generate release notes
-        run: |
-          python scripts/release_notes.py > ${{ github.workspace }}-RELEASE_NOTES.md
-
       - name: Publish package to PyPI
-        run: |
-          twine upload -u '${{ secrets.PYPI_USERNAME }}' -p '${{ secrets.PYPI_PASSWORD }}' dist/*
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true  # remove this for post 0.4.1 releases
+          verbose: true
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v1

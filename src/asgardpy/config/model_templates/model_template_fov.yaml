@@ -1,0 +1,32 @@
+target:
+  components:
+  -   type: FoVBackgroundModel
+      spectral:
+          type: PowerLawNormSpectralModel
+          parameters:
+          -   name: norm
+              value: 1.3
+              unit: ''
+              min: 0.0
+              max: .nan
+              frozen: false
+              error: 0.075
+          -   name: tilt
+              value: 0.0
+              unit: ''
+              min: .nan
+              max: .nan
+              frozen: true
+              error: 0.0
+          -   name: reference
+              value: 1.0
+              unit: TeV
+              min: .nan
+              max: .nan
+              frozen: true
+              error: 0.0
+      spatial:
+          type: ConstantSpatialModel
+          parameters:
+          -   value: 10
+              unit: "sr-1"
