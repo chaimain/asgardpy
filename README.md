@@ -1,6 +1,7 @@
-# asgardpy [![Build Status](https://github.com/chaimain/asgardpy/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/chaimain/asgardpy/actions?query=branch%3Amain) [![codecov](https://codecov.io/gh/chaimain/asgardpy/branch/main/graph/badge.svg?token=0XEI9W8AKJ)](https://codecov.io/gh/chaimain/asgardpy) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8106369.svg)](https://doi.org/10.5281/zenodo.8106369) ![PyPI](https://img.shields.io/pypi/v/asgardpy?label=pypi%20asgardpy) [![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/7699/badge)](https://bestpractices.coreinfrastructure.org/projects/7699) [![gammapy](https://img.shields.io/badge/powered%20by-gammapy-orange.svg?style=flat)](https://www.gammapy.org/) [![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](https://www.astropy.org/)
+Agardpy: Analysis Software for GAmma-Ray Data in Python
+=======================================================
 
-## Analysis Software for GAmma-Ray Data in Python
+[![Build Status](https://github.com/chaimain/asgardpy/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/chaimain/asgardpy/actions?query=branch%3Amain) [![codecov](https://codecov.io/gh/chaimain/asgardpy/branch/main/graph/badge.svg?token=0XEI9W8AKJ)](https://codecov.io/gh/chaimain/asgardpy) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8106369.svg)](https://doi.org/10.5281/zenodo.8106369) ![PyPI](https://img.shields.io/pypi/v/asgardpy?label=pypi%20asgardpy) [![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/7699/badge)](https://bestpractices.coreinfrastructure.org/projects/7699) [![gammapy](https://img.shields.io/badge/powered%20by-gammapy-orange.svg?style=flat)](https://www.gammapy.org/) [![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](https://www.astropy.org/)
 
 'User-friendly' configuration-centred pipeline built over [Gammapy](https://github.com/gammapy/gammapy) to allow for easy simultaneous analysis of various datasets of different formats.
 Example: 3D Fermi-LAT (with various source models in the Region of Interest stored in XML file) + 1D energy-dependent directional cuts MAGIC/LST [PointSkyRegion geometry for ON region] + 1D global directional cut VERITAS [CircleSkyRegion geometry for ON region].
@@ -23,7 +24,7 @@ For working with some public data to check the pipeline functionality, one shoul
 Examples of usage of asgardpy is shown in jupyter notebooks in ``notebooks/``.
 
 # Cite
-If you use Asgardpy in a publication, please cite the exact version you used from Zenodo _Cite as_ https://doi.org/10.5281/zenodo.8106369
+If you use Asgardpy in a publication, please cite the exact version you used from Zenodo _Cite_ as https://doi.org/10.5281/zenodo.8106369
 
 # Pipeline Template
 

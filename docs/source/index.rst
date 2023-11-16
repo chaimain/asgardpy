@@ -33,7 +33,15 @@ GitHub Repository: https://github.com/chaimain/asgardpy
    additional_model_input
    additional_stats
    installation
-   CHANGELOG
+
+.. _changes:
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Changelogs
+   :name: _changes
+
+   changelog
 
 .. _api:
 
