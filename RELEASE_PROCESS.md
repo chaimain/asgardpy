@@ -2,23 +2,13 @@
 
 ## Steps
 
-1. Update the version in `src/asgardpy/version.py`.
+1. Open a new pull request to prepare the release. This should be the last pull
+  request to be merged before making the actual release.
 
-2. Run the release script:
+  Run `towncrier` in to render the changelog:
 
-    ```bash
-    ./scripts/release.sh
     ```
-
-    This will commit the changes to the CHANGELOG and `version.py` files and then create a new tag in git
-    which will trigger a workflow on GitHub Actions that handles the rest.
-
-## Fixing a failed release
-
-If for some reason the GitHub Actions release workflow failed with an error that needs to be fixed, you'll have to delete both the tag and corresponding release from GitHub. After you've pushed a fix, delete the tag from your local clone with
-
-```bash
-git tag -l | xargs git tag -d && git fetch -t
-```
-
-Then repeat the steps above.
+    git fetch
+    git switch -c prepare_<VERSION NUMBER> origin/main
+    towncrier build --version=<VERSION NUMBER>
+    ```
