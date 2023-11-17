@@ -33,6 +33,29 @@ def test_config_basic():
         AsgardpyConfig.from_yaml(config_str_2)
 
 
+def test_config_time():
+    """Test for reading Time inputs."""
+    from pydantic import ValidationError
+
+    config = AsgardpyConfig()
+
+    with pytest.raises(ValidationError):
+        config.dataset1d.instruments[0].dataset_info.observation.obs_time = {
+            "intervals":
+                [{"format": "abc", "start": "2000-01-01", "stop": "2001-01-01"}]
+        }
+    with pytest.raises(ValueError):
+        config.dataset1d.instruments[0].dataset_info.observation.obs_time = {
+            "intervals":
+                [{"format": "iso", "start": "60000", "stop": "2001-01-01"}]
+        }
+    with pytest.raises(ValueError):
+        config.dataset1d.instruments[0].dataset_info.observation.obs_time = {
+            "intervals":
+                [{"format": "iso", "start": "2001-01-01", "stop": "60000"}]
+        }
+
+
 def test_get_model_template():
     """Test for reading a model template by a given tag."""
 
