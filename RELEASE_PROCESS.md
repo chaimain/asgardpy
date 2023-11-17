@@ -7,7 +7,7 @@
 
   Run `towncrier` in to render the changelog:
 
-    ```
+    ```bash
     git fetch
     git switch -c prepare_<VERSION NUMBER> origin/main
     towncrier build --version=<VERSION NUMBER>
