@@ -3,7 +3,7 @@
 # * https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#declaring-project-metadata
 # * The setuptools and setuptools_scm documentation for the respective sections
 [build-system]
-requires = ["setuptools"]  # , "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -54,12 +54,13 @@ dependencies = [
   "xmltodict",
   "tqdm",
   "pydantic<2",
+  "towncrier",
 ]
 
 [project.urls]
 Homepage = "https://github.com/chaimain/asgardpy"
 Repository = "https://github.com/chaimain/asgardpy"
-Changelog = "https://github.com/chaimain/asgardpy/blob/main/CHANGELOG.md"
+# Changelog = "https://github.com/chaimain/asgardpy/blob/main/CHANGELOG.md"
 Documentation = "https://asgardpy.readthedocs.io/en/latest/"
 
 [project.optional-dependencies]
@@ -74,7 +75,7 @@ dev = [
   "pytest-sphinx",
   "pytest-cov",
   "build",
-  # "setuptools_scm",
+  "setuptools_scm",
   "Sphinx>=6.0,<8",
   "furo>=2022.12.7",
   "myst-parser>=2.0",
@@ -88,7 +89,7 @@ dev = [
 [tool.setuptools.packages.find]
 where = ["src"]
 exclude = [
-    # "asgardpy._dev_version",
+    "asgardpy._dev_version",
     # "*.tests",
     # "*.tests.*",
     # "tests.*",
@@ -103,11 +104,40 @@ include-package-data = true
 [tool.setuptools.package-data]
 asgardpy = ["py.typed"]
 
-[tool.setuptools.dynamic]
-version = {attr = "asgardpy.version.VERSION"}
+# [tool.setuptools.dynamic]
+# version = {attr = "asgardpy.version.VERSION"}
 
-# [tool.setuptools_scm]
-# write_to = 'src/asgardpy/_version.py'
+[tool.setuptools_scm]
+write_to = 'src/asgardpy/_version.py'
+
+[tool.towncrier]
+    package = "asgardpy"
+    directory = "docs/changes"
+    filename = "CHANGES.rst"
+    template = "docs/changes/template.rst"
+    # let towncrier create proper links to the merged PR
+    issue_format = "`#{issue} <https://github.com/chaimain/asgardpy/pull/{issue}>`__"
+
+    [tool.towncrier.fragment.feature]
+        name = "New Features"
+        showcontent = true
+
+    [tool.towncrier.fragment.bugfix]
+        name = "Bug Fixes"
+        showcontent = true
+
+    [tool.towncrier.fragment.api]
+        name = "API Changes"
+        showcontent = true
+
+    [tool.towncrier.fragment.maintenance]
+        name = "Maintenance"
+        showcontent = true
+
+    [[tool.towncrier.section]]
+        name = ""
+        path = ""
+
 
 [tool.ruff]
 src = ["src"]
@@ -122,7 +152,8 @@ exclude = [
     "docs/build",
     "dist",
     ".mypy_cache",
-    "src/asgardpy/version.py"
+    "src/asgardpy/version.py",
+    "src/asgardpy/_version.py"
 ]
 
 [tool.ruff.per-file-ignores]
@@ -152,6 +183,7 @@ exclude = '''
     | \.venv
     | \bdist\b
     | \bdoc\b
+    | src/asgardpy/_version.py
 )
 '''
 

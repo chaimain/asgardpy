@@ -1,0 +1,2 @@
+Adapt the basic Time format to use any format and list of intervals as part of BaseConfig.
+Remove redundant classes, adapt tests and use TimeIntervalsType as the main Time input type.

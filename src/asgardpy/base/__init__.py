@@ -11,9 +11,7 @@ from asgardpy.base.base import (
     FrameEnum,
     PathType,
     TimeFormatEnum,
-    TimeIntervalsConfig,
-    TimeRangeConfig,
-    TimeType,
+    TimeIntervalsType,
 )
 from asgardpy.base.reduction import (
     ObservationsConfig,
@@ -76,9 +74,7 @@ __all__ = [
     "SelectionConfig",
     "SkyPositionConfig",
     "TimeFormatEnum",
-    "TimeIntervalsConfig",
-    "TimeRangeConfig",
-    "TimeType",
+    "TimeIntervalsType",
     "WcsConfig",
     "create_counts_map",
     "generate_dl4_dataset",

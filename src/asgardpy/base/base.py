@@ -19,9 +19,7 @@ __all__ = [
     "FrameEnum",
     "PathType",
     "TimeFormatEnum",
-    "TimeIntervalsConfig",
-    "TimeRangeConfig",
-    "TimeType",
+    "TimeIntervalsType",
 ]
 
 
@@ -51,18 +49,6 @@ class EnergyType(u.Quantity):
         if v.unit.physical_type != "energy":
             raise ValueError(f"Invalid unit for energy: {v.unit!r}")
         return v
-
-
-class TimeType(Time):
-    """Base Time Type Quantity"""
-
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v):
-        return Time(v)
 
 
 class PathType(str):
@@ -107,6 +93,45 @@ class TimeFormatEnum(str, Enum):
     unix = "unix"
 
 
+class TimeIntervalsType(List):
+    """
+    Config section for getting main information for creating a Time Intervals
+    object.
+    """
+
+    intervals: List[dict] = [{"format": TimeFormatEnum.iso, "start": "1970-01-01", "stop": "2000-01-01"}]
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v):
+        list_times = []
+        if isinstance(v, List):
+            if len(v) != 0:
+                v_intervals = v[0]
+            else:
+                return v
+        elif isinstance(v, dict):
+            v_intervals = v["intervals"]
+        for vv in v_intervals:
+            range = {}
+
+            if Time(vv["start"], format=vv["format"]):
+                range["start"] = Time(vv["start"], format=vv["format"])
+            else:
+                raise ValueError(f"{vv['start']} is not the right Time value for format {vv['format']}")
+
+            if Time(vv["stop"], format=vv["format"]):
+                range["stop"] = Time(vv["stop"], format=vv["format"])
+            else:
+                raise ValueError(f"{vv['stop']} is not the right Time value for format {vv['format']}")
+            list_times.append(range)
+
+        return list_times
+
+
 class BaseConfig(BaseModel):
     """
     Base Config class for creating other Config sections with specific encoders.
@@ -119,32 +144,12 @@ class BaseConfig(BaseModel):
         json_encoders = {
             Angle: lambda v: f"{v.value} {v.unit}",
             u.Quantity: lambda v: f"{v.value} {v.unit}",
-            Time: lambda v: f"{v.value}",
             Path: lambda v: PathType(v),
+            Time: lambda v: TimeIntervalsType(v),
         }
 
 
 # Basic Quantity ranges Type for building the Config
-class TimeRangeConfig(BaseConfig):
-    """
-    Config section for getting a time range information for creating a Time
-    object.
-    """
-
-    start: TimeType = Time("1970-01-01", format="iso")
-    stop: TimeType = Time("2000-01-01", format="iso")
-
-
-class TimeIntervalsConfig(BaseConfig):
-    """
-    Config section for getting main information for creating a Time Intervals
-    object.
-    """
-
-    format: TimeFormatEnum = TimeFormatEnum.iso
-    intervals: List[TimeRangeConfig] = [TimeRangeConfig()]
-
-
 class EnergyRangeConfig(BaseConfig):
     """
     Config section for getting a energy range information for creating an

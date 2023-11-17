@@ -100,9 +100,15 @@ dataset3d:
         observation:
           obs_cone: {frame: icrs, lon: 83.633 deg, lat: 22.014 deg, radius: 5 deg}
           obs_time:
-            format: "iso"
             intervals:
-              - start: "2004-12-04"
+              - format: "iso"
+                start: "2004-12-04 22:00:00"
+                stop: "2004-12-04 22:44:00"
+              - format: "mjd"
+                start: "53343.947916666"
+                stop: "53343.989583333"
+              - format: "iso"
+                start: "2004-12-05"
                 stop: "2004-12-07"
           required_irfs: ["aeff", "edisp", "psf", "bkg"]
         geom:
