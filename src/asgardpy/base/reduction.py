@@ -10,7 +10,6 @@ from typing import List
 import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-from astropy.time import Time
 from gammapy.catalog import CATALOG_REGISTRY
 from gammapy.data import DataStore
 from gammapy.datasets import MapDataset, SpectrumDataset
@@ -29,7 +28,7 @@ from gammapy.maps import Map
 from gammapy.utils.scripts import make_path
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion
 
-from asgardpy.base.base import AngleType, BaseConfig, PathType, TimeIntervalsConfig
+from asgardpy.base.base import AngleType, BaseConfig, PathType, TimeIntervalsType
 from asgardpy.base.geom import SkyPositionConfig, get_energy_axis
 
 __all__ = [
@@ -89,7 +88,7 @@ class ObservationsConfig(BaseConfig):
 
     obs_ids: List[int] = []
     obs_file: PathType = PathType("None")
-    obs_time: TimeIntervalsConfig = TimeIntervalsConfig()
+    obs_time: TimeIntervalsType = TimeIntervalsType()
     obs_cone: SkyPositionConfig = SkyPositionConfig()
     required_irfs: List[RequiredHDUEnum] = [RequiredHDUEnum.aeff]
 
@@ -254,15 +253,18 @@ def get_filtered_observations(dl3_path, obs_config, log):
         #    obs_table = obs_table.select_observations(id_select)
 
     # Filter the Observations using the Time interval range provided
-    if obs_time.intervals[0].start != Time("1970-01-01", format="iso"):
-        t_start = Time(obs_time.intervals[0].start, format=obs_time.format)
-        t_stop = Time(obs_time.intervals[0].stop, format=obs_time.format)
+    if len(obs_time) != 0:
+        for i, intervals in enumerate(obs_time):
+            gti_select = {
+                "type": "time_box",
+                "time_range": [intervals["start"], intervals["stop"]],
+            }
 
-        gti_select = {
-            "type": "time_box",
-            "time_range": [t_start, t_stop],
-        }
-        obs_table = obs_table.select_observations(gti_select)
+            if i == 0:
+                obs_table_interval = obs_table.select_observations(gti_select)
+            else:
+                obs_table_interval.update(obs_table.select_observations(gti_select))
+        obs_table = obs_table_interval
 
     # For 3D Dataset, use a sky region to select Observations
     if obs_cone.lon != 0 * u.deg:
