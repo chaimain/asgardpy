@@ -146,11 +146,17 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             dataset_instrument = Datasets()
             dl4_files = DL4Files(config_3d_dataset.dl4_dataset_info, self.log)
 
+            # Only read unique SkyModels for the first instrument, unless there
+            # are associated files like XML to read from for the particular instrument.
+            filled_skymodel = False
+            if len(models_final) > 0:
+                filled_skymodel = True
+
             # Retrieving a single dataset for each instrument.
             for key in key_names:
                 if not config_3d_dataset.input_dl4:
                     generate_3d_dataset = Dataset3DGeneration(self.log, config_3d_dataset, self.config)
-                    dataset, models = generate_3d_dataset.run(key)
+                    dataset, models = generate_3d_dataset.run(key, filled_skymodel)
                 else:
                     dataset = dl4_files.get_dl4_dataset(config_3d_dataset.dataset_info.observation)
                     models = []
@@ -242,7 +248,7 @@ class Dataset3DGeneration:
         self.config_full = config_full
         self.config_target = config_full.target
 
-    def run(self, key_name):
+    def run(self, key_name, filled_skymodel):
         """
         Main function to run the creation of 3D dataset.
         """
@@ -280,29 +286,33 @@ class Dataset3DGeneration:
             # If there is no explicit list of models provided for the 3D data,
             # one can use one of the several catalogs available in Gammapy.
             # Reading them as Models will keep the procedure uniform.
+
+            # Unless the unique skymodels for 3D dataset is already set.
+
             if len(self.list_sources) == 0:
-                # Read the SkyModel info from AsgardpyConfig.target section
-                if len(self.config_target.components) > 0:
-                    models_ = read_models_from_asgardpy_config(self.config_target)
-                    self.list_sources = models_
+                if not filled_skymodel:
+                    # Read the SkyModel info from AsgardpyConfig.target section
+                    if len(self.config_target.components) > 0:
+                        models_ = read_models_from_asgardpy_config(self.config_target)
+                        self.list_sources = models_
 
-                # If a catalog information is provided, use it to build up the list of models
-                # Check if a catalog data is given with selection radius
-                if self.config_target.use_catalog.selection_radius != 0 * u.deg:
-                    catalog = CATALOG_REGISTRY.get_cls(self.config_target.use_catalog.name)()
+                    # If a catalog information is provided, use it to build up the list of models
+                    # Check if a catalog data is given with selection radius
+                    if self.config_target.use_catalog.selection_radius != 0 * u.deg:
+                        catalog = CATALOG_REGISTRY.get_cls(self.config_target.use_catalog.name)()
 
-                    # One can also provide a separate file, but one has to add
-                    # another config option for reading Catalog file paths.
-                    sep = catalog.positions.separation(center_pos["center"].galactic)
+                        # One can also provide a separate file, but one has to add
+                        # another config option for reading Catalog file paths.
+                        sep = catalog.positions.separation(center_pos["center"].galactic)
 
-                    # base_geom = geom.copy()
-                    # inside_geom = base_geom.to_image().contains(catalog.positions)
+                        # base_geom = geom.copy()
+                        # inside_geom = base_geom.to_image().contains(catalog.positions)
 
-                    # idx_list = np.nonzero(inside_geom)[0]
-                    # for i in idx_list:
-                    for k, cat_ in enumerate(catalog):
-                        if sep[k] < self.config_target.use_catalog.selection_radius:
-                            self.list_sources.append(cat_.sky_model())
+                        # idx_list = np.nonzero(inside_geom)[0]
+                        # for i in idx_list:
+                        for k, cat_ in enumerate(catalog):
+                            if sep[k] < self.config_target.use_catalog.selection_radius:
+                                self.list_sources.append(cat_.sky_model())
 
             excluded_geom = generate_geom(
                 tag="3d-ex",

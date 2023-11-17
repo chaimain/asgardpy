@@ -23,7 +23,7 @@ target:
   use_uniform_position: true
   models_file: "." #"../gammapy-datasets/1.1/fermi-3fhl-crab/Fermi-LAT-3FHL_models.yaml" #
   # use_catalog: 4fgl
-  add_fov_bkg_model: false
+  datasets_with_fov_bkg_model: []
   components:
   -   name: *source_name
       type: SkyModel
