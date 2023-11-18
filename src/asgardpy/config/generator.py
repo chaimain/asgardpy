@@ -119,7 +119,7 @@ def recursive_merge_dicts(base_config, extra_config):
             # For example moving from a smaller list of model parameters to a
             # longer list.
             if len(final_config[key]) < len(extra_config[key]):
-                for value_ in value[len(final_config[key]):]:
+                for value_ in value[len(final_config[key]) :]:
                     new_config.append(value_)
             final_config[key] = new_config
 
