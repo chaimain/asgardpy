@@ -84,7 +84,9 @@ def recursive_merge_dicts(base_config, extra_config):
     update function cannot be used for hierarchical dicts.
 
     Also for the case when there is a list of dicts involved, one has to be
-    more careful.
+    more careful. The extra_config may have longer list of dicts as compared
+    with the base_config, in which case, the extra items are simply added to
+    the merged final list.
 
     Combined here are 2 options from SO.
 
@@ -105,17 +107,27 @@ def recursive_merge_dicts(base_config, extra_config):
         merged dict
     """
     final_config = base_config.copy()
+
     for key, value in extra_config.items():
         if key in final_config and isinstance(final_config[key], list):
             new_config = []
+
             for key_, value_ in zip(final_config[key], value):
                 key_ = recursive_merge_dicts(key_ or {}, value_)
                 new_config.append(key_)
+
+            # For example moving from a smaller list of model parameters to a
+            # longer list.
+            if len(final_config[key]) < len(extra_config[key]):
+                for value_ in value[len(final_config[key]) :]:
+                    new_config.append(value_)
             final_config[key] = new_config
+
         elif key in final_config and isinstance(final_config[key], dict):
             final_config[key] = recursive_merge_dicts(final_config.get(key) or {}, value)
         else:
             final_config[key] = value
+
     return final_config
 
 

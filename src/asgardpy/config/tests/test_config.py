@@ -128,17 +128,18 @@ def test_config_update_gammapy(gammapy_data_path, base_config_1d):
 def test_config_update():
     """Tests to update target model config from other AsgardpyConfig file."""
 
-    from asgardpy.config.generator import CONFIG_PATH
+    from asgardpy.config.generator import get_model_template
 
     main_config = AsgardpyConfig()
 
-    spec_model_template_files = sorted(list(CONFIG_PATH.glob("model_templates/model_template*yaml")))
+    spec_model_template_file_1 = get_model_template("bpl")
+    spec_model_template_file_2 = get_model_template("sbpl")
 
-    other_config = AsgardpyConfig.read(spec_model_template_files[0])
+    other_config_1 = AsgardpyConfig.read(spec_model_template_file_1)
+    other_config_2 = AsgardpyConfig.read(spec_model_template_file_2)
 
-    main_config = main_config.update(other_config)
-
-    new_spectral_model_name = main_config.target.components[0].spectral.type
+    main_config = main_config.update(other_config_1)
+    new_spectral_model_name_1 = main_config.target.components[0].spectral.type
 
     new_config_str = """
     general:
@@ -146,7 +147,14 @@ def test_config_update():
     """
     main_config_2 = main_config.update(new_config_str)
 
-    assert new_spectral_model_name == "BrokenPowerLawSpectralModel"
+    main_config = main_config.update(other_config_2, merge_recursive=True)
+
+    new_spectral_model_name_2 = main_config.target.components[0].spectral.type
+    spectral_model_params = main_config.target.components[0].spectral.parameters
+
+    assert new_spectral_model_name_1 == "BrokenPowerLawSpectralModel"
     assert main_config_2.general.n_jobs == 100
     with pytest.raises(TypeError):
         main_config.update(5)
+    assert new_spectral_model_name_2 == "SmoothBrokenPowerLawSpectralModel"
+    assert len(spectral_model_params) == 6
