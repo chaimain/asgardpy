@@ -1,1 +1,0 @@
-Fixed project descriptions by correcting License id, changelog file link also added some more test coverage.
