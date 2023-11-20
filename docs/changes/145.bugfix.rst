@@ -1,1 +1,0 @@
-Apply Bug fix on the definition of `TimeIntervals` config and usage in `ObservationsConfig` by changing it to just be a dict type and letting the `ObservationsConfig` have the `obs_time` as list of `TimeIntervalsType`. Fixes the issue [`#144 <https://github.com/chaimain/asgardpy/issues/144>`_].

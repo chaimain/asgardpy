@@ -1,3 +1,37 @@
+Asgardpy 0.4.2 (2023-11-20)
+===========================
+
+
+API Changes
+-----------
+
+
+Bug Fixes
+---------
+
+- Apply Bug fix on the definition of `TimeIntervals` config and usage in `ObservationsConfig` by changing it to just be a dict type and letting the `ObservationsConfig` have the `obs_time` as list of `TimeIntervalsType`. Fixes the issue [`#144 <https://github.com/chaimain/asgardpy/issues/144>`_]. [`#145 <https://github.com/chaimain/asgardpy/pull/145>`__]
+
+
+New Features
+------------
+
+- Fixed project descriptions by correcting License id, changelog file link also added some more test coverage. [`#137 <https://github.com/chaimain/asgardpy/pull/137>`__]
+
+- Expand test coverage and add a description for the additional zipped Fermi-LAT data. [`#138 <https://github.com/chaimain/asgardpy/pull/138>`__]
+
+- Extend capacity to have more than 1 3D datasets, with any of them being able to add an extra FoV Background Model, to show the full support of the pipeline. [`#139 <https://github.com/chaimain/asgardpy/pull/139>`__]
+
+- Implement towncrier for maintaining PR changes as new fragments. [`#141 <https://github.com/chaimain/asgardpy/pull/141>`__]
+
+- Adapt the basic Time format to use any format and list of intervals as part of BaseConfig.
+  Remove redundant classes, adapt tests and use TimeIntervalsType as the main Time input type. [`#142 <https://github.com/chaimain/asgardpy/pull/142>`__]
+
+- Extend the functionality of recursive_merge_dicts when comparing 2 lists of values with different lengths. [`#143 <https://github.com/chaimain/asgardpy/pull/143>`__]
+
+
+Maintenance
+-----------
+
 Asgardpy v0.4.1 (2023-09-27)
 ============================
 
