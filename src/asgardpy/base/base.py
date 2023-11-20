@@ -99,7 +99,7 @@ class TimeIntervalsType(List):
     object.
     """
 
-    intervals: List[dict] = [{"format": TimeFormatEnum.iso, "start": "1970-01-01", "stop": "2000-01-01"}]
+    intervals: dict = {"format": TimeFormatEnum.iso, "start": "1970-01-01", "stop": "2000-01-01"}
 
     @classmethod
     def __get_validators__(cls):
@@ -107,29 +107,17 @@ class TimeIntervalsType(List):
 
     @classmethod
     def validate(cls, v):
-        list_times = []
-        if isinstance(v, List):
-            if len(v) != 0:
-                v_intervals = v[0]
-            else:
-                return v
-        elif isinstance(v, dict):
-            v_intervals = v["intervals"]
-        for vv in v_intervals:
-            range = {}
+        if Time(v["start"], format=v["format"]):
+            v["start"] = Time(v["start"], format=v["format"])
+        else:
+            raise ValueError(f"{v['start']} is not the right Time value for format {v['format']}")
 
-            if Time(vv["start"], format=vv["format"]):
-                range["start"] = Time(vv["start"], format=vv["format"])
-            else:
-                raise ValueError(f"{vv['start']} is not the right Time value for format {vv['format']}")
+        if Time(v["stop"], format=v["format"]):
+            v["stop"] = Time(v["stop"], format=v["format"])
+        else:
+            raise ValueError(f"{v['stop']} is not the right Time value for format {v['format']}")
 
-            if Time(vv["stop"], format=vv["format"]):
-                range["stop"] = Time(vv["stop"], format=vv["format"])
-            else:
-                raise ValueError(f"{vv['stop']} is not the right Time value for format {vv['format']}")
-            list_times.append(range)
-
-        return list_times
+        return v
 
 
 class BaseConfig(BaseModel):
@@ -145,7 +133,7 @@ class BaseConfig(BaseModel):
             Angle: lambda v: f"{v.value} {v.unit}",
             u.Quantity: lambda v: f"{v.value} {v.unit}",
             Path: lambda v: PathType(v),
-            Time: lambda v: TimeIntervalsType(v),
+            Time: lambda v: Time(v).iso,
         }
 
 

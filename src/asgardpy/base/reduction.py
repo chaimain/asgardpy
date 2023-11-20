@@ -88,7 +88,7 @@ class ObservationsConfig(BaseConfig):
 
     obs_ids: List[int] = []
     obs_file: PathType = PathType("None")
-    obs_time: TimeIntervalsType = TimeIntervalsType()
+    obs_time: List[TimeIntervalsType] = []
     obs_cone: SkyPositionConfig = SkyPositionConfig()
     required_irfs: List[RequiredHDUEnum] = [RequiredHDUEnum.aeff]
 
@@ -263,7 +263,8 @@ def get_filtered_observations(dl3_path, obs_config, log):
             if i == 0:
                 obs_table_interval = obs_table.select_observations(gti_select)
             else:
-                obs_table_interval.update(obs_table.select_observations(gti_select))
+                for row in obs_table.select_observations(gti_select):
+                    obs_table_interval.add_row(row)
         obs_table = obs_table_interval
 
     # For 3D Dataset, use a sky region to select Observations
