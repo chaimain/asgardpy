@@ -23,7 +23,9 @@ sys.path.insert(0, os.path.abspath("../../"))
 
 # -- Project information -----------------------------------------------------
 
-with open(os.path.join(os.path.dirname(__file__), "../../", "pyproject.toml"), "rb") as f:
+work_dir_path = os.path.join(os.path.dirname(__file__), "../../")
+
+with open(os.path.join(work_dir_path, "pyproject.toml"), "rb") as f:
     project_info = tomllib.load(f)
 
 project = project_info["project"]["name"]
@@ -63,6 +65,7 @@ extensions = [
     "sphinx_autodoc_typehints",
     "sphinx.ext.inheritance_diagram",
     "sphinxcontrib.autodoc_pydantic",
+    "sphinxcontrib.towncrier.ext",
 ]
 
 # Tell myst-parser to assign header anchors for h1-h3.
@@ -98,6 +101,13 @@ autodoc_pydantic_model_show_config = False
 autodoc_pydantic_model_show_config_member = False
 autodoc_pydantic_model_show_config_summary = False
 autodoc_pydantic_model_show_field_summary = True
+
+# Options: draft/sphinx-version/sphinx-release
+towncrier_draft_autoversion_mode = 'draft'
+towncrier_draft_include_empty = True
+towncrier_draft_working_directory = work_dir_path
+# Not yet supported:
+# towncrier_draft_config_path = 'pyproject.toml'  # relative to cwd
 
 # Include default values when documenting parameter types.
 typehints_defaults = "comma"
