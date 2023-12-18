@@ -7,5 +7,9 @@ updates:
   open-pull-requests-limit: 10
 - package-ecosystem: "github-actions"
   directory: "/"
+  labels:
+    - "dependencies"
+    - "github_actions" 
+    - "no-changelog-needed"
   schedule:
     interval: "daily"
