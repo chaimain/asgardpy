@@ -5,10 +5,20 @@
 1. Open a new pull request to prepare the release. This should be the last pull
   request to be merged before making the actual release.
 
-  Run `towncrier` in to render the changelog:
+  ```bash
+  git fetch
+  git switch -c prepare_<VERSION NUMBER> origin/main
+  ```
 
-    ```bash
-    git fetch
-    git switch -c prepare_<VERSION NUMBER> origin/main
-    towncrier build --version=<VERSION NUMBER>
-    ```
+2. Run `towncrier` in to render the changelog:
+
+  ```bash
+  towncrier build --version=<VERSION NUMBER>
+  ```
+
+3. Add TAG of the version number:
+
+  ```bash
+  git tag v<VERSION NUMBER> -m v<VERSION NUMBER>
+  git push --tags
+  ```
