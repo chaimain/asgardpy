@@ -103,7 +103,7 @@ autodoc_pydantic_model_show_config_summary = False
 autodoc_pydantic_model_show_field_summary = True
 
 # Options: draft/sphinx-version/sphinx-release
-towncrier_draft_autoversion_mode = 'draft'
+towncrier_draft_autoversion_mode = "draft"
 towncrier_draft_include_empty = True
 towncrier_draft_working_directory = work_dir_path
 # Not yet supported:
