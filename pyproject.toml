@@ -3,7 +3,7 @@
 # * https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#declaring-project-metadata
 # * The setuptools and setuptools_scm documentation for the respective sections
 [build-system]
-requires = ["setuptools", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=60", "setuptools-scm[toml]>=8.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -43,7 +43,7 @@ requires-python = ">=3.11"
 dependencies = [
   "numpy",
   "scipy>=1.4,!=1.10",
-  "astropy>=5.1",
+  "astropy>=5.1,<6.0",
   "jupyter",
   "gammapy~=1.1",
   "regions>0.5",
