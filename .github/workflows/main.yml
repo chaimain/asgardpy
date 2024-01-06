@@ -26,12 +26,12 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Setup Python environment
         uses: ./.github/actions/setup-venv
         with:
           python-version: '3.11'
           cache-prefix: ${{ env.CACHE_PREFIX }}
-      - uses: actions/checkout@v4
       - run: |
           . .venv/bin/activate
           python -m build
@@ -48,12 +48,12 @@ jobs:
     name: Build docs
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Setup Python environment
         uses: ./.github/actions/setup-venv
         with:
           python-version: '3.11'
           cache-prefix: ${{ env.CACHE_PREFIX }}
-      - uses: actions/checkout@v4
       - name: Produce Changelog
         run: |
           python -m pip install towncrier
@@ -97,6 +97,7 @@ jobs:
 
     steps:
       - name: Increase swapfile
+        if: "contains(matrix.os, 'ubuntu')"
         run: |
           sudo swapoff -a
           sudo fallocate -l 15G /swapfile
