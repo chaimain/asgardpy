@@ -18,7 +18,7 @@ env:
   # Change this to invalidate existing cache.
   CACHE_PREFIX: v0
   PYTHONPATH: ./
-  PYTEST_ADDOPTS: -v --color=yes -n auto --dist loadscope
+  PYTEST_ADDOPTS: -v --color=yes
   GITHUB_PR_NUMBER: ${{ github.event.number }}
 
 jobs:
@@ -33,7 +33,7 @@ jobs:
         include:
           - os: ubuntu-latest
             python: '3.11'
-            tox_env: py311-test-cov'
+            tox_env: py311-test-cov
             gammapy_data_path: /home/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
             allowed_fail: false
           - os: macos-latest
@@ -118,7 +118,7 @@ jobs:
 
       - name: Upload package distribution files
         if: matrix.task.name == 'Build'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: package
           path: dist
@@ -146,7 +146,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -161,7 +161,7 @@ jobs:
           echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Download package distribution files
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: package
           path: dist
