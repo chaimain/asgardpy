@@ -30,6 +30,7 @@ runs:
       id: virtualenv-cache
       with:
         path: .venv
+        enableCrossOsArchive: true
         key: ${{ inputs.cache-prefix }}-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('pyproject.toml') }}
 
     - if: steps.virtualenv-cache.outputs.cache-hit != 'true'
