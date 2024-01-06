@@ -59,7 +59,9 @@ __pypackages__/
 # testing and continuous integration
 
 .coverage
+coverage.xml
 .pytest_cache/
+.tox/
 .benchmarks
 
 # documentation build artifacts
