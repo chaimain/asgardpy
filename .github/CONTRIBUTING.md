@@ -134,7 +134,9 @@ When you're ready to contribute code to address an open issue, please follow the
         mypy src/asgardpy
         codespell src/asgardpy
 
-    We also strive to maintain high test coverage, so most contributions should include additions to [the unit tests](https://github.com/chaimain/asgardpy/tree/main/tests). These tests are run with [`pytest`](https://docs.pytest.org/en/latest/), which you can use to locally run any test modules that you've added or changed.
+    We also have [`pre-commit hook`](https://pre-commit.com/) for automatic adherence for the above checks with each commit.
+
+    We also strive to maintain high test coverage, so most contributions should include additions to the existing unit tests. These tests are run with [`pytest`](https://docs.pytest.org/en/latest/), which you can use to locally run any test modules that you've added or changed.
 
     For example, if you've fixed a bug in `asgardpy/a/b.py`, you can run the tests specific to that module with
 
@@ -143,6 +145,21 @@ When you're ready to contribute code to address an open issue, please follow the
     To check the code coverage locally in this example, you could run
 
         pytest -v -m "test_data or not test_data" --cov asgardpy.a.b tests/a/b_test.py
+
+    We mainly use the tool [`tox`](https://tox.wiki/en/latest/) to run the above code formatting checks and unit tests.
+    The tool uses various environments to perform its checks, which can be checked by
+
+        tox --listenvs
+
+    For running unit tests one can use the standard environment
+
+        tox -e test-std
+
+    or for running the tests in parallel
+
+        tox -e test-quick
+
+    For quick checks on unit tests specific to a sub-package, one can always use the direct commands for pytest mentioned above.
 
     If your contribution involves additions to any public part of the API, we require that you write docstrings
     for each function, method, class, or module that you add.

@@ -79,13 +79,13 @@ jobs:
         include:
           - os: ubuntu-latest
             python: '3.11'
-            tox_env: 'py311-test-cov'
+            tox_env: 'py311-test-quick'
             gammapy_data_path: /home/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
             allowed_fail: false
 
           - os: macos-latest
             python: '3.11'
-            tox_env: 'py311-test-cov'
+            tox_env: 'py311-test-quick'
             gammapy_data_path: /Users/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
             allowed_fail: false
 
@@ -129,10 +129,9 @@ jobs:
           GAMMAPY_DATA: ${{ matrix.gammapy_data_path}}
         run: |
           . .venv/bin/activate
-          tox -e ${{ matrix.tox_env }} -- -n auto --dist loadscope
+          tox -e ${{ matrix.tox_env }}
 
       - name: Upload coverage reports to Codecov
-        if: "contains(matrix.tox_env, '-cov')"
         uses: codecov/codecov-action@v3
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
