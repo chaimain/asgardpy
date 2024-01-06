@@ -123,6 +123,9 @@ jobs:
           gammapy download datasets
 
       - name: Download extra test data
+        if: ${{ matrix.gammapy_data_path }}
+        env:
+          GAMMAPY_DATA: ${{ matrix.gammapy_data_path}}
         run: |
           ./scripts/download_asgardpy_data.sh
 
