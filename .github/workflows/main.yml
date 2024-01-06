@@ -22,8 +22,54 @@ env:
   GITHUB_PR_NUMBER: ${{ github.event.number }}
 
 jobs:
-  checks:
-    name: ${{ matrix.os }}, ${{ matrix.tox_env }}
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Python environment
+        uses: ./.github/actions/setup-venv
+        with:
+          python-version: '3.11'
+          cache-prefix: ${{ env.CACHE_PREFIX }}
+      - uses: actions/checkout@v4
+      - run: |
+          . .venv/bin/activate
+          python -m build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: dist
+      - name: Clean up
+        run: |
+          . .venv/bin/activate
+          pip uninstall -y asgardpy
+
+  docs:
+    name: Build docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Python environment
+        uses: ./.github/actions/setup-venv
+        with:
+          python-version: '3.11'
+          cache-prefix: ${{ env.CACHE_PREFIX }}
+      - uses: actions/checkout@v4
+      - name: Produce Changelog
+        run: |
+          python -m pip install towncrier
+          python -m pip install -e .[dev]
+          towncrier build --yes
+      - name: Docs
+        run: |
+          . .venv/bin/activate
+          cd docs && make html
+      - name: Clean up
+        run: |
+          . .venv/bin/activate
+          pip uninstall -y asgardpy
+
+  tests:
+    name: ${{ matrix.os }} - ${{ matrix.tox_env }}
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.allowed_fail }}
     timeout-minutes: 45
@@ -33,36 +79,21 @@ jobs:
         include:
           - os: ubuntu-latest
             python: '3.11'
-            tox_env: py311-test-cov
+            tox_env: 'py311-test-cov'
             gammapy_data_path: /home/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
             allowed_fail: false
+
           - os: macos-latest
             python: '3.11'
-            tox_env: py311-test-cov
+            tox_env: 'py311-test-cov'
             gammapy_data_path: /Users/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
             allowed_fail: false
+
           - os: windows-latest
             python: '3.11'
-            tox_env: py311-test-cov
+            tox_env: 'py311-test-cov'
             gammapy_data_path: D:\a\asgardpy\asgardpy\gammapy-datasets\1.1\
             allowed_fail: false
-
-        task:
-          - name: Test
-            if: ${{ matrix.gammapy_data_path }}
-            env:
-              GAMMAPY_DATA: ${{ matrix.gammapy_data_path}}
-            run: tox -e ${{ matrix.tox_env }} -- -n auto --dist loadscope
-
-        include:
-          - task:
-              name: Build
-              run: |
-                python -m build
-
-          - task:
-              name: Docs
-              run: cd docs && make html
 
     steps:
       - name: Increase swapfile
@@ -82,13 +113,6 @@ jobs:
           python-version: ${{ matrix.python }}
           cache-prefix: ${{ env.CACHE_PREFIX }}
 
-      - name: Produce Changelog
-        if: matrix.task.name == 'Docs'
-        run: |
-          python -m pip install towncrier
-          python -m pip install -e .[dev]
-          towncrier build --yes
-
       - name: Download Gammapy Datasets
         if: ${{ matrix.gammapy_data_path }}
         run: |
@@ -97,15 +121,17 @@ jobs:
 
           gammapy download datasets
 
-      - name: Download test data
-        if: matrix.task.name == 'Test'
+      - name: Download extra test data
         run: |
           ./scripts/download_asgardpy_data.sh
 
-      - name: ${{ matrix.task.name }}
+      - name: Test
+        if: ${{ matrix.gammapy_data_path }}
+        env:
+          GAMMAPY_DATA: ${{ matrix.gammapy_data_path}}
         run: |
           . .venv/bin/activate
-          ${{ matrix.task.run }}
+          tox -e ${{ matrix.tox_env }} -- -n auto --dist loadscope
 
       - name: Upload coverage reports to Codecov
         if: "contains(matrix.tox_env, '-cov')"
@@ -116,15 +142,7 @@ jobs:
           file: ./coverage.xml
           verbose: true
 
-      - name: Upload package distribution files
-        if: matrix.task.name == 'Build'
-        uses: actions/upload-artifact@v4
-        with:
-          name: package
-          path: dist
-
       - name: Clean up
-        if: always()
         run: |
           . .venv/bin/activate
           pip uninstall -y asgardpy
@@ -132,7 +150,7 @@ jobs:
   release:  # Separate this into a unique yml file?
     name: Release
     runs-on: ubuntu-latest
-    needs: [checks]  # Only build is used in standard PyPA
+    needs: [tests]  # Only build is used in standard PyPA
     if: startsWith(github.ref, 'refs/tags/')
     # Specifying a GitHub environment is optional, but strongly encouraged
     environment: release
