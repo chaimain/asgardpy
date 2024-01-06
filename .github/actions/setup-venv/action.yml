@@ -25,6 +25,7 @@ runs:
       run: |
         # Get the exact Python version to use in the cache key.
         echo "PYTHON_VERSION=$(python --version)" >> $GITHUB_ENV
+        echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
 
     - uses: actions/cache@v3
       id: virtualenv-cache
