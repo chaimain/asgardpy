@@ -247,7 +247,6 @@ def xml_spectral_model_to_gammapy(
             new_par, spectrum_type, en_scale_1_to_gpy=en_scale_1_to_gpy, keep_sign=keep_sign
         )
 
-        # For Fermi-XML model
         if base_model_type == "Fermi-XML":
             if new_par["name"] == "alpha" and spectrum_type in [
                 "PLSuperExpCutoff",
@@ -270,7 +269,6 @@ def xml_spectral_model_to_gammapy(
     params_final2 = Parameters(new_params)
 
     # Modifications when different parameters are interconnected
-    # For Fermi-XML model
     if base_model_type == "Fermi-XML":
         if spectrum_type == "PLSuperExpCutoff2":
             alpha_inv = 1 / params_final2["alpha"].value

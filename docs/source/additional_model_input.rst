@@ -14,7 +14,8 @@ The list of associated Models can be provided by -
     one needs to invoke that module.
 
 #. Using a list of models written in a different way than the Gammapy standard
-    The module :class:`~asgardpy.gammapy.interoperate_models` is used to read such models,
+    The module :class:`~asgardpy.gammapy.read_models` and
+    :class:`~asgardpy.gammapy.interoperate_models` are used to read such models,
     for e.g. XML model definitions used by Fermi-LAT.
 
     A test covering all of these models is included in asgardpy, using a test
