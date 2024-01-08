@@ -7,23 +7,15 @@ import logging
 from typing import List
 
 import numpy as np
-import xmltodict
 from astropy import units as u
 from astropy.io import fits
-
-# from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
 from gammapy.catalog import CATALOG_REGISTRY
 from gammapy.data import GTI, EventList
 from gammapy.datasets import Datasets, MapDataset
 from gammapy.irf import EDispKernel, EDispKernelMap, PSFMap
 from gammapy.makers import MapDatasetMaker
 from gammapy.maps import Map, MapAxis
-from gammapy.modeling.models import (
-    Models,
-    PowerLawNormSpectralModel,
-    SkyModel,
-    TemplateSpatialModel,
-)
+from gammapy.modeling.models import Models
 
 from asgardpy.analysis.step_base import AnalysisStepBase
 from asgardpy.base.base import BaseConfig
@@ -50,10 +42,12 @@ from asgardpy.base.reduction import (
 )
 from asgardpy.data.target import (
     apply_selection_mask_to_models,
-    create_gal_diffuse_skymodel,
-    create_iso_diffuse_skymodel,
-    create_source_skymodel,
     read_models_from_asgardpy_config,
+)
+from asgardpy.gammapy.read_models import (
+    create_gal_diffuse_skymodel,
+    read_fermi_xml_models_list,
+    update_aux_info_from_fermi_xml,
 )
 from asgardpy.io.input_dl3 import DL3Files, InputDL3Config
 from asgardpy.io.io_dl4 import DL4BaseConfig, DL4Files, get_reco_energy_bins
@@ -240,8 +234,13 @@ class Dataset3DGeneration:
             "exposure_interp": None,
         }
         self.events = {"events": None, "event_fits": None, "gti": None, "counts_map": None}
-        self.diffuse_models = {"gal_diffuse": None, "iso_diffuse": None, "gal_diffuse_cutout": None}
-        self.list_sources = []
+        self.diffuse_models = {
+            "gal_diffuse": None,
+            "iso_diffuse": None,
+            "key_name": None,
+            "gal_diffuse_cutout": None,
+        }
+        self.list_source_models = []
 
         # For updating the main config file with target source position
         # information if necessary.
@@ -254,7 +253,6 @@ class Dataset3DGeneration:
         """
         # First check for the given file list if they are readable or not.
         file_list = self.read_to_objects(key_name)
-        # self.log.info(file_list)
 
         exclusion_regions = []
 
@@ -288,13 +286,12 @@ class Dataset3DGeneration:
             # Reading them as Models will keep the procedure uniform.
 
             # Unless the unique skymodels for 3D dataset is already set.
-
-            if len(self.list_sources) == 0:
+            if len(self.list_source_models) == 0:
                 if not filled_skymodel:
                     # Read the SkyModel info from AsgardpyConfig.target section
                     if len(self.config_target.components) > 0:
                         models_ = read_models_from_asgardpy_config(self.config_target)
-                        self.list_sources = models_
+                        self.list_source_models = models_
 
                     # If a catalog information is provided, use it to build up the list of models
                     # Check if a catalog data is given with selection radius
@@ -305,14 +302,9 @@ class Dataset3DGeneration:
                         # another config option for reading Catalog file paths.
                         sep = catalog.positions.separation(center_pos["center"].galactic)
 
-                        # base_geom = geom.copy()
-                        # inside_geom = base_geom.to_image().contains(catalog.positions)
-
-                        # idx_list = np.nonzero(inside_geom)[0]
-                        # for i in idx_list:
                         for k, cat_ in enumerate(catalog):
                             if sep[k] < self.config_target.use_catalog.selection_radius:
-                                self.list_sources.append(cat_.sky_model())
+                                self.list_source_models.append(cat_.sky_model())
 
             excluded_geom = generate_geom(
                 tag="3d-ex",
@@ -386,16 +378,16 @@ class Dataset3DGeneration:
             # Generate the final dataset
             dataset = self.generate_dataset(key_name)
 
-        if len(self.list_sources) != 0:
+        if len(self.list_source_models) != 0:
             # Apply the same exclusion mask to the list of source models as applied
             # to the Counts Map
-            self.list_sources = apply_selection_mask_to_models(
-                self.list_sources,
+            self.list_source_models = apply_selection_mask_to_models(
+                self.list_source_models,
                 target_source=self.config_target.source_name,
                 selection_mask=self.exclusion_mask,
             )
 
-        return dataset, self.list_sources
+        return dataset, self.list_source_models
 
     def read_to_objects(self, key_name):
         """
@@ -407,58 +399,51 @@ class Dataset3DGeneration:
         # Read the first IO list for events, IRFs and XML files
 
         # Get the Diffuse models files list
-        for io_ in self.config_3d_dataset.input_dl3:
-            if io_.type in ["gadf-dl3"]:
-                file_list, _ = self.get_base_objects(io_, key_name, file_list)
+        for io_dict in self.config_3d_dataset.input_dl3:
+            if io_dict.type in ["gadf-dl3"]:
+                file_list, _ = self.get_base_objects(io_dict, key_name, file_list)
 
-            if io_.type in ["lat"]:
-                file_list, [
-                    self.irfs["exposure"],
-                    self.irfs["psf"],
-                    self.irfs["edisp"],
-                ] = self.get_base_objects(io_, key_name, file_list)
+            if io_dict.type in ["lat"]:
+                (
+                    file_list,
+                    [
+                        self.irfs["exposure"],
+                        self.irfs["psf"],
+                        self.irfs["edisp"],
+                    ],
+                ) = self.get_base_objects(io_dict, key_name, file_list)
 
-            if io_.type in ["lat-aux"]:
-                if io_.glob_pattern["iso_diffuse"] == "":
-                    io_ = self.update_aux_info_from_xml(io_, file_list["xml_file"], fetch_iso_diff=True)
-                if io_.glob_pattern["gal_diffuse"] == "":
-                    io_ = self.update_aux_info_from_xml(io_, file_list["xml_file"], fetch_gal_diff=True)
+            if io_dict.type in ["lat-aux"]:
+                if io_dict.glob_pattern["iso_diffuse"] == "":
+                    io_dict.glob_pattern = update_aux_info_from_fermi_xml(
+                        io_dict.glob_pattern, file_list["xml_file"], fetch_iso_diff=True
+                    )
+                if io_dict.glob_pattern["gal_diffuse"] == "":
+                    io_dict.glob_pattern = update_aux_info_from_fermi_xml(
+                        io_dict.glob_pattern, file_list["xml_file"], fetch_gal_diff=True
+                    )
 
-                file_list, [
-                    self.diffuse_models["gal_diffuse"],
-                    self.diffuse_models["iso_diffuse"],
-                ] = self.get_base_objects(io_, key_name, file_list)
-                self.get_list_objects(io_.input_dir, file_list["xml_file"])
+                (
+                    file_list,
+                    [
+                        self.diffuse_models["gal_diffuse"],
+                        self.diffuse_models["iso_diffuse"],
+                        self.diffuse_models["key_name"],
+                    ],
+                ) = self.get_base_objects(io_dict, key_name, file_list)
+                self.list_source_models, self.diffuse_models = read_fermi_xml_models_list(
+                    self.list_source_models,
+                    io_dict.input_dir,
+                    file_list["xml_file"],
+                    self.diffuse_models,
+                    asgardpy_target_config=self.config_target,
+                )
 
         # After reading the list of source objects, check if the source position needs to be
         # updated from the list provided.
         self.update_source_pos_from_3d_dataset()
 
         return file_list
-
-    def update_aux_info_from_xml(self, io_dict, xml_file, fetch_iso_diff=False, fetch_gal_diff=False):
-        """
-        When no glob_search patterns on axuillary files are provided, fetch
-        them from the XML file and update the AsgardpyConfig object.
-
-        Currently assuming this to be applicable only for Fermi-LAT data.
-        """
-        with open(xml_file) as file:
-            data = xmltodict.parse(file.read())["source_library"]["source"]
-
-        for source in data:
-            source_name = source["@name"]
-            if source_name in ["IsoDiffModel", "isodiff"]:
-                if fetch_iso_diff:
-                    file_path = source["spectrum"]["@file"]
-                    file_name = file_path.split("/")[-1]
-                    io_dict.glob_pattern["iso_diffuse"] = file_name
-            if source_name in ["GalDiffModel", "galdiff"]:
-                if fetch_gal_diff:
-                    file_path = source["spatialModel"]["@file"]
-                    file_name = file_path.split("/")[-1]
-                    io_dict.glob_pattern["gal_diffuse"] = file_name
-        return io_dict
 
     def get_base_objects(self, dl3_dir_dict, key, file_list):
         """
@@ -486,42 +471,9 @@ class Dataset3DGeneration:
                 object_list = [exposure, psf, drmap]
 
             if dl3_dir_dict.type.lower() in ["lat-aux"]:
-                diff_gal = Map.read(file_list["gal_diff_file"])
-                diff_gal.meta["filename"] = file_list["gal_diff_file"]
-                diff_iso = create_iso_diffuse_skymodel(file_list["iso_diff_file"], key)
-                object_list = [diff_gal, diff_iso]
+                object_list = [file_list["gal_diff_file"], file_list["iso_diff_file"], key]
 
             return file_list, object_list
-
-    def get_list_objects(self, aux_path, xml_file):
-        """
-        Read from the XML file to enlist the various objects and get their
-        SkyModels
-
-        Currently assuming this to be applicable only for Fermi-LAT data.
-        """
-        with open(xml_file, encoding="utf-8") as file:
-            data = xmltodict.parse(file.read())["source_library"]["source"]
-
-        is_target_source = False
-        for source in data:
-            source_name = source["@name"]
-            if source_name in ["IsoDiffModel", "isodiff"]:
-                source = self.diffuse_models["iso_diffuse"]
-            elif source_name in ["GalDiffModel", "galdiff"]:
-                source = create_gal_diffuse_skymodel(self.diffuse_models["gal_diffuse"])
-            else:
-                source, is_target_source = create_source_skymodel(
-                    self.config_target,
-                    source,
-                    aux_path,
-                    base_model_type="Fermi-XML",
-                )
-            if is_target_source:
-                self.list_sources.insert(0, source)
-                is_target_source = False  # To not let it repeat
-            else:
-                self.list_sources.append(source)
 
     def update_source_pos_from_3d_dataset(self):
         """
@@ -531,7 +483,7 @@ class Dataset3DGeneration:
         if self.config_target.use_uniform_position:
             source_position_from_3d = None
 
-            for source in self.list_sources:
+            for source in self.list_source_models:
                 if source.name == self.config_target.source_name:
                     source_position_from_3d = source.spatial_model.position.icrs
 
@@ -584,28 +536,16 @@ class Dataset3DGeneration:
         Perform a cutout of the Diffuse background model with respect to the
         counts map geom (may improve fitting speed?) and update the main list
         of models.
-
-        The reference Spatial Model is without normalization currently.
         """
-        diffuse_cutout = self.diffuse_models["gal_diffuse"].cutout(
+        diffuse_cutout = self.diffuse_models["gal_diffuse_map"].cutout(
             self.events["counts_map"].geom.center_skydir, self.events["counts_map"].geom.width[0]
         )
+        self.diffuse_models["gal_diffuse_cutout"], _ = create_gal_diffuse_skymodel(diffuse_cutout)
 
-        reference_diffuse = TemplateSpatialModel(diffuse_cutout, normalize=False)
-
-        self.diffuse_models["gal_diffuse_cutout"] = SkyModel(
-            spectral_model=PowerLawNormSpectralModel(),
-            spatial_model=reference_diffuse,
-            name="diffuse-iem",
-        )
-        self.diffuse_models["gal_diffuse_cutout"].parameters["norm"].min = 0
-        self.diffuse_models["gal_diffuse_cutout"].parameters["norm"].max = 10
-        self.diffuse_models["gal_diffuse_cutout"].parameters["norm"].frozen = False
-
-        # Update the model in self.list_sources
-        for k, model_ in enumerate(self.list_sources):
+        # Update the model in self.list_source_models
+        for k, model_ in enumerate(self.list_source_models):
             if model_.name in ["diffuse-iem"]:
-                self.list_sources[k] = self.diffuse_models["gal_diffuse_cutout"]
+                self.list_source_models[k] = self.diffuse_models["gal_diffuse_cutout"]
 
     def set_edisp_interpolator(self):
         """

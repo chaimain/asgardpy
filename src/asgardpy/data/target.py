@@ -18,16 +18,10 @@ from gammapy.modeling.models import (
     Models,
     SkyModel,
     SpectralModel,
-    create_fermi_isotropic_diffuse_model,
 )
 
 from asgardpy.base.base import AngleType, BaseConfig, FrameEnum, PathType
 from asgardpy.base.geom import SkyPositionConfig
-from asgardpy.gammapy.interoperate_models import (
-    get_gammapy_spectral_model,
-    xml_spatial_model_to_gammapy,
-    xml_spectral_model_to_gammapy,
-)
 
 __all__ = [
     "BrokenPowerLaw2SpectralModel",
@@ -40,9 +34,6 @@ __all__ = [
     "Target",
     "apply_selection_mask_to_models",
     "config_to_dict",
-    "create_gal_diffuse_skymodel",
-    "create_iso_diffuse_skymodel",
-    "create_source_skymodel",
     "read_models_from_asgardpy_config",
     "set_models",
 ]
@@ -170,6 +161,7 @@ class ExpCutoffLogParabolaSpectralModel(SpectralModel):
     alpha_2 : `~astropy.units.Quantity`
         :math:`\alpha_2`
     """
+
     tag = ["ExpCutoffLogParabolaSpectralModel", "ECLP"]
 
     amplitude = Parameter(
@@ -569,141 +561,3 @@ def config_to_dict(model_config):
         pass
 
     return model_dict
-
-
-def create_source_skymodel(config_target, source, aux_path, base_model_type="Fermi-XML"):
-    """
-    Build SkyModels from a given AsgardpyConfig section of the target
-    source information, list of XML file and other relevant information.
-
-    Parameters
-    ----------
-    config_target: `AsgardpyConfig`
-        Config section containing the Target source information.
-    source: dict
-        Dictionary containing the source models information from XML file.
-    aux_path: str
-        Path location of the DL3 auxiliary files.
-    base_model_type: str
-        Name indicating the XML format used to read the skymodels from.
-
-    Returns
-    -------
-    source_sky_model: `gammapy.modeling.SkyModel`
-        SkyModels object for the given source information.
-    is_source_target: bool
-        Boolean to check if the Models belong to the target source.
-    """
-    # Following a general XML format, taking Fermi-LAT as reference.
-    source_name = source["@name"]
-    spectrum_type = source["spectrum"]["@type"]
-    spectrum = source["spectrum"]["parameter"]
-
-    source_name_check = source_name.replace("_", "").replace(" ", "")
-    target_check = config_target.source_name.replace("_", "").replace(" ", "")
-
-    # initialized to check for the case if target spectral model information
-    # is to be taken from the Config
-    spectral_model = None
-
-    # Check if target_source file exists
-    is_source_target = False
-    ebl_atten = False
-
-    # If Target source model's spectral component is to be taken from Config
-    # and not from 3D dataset.
-    if source_name_check == target_check:
-        source_name = config_target.source_name
-        is_source_target = True
-
-        # Only taking the spectral model information right now.
-        if not config_target.from_3d:
-            models_ = read_models_from_asgardpy_config(config_target)
-            spectral_model = models_[0].spectral_model
-
-    if spectral_model is None:
-        # Define the Spectral Model type for Gammapy
-        spectral_model, ebl_atten = get_gammapy_spectral_model(
-            spectrum_type,
-            ebl_atten,
-            base_model_type,
-        )
-        spectrum_type = spectrum_type.split("EblAtten::")[-1]
-
-        # Read the parameter values from XML file to create SpectralModel
-        params_list = xml_spectral_model_to_gammapy(
-            spectrum,
-            spectrum_type,
-            is_target=is_source_target,
-            keep_sign=ebl_atten,
-            base_model_type=base_model_type,
-        )
-
-        for param_ in params_list:
-            setattr(spectral_model, param_.name, param_)
-        config_spectral = config_target.components[0].spectral
-        ebl_absorption_included = config_spectral.ebl_abs.reference != ""
-
-        if is_source_target and ebl_absorption_included:
-            ebl_model = config_spectral.ebl_abs
-
-            if ebl_model.filename.is_file():
-                ebl_spectral_model = EBLAbsorptionNormSpectralModel.read(
-                    str(ebl_model.filename), redshift=ebl_model.redshift
-                )
-                ebl_model.reference = ebl_model.filename.name[:-8].replace("-", "_")
-            else:
-                ebl_spectral_model = EBLAbsorptionNormSpectralModel.read_builtin(
-                    ebl_model.reference, redshift=ebl_model.redshift
-                )
-            spectral_model = spectral_model * ebl_spectral_model
-
-    # Reading Spatial model from the XML file
-    spatial_model = xml_spatial_model_to_gammapy(aux_path, source["spatialModel"], base_model_type)
-
-    spatial_model.freeze()
-    source_sky_model = SkyModel(
-        spectral_model=spectral_model,
-        spatial_model=spatial_model,
-        name=source_name,
-    )
-
-    return source_sky_model, is_source_target
-
-
-def create_iso_diffuse_skymodel(iso_file, key):
-    """
-    Create a SkyModel of the Fermi Isotropic Diffuse Model and assigning
-    name as per the observation key. If there are no distinct key types of
-    files, the value is None.
-    """
-    diff_iso = create_fermi_isotropic_diffuse_model(filename=iso_file, interp_kwargs={"fill_value": None})
-    if key:
-        diff_iso._name = f"{diff_iso.name}-{key}"
-
-    # Parameters' limits
-    diff_iso.spectral_model.model1.parameters[0].min = 0.001
-    diff_iso.spectral_model.model1.parameters[0].max = 10
-    diff_iso.spectral_model.model2.parameters[0].min = 0
-    diff_iso.spectral_model.model2.parameters[0].max = 10
-
-    return diff_iso
-
-
-def create_gal_diffuse_skymodel(diff_gal):
-    """
-    Create SkyModel of the Diffuse Galactic sources.
-    """
-    template_diffuse = SPATIAL_MODEL_REGISTRY.get_cls("TemplateSpatialModel")(
-        diff_gal, normalize=False, filename=diff_gal.meta["filename"]
-    )
-    source = SkyModel(
-        spectral_model=SPECTRAL_MODEL_REGISTRY.get_cls("PowerLawNormSpectralModel")(),
-        spatial_model=template_diffuse,
-        name="diffuse-iem",
-    )
-    source.parameters["norm"].min = 0
-    source.parameters["norm"].max = 10
-    source.parameters["norm"].frozen = False
-
-    return source
