@@ -28,8 +28,6 @@ __all__ = [
 ]
 
 
-## Try to make these functions as independent of AConfig as possible
-## Make these self-reliant
 def read_fermi_xml_models_list(
     list_source_models, dl3_aux_path, xml_file, diffuse_models, asgardpy_target_config=None
 ):
