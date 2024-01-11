@@ -17,3 +17,7 @@ updates:
     - "no-changelog-needed"
   schedule:
     interval: "daily"
+  groups:
+      actions:
+        patterns:
+          - "*"
