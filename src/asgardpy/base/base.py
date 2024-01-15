@@ -4,7 +4,6 @@ Classes containing the Base for the Analysis steps and some Basic Config types.
 
 from enum import Enum
 from pathlib import Path
-from typing import List
 
 from astropy import units as u
 from astropy.coordinates import Angle
@@ -93,7 +92,7 @@ class TimeFormatEnum(str, Enum):
     unix = "unix"
 
 
-class TimeIntervalsType(List):
+class TimeIntervalsType(list):
     """
     Config section for getting main information for creating a Time Intervals
     object.

@@ -69,7 +69,7 @@ def test_preferred_model(base_config_1d):
     spec_models_list = np.array(spec_models_list)
 
     # Run Analysis Steps till Fit
-    for i, tag in enumerate(spec_models_list):
+    for tag in spec_models_list:
         main_analysis_list[tag]["Analysis"].run(["datasets-1d", "fit"])
 
     fit_success_list = []

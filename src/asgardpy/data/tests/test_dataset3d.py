@@ -39,13 +39,17 @@ def test_dataset3d_different_config(base_config, caplog):
     assert analysis_0.final_model[0].spectral_model.parameters[1].value == 0.01
     assert analysis_0.datasets[0].counts.geom.npix == (40, 40)
 
+    # Use coordinates for the central region of the exclusion mask
+    base_config.dataset3d.instruments[0].dataset_info.background.exclusion.regions[0].name = ""
+
     analysis_1 = AsgardpyAnalysis(base_config)
     analysis_1.config.dataset3d.instruments[0].dataset_info.key = []
+
     analysis_1.get_3d_datasets()
     print(caplog.record_tuples[-4][2])
     assert caplog.record_tuples[-4][2][:15] == "No distinct key"
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         analysis_2 = AsgardpyAnalysis(base_config)
         analysis_2.config.dataset3d.instruments[0].dataset_info.key = ["12"]
         analysis_2.get_3d_datasets()

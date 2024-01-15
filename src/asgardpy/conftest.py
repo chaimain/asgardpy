@@ -7,7 +7,7 @@ from gammapy.utils.check import check_tutorials_setup
 # add a marker for the tests that need private data and don't run them
 # by default
 def pytest_configure(config):
-    if "test_data" not in config.option.markexpr:
+    if "test_data" not in config.option.markexpr:  # pragma: no cover
         if config.option.markexpr:
             config.option.markexpr += " and "
         config.option.markexpr += "not test_data"

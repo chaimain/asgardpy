@@ -66,11 +66,11 @@ They each build their Config components using classes defined with,
 
 The processing of Dataset creation is performed by :class:`~asgardpy.data.dataset_3d.Dataset3DGeneration` and :class:`~asgardpy.data.dataset_1d.Dataset1DGeneration`
 
-For the DL3 files with energy-dependent directional (RAD_MAX) cuts, the ON region is defined by a `PointSkyRegion` whereas for files with global cuts, the ON region is defined by a `CircleSkyRegion`.
+For the DL3 files with energy-dependent directional (RAD_MAX) cuts, the ON region is defined by a ``PointSkyRegion`` whereas for files with global cuts, the ON region is defined by a ``CircleSkyRegion``.
 The usage of either of these can be generalized by providing the source sky position with a value of radius as 0 deg (by default) or a non-zero angular radius, respectively.
 
-Following `Gammapy v1.1 <https://docs.gammapy.org/1.1/>`_ we have the usage of parallel processing for DL4 Dataset creation, Flux Points Estimation and also Light Curve Estimation.
-For the first two processes, here we have the parameters of `n_jobs` and `parallel_backend` defined in :class:`~asgardpy.config.generator.GeneralConfig` as can be seen in :class:`~asgardpy.config.generator.AsgardpyConfig`.
+Following `Gammapy v1.1 <https://docs.gammapy.org/1.1/>`_ we have the usage of parallel processing for DL4 Dataset creation, Flux Points Estimation among others.
+For the first two processes, here we have the parameters of ``n_jobs`` and ``parallel_backend`` defined in :class:`~asgardpy.config.generator.GeneralConfig` as can be seen in :class:`~asgardpy.config.generator.AsgardpyConfig`.
 
 .. _models-intro:
 
@@ -102,7 +102,7 @@ High-level Analysis
 The various Config components and Analysis steps for the high-level analysis can be found in :doc:`_api_docs/data/data_dl4`.
 
 For the analysis step of flux-points :class:`~asgardpy.data.dl4.FluxPointsAnalysisStep`, the flux points are estimated for each instrument dataset, using the respective energy ranges
-provided in the respective config section of `spectral_energy_range`.
+provided in the respective config section of ``spectral_energy_range``.
 
 
 .. _stats-intro:

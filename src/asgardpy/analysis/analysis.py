@@ -126,7 +126,7 @@ class AsgardpyAnalysis:
                         # Needs reconsideration.
                         for model_ in models_list:
                             self.final_model.append(model_)
-                    else:
+                    else:  # pragma: no cover
                         self.log.info(
                             "The target source %s only has spectral model",
                             self.config.target.source_name,

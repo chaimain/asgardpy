@@ -141,32 +141,30 @@ class DL3Files:
                         "iso_diff_files",
                     ]
             if isinstance(self.iso_diff_files, list):
-                setattr(self, "iso_gal_f", self.iso_diff_files[0])
+                self.iso_gal_f = self.iso_diff_files[0]
             else:
-                setattr(self, "iso_gal_f", self.iso_diff_files)
+                self.iso_gal_f = self.iso_diff_files
             file_list["iso_diff_file"] = self.iso_gal_f
 
             if isinstance(self.gal_diff_files, list):
-                setattr(self, "diff_gal_f", self.gal_diff_files[0])
+                self.diff_gal_f = self.gal_diff_files[0]
             else:
-                setattr(self, "diff_gal_f", self.gal_diff_files)
+                self.diff_gal_f = self.gal_diff_files
             file_list["gal_diff_file"] = self.diff_gal_f
 
         if len(var_list) > 0:
             for _v in var_list:
                 if key is not None:
-                    try:
-                        filtered = [K for K in getattr(self, _v) if key in str(K.name)]
-                        assert len(filtered) == 1
-                    except Exception:
-                        self.log.error(
-                            "Variable {%s} does not contain one element after filtering by {%s}",
-                            self._v,
-                            key,
-                        )
-                    else:
+                    filtered = [K for K in getattr(self, _v) if key in str(K.name)]
+                    if len(filtered) == 1:
                         self.log.info("Selecting the file with name containing %s", key)
                         setattr(self, _v.replace("_files", "_f"), filtered[0])
+                    else:
+                        raise ValueError(
+                            "Variable {%s} does not contain one element after filtering by {%s}",
+                            getattr(self, _v),
+                            key,
+                        )
                 else:
                     self.log.info("No distinct key provided, selecting the first file in the list")
                     setattr(self, _v.replace("_files", "_f"), getattr(self, _v)[0])

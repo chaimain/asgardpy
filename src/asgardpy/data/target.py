@@ -4,7 +4,6 @@ also the functions involving Models generation and assignment to datasets.
 """
 
 from enum import Enum
-from typing import List
 
 import astropy.units as u
 import numpy as np
@@ -79,7 +78,7 @@ class SpectralModelConfig(BaseConfig):
     """
 
     type: str = ""
-    parameters: List[ModelParams] = [ModelParams()]
+    parameters: list[ModelParams] = [ModelParams()]
     ebl_abs: EBLAbsorptionModel = EBLAbsorptionModel()
 
 
@@ -90,7 +89,7 @@ class SpatialModelConfig(BaseConfig):
 
     type: str = ""
     frame: FrameEnum = FrameEnum.icrs
-    parameters: List[ModelParams] = [ModelParams()]
+    parameters: list[ModelParams] = [ModelParams()]
 
 
 class ModelComponent(BaseConfig):
@@ -98,7 +97,7 @@ class ModelComponent(BaseConfig):
 
     name: str = ""
     type: ModelTypeEnum = ModelTypeEnum.skymodel
-    datasets_names: List[str] = [""]
+    datasets_names: list[str] = [""]
     spectral: SpectralModelConfig = SpectralModelConfig()
     spatial: SpatialModelConfig = SpatialModelConfig()
 
@@ -110,7 +109,7 @@ class RoISelectionConfig(BaseConfig):
     """
 
     roi_radius: AngleType = 0 * u.deg
-    free_sources: List[str] = []
+    free_sources: list[str] = []
 
 
 class CatalogConfig(BaseConfig):
@@ -128,9 +127,9 @@ class Target(BaseConfig):
     sky_position: SkyPositionConfig = SkyPositionConfig()
     use_uniform_position: bool = True
     models_file: PathType = PathType("None")
-    datasets_with_fov_bkg_model: List[str] = []
+    datasets_with_fov_bkg_model: list[str] = []
     use_catalog: CatalogConfig = CatalogConfig()
-    components: List[ModelComponent] = [ModelComponent()]
+    components: list[ModelComponent] = [ModelComponent()]
     covariance: str = ""
     from_3d: bool = False
     roi_selection: RoISelectionConfig = RoISelectionConfig()
@@ -266,7 +265,7 @@ def set_models(
         AsgardpyConfig containing target information.
     datasets: `gammapy.datasets.Datasets`
         Datasets object
-    dataset_name_list: List
+    dataset_name_list: list
         List of datasets_names to be used on the Models, before assigning them
         to the given datasets.
     models : `~gammapy.modeling.models.Models` or str of file location or None
@@ -278,7 +277,7 @@ def set_models(
         Datasets object with Models assigned.
     """
     # Have some checks on argument types
-    if isinstance(models, (DatasetModels, list)):
+    if isinstance(models, DatasetModels | list):
         models = Models(models)
     elif isinstance(models, PathType):
         models = Models.read(models)
@@ -291,7 +290,7 @@ def set_models(
         if config_target.components[0].name != "":
             models = read_models_from_asgardpy_config(config_target)
         else:
-            raise Exception("No input for Models provided for the Target source!")
+            raise ValueError("No input for Models provided for the Target source!")
     else:
         models = apply_selection_mask_to_models(
             list_sources=models,
@@ -336,7 +335,7 @@ def set_models(
 
 
 def apply_selection_mask_to_models(
-    list_sources, target_source=None, selection_mask=None, roi_radius=0 * u.deg, free_sources=[]
+    list_sources, target_source=None, selection_mask=None, roi_radius=0 * u.deg, free_sources=None
 ):
     """
     For a given list of source models, with a given target source, apply various
@@ -376,6 +375,9 @@ def apply_selection_mask_to_models(
     list_sources_excluded = []
     list_diffuse = []
 
+    if free_sources is None:
+        free_sources = []
+
     # Separate the list of sources and diffuse background
     for model_ in list_sources:
         if "diffuse" in model_.name or "bkg" in model_.name:
@@ -388,7 +390,7 @@ def apply_selection_mask_to_models(
     # Get the target source position as the center of RoI
     if not target_source:
         target_source = list_sources_excluded[0].name
-        target_source_pos = target_source.spatial_model.position
+        target_source_pos = list_sources_excluded[0].spatial_model.position
     else:
         target_source_pos = list_sources_excluded[target_source].spatial_model.position
 
@@ -555,9 +557,7 @@ def config_to_dict(model_config):
         model_dict["parameters"].append(par_dict)
 
     # For spatial model, include frame info
-    try:
-        getattr(model_dict, "frame")
-    except AttributeError:
-        pass
+    if hasattr(model_config, "frame"):
+        model_dict["frame"] = model_config.frame
 
     return model_dict

@@ -6,7 +6,6 @@ DL4 datasets.
 
 import re
 from enum import Enum
-from typing import List
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
@@ -51,7 +50,7 @@ class EnergyEdgesCustomConfig(BaseConfig):
     Energy type MapAxis object.
     """
 
-    edges: List[float] = []
+    edges: list[float] = []
     unit: str = "TeV"
 
 
@@ -120,7 +119,7 @@ class GeomConfig(BaseConfig):
 
     wcs: WcsConfig = WcsConfig()
     selection: SelectionConfig = SelectionConfig()
-    axes: List[MapAxesConfig] = [MapAxesConfig()]
+    axes: list[MapAxesConfig] = [MapAxesConfig()]
     from_events_file: bool = True
 
 
@@ -189,7 +188,7 @@ def get_source_position(target_region, fits_header=None):
             history = str(fits_header["HISTORY"])
             str_ = history.split("angsep(RA,DEC,")[1]
             list_str_check = re.findall(r"[-+]?\d*\.\d+|\d+", str_)[:3]
-        ra_pos, dec_pos, events_radius = [float(k) for k in list_str_check]
+        ra_pos, dec_pos, events_radius = (float(k) for k in list_str_check)
 
         source_pos = SkyCoord(ra_pos, dec_pos, unit="deg", frame="fk5")
     else:

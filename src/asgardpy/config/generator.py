@@ -5,7 +5,6 @@ import json
 import logging
 from enum import Enum
 from pathlib import Path
-from typing import List
 
 import yaml
 from gammapy.modeling.models import Models
@@ -60,7 +59,7 @@ class GeneralConfig(BaseConfig):
     outdir: PathType = PathType("None")
     n_jobs: int = 1
     parallel_backend: ParallelBackendEnum = ParallelBackendEnum.multi
-    steps: List[AnalysisStepEnum] = []
+    steps: list[AnalysisStepEnum] = []
     overwrite: bool = True
     stacked_dataset: bool = False
 
@@ -112,7 +111,7 @@ def recursive_merge_dicts(base_config, extra_config):
         if key in final_config and isinstance(final_config[key], list):
             new_config = []
 
-            for key_, value_ in zip(final_config[key], value):
+            for key_, value_ in zip(final_config[key], value, strict=False):
                 key_ = recursive_merge_dicts(key_ or {}, value_)
                 new_config.append(key_)
 
@@ -152,7 +151,6 @@ def gammapy_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=None, r
         asgardpy_config = AsgardpyConfig.read(asgardpy_config_file)
     elif isinstance(asgardpy_config_file, AsgardpyConfig):
         asgardpy_config = asgardpy_config_file
-    # also for YAML object?
 
     models_gpy_dict = models_gpy.to_dict()
     asgardpy_config_target_dict = asgardpy_config.dict()["target"]
@@ -217,7 +215,7 @@ class AsgardpyConfig(BaseConfig):
         """
         path = make_path(path)
         if path.exists() and not overwrite:
-            raise IOError(f"File exists already: {path}")
+            raise OSError(f"File exists already: {path}")
         path.write_text(self.to_yaml())
 
     def to_yaml(self):
@@ -237,7 +235,7 @@ class AsgardpyConfig(BaseConfig):
         """
         self.general.log.level = self.general.log.level.upper()
         logging.basicConfig(**self.general.log.dict())
-        log.info("Setting logging config: {!r}".format(self.general.log.dict()))
+        log.info("Setting logging config: %s", self.general.log.dict())
 
     def update(self, config=None, merge_recursive=False):
         """
