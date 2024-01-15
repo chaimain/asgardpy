@@ -29,7 +29,7 @@ def test_models_from_config():
     assert model_fov[0].spatial_model.tag[0] == "ConstantSpatialModel"
 
     # Exception for empty models information in config.
-    with pytest.raises(Exception):
+    with pytest.raises(TypeError):
         _, _ = set_models()
 
 
@@ -50,10 +50,14 @@ def test_set_models(base_config, gammapy_data_path):
 
     analysis_0 = AsgardpyAnalysis(base_config)
     analysis_1 = AsgardpyAnalysis(base_config)
+    analysis_2 = AsgardpyAnalysis(base_config)
 
     # Check when using create_source_skymodel function
     analysis_0.config.target.from_3d = True
+    analysis_2.config.target.from_3d = True
+
     analysis_0.run(["datasets-3d"])
+    analysis_2.run(["datasets-3d"])
     # Check when using read_models_from_asgardpy_config
     analysis_1.run(["datasets-1d"])
 
@@ -78,6 +82,14 @@ def test_set_models(base_config, gammapy_data_path):
         datasets_name_list=None,
     )
 
+    # Check when not providing target source name for creating the center of ROI in the exclusion mask
+    analysis_2.config.target.source_name = ""
+    data_3, model_3 = set_models(
+        analysis_2.config.target,
+        analysis_2.datasets,
+        datasets_name_list=None,
+    )
+
     with pytest.raises(TypeError):
         _, _ = set_models(
             analysis_0.config.target,
@@ -89,4 +101,4 @@ def test_set_models(base_config, gammapy_data_path):
     assert model_1[0].spectral_model.model2.filename.name == ebl_file_name
     assert model_2[0].spectral_model.model2.filename.name == ebl_file_name
     assert analysis_0.final_model[0].spectral_model.model2.filename.name == ebl_file_name
-    # assert 1 == 2
+    assert model_3[0].name == ""

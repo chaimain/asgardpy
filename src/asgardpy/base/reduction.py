@@ -5,7 +5,6 @@ creating of the appropriate DL4 dataset.
 """
 
 from enum import Enum
-from typing import List
 
 import numpy as np
 from astropy import units as u
@@ -86,11 +85,11 @@ class ObservationsConfig(BaseConfig):
     object.
     """
 
-    obs_ids: List[int] = []
+    obs_ids: list[int] = []
     obs_file: PathType = PathType("None")
-    obs_time: List[TimeIntervalsType] = []
+    obs_time: list[TimeIntervalsType] = []
     obs_cone: SkyPositionConfig = SkyPositionConfig()
-    required_irfs: List[RequiredHDUEnum] = [RequiredHDUEnum.aeff]
+    required_irfs: list[RequiredHDUEnum] = [RequiredHDUEnum.aeff]
 
 
 class BackgroundMethodEnum(str, Enum):
@@ -155,7 +154,7 @@ class ExclusionRegionsConfig(BaseConfig):
     """
 
     target_source: bool = True
-    regions: List[RegionsConfig] = []
+    regions: list[RegionsConfig] = []
     exclusion_file: PathType = PathType("None")
 
 
@@ -204,7 +203,7 @@ class SafeMaskConfig(BaseConfig):
     object.
     """
 
-    methods: List[SafeMaskMethodsEnum] = []
+    methods: list[SafeMaskMethodsEnum] = []
     parameters: dict = {}
 
 

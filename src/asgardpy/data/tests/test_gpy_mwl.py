@@ -106,6 +106,11 @@ def test_3d_hess_1d_magic(gpy_hess_magic):
     analysis = AsgardpyAnalysis(gpy_hess_magic)
 
     analysis.run(["datasets-3d"])
+
+    # Updating the dataset name
+    analysis.datasets[0]._name = "HESS"
+    analysis.dataset_name_list[0] = "HESS"
+
     analysis.run(["datasets-1d"])
     analysis.run(["fit"])
 

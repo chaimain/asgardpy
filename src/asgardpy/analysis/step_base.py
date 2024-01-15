@@ -40,10 +40,6 @@ class AnalysisStepBase(abc.ABC):
 
         return final_product
 
-    @abc.abstractmethod
-    def _run(self):
-        pass
-
 
 class AnalysisStepEnum(str, Enum):
     """Config section for list of Analysis Steps."""

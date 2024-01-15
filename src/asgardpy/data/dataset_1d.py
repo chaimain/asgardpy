@@ -4,7 +4,6 @@ to generate 1D Datasets from given Instruments' DL3 data from the config.
 """
 
 import logging
-from typing import List
 
 import numpy as np
 from astropy import units as u
@@ -59,7 +58,7 @@ class Dataset1DInfoConfig(BaseConfig):
     safe_mask: SafeMaskConfig = SafeMaskConfig()
     on_region: SkyPositionConfig = SkyPositionConfig()
     containment_correction: bool = True
-    map_selection: List[MapSelectionEnum] = []
+    map_selection: list[MapSelectionEnum] = []
 
 
 class Dataset1DBaseConfig(BaseConfig):
@@ -68,7 +67,7 @@ class Dataset1DBaseConfig(BaseConfig):
     """
 
     name: str = "Instrument-name"
-    input_dl3: List[InputDL3Config] = [InputDL3Config()]
+    input_dl3: list[InputDL3Config] = [InputDL3Config()]
     input_dl4: bool = False
     dataset_info: Dataset1DInfoConfig = Dataset1DInfoConfig()
     dl4_dataset_info: DL4BaseConfig = DL4BaseConfig()
@@ -78,7 +77,7 @@ class Dataset1DConfig(BaseConfig):
     """Config section for a list of all 1D DL3 Datasets information."""
 
     type: ReductionTypeEnum = ReductionTypeEnum.spectrum
-    instruments: List[Dataset1DBaseConfig] = [Dataset1DBaseConfig()]
+    instruments: list[Dataset1DBaseConfig] = [Dataset1DBaseConfig()]
 
 
 # The main Analysis Step
@@ -245,7 +244,7 @@ class Dataset1DGeneration:
         safe_cfg = self.config_1d_dataset_info.safe_mask
         pars = safe_cfg.parameters
 
-        for data, obs in zip(self.datasets, observations):
+        for data, obs in zip(self.datasets, observations, strict=True):
             # Rename the datasets using the appropriate Obs ID
             data._name = str(obs.obs_id)
 

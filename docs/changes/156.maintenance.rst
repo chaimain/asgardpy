@@ -1,0 +1,1 @@
+Adapt code suggestions from Scientific Python Development Guide and remove some coverage redundancies.

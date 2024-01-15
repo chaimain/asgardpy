@@ -104,7 +104,7 @@ def check_model_preference_aic(list_stat, list_dof):
         List of relative likelihood probabilities, for a list of models.
     """
     list_aic_stat = []
-    for stat, dof in zip(list_stat, list_dof):
+    for stat, dof in zip(list_stat, list_dof, strict=True):
         aic_stat = stat + 2 * dof
         list_aic_stat.append(aic_stat)
     list_aic_stat = np.array(list_aic_stat)

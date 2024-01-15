@@ -108,8 +108,8 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
         self.flux_points = []
         datasets, energy_edges = self._sort_datasets_info()
 
-        for dataset, energy_edges in zip(datasets, energy_edges):
-            self._set_fpe(energy_edges)
+        for dataset, energy_edge in zip(datasets, energy_edges, strict=True):
+            self._set_fpe(energy_edge)
             flux_points = self.fpe.run(datasets=dataset)
             flux_points.name = dataset.names
 

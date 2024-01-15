@@ -4,7 +4,6 @@ to generate 3D Datasets from given Instruments' DL3 data from the config.
 """
 
 import logging
-from typing import List
 
 import numpy as np
 from astropy import units as u
@@ -68,9 +67,9 @@ class Dataset3DInfoConfig(BaseConfig):
     """Config section for 3D DL3 Dataset Reduction for each instrument."""
 
     name: str = "dataset-name"
-    key: List = []
+    key: list = []
     observation: ObservationsConfig = ObservationsConfig()
-    map_selection: List[MapSelectionEnum] = MapDatasetMaker.available_selection
+    map_selection: list[MapSelectionEnum] = MapDatasetMaker.available_selection
     geom: GeomConfig = GeomConfig()
     background: BackgroundConfig = BackgroundConfig()
     safe_mask: SafeMaskConfig = SafeMaskConfig()
@@ -84,7 +83,7 @@ class Dataset3DBaseConfig(BaseConfig):
     """
 
     name: str = "Instrument-name"
-    input_dl3: List[InputDL3Config] = [InputDL3Config()]
+    input_dl3: list[InputDL3Config] = [InputDL3Config()]
     input_dl4: bool = False
     dataset_info: Dataset3DInfoConfig = Dataset3DInfoConfig()
     dl4_dataset_info: DL4BaseConfig = DL4BaseConfig()
@@ -94,7 +93,7 @@ class Dataset3DConfig(BaseConfig):
     """Config section for a list of all 3D DL3 Datasets information."""
 
     type: ReductionTypeEnum = ReductionTypeEnum.cube
-    instruments: List[Dataset3DBaseConfig] = [Dataset3DBaseConfig()]
+    instruments: list[Dataset3DBaseConfig] = [Dataset3DBaseConfig()]
 
 
 # The main Analysis Step
