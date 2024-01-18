@@ -40,12 +40,13 @@ def get_gammapy_spectral_model(spectrum_type, ebl_atten=False, base_model_type="
     if base_model_type == "Fermi-XML":
         spectrum_type_no_ebl = spectrum_type.split("EblAtten::")[-1]
 
-        if spectrum_type_no_ebl in ["PLSuperExpCutoff", "PLSuperExpCutoff2"]:
-            spectrum_type_final = "ExpCutoffPowerLawSpectralModel"
-        elif spectrum_type_no_ebl == "PLSuperExpCutoff4":
-            spectrum_type_final = "SuperExpCutoffPowerLaw4FGLDR3SpectralModel"
-        else:
-            spectrum_type_final = f"{spectrum_type_no_ebl}SpectralModel"
+        match spectrum_type_no_ebl:
+            case "PLSuperExpCutoff" | "PLSuperExpCutoff2":
+                spectrum_type_final = "ExpCutoffPowerLawSpectralModel"
+            case "PLSuperExpCutoff4":
+                spectrum_type_final = "SuperExpCutoffPowerLaw4FGLDR3SpectralModel"
+            case _:
+                spectrum_type_final = f"{spectrum_type_no_ebl}SpectralModel"
 
         spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(spectrum_type_final)()
 
@@ -59,6 +60,51 @@ def get_gammapy_spectral_model(spectrum_type, ebl_atten=False, base_model_type="
     return spectral_model, ebl_atten
 
 
+def rename_fermi_energy_params(param_name):
+    """ """
+    match param_name:
+        case "scale" | "eb":
+            return "reference"
+
+        case "breakvalue":
+            return "ebreak"
+
+        case "lowerlimit":
+            return "emin"
+
+        case "upperlimit":
+            return "emax"
+
+        case _:
+            return "NA"
+
+
+def rename_fermi_index_params(param_name, spectrum_type):
+    """ """
+    match param_name:
+        case "index":
+            return "index"
+
+        case "index1":
+            match spectrum_type:
+                case "PLSuperExpCutoff" | "PLSuperExpCutoff2":
+                    return "index"
+                case _:
+                    return "index1"  # For spectrum_type == "BrokenPowerLaw"
+
+        case "indexs":
+            return "index_1"  # For spectrum_type == "PLSuperExpCutoff4"
+
+        case "index2":
+            match spectrum_type:
+                case "PLSuperExpCutoff4":
+                    return "index_2"
+                case "PLSuperExpCutoff" | "PLSuperExpCutoff2":
+                    return "alpha"
+                case _:
+                    return "index2"  # For spectrum_type == "BrokenPowerLaw"
+
+
 def params_renaming_to_gammapy(params_1_name, params_gpy, spectrum_type, params_1_base_model="Fermi-XML"):
     """
     Reading from a given parameter name, get basic parameters details like name,
@@ -68,51 +114,69 @@ def params_renaming_to_gammapy(params_1_name, params_gpy, spectrum_type, params_
     given set of parameters.
     """
     if params_1_base_model == "Fermi-XML":
-        if params_1_name in ["norm", "prefactor", "integral"]:
-            params_gpy["name"] = "amplitude"
-            params_gpy["unit"] = "cm-2 s-1 TeV-1"
-            params_gpy["is_norm"] = True
+        match params_1_name:
+            case "norm" | "prefactor" | "integral":
+                params_gpy["name"] = "amplitude"
+                params_gpy["unit"] = "cm-2 s-1 TeV-1"
+                params_gpy["is_norm"] = True
 
-        if params_1_name in ["scale", "eb"]:
-            params_gpy["name"] = "reference"
+            case "scale" | "eb" | "breakvalue" | "lowerlimit" | "upperlimit":
+                params_gpy["name"] = rename_fermi_energy_params(params_1_name)
 
-        if params_1_name in ["breakvalue"]:
-            params_gpy["name"] = "ebreak"
+            case "index" | "index1" | "indexs" | "index2":
+                params_gpy["name"] = rename_fermi_index_params(params_1_name, spectrum_type)
 
-        if params_1_name in ["lowerlimit"]:
-            params_gpy["name"] = "emin"
+            case "cutoff" | "expfactor":
+                params_gpy["name"] = "lambda_"
+                params_gpy["unit"] = "TeV-1"
 
-        if params_1_name in ["upperlimit"]:
-            params_gpy["name"] = "emax"
-
-        if params_1_name in ["cutoff", "expfactor"]:
-            params_gpy["name"] = "lambda_"
-            params_gpy["unit"] = "TeV-1"
-
-        if params_1_name in ["index"]:
-            params_gpy["name"] = "index"
-
-        if params_1_name in ["index1"]:
-            if spectrum_type in ["PLSuperExpCutoff", "PLSuperExpCutoff2"]:
-                params_gpy["name"] = "index"
-            else:
-                params_gpy["name"] = "index1"  # For spectrum_type == "BrokenPowerLaw"
-
-        if params_1_name in ["indexs"]:
-            params_gpy["name"] = "index_1"  # For spectrum_type == "PLSuperExpCutoff4"
-
-        if params_1_name in ["index2"]:
-            if spectrum_type == "PLSuperExpCutoff4":
-                params_gpy["name"] = "index_2"
-            elif spectrum_type in ["PLSuperExpCutoff", "PLSuperExpCutoff2"]:
-                params_gpy["name"] = "alpha"
-            else:
-                params_gpy["name"] = "index2"  # For spectrum_type == "BrokenPowerLaw"
-
-        if params_1_name in ["expfactors"]:
-            params_gpy["name"] = "expfactor"
+            case "expfactors":
+                params_gpy["name"] = "expfactor"
 
     return params_gpy
+
+
+def rescale_parameters(params_dict, scale_factor):
+    """ """
+    params_dict["value"] = float(params_dict["value"]) * float(params_dict["scale"]) * scale_factor
+
+    if "error" in params_dict:
+        params_dict["error"] = float(params_dict["error"]) * float(params_dict["scale"]) * scale_factor
+
+    if scale_factor == -1:
+        # Reverse the limits while changing the sign
+        min_ = float(params_dict["min"]) * float(params_dict["scale"]) * scale_factor
+        max_ = float(params_dict["max"]) * float(params_dict["scale"]) * scale_factor
+
+        params_dict["min"] = min(min_, max_)
+        params_dict["max"] = max(min_, max_)
+    else:
+        params_dict["min"] = float(params_dict["min"]) * float(params_dict["scale"]) * scale_factor
+        params_dict["max"] = float(params_dict["max"]) * float(params_dict["scale"]) * scale_factor
+
+    params_dict["scale"] = 1.0
+
+    return params_dict
+
+
+def invert_parameters(params_dict, scale_factor):
+    """ """
+    val_ = float(params_dict["value"]) * float(params_dict["scale"])
+
+    params_dict["value"] = scale_factor / val_
+
+    if "error" in params_dict:
+        params_dict["error"] = scale_factor * float(params_dict["error"]) / (val_**2)
+
+    min_ = scale_factor / (float(params_dict["min"]) * float(params_dict["scale"]))
+    max_ = scale_factor / (float(params_dict["max"]) * float(params_dict["scale"]))
+
+    params_dict["min"] = min(min_, max_)
+    params_dict["max"] = max(min_, max_)
+
+    params_dict["scale"] = 1.0
+
+    return params_dict
 
 
 def params_rescale_to_gammapy(params_gpy, spectrum_type, en_scale_1_to_gpy=1.0e-6, keep_sign=False):
@@ -124,59 +188,49 @@ def params_rescale_to_gammapy(params_gpy, spectrum_type, en_scale_1_to_gpy=1.0e-
     Also, scales the value, min and max of the given parameters, depending on
     their Parameter names.
     """
-    if params_gpy["name"] in ["reference", "ebreak", "emin", "emax"]:
-        params_gpy["unit"] = "TeV"
-        params_gpy["value"] = float(params_gpy["value"]) * float(params_gpy["scale"]) * en_scale_1_to_gpy
-        if "error" in params_gpy:
-            params_gpy["error"] = float(params_gpy["error"]) * float(params_gpy["scale"]) * en_scale_1_to_gpy
-        params_gpy["min"] = float(params_gpy["min"]) * float(params_gpy["scale"]) * en_scale_1_to_gpy
-        params_gpy["max"] = float(params_gpy["max"]) * float(params_gpy["scale"]) * en_scale_1_to_gpy
-        params_gpy["scale"] = 1.0
+    match params_gpy["name"]:
+        case "reference" | "ebreak" | "emin" | "emax":
+            params_gpy["unit"] = "TeV"
+            params_gpy = rescale_parameters(params_gpy, en_scale_1_to_gpy)
 
-    if params_gpy["name"] in ["amplitude"]:
-        params_gpy["value"] = float(params_gpy["value"]) * float(params_gpy["scale"]) / en_scale_1_to_gpy
-        if "error" in params_gpy:
-            params_gpy["error"] = float(params_gpy["error"]) * float(params_gpy["scale"]) / en_scale_1_to_gpy
-        params_gpy["min"] = float(params_gpy["min"]) * float(params_gpy["scale"]) / en_scale_1_to_gpy
-        params_gpy["max"] = float(params_gpy["max"]) * float(params_gpy["scale"]) / en_scale_1_to_gpy
-        params_gpy["scale"] = 1.0
+        case "amplitude":
+            params_gpy = rescale_parameters(params_gpy, 1 / en_scale_1_to_gpy)
 
-    if params_gpy["name"] in ["index", "index_1", "index_2", "beta"] and not keep_sign:
-        # Other than EBL Attenuated Power Law?
-        # spectral indices in gammapy are always taken as positive values.
-        val_ = float(params_gpy["value"]) * float(params_gpy["scale"])
-        if val_ < 0:
-            params_gpy["value"] = -1 * val_
+        case "index" | "index_1" | "index_2" | "beta":
+            if not keep_sign:
+                # Other than EBL Attenuated Power Law?
+                # spectral indices in gammapy are always taken as positive values.
+                val_ = float(params_gpy["value"]) * float(params_gpy["scale"])
+                if val_ < 0:
+                    params_gpy = rescale_parameters(params_gpy, -1)
 
-            # Reverse the limits while changing the sign
-            min_ = -1 * float(params_gpy["min"]) * float(params_gpy["scale"])
-            max_ = -1 * float(params_gpy["max"]) * float(params_gpy["scale"])
-            params_gpy["min"] = min(min_, max_)
-            params_gpy["max"] = max(min_, max_)
-            params_gpy["scale"] = 1.0
-
-    if params_gpy["name"] in ["lambda_"] and spectrum_type == "PLSuperExpCutoff":
-        # Original parameter is inverse of what gammapy uses
-        val_ = float(params_gpy["value"]) * float(params_gpy["scale"])
-        params_gpy["value"] = en_scale_1_to_gpy / val_
-        if "error" in params_gpy:
-            params_gpy["error"] = en_scale_1_to_gpy * float(params_gpy["error"]) / (val_**2)
-        min_ = en_scale_1_to_gpy / (float(params_gpy["min"]) * float(params_gpy["scale"]))
-        max_ = en_scale_1_to_gpy / (float(params_gpy["max"]) * float(params_gpy["scale"]))
-        params_gpy["min"] = min(min_, max_)
-        params_gpy["max"] = max(min_, max_)
-        params_gpy["scale"] = 1.0
+        case "lambda_":
+            if spectrum_type == "PLSuperExpCutoff":
+                # Original parameter is inverse of what gammapy uses
+                params_gpy = invert_parameters(params_gpy, en_scale_1_to_gpy)
 
     if float(params_gpy["scale"]) != 1.0:
-        # Without any other modifications, but using the scale value
-        params_gpy["value"] = float(params_gpy["value"]) * float(params_gpy["scale"])
-        if "error" in params_gpy:
-            params_gpy["error"] = float(params_gpy["error"]) * float(params_gpy["scale"])
-        params_gpy["min"] = float(params_gpy["min"]) * float(params_gpy["scale"])
-        params_gpy["max"] = float(params_gpy["max"]) * float(params_gpy["scale"])
-        params_gpy["scale"] = 1.0
+        params_gpy = rescale_parameters(params_gpy, 1)
 
     return params_gpy
+
+
+def param_dict_to_gammapy_parameter(new_par):
+    """ """
+    # Read into Gammapy Parameter object
+
+    new_param = Parameter(name=new_par["name"], value=new_par["value"])
+
+    if "error" in new_par:
+        new_param.error = new_par["error"]
+
+    new_param.min = new_par["min"]
+    new_param.max = new_par["max"]
+    new_param.unit = new_par["unit"]
+    new_param.frozen = new_par["frozen"]
+    new_param._is_norm = new_par["is_norm"]
+
+    return new_param
 
 
 def xml_spectral_model_to_gammapy(
@@ -218,6 +272,10 @@ def xml_spectral_model_to_gammapy(
     """
     new_params = []
 
+    # Some modifications on scaling/sign
+    # By default for base_model_type == "Fermi-XML"
+    en_scale_1_to_gpy = 1.0e-6
+
     for par in params:
         new_par = {}
 
@@ -239,10 +297,6 @@ def xml_spectral_model_to_gammapy(
                 par["@name"].lower(), new_par, spectrum_type, params_1_base_model=base_model_type
             )
 
-        # Some modifications on scaling/sign:
-        if base_model_type == "Fermi-XML":
-            en_scale_1_to_gpy = 1.0e-6
-
         new_par = params_rescale_to_gammapy(
             new_par, spectrum_type, en_scale_1_to_gpy=en_scale_1_to_gpy, keep_sign=keep_sign
         )
@@ -254,17 +308,7 @@ def xml_spectral_model_to_gammapy(
             ]:
                 new_par["frozen"] = par["@free"] == "0"
 
-        # Read into Gammapy Parameter object
-        new_param = Parameter(name=new_par["name"], value=new_par["value"])
-        if "error" in new_par:
-            new_param.error = new_par["error"]
-        new_param.min = new_par["min"]
-        new_param.max = new_par["max"]
-        new_param.unit = new_par["unit"]
-        new_param.frozen = new_par["frozen"]
-        new_param._is_norm = new_par["is_norm"]
-
-        new_params.append(new_param)
+        new_params.append(param_dict_to_gammapy_parameter(new_par))
 
     params_final2 = Parameters(new_params)
 
@@ -283,6 +327,28 @@ def xml_spectral_model_to_gammapy(
             params_final2["lambda_"].max = params_final2["lambda_"].max ** alpha_inv / en_scale_1_to_gpy
 
     return params_final2
+
+
+def fetch_spatial_galactic_frame(spatial_params, sigma=False):
+    """ """
+    if not sigma:
+        sigma = None
+
+    for par_ in spatial_params:
+        match par_["@name"]:
+            case "RA":
+                lon_0 = f"{par_['@value']} deg"
+            case "DEC":
+                lat_0 = f"{par_['@value']} deg"
+            case "Sigma":
+                sigma = f"{par_['@value']} deg"
+    fk5_frame = SkyCoord(
+        lon_0,
+        lat_0,
+        frame="fk5",
+    )
+
+    return fk5_frame.transform_to("galactic"), sigma
 
 
 def xml_spatial_model_to_gammapy(aux_path, xml_spatial_model, base_model_type="Fermi-XML"):
@@ -312,47 +378,26 @@ def xml_spatial_model_to_gammapy(aux_path, xml_spatial_model, base_model_type="F
     spatial_pars = xml_spatial_model["parameter"]
 
     if base_model_type == "Fermi-XML":
-        if xml_spatial_model["@type"] == "SkyDirFunction":
-            for par_ in spatial_pars:
-                if par_["@name"] == "RA":
-                    lon_0 = f"{par_['@value']} deg"
-                if par_["@name"] == "DEC":
-                    lat_0 = f"{par_['@value']} deg"
-            fk5_frame = SkyCoord(
-                lon_0,
-                lat_0,
-                frame="fk5",
-            )
-            gal_frame = fk5_frame.transform_to("galactic")
-            spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("PointSpatialModel")().from_position(gal_frame)
+        match xml_spatial_model["@type"]:
+            case "SkyDirFunction":
+                gal_frame, _ = fetch_spatial_galactic_frame(spatial_pars, sigma=False)
+                spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("PointSpatialModel")().from_position(gal_frame)
 
-        elif xml_spatial_model["@type"] == "SpatialMap":
-            file_name = xml_spatial_model["@file"].split("/")[-1]
-            file_path = aux_path / f"Templates/{file_name}"
+            case "SpatialMap":
+                file_name = xml_spatial_model["@file"].split("/")[-1]
+                file_path = aux_path / f"Templates/{file_name}"
 
-            spatial_map = Map.read(file_path)
-            spatial_map = spatial_map.copy(unit="sr^-1")
+                spatial_map = Map.read(file_path)
+                spatial_map = spatial_map.copy(unit="sr^-1")
 
-            spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("TemplateSpatialModel")(spatial_map, filename=file_path)
+                spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("TemplateSpatialModel")(
+                    spatial_map, filename=file_path
+                )
 
-        elif xml_spatial_model["@type"] == "RadialGaussian":
-            for par_ in spatial_pars:
-                if par_["@name"] == "RA":
-                    lon_0 = f"{par_['@value']} deg"
-                if par_["@name"] == "DEC":
-                    lat_0 = f"{par_['@value']} deg"
-                if par_["@name"] == "Sigma":
-                    sigma = f"{par_['@value']} deg"
-
-            fk5_frame = SkyCoord(
-                lon_0,
-                lat_0,
-                frame="fk5",
-            )
-            gal_frame = fk5_frame.transform_to("galactic")
-
-            spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("GaussianSpatialModel")(
-                lon_0=gal_frame.l, lat_0=gal_frame.b, sigma=sigma, frame="galactic"
-            )
+            case "RadialGaussian":
+                gal_frame, sigma = fetch_spatial_galactic_frame(spatial_pars, sigma=True)
+                spatial_model = SPATIAL_MODEL_REGISTRY.get_cls("GaussianSpatialModel")(
+                    lon_0=gal_frame.l, lat_0=gal_frame.b, sigma=sigma, frame="galactic"
+                )
 
     return spatial_model

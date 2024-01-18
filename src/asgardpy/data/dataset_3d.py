@@ -158,39 +158,10 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                 if isinstance(dataset, Datasets):
                     dataset = dataset[0]
 
-                # Assigning datasets_names and including them in the final
-                # model list
-
-                # When no associated list of models are provided, look for a
-                # separate model for target and an entry of catalog to fill in.
-                if len(models) > 0:
-                    for model_ in models:
-                        model_.datasets_names = [dataset.name]
-
-                        if model_.name in models_final.names:
-                            models_final[model_.name].datasets_names.append(dataset.name)
-                        else:
-                            models_final.append(model_)
-
+                self.update_model_dataset_names(models, dataset, models_final)
                 dataset_instrument.append(dataset)
 
-            if len(models_final) > 0:
-                # Linking the spectral model of the diffuse model for each key
-                diffuse_models_names = []
-                for model_name in models_final.names:
-                    if "diffuse-iso" in model_name:
-                        diffuse_models_names.append(model_name)
-
-                if len(diffuse_models_names) > 1:
-                    for model_name in diffuse_models_names[1:]:
-                        models_final[diffuse_models_names[0]].spectral_model.model2 = models_final[
-                            model_name
-                        ].spectral_model.model2
-                        # For each linked model parameter, reduce the number of DoF
-                        free_params -= 1
-            else:
-                models_final = None
-
+            models_final, free_params = self.update_models_list(models_final, free_params)
             energy_bin_edges = dl4_files.get_spectral_energies()
             instrument_spectral_info["spectral_energy_ranges"].append(energy_bin_edges)
 
@@ -202,6 +173,45 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
         instrument_spectral_info["en_bins"] = en_bins
 
         return datasets_3d_final, models_final, instrument_spectral_info
+
+    def update_models_list(self, models_final, free_params):
+        """ """
+        if len(models_final) > 0:
+            # Linking the spectral model of the diffuse model for each key
+            diffuse_models_names = []
+            for model_name in models_final.names:
+                if "diffuse-iso" in model_name:
+                    diffuse_models_names.append(model_name)
+
+            if len(diffuse_models_names) > 1:
+                for model_name in diffuse_models_names[1:]:
+                    models_final[diffuse_models_names[0]].spectral_model.model2 = models_final[
+                        model_name
+                    ].spectral_model.model2
+                    # For each linked model parameter, reduce the number of DoF
+                    free_params -= 1
+        else:
+            models_final = None
+
+        return models_final, free_params
+
+    def update_model_dataset_names(self, models, dataset, models_final):
+        """ """
+        # Assigning datasets_names and including them in the final
+        # model list
+
+        # When no associated list of models are provided, look for a
+        # separate model for target and an entry of catalog to fill in.
+        if len(models) > 0:
+            for model_ in models:
+                model_.datasets_names = [dataset.name]
+
+                if model_.name in models_final.names:
+                    models_final[model_.name].datasets_names.append(dataset.name)
+                else:
+                    models_final.append(model_)
+
+        return models_final
 
 
 class Dataset3DGeneration:
@@ -256,126 +266,10 @@ class Dataset3DGeneration:
         exclusion_regions = []
 
         if self.config_3d_dataset.input_dl3[0].type == "gadf-dl3":
-            observations = get_filtered_observations(
-                dl3_path=self.config_3d_dataset.input_dl3[0].input_dir,
-                obs_config=self.config_3d_dataset.dataset_info.observation,
-                log=self.log,
-            )
-            center_pos = get_source_position(target_region=self.config_3d_dataset.dataset_info.on_region)
-
-            geom = generate_geom(
-                tag="3d",
-                geom_config=self.config_3d_dataset.dataset_info.geom,
-                center_pos=center_pos,
-            )
-
-            dataset_reference = get_dataset_reference(
-                tag="3d", geom=geom, geom_config=self.config_3d_dataset.dataset_info.geom
-            )
-
-            dataset_maker = get_dataset_maker(
-                tag="3d",
-                dataset_config=self.config_3d_dataset.dataset_info,
-            )
-
-            safe_maker = get_safe_mask_maker(safe_config=self.config_3d_dataset.dataset_info.safe_mask)
-
-            # If there is no explicit list of models provided for the 3D data,
-            # one can use one of the several catalogs available in Gammapy.
-            # Reading them as Models will keep the procedure uniform.
-
-            # Unless the unique skymodels for 3D dataset is already set.
-            if len(self.list_source_models) == 0:
-                if not filled_skymodel:
-                    # Read the SkyModel info from AsgardpyConfig.target section
-                    if len(self.config_target.components) > 0:
-                        models_ = read_models_from_asgardpy_config(self.config_target)
-                        self.list_source_models = models_
-
-                    # If a catalog information is provided, use it to build up the list of models
-                    # Check if a catalog data is given with selection radius
-                    if self.config_target.use_catalog.selection_radius != 0 * u.deg:
-                        catalog = CATALOG_REGISTRY.get_cls(self.config_target.use_catalog.name)()
-
-                        # One can also provide a separate file, but one has to add
-                        # another config option for reading Catalog file paths.
-                        sep = catalog.positions.separation(center_pos["center"].galactic)
-
-                        for k, cat_ in enumerate(catalog):
-                            if sep[k] < self.config_target.use_catalog.selection_radius:
-                                self.list_source_models.append(cat_.sky_model())
-
-            excluded_geom = generate_geom(
-                tag="3d-ex",
-                geom_config=self.config_3d_dataset.dataset_info.geom,
-                center_pos=center_pos,
-            )
-
-            exclusion_mask = get_exclusion_region_mask(
-                exclusion_params=self.config_3d_dataset.dataset_info.background.exclusion,
-                exclusion_regions=exclusion_regions,
-                excluded_geom=excluded_geom,
-                config_target=self.config_target,
-                geom_config=self.config_3d_dataset.dataset_info.geom,
-                log=self.log,
-            )
-
-            bkg_maker = get_bkg_maker(
-                bkg_config=self.config_3d_dataset.dataset_info.background,
-                exclusion_mask=exclusion_mask,
-            )
-
-            dataset = generate_dl4_dataset(
-                tag="3d",
-                observations=observations,
-                dataset_reference=dataset_reference,
-                dataset_maker=dataset_maker,
-                bkg_maker=bkg_maker,
-                safe_maker=safe_maker,
-                n_jobs=self.config_full.general.n_jobs,
-                parallel_backend=self.config_full.general.parallel_backend,
-            )
+            dataset = self.generate_gadf_dataset(file_list, exclusion_regions, filled_skymodel)
 
         elif "lat" in self.config_3d_dataset.input_dl3[0].type:
-            self.load_events(file_list["events_file"])
-
-            # Start preparing objects to create the counts map
-            self.set_energy_dispersion_matrix()
-
-            center_pos = get_source_position(
-                target_region=self.config_target.sky_position,
-                fits_header=self.events["event_fits"][1].header,
-            )
-
-            # Create the Counts Map
-            self.events["counts_map"] = create_counts_map(
-                geom_config=self.config_3d_dataset.dataset_info.geom,
-                center_pos=center_pos,
-            )
-            self.events["counts_map"].fill_by_coord(
-                {
-                    "skycoord": self.events["events"].radec,
-                    "energy": self.events["events"].energy,
-                    "time": self.events["events"].time,
-                }
-            )
-            # Create any dataset reduction makers or mask
-            self.generate_diffuse_background_cutout()
-
-            self.set_edisp_interpolator()
-            self.set_exposure_interpolator()
-
-            self.exclusion_mask = get_exclusion_region_mask(
-                exclusion_params=self.config_3d_dataset.dataset_info.background.exclusion,
-                excluded_geom=self.events["counts_map"].geom.copy(),
-                exclusion_regions=exclusion_regions,
-                config_target=self.config_target,
-                geom_config=self.config_3d_dataset.dataset_info.geom,
-                log=self.log,
-            )
-
-            # Generate the final dataset
-            dataset = self.generate_dataset(key_name)
+            dataset = self.generate_fermi_lat_dataset(file_list, exclusion_regions, key_name)
 
         if len(self.list_source_models) != 0:
             # Apply the same exclusion mask to the list of source models as applied
@@ -399,44 +293,46 @@ class Dataset3DGeneration:
 
         # Get the Diffuse models files list
         for io_dict in self.config_3d_dataset.input_dl3:
-            if io_dict.type in ["gadf-dl3"]:
-                file_list, _ = self.get_base_objects(io_dict, key_name, file_list)
+            match io_dict.type:
+                case "gadf-dl3":
+                    file_list, _ = self.get_base_objects(io_dict, key_name, file_list)
 
-            if io_dict.type in ["lat"]:
-                (
-                    file_list,
-                    [
-                        self.irfs["exposure"],
-                        self.irfs["psf"],
-                        self.irfs["edisp"],
-                    ],
-                ) = self.get_base_objects(io_dict, key_name, file_list)
+                case "lat":
+                    (
+                        file_list,
+                        [
+                            self.irfs["exposure"],
+                            self.irfs["psf"],
+                            self.irfs["edisp"],
+                        ],
+                    ) = self.get_base_objects(io_dict, key_name, file_list)
 
-            if io_dict.type in ["lat-aux"]:
-                if io_dict.glob_pattern["iso_diffuse"] == "":
-                    io_dict.glob_pattern = update_aux_info_from_fermi_xml(
-                        io_dict.glob_pattern, file_list["xml_file"], fetch_iso_diff=True
+                case "lat-aux":
+                    if io_dict.glob_pattern["iso_diffuse"] == "":
+                        io_dict.glob_pattern = update_aux_info_from_fermi_xml(
+                            io_dict.glob_pattern, file_list["xml_file"], fetch_iso_diff=True
+                        )
+                    if io_dict.glob_pattern["gal_diffuse"] == "":
+                        io_dict.glob_pattern = update_aux_info_from_fermi_xml(
+                            io_dict.glob_pattern, file_list["xml_file"], fetch_gal_diff=True
+                        )
+
+                    (
+                        file_list,
+                        [
+                            self.diffuse_models["gal_diffuse"],
+                            self.diffuse_models["iso_diffuse"],
+                            self.diffuse_models["key_name"],
+                        ],
+                    ) = self.get_base_objects(io_dict, key_name, file_list)
+
+                    self.list_source_models, self.diffuse_models = read_fermi_xml_models_list(
+                        self.list_source_models,
+                        io_dict.input_dir,
+                        file_list["xml_file"],
+                        self.diffuse_models,
+                        asgardpy_target_config=self.config_target,
                     )
-                if io_dict.glob_pattern["gal_diffuse"] == "":
-                    io_dict.glob_pattern = update_aux_info_from_fermi_xml(
-                        io_dict.glob_pattern, file_list["xml_file"], fetch_gal_diff=True
-                    )
-
-                (
-                    file_list,
-                    [
-                        self.diffuse_models["gal_diffuse"],
-                        self.diffuse_models["iso_diffuse"],
-                        self.diffuse_models["key_name"],
-                    ],
-                ) = self.get_base_objects(io_dict, key_name, file_list)
-                self.list_source_models, self.diffuse_models = read_fermi_xml_models_list(
-                    self.list_source_models,
-                    io_dict.input_dir,
-                    file_list["xml_file"],
-                    self.diffuse_models,
-                    asgardpy_target_config=self.config_target,
-                )
 
         # After reading the list of source objects, check if the source position needs to be
         # updated from the list provided.
@@ -602,5 +498,134 @@ class Dataset3DGeneration:
             mask_safe=mask_safe,
             name=name,
         )
+
+        return dataset
+
+    # Main functions for compiling different DL4 dataset generating procedures
+    def generate_gadf_dataset(self, file_list, exclusion_regions, filled_skymodel):
+        """ """
+        observations = get_filtered_observations(
+            dl3_path=self.config_3d_dataset.input_dl3[0].input_dir,
+            obs_config=self.config_3d_dataset.dataset_info.observation,
+            log=self.log,
+        )
+        center_pos = get_source_position(target_region=self.config_3d_dataset.dataset_info.on_region)
+
+        geom = generate_geom(
+            tag="3d",
+            geom_config=self.config_3d_dataset.dataset_info.geom,
+            center_pos=center_pos,
+        )
+
+        dataset_reference = get_dataset_reference(
+            tag="3d", geom=geom, geom_config=self.config_3d_dataset.dataset_info.geom
+        )
+
+        dataset_maker = get_dataset_maker(
+            tag="3d",
+            dataset_config=self.config_3d_dataset.dataset_info,
+        )
+
+        safe_maker = get_safe_mask_maker(safe_config=self.config_3d_dataset.dataset_info.safe_mask)
+
+        # If there is no explicit list of models provided for the 3D data,
+        # one can use one of the several catalogs available in Gammapy.
+        # Reading them as Models will keep the procedure uniform.
+
+        # Unless the unique skymodels for 3D dataset is already set.
+        # Move it to Target module?
+        if len(self.list_source_models) == 0:
+            if not filled_skymodel:
+                # Read the SkyModel info from AsgardpyConfig.target section
+                if len(self.config_target.components) > 0:
+                    models_ = read_models_from_asgardpy_config(self.config_target)
+                    self.list_source_models = models_
+
+                # If a catalog information is provided, use it to build up the list of models
+                # Check if a catalog data is given with selection radius
+                if self.config_target.use_catalog.selection_radius != 0 * u.deg:
+                    catalog = CATALOG_REGISTRY.get_cls(self.config_target.use_catalog.name)()
+
+                    # One can also provide a separate file, but one has to add
+                    # another config option for reading Catalog file paths.
+                    sep = catalog.positions.separation(center_pos["center"].galactic)
+
+                    for k, cat_ in enumerate(catalog):
+                        if sep[k] < self.config_target.use_catalog.selection_radius:
+                            self.list_source_models.append(cat_.sky_model())
+
+        excluded_geom = generate_geom(
+            tag="3d-ex",
+            geom_config=self.config_3d_dataset.dataset_info.geom,
+            center_pos=center_pos,
+        )
+
+        exclusion_mask = get_exclusion_region_mask(
+            exclusion_params=self.config_3d_dataset.dataset_info.background.exclusion,
+            exclusion_regions=exclusion_regions,
+            excluded_geom=excluded_geom,
+            config_target=self.config_target,
+            geom_config=self.config_3d_dataset.dataset_info.geom,
+            log=self.log,
+        )
+
+        bkg_maker = get_bkg_maker(
+            bkg_config=self.config_3d_dataset.dataset_info.background,
+            exclusion_mask=exclusion_mask,
+        )
+
+        dataset = generate_dl4_dataset(
+            tag="3d",
+            observations=observations,
+            dataset_reference=dataset_reference,
+            dataset_maker=dataset_maker,
+            bkg_maker=bkg_maker,
+            safe_maker=safe_maker,
+            n_jobs=self.config_full.general.n_jobs,
+            parallel_backend=self.config_full.general.parallel_backend,
+        )
+        return dataset
+
+    def generate_fermi_lat_dataset(self, file_list, exclusion_regions, key_name):
+        """ """
+        self.load_events(file_list["events_file"])
+
+        # Start preparing objects to create the counts map
+        self.set_energy_dispersion_matrix()
+
+        center_pos = get_source_position(
+            target_region=self.config_target.sky_position,
+            fits_header=self.events["event_fits"][1].header,
+        )
+
+        # Create the Counts Map
+        self.events["counts_map"] = create_counts_map(
+            geom_config=self.config_3d_dataset.dataset_info.geom,
+            center_pos=center_pos,
+        )
+        self.events["counts_map"].fill_by_coord(
+            {
+                "skycoord": self.events["events"].radec,
+                "energy": self.events["events"].energy,
+                "time": self.events["events"].time,
+            }
+        )
+        # Create any dataset reduction makers or mask
+        self.generate_diffuse_background_cutout()
+
+        self.set_edisp_interpolator()
+        self.set_exposure_interpolator()
+
+        self.exclusion_mask = get_exclusion_region_mask(
+            exclusion_params=self.config_3d_dataset.dataset_info.background.exclusion,
+            excluded_geom=self.events["counts_map"].geom.copy(),
+            exclusion_regions=exclusion_regions,
+            config_target=self.config_target,
+            geom_config=self.config_3d_dataset.dataset_info.geom,
+            log=self.log,
+        )
+
+        # Generate the final dataset
+        dataset = self.generate_dataset(key_name)
 
         return dataset

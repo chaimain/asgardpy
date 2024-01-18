@@ -94,6 +94,50 @@ class AsgardpyAnalysis:
         else:
             raise TypeError("config must be dict or AsgardpyConfig.")
 
+    def update_models_list(self, models_list):
+        """ """
+        if models_list:
+            # This step is only valid for 3D Datasets which have a list of models
+            target_source_model = models_list[self.config.target.source_name]
+
+            if target_source_model.spatial_model:
+                # If the target source has Spatial model included,
+                # only then (?) get all the models as final_model.
+                # Needs reconsideration.
+                for model_ in models_list:
+                    self.final_model.append(model_)
+            else:  # pragma: no cover
+                self.log.info(
+                    "The target source %s only has spectral model",
+                    self.config.target.source_name,
+                )
+
+    def add_to_instrument_info(self, info_dict):
+        """ """
+        # Update the name, DoF and spectral energy ranges for each
+        # instrument Datasets, to be used for the DL4 to DL5 processes.
+        for name in info_dict["name"]:
+            self.instrument_spectral_info["name"].append(name)
+
+        for edges in info_dict["spectral_energy_ranges"]:
+            self.instrument_spectral_info["spectral_energy_ranges"].append(edges)
+
+        self.instrument_spectral_info["en_bins"] += info_dict["en_bins"]
+        self.instrument_spectral_info["free_params"] += info_dict["free_params"]
+
+    def update_dof_value(self):
+        """ """
+        # Only when the final model object has been updated
+        if len(self.final_model) > 0:
+            # Add to the total number of free model parameters
+            n_free_params = len(list(self.final_model.parameters.free_parameters))
+            self.instrument_spectral_info["free_params"] += n_free_params
+
+            # Get the final degrees of freedom as en_bins - free_params
+            self.instrument_spectral_info["DoF"] = (
+                self.instrument_spectral_info["en_bins"] - self.instrument_spectral_info["free_params"]
+            )
+
     def run(self, steps=None, overwrite=None, **kwargs):
         """
         Main function to run the AnalaysisSteps provided.
@@ -116,21 +160,7 @@ class AsgardpyAnalysis:
 
                 datasets_list, models_list, instrument_spectral_info = analysis_step.run()
 
-                if models_list:
-                    # This step is only valid for 3D Datasets which have a list of models
-                    target_source_model = models_list[self.config.target.source_name]
-
-                    if target_source_model.spatial_model:
-                        # If the target source has Spatial model included,
-                        # only then (?) get all the models as final_model.
-                        # Needs reconsideration.
-                        for model_ in models_list:
-                            self.final_model.append(model_)
-                    else:  # pragma: no cover
-                        self.log.info(
-                            "The target source %s only has spectral model",
-                            self.config.target.source_name,
-                        )
+                self.update_models_list(models_list)
 
                 # To get all datasets_names from the datasets and update the final datasets list
                 for data in datasets_list:
@@ -138,16 +168,7 @@ class AsgardpyAnalysis:
                         self.dataset_name_list.append(data.name)
                     self.datasets.append(data)
 
-                # Update the name, DoF and spectral energy ranges for each
-                # instrument Datasets, to be used for the DL4 to DL5 processes.
-                for name in instrument_spectral_info["name"]:
-                    self.instrument_spectral_info["name"].append(name)
-
-                for edges in instrument_spectral_info["spectral_energy_ranges"]:
-                    self.instrument_spectral_info["spectral_energy_ranges"].append(edges)
-
-                self.instrument_spectral_info["en_bins"] += instrument_spectral_info["en_bins"]
-                self.instrument_spectral_info["free_params"] += instrument_spectral_info["free_params"]
+                self.add_to_instrument_info(instrument_spectral_info)
 
             self.datasets, self.final_model = set_models(
                 self.config.target,
@@ -157,14 +178,7 @@ class AsgardpyAnalysis:
             )
             self.log.info("Models have been associated with the Datasets")
 
-            # Add to the total number of free model parameters
-            n_free_params = len(list(self.final_model.parameters.free_parameters))
-            self.instrument_spectral_info["free_params"] += n_free_params
-
-            # Get the final degrees of freedom as en_bins - free_params
-            self.instrument_spectral_info["DoF"] = (
-                self.instrument_spectral_info["en_bins"] - self.instrument_spectral_info["free_params"]
-            )
+            self.update_dof_value()
 
         if len(dl4_dl5_steps) > 0:
             self.log.info("Perform DL4 to DL5 processes!")

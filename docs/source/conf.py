@@ -84,7 +84,7 @@ exclude_patterns = ["_build", "changes"]
 source_suffix = [".rst", ".md"]
 
 intersphinx_mapping = {
-    "python": ("https://docs.python.org/3", None),
+    "python": ("https://docs.python.org/3.11/", None),
     "gammapy": ("https://docs.gammapy.org/1.1/", None),
     "astropy": ("https://docs.astropy.org/en/latest/", None),
     # Uncomment these if you use them in your codebase:

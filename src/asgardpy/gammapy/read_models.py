@@ -61,26 +61,28 @@ def read_fermi_xml_models_list(
 
     is_target_source = False
     for source_info in xml_data:
-        source_name = source_info["@name"]
+        match source_info["@name"]:
+            # Nomenclature as per enrico and fermipy
+            case "IsoDiffModel" | "isodiff":
+                diffuse_models["iso_diffuse"] = create_iso_diffuse_skymodel(
+                    diffuse_models["iso_diffuse"], diffuse_models["key_name"]
+                )
+                source_info = diffuse_models["iso_diffuse"]
 
-        # Nomenclature as per enrico and fermipy
-        if source_name in ["IsoDiffModel", "isodiff"]:
-            diffuse_models["iso_diffuse"] = create_iso_diffuse_skymodel(
-                diffuse_models["iso_diffuse"], diffuse_models["key_name"]
-            )
-            source_info = diffuse_models["iso_diffuse"]
-        elif source_name in ["GalDiffModel", "galdiff"]:
-            diffuse_models["gal_diffuse"], diffuse_models["gal_diffuse_map"] = create_gal_diffuse_skymodel(
-                diffuse_models["gal_diffuse"]
-            )
-            source_info = diffuse_models["gal_diffuse"]
-        else:
-            source_info, is_target_source = create_source_skymodel(
-                source_info,
-                dl3_aux_path,
-                base_model_type="Fermi-XML",
-                asgardpy_target_config=asgardpy_target_config,
-            )
+            case "GalDiffModel" | "galdiff":
+                diffuse_models["gal_diffuse"], diffuse_models["gal_diffuse_map"] = create_gal_diffuse_skymodel(
+                    diffuse_models["gal_diffuse"]
+                )
+                source_info = diffuse_models["gal_diffuse"]
+
+            case _:
+                source_info, is_target_source = create_source_skymodel(
+                    source_info,
+                    dl3_aux_path,
+                    base_model_type="Fermi-XML",
+                    asgardpy_target_config=asgardpy_target_config,
+                )
+
         if is_target_source:
             list_source_models.insert(0, source_info)
             is_target_source = False  # To not let it repeat
@@ -120,18 +122,67 @@ def update_aux_info_from_fermi_xml(
         data = xmltodict.parse(file.read())["source_library"]["source"]
 
     for source in data:
-        source_name = source["@name"]
-        if source_name in ["IsoDiffModel", "isodiff"]:
-            if fetch_iso_diff:
-                file_path = source["spectrum"]["@file"]
-                file_name = file_path.split("/")[-1]
-                diffuse_models_file_names_dict["iso_diffuse"] = file_name
-        if source_name in ["GalDiffModel", "galdiff"]:
-            if fetch_gal_diff:
-                file_path = source["spatialModel"]["@file"]
-                file_name = file_path.split("/")[-1]
-                diffuse_models_file_names_dict["gal_diffuse"] = file_name
+        match source["@name"]:
+            case "IsoDiffModel" | "isodiff":
+                if fetch_iso_diff:
+                    file_path = source["spectrum"]["@file"]
+                    file_name = file_path.split("/")[-1]
+                    diffuse_models_file_names_dict["iso_diffuse"] = file_name
+
+            case "GalDiffModel" | "galdiff":
+                if fetch_gal_diff:
+                    file_path = source["spatialModel"]["@file"]
+                    file_name = file_path.split("/")[-1]
+                    diffuse_models_file_names_dict["gal_diffuse"] = file_name
+
     return diffuse_models_file_names_dict
+
+
+def get_target_model_from_config(source_name, asgardpy_target_config):
+    """ """
+    spectral_model = None
+    is_source_target = False
+
+    # If Target source model's spectral component is to be taken from Config
+    # and not from 3D dataset.
+    if asgardpy_target_config:
+        source_name_check = source_name.replace("_", "").replace(" ", "")
+        target_check = asgardpy_target_config.source_name.replace("_", "").replace(" ", "")
+
+        if source_name_check == target_check:
+            source_name = asgardpy_target_config.source_name
+            is_source_target = True
+
+            # Only taking the spectral model information right now.
+            if not asgardpy_target_config.from_3d:
+                models_ = read_models_from_asgardpy_config(asgardpy_target_config)
+                spectral_model = models_[0].spectral_model
+
+    return source_name, spectral_model, is_source_target
+
+
+def add_ebl_model_from_config(spectral_model, asgardpy_target_config=None, is_source_target=False):
+    """ """
+    # Only of Asgardpy config is provided
+    if asgardpy_target_config:
+        config_spectral = asgardpy_target_config.components[0].spectral
+        ebl_absorption_included = config_spectral.ebl_abs.reference != ""
+
+        if is_source_target and ebl_absorption_included:
+            ebl_model = config_spectral.ebl_abs
+
+            if ebl_model.filename.is_file():
+                ebl_spectral_model = EBLAbsorptionNormSpectralModel.read(
+                    str(ebl_model.filename), redshift=ebl_model.redshift
+                )
+                ebl_model.reference = ebl_model.filename.name[:-8].replace("-", "_")
+            else:
+                ebl_spectral_model = EBLAbsorptionNormSpectralModel.read_builtin(
+                    ebl_model.reference, redshift=ebl_model.redshift
+                )
+            spectral_model = spectral_model * ebl_spectral_model
+
+    return spectral_model
 
 
 def create_source_skymodel(source_info, dl3_aux_path, base_model_type="Fermi-XML", asgardpy_target_config=None):
@@ -177,20 +228,9 @@ def create_source_skymodel(source_info, dl3_aux_path, base_model_type="Fermi-XML
         is_source_target = False
         ebl_atten = False
 
-        # If Target source model's spectral component is to be taken from Config
-        # and not from 3D dataset.
-        if asgardpy_target_config:
-            source_name_check = source_name.replace("_", "").replace(" ", "")
-            target_check = asgardpy_target_config.source_name.replace("_", "").replace(" ", "")
-
-            if source_name_check == target_check:
-                source_name = asgardpy_target_config.source_name
-                is_source_target = True
-
-                # Only taking the spectral model information right now.
-                if not asgardpy_target_config.from_3d:
-                    models_ = read_models_from_asgardpy_config(asgardpy_target_config)
-                    spectral_model = models_[0].spectral_model
+        source_name, spectral_model, is_source_target = get_target_model_from_config(
+            source_name, asgardpy_target_config
+        )
 
         if spectral_model is None:
             # Define the Spectral Model type for Gammapy
@@ -213,23 +253,7 @@ def create_source_skymodel(source_info, dl3_aux_path, base_model_type="Fermi-XML
             for param_ in params_list:
                 setattr(spectral_model, param_.name, param_)
 
-            if asgardpy_target_config:
-                config_spectral = asgardpy_target_config.components[0].spectral
-                ebl_absorption_included = config_spectral.ebl_abs.reference != ""
-
-                if is_source_target and ebl_absorption_included:
-                    ebl_model = config_spectral.ebl_abs
-
-                    if ebl_model.filename.is_file():
-                        ebl_spectral_model = EBLAbsorptionNormSpectralModel.read(
-                            str(ebl_model.filename), redshift=ebl_model.redshift
-                        )
-                        ebl_model.reference = ebl_model.filename.name[:-8].replace("-", "_")
-                    else:
-                        ebl_spectral_model = EBLAbsorptionNormSpectralModel.read_builtin(
-                            ebl_model.reference, redshift=ebl_model.redshift
-                        )
-                    spectral_model = spectral_model * ebl_spectral_model
+            spectral_model = add_ebl_model_from_config(spectral_model, asgardpy_target_config, is_source_target)
 
         # Reading Spatial model from the XML file
         spatial_model = xml_spatial_model_to_gammapy(dl3_aux_path, source_info["spatialModel"], base_model_type)
