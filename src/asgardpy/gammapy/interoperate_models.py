@@ -61,7 +61,10 @@ def get_gammapy_spectral_model(spectrum_type, ebl_atten=False, base_model_type="
 
 
 def rename_fermi_energy_params(param_name):
-    """ """
+    """
+    Simple match-case for renaming Energy parameters from Fermi-XML model to
+    Gammapy standard.
+    """
     match param_name:
         case "scale" | "eb":
             return "reference"
@@ -77,7 +80,12 @@ def rename_fermi_energy_params(param_name):
 
 
 def rename_fermi_index_params(param_name, spectrum_type):
-    """ """
+    """
+    Simple match-case for renaming spectral index parameters from Fermi-XML
+    model to Gammapy standard.
+
+    Some spectral models share common names in Fermi-XML but not in Gammapy.
+    """
     match param_name:
         case "index":
             return "index"
@@ -139,7 +147,10 @@ def params_renaming_to_gammapy(params_1_name, params_gpy, spectrum_type, params_
 
 
 def rescale_parameters(params_dict, scale_factor):
-    """ """
+    """
+    Function to rescale the value of the parameters as per Gammapy standard,
+    using a multiplying factor, considering the final scale value to be 1.
+    """
     params_dict["value"] = float(params_dict["value"]) * float(params_dict["scale"]) * scale_factor
 
     if "error" in params_dict:
@@ -162,7 +173,11 @@ def rescale_parameters(params_dict, scale_factor):
 
 
 def invert_parameters(params_dict, scale_factor):
-    """ """
+    """
+    Function to rescale the value of the parameters as per Gammapy standard,
+    when the main parameter value needs to be inverted, considering the final
+    scale value to be 1.
+    """
     val_ = float(params_dict["value"]) * float(params_dict["scale"])
 
     params_dict["value"] = scale_factor / val_
@@ -218,9 +233,7 @@ def params_rescale_to_gammapy(params_gpy, spectrum_type, en_scale_1_to_gpy=1.0e-
 
 
 def param_dict_to_gammapy_parameter(new_par):
-    """ """
-    # Read into Gammapy Parameter object
-
+    """Read a dict object into Gammapy Parameter object."""
     new_param = Parameter(name=new_par["name"], value=new_par["value"])
 
     if "error" in new_par:
@@ -332,7 +345,12 @@ def xml_spectral_model_to_gammapy(
 
 
 def fetch_spatial_galactic_frame(spatial_params, sigma=False):
-    """ """
+    """
+    Function to get the galactic frame from a spatial model written in
+    Fermi-XML format.
+
+    If the value of spatial extension, sigma is required, it will also be fetched.
+    """
     if not sigma:
         sigma = None
 

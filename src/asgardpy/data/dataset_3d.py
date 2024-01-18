@@ -102,6 +102,11 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
     From the given config information, prepare the full list of 3D datasets,
     iterating over all the Instruments' information by running the
     Dataset3DGeneration function.
+
+    Also calculate the total number of reconstructed energy bins used and the
+    number of linked model parameters to incorporate in the total number of
+    free model parameters, for the final estimation of total number of degrees
+    of freedom.
     """
 
     tag = "datasets-3d"
@@ -114,10 +119,6 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
         models_final = Models()
         instrument_spectral_info = {"name": [], "spectral_energy_ranges": []}
 
-        # Calculate the total number of reconstructed energy bins used
-        # and the number of linked model parameters to incorporate in the
-        # total number of free model parameters, for the final estimation of
-        # total number of degrees of freedom
         free_params = 0
         en_bins = 0
 
@@ -161,7 +162,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                 self.update_model_dataset_names(models, dataset, models_final)
                 dataset_instrument.append(dataset)
 
-            models_final, free_params = self.update_models_list(models_final, free_params)
+            models_final, free_params = self.link_diffuse_models(models_final, free_params)
             energy_bin_edges = dl4_files.get_spectral_energies()
             instrument_spectral_info["spectral_energy_ranges"].append(energy_bin_edges)
 
@@ -174,10 +175,12 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
 
         return datasets_3d_final, models_final, instrument_spectral_info
 
-    def update_models_list(self, models_final, free_params):
-        """ """
+    def link_diffuse_models(self, models_final, free_params):
+        """
+        Function to link the diffuse models if present and reduce the number of
+        degrees of freedom.
+        """
         if len(models_final) > 0:
-            # Linking the spectral model of the diffuse model for each key
             diffuse_models_names = []
             for model_name in models_final.names:
                 if "diffuse-iso" in model_name:
@@ -188,7 +191,6 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                     models_final[diffuse_models_names[0]].spectral_model.model2 = models_final[
                         model_name
                     ].spectral_model.model2
-                    # For each linked model parameter, reduce the number of DoF
                     free_params -= 1
         else:
             models_final = None
@@ -196,12 +198,13 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
         return models_final, free_params
 
     def update_model_dataset_names(self, models, dataset, models_final):
-        """ """
-        # Assigning datasets_names and including them in the final
-        # model list
+        """
+        Function assigning datasets_names and including them in the final
+        model list.
 
-        # When no associated list of models are provided, look for a
-        # separate model for target and an entry of catalog to fill in.
+        When no associated list of models are provided, look for a separate
+        model for target and an entry of catalog to fill in.
+        """
         if len(models) > 0:
             for model_ in models:
                 model_.datasets_names = [dataset.name]
@@ -286,12 +289,12 @@ class Dataset3DGeneration:
         """
         For each key type of files, read the files to get the required
         Gammapy objects for further analyses.
+
+        Read the first IO list for events, IRFs and XML files, and then
+        get the Diffuse models files list.
         """
         file_list = {}
 
-        # Read the first IO list for events, IRFs and XML files
-
-        # Get the Diffuse models files list
         for io_dict in self.config_3d_dataset.input_dl3:
             match io_dict.type:
                 case "gadf-dl3":
@@ -334,8 +337,7 @@ class Dataset3DGeneration:
                         asgardpy_target_config=self.config_target,
                     )
 
-        # After reading the list of source objects, check if the source position needs to be
-        # updated from the list provided.
+        # Check if the source position needs to be updated from the list provided.
         self.update_source_pos_from_3d_dataset()
 
         return file_list
@@ -503,7 +505,10 @@ class Dataset3DGeneration:
 
     # Main functions for compiling different DL4 dataset generating procedures
     def generate_gadf_dataset(self, file_list, exclusion_regions, filled_skymodel):
-        """ """
+        """
+        Separate function containing the procedures on creating a GADF DL4
+        dataset.
+        """
         observations = get_filtered_observations(
             dl3_path=self.config_3d_dataset.input_dl3[0].input_dir,
             obs_config=self.config_3d_dataset.dataset_info.observation,
@@ -587,7 +592,10 @@ class Dataset3DGeneration:
         return dataset
 
     def generate_fermi_lat_dataset(self, file_list, exclusion_regions, key_name):
-        """ """
+        """
+        Separate function containing the procedures on creating a Fermi-LAT DL4
+        dataset.
+        """
         self.load_events(file_list["events_file"])
 
         # Start preparing objects to create the counts map

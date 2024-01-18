@@ -95,15 +95,17 @@ class AsgardpyAnalysis:
             raise TypeError("config must be dict or AsgardpyConfig.")
 
     def update_models_list(self, models_list):
-        """ """
+        """
+        This function updates the final_model object with a given list of
+        models, only if the target source has a Spatial model included.
+
+        This step is only valid for 3D Datasets, and might need reconsideration
+        in the future.
+        """
         if models_list:
-            # This step is only valid for 3D Datasets which have a list of models
             target_source_model = models_list[self.config.target.source_name]
 
             if target_source_model.spatial_model:
-                # If the target source has Spatial model included,
-                # only then (?) get all the models as final_model.
-                # Needs reconsideration.
                 for model_ in models_list:
                     self.final_model.append(model_)
             else:  # pragma: no cover
@@ -113,9 +115,10 @@ class AsgardpyAnalysis:
                 )
 
     def add_to_instrument_info(self, info_dict):
-        """ """
-        # Update the name, DoF and spectral energy ranges for each
-        # instrument Datasets, to be used for the DL4 to DL5 processes.
+        """
+        Update the name, Degrees of Freedom and spectral energy ranges for each
+        instrument Datasets, to be used for the DL4 to DL5 processes.
+        """
         for name in info_dict["name"]:
             self.instrument_spectral_info["name"].append(name)
 
@@ -126,8 +129,10 @@ class AsgardpyAnalysis:
         self.instrument_spectral_info["free_params"] += info_dict["free_params"]
 
     def update_dof_value(self):
-        """ """
-        # Only when the final model object has been updated
+        """
+        Simple function to update total Degrees of Freedom value in the
+        instrument_spectral_info dict from a filled final_model object.
+        """
         if len(self.final_model) > 0:
             # Add to the total number of free model parameters
             n_free_params = len(list(self.final_model.parameters.free_parameters))
@@ -138,16 +143,16 @@ class AsgardpyAnalysis:
                 self.instrument_spectral_info["en_bins"] - self.instrument_spectral_info["free_params"]
             )
 
-    def run(self, steps=None, overwrite=None, **kwargs):
+    def run(self, steps=None, **kwargs):
         """
         Main function to run the AnalaysisSteps provided.
+
+        Currently overwrite option is used from the value in AsgardpyConfig,
+        and is True by default.
         """
         if steps is None:
             steps = self.config.general.steps
-            overwrite = self.config.general.overwrite
-        else:
-            if overwrite is None:
-                overwrite = True
+            self.overwrite = self.config.general.overwrite
 
         dl3_dl4_steps = [step for step in steps if "datasets" in step]
         dl4_dl5_steps = [step for step in steps if "datasets" not in step]

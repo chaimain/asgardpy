@@ -7,12 +7,14 @@ from gammapy.maps import Map
 from gammapy.modeling.models import (
     SPATIAL_MODEL_REGISTRY,
     SPECTRAL_MODEL_REGISTRY,
-    EBLAbsorptionNormSpectralModel,
     SkyModel,
     create_fermi_isotropic_diffuse_model,
 )
 
-from asgardpy.data.target import read_models_from_asgardpy_config
+from asgardpy.data.target import (
+    add_ebl_model_from_config,
+    read_models_from_asgardpy_config,
+)
 from asgardpy.gammapy.interoperate_models import (
     get_gammapy_spectral_model,
     xml_spatial_model_to_gammapy,
@@ -139,7 +141,9 @@ def update_aux_info_from_fermi_xml(
 
 
 def get_target_model_from_config(source_name, asgardpy_target_config):
-    """ """
+    """
+    Function to get the model of the target source from AsgardpyConfig.
+    """
     spectral_model = None
     is_source_target = False
 
@@ -159,30 +163,6 @@ def get_target_model_from_config(source_name, asgardpy_target_config):
                 spectral_model = models_[0].spectral_model
 
     return source_name, spectral_model, is_source_target
-
-
-def add_ebl_model_from_config(spectral_model, asgardpy_target_config=None, is_source_target=False):
-    """ """
-    # Only of Asgardpy config is provided
-    if asgardpy_target_config:
-        config_spectral = asgardpy_target_config.components[0].spectral
-        ebl_absorption_included = config_spectral.ebl_abs.reference != ""
-
-        if is_source_target and ebl_absorption_included:
-            ebl_model = config_spectral.ebl_abs
-
-            if ebl_model.filename.is_file():
-                ebl_spectral_model = EBLAbsorptionNormSpectralModel.read(
-                    str(ebl_model.filename), redshift=ebl_model.redshift
-                )
-                ebl_model.reference = ebl_model.filename.name[:-8].replace("-", "_")
-            else:
-                ebl_spectral_model = EBLAbsorptionNormSpectralModel.read_builtin(
-                    ebl_model.reference, redshift=ebl_model.redshift
-                )
-            spectral_model = spectral_model * ebl_spectral_model
-
-    return spectral_model
 
 
 def create_source_skymodel(source_info, dl3_aux_path, base_model_type="Fermi-XML", asgardpy_target_config=None):
@@ -253,7 +233,12 @@ def create_source_skymodel(source_info, dl3_aux_path, base_model_type="Fermi-XML
             for param_ in params_list:
                 setattr(spectral_model, param_.name, param_)
 
-            spectral_model = add_ebl_model_from_config(spectral_model, asgardpy_target_config, is_source_target)
+            if asgardpy_target_config:
+                model_config = asgardpy_target_config.components[0]
+                ebl_absorption_included = model_config.spectral.ebl_abs.reference != ""
+
+                if is_source_target and ebl_absorption_included:
+                    spectral_model = add_ebl_model_from_config(spectral_model, model_config)
 
         # Reading Spatial model from the XML file
         spatial_model = xml_spatial_model_to_gammapy(dl3_aux_path, source_info["spatialModel"], base_model_type)

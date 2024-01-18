@@ -31,6 +31,7 @@ __all__ = [
     "SpatialModelConfig",
     "SpectralModelConfig",
     "Target",
+    "add_ebl_model_from_config",
     "apply_selection_mask_to_models",
     "config_to_dict",
     "read_models_from_asgardpy_config",
@@ -251,15 +252,17 @@ SPECTRAL_MODEL_REGISTRY.append(BrokenPowerLaw2SpectralModel)
 
 # Function for Models assignment
 def extend_bkg_models(models, all_datasets, datasets_with_fov_bkg_model):
-    """ """
+    """
+    Function for extending a Background Model for a given 3D dataset name.
+
+    It checks if the given dataset is of MapDataset or MapDatasetOnOff type and
+    no associated background model exists already.
+    """
     if len(datasets_with_fov_bkg_model) > 0:
-        # For extending a Background Model for a given 3D dataset name
         bkg_models = []
 
         for dataset in all_datasets:
             if dataset.name in datasets_with_fov_bkg_model:
-                # Check if it is of MapDataset or MapDatasetOnOff type and
-                # no associated background model exists already.
                 if "MapDataset" in dataset.tag and dataset.background_model is None:
                     bkg_models.append(FoVBackgroundModel(dataset_name=f"{dataset.name}-bkg"))
 
@@ -269,16 +272,18 @@ def extend_bkg_models(models, all_datasets, datasets_with_fov_bkg_model):
 
 
 def update_models_datasets_names(models, source_name, datasets_name_list):
-    """ """
+    """
+    Function to update the datasets_names list for the given list of models.
+
+    If FoVBackgroundModel is provided, remove the -bkg part of the name of the
+    dataset to get the appropriate datasets_name.
+    """
     if len(models) > 1:
         models[source_name].datasets_names = datasets_name_list
 
-        # Check if FoVBackgroundModel is provided
         bkg_model_name = [m_name for m_name in models.names if "bkg" in m_name]
 
         if len(bkg_model_name) > 0:
-            # Remove the -bkg part of the name of the FoVBackgroundModel to get
-            # the appropriate datasets name.
             for bkg_name in bkg_model_name:
                 models[bkg_name].datasets_names = [bkg_name[:-4]]
     else:
@@ -349,8 +354,14 @@ def set_models(
 
 
 def apply_models_mask_in_roi(list_sources_excluded, target_source, roi_radius, free_sources):
-    """ """
-    # Get the target source position as the center of RoI
+    """
+    Function to apply a selection mask on a given list of models in a given RoI.
+
+    The target source position is considered as the center of RoI.
+
+    For a given list of non free sources, the spectral amplitude is left
+    unfrozen or allowed to vary.
+    """
     if not target_source:
         target_source = list_sources_excluded[0].name
         target_source_pos = list_sources_excluded[0].spatial_model.position
@@ -365,7 +376,6 @@ def apply_models_mask_in_roi(list_sources_excluded, target_source, roi_radius, f
             if separation >= roi_radius.deg:
                 model_.spectral_model.freeze()
     else:
-        # For a given list of non free sources, unfreeze the spectral amplitude
         if len(free_sources) > 0:
             for model_ in list_sources_excluded:
                 # Freeze all spectral parameters for other models
@@ -451,7 +461,10 @@ def apply_selection_mask_to_models(
 
 # Functions for Models generation
 def add_ebl_model_from_config(spectral_model, model_config):
-    """ """
+    """
+    Function for adding the EBL model from a given AsgardpyConfig file to the
+    given spectral model (assumed intrinsic).
+    """
     ebl_model = model_config.spectral.ebl_abs
 
     # First check for filename of a custom EBL model
