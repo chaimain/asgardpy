@@ -75,9 +75,6 @@ def rename_fermi_energy_params(param_name):
         case "upperlimit":
             return "emax"
 
-        case _:
-            return "NA"
-
 
 def rename_fermi_index_params(param_name, spectrum_type):
     """ """
@@ -117,8 +114,13 @@ def params_renaming_to_gammapy(params_1_name, params_gpy, spectrum_type, params_
         match params_1_name:
             case "norm" | "prefactor" | "integral":
                 params_gpy["name"] = "amplitude"
-                params_gpy["unit"] = "cm-2 s-1 TeV-1"
                 params_gpy["is_norm"] = True
+
+                match spectrum_type:
+                    case "PowerLaw2":
+                        params_gpy["unit"] = "cm-2 s-1"
+                    case _:
+                        params_gpy["unit"] = "cm-2 s-1 TeV-1"
 
             case "scale" | "eb" | "breakvalue" | "lowerlimit" | "upperlimit":
                 params_gpy["name"] = rename_fermi_energy_params(params_1_name)
