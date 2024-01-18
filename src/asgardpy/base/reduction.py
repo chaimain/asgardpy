@@ -505,19 +505,22 @@ def get_bkg_maker(bkg_config, exclusion_mask):
     bkg_maker: `gammapy.makers.background()`
         Appropriate gammapy Background Maker objects as per the config.
     """
-    if bkg_config.method == "reflected":
-        if bkg_config.region_finder_method == "wobble":
-            region_finder = WobbleRegionsFinder(**bkg_config.parameters)
-        elif bkg_config.region_finder_method == "reflected":
-            region_finder = ReflectedRegionsFinder(**bkg_config.parameters)
+    match bkg_config.method:
+        case "reflected":
+            match bkg_config.region_finder_method:
+                case "wobble":
+                    region_finder = WobbleRegionsFinder(**bkg_config.parameters)
+                case "reflected":
+                    region_finder = ReflectedRegionsFinder(**bkg_config.parameters)
 
-        bkg_maker = ReflectedRegionsBackgroundMaker(region_finder=region_finder, exclusion_mask=exclusion_mask)
-    elif bkg_config.method == "fov_background":
-        bkg_maker = FoVBackgroundMaker(exclusion_mask=exclusion_mask, **bkg_config.parameters)
-    elif bkg_config.method == "ring":
-        bkg_maker = RingBackgroundMaker(exclusion_mask=exclusion_mask, **bkg_config.parameters)
-    else:
-        bkg_maker = None
+            bkg_maker = ReflectedRegionsBackgroundMaker(region_finder=region_finder, exclusion_mask=exclusion_mask)
+
+        case "fov_background":
+            bkg_maker = FoVBackgroundMaker(exclusion_mask=exclusion_mask, **bkg_config.parameters)
+        case "ring":
+            bkg_maker = RingBackgroundMaker(exclusion_mask=exclusion_mask, **bkg_config.parameters)
+        case _:
+            bkg_maker = None
 
     return bkg_maker
 

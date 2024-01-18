@@ -31,6 +31,7 @@ __all__ = [
     "SpatialModelConfig",
     "SpectralModelConfig",
     "Target",
+    "add_ebl_model_from_config",
     "apply_selection_mask_to_models",
     "config_to_dict",
     "read_models_from_asgardpy_config",
@@ -250,6 +251,47 @@ SPECTRAL_MODEL_REGISTRY.append(BrokenPowerLaw2SpectralModel)
 
 
 # Function for Models assignment
+def extend_bkg_models(models, all_datasets, datasets_with_fov_bkg_model):
+    """
+    Function for extending a Background Model for a given 3D dataset name.
+
+    It checks if the given dataset is of MapDataset or MapDatasetOnOff type and
+    no associated background model exists already.
+    """
+    if len(datasets_with_fov_bkg_model) > 0:
+        bkg_models = []
+
+        for dataset in all_datasets:
+            if dataset.name in datasets_with_fov_bkg_model:
+                if "MapDataset" in dataset.tag and dataset.background_model is None:
+                    bkg_models.append(FoVBackgroundModel(dataset_name=f"{dataset.name}-bkg"))
+
+        models.extend(bkg_models)
+
+    return models
+
+
+def update_models_datasets_names(models, source_name, datasets_name_list):
+    """
+    Function to update the datasets_names list for the given list of models.
+
+    If FoVBackgroundModel is provided, remove the -bkg part of the name of the
+    dataset to get the appropriate datasets_name.
+    """
+    if len(models) > 1:
+        models[source_name].datasets_names = datasets_name_list
+
+        bkg_model_name = [m_name for m_name in models.names if "bkg" in m_name]
+
+        if len(bkg_model_name) > 0:
+            for bkg_name in bkg_model_name:
+                models[bkg_name].datasets_names = [bkg_name[:-4]]
+    else:
+        models.datasets_names = datasets_name_list
+
+    return models
+
+
 def set_models(
     config_target,
     datasets,
@@ -299,39 +341,51 @@ def set_models(
             free_sources=config_target.roi_selection.free_sources,
         )
 
-    if len(config_target.datasets_with_fov_bkg_model) > 0:
-        # For extending a Background Model for a given 3D dataset name
-        bkg_models = []
-
-        for dataset in datasets:
-            if dataset.name in config_target.datasets_with_fov_bkg_model:
-                # Check if it is of MapDataset or MapDatasetOnOff type and
-                # no associated background model exists already.
-                if "MapDataset" in dataset.tag and dataset.background_model is None:
-                    bkg_models.append(FoVBackgroundModel(dataset_name=f"{dataset.name}-bkg"))
-
-        models.extend(bkg_models)
+    models = extend_bkg_models(models, datasets, config_target.datasets_with_fov_bkg_model)
 
     if datasets_name_list is None:
         datasets_name_list = datasets.names
 
-    if len(models) > 1:
-        models[config_target.source_name].datasets_names = datasets_name_list
-
-        # Check if FoVBackgroundModel is provided
-        bkg_model_name = [m_name for m_name in models.names if "bkg" in m_name]
-
-        if len(bkg_model_name) > 0:
-            # Remove the -bkg part of the name of the FoVBackgroundModel to get
-            # the appropriate datasets name.
-            for bkg_name in bkg_model_name:
-                models[bkg_name].datasets_names = [bkg_name[:-4]]
-    else:
-        models.datasets_names = datasets_name_list
+    models = update_models_datasets_names(models, config_target.source_name, datasets_name_list)
 
     datasets.models = models
 
     return datasets, models
+
+
+def apply_models_mask_in_roi(list_sources_excluded, target_source, roi_radius, free_sources):
+    """
+    Function to apply a selection mask on a given list of models in a given RoI.
+
+    The target source position is considered as the center of RoI.
+
+    For a given list of non free sources, the spectral amplitude is left
+    unfrozen or allowed to vary.
+    """
+    if not target_source:
+        target_source = list_sources_excluded[0].name
+        target_source_pos = list_sources_excluded[0].spatial_model.position
+    else:
+        target_source_pos = list_sources_excluded[target_source].spatial_model.position
+
+    # If RoI radius is provided and is not default
+    if roi_radius.to_value("deg") != 0:
+        for model_ in list_sources_excluded:
+            model_pos = model_.spatial_model.position
+            separation = target_source_pos.separation(model_pos).deg
+            if separation >= roi_radius.deg:
+                model_.spectral_model.freeze()
+    else:
+        if len(free_sources) > 0:
+            for model_ in list_sources_excluded:
+                # Freeze all spectral parameters for other models
+                if model_.name != target_source:
+                    model_.spectral_model.freeze()
+                # and now unfreeze the amplitude of selected models
+                if model_.name in free_sources:
+                    model_.spectral_model.parameters["amplitude"].frozen = False
+
+    return list_sources_excluded
 
 
 def apply_selection_mask_to_models(
@@ -387,34 +441,13 @@ def apply_selection_mask_to_models(
 
     list_sources_excluded = Models(list_sources_excluded)
 
-    # Get the target source position as the center of RoI
-    if not target_source:
-        target_source = list_sources_excluded[0].name
-        target_source_pos = list_sources_excluded[0].spatial_model.position
-    else:
-        target_source_pos = list_sources_excluded[target_source].spatial_model.position
-
     # If a distinct selection mask is provided
     if selection_mask:
         list_sources_excluded = list_sources_excluded.select_mask(selection_mask)
 
-    # If RoI radius is provided and is not default
-    if roi_radius.to_value("deg") != 0:
-        for model_ in list_sources_excluded:
-            model_pos = model_.spatial_model.position
-            separation = target_source_pos.separation(model_pos).deg
-            if separation >= roi_radius.deg:
-                model_.spectral_model.freeze()
-    else:
-        # For a given list of non free sources, unfreeze the spectral amplitude
-        if len(free_sources) > 0:
-            for model_ in list_sources_excluded:
-                # Freeze all spectral parameters for other models
-                if model_.name != target_source:
-                    model_.spectral_model.freeze()
-                # and now unfreeze the amplitude of selected models
-                if model_.name in free_sources:
-                    model_.spectral_model.parameters["amplitude"].frozen = False
+    list_sources_excluded = apply_models_mask_in_roi(
+        list_sources_excluded, target_source, roi_radius, free_sources
+    )
 
     # Add the diffuse background models back
     for diff_ in list_diffuse:
@@ -427,6 +460,28 @@ def apply_selection_mask_to_models(
 
 
 # Functions for Models generation
+def add_ebl_model_from_config(spectral_model, model_config):
+    """
+    Function for adding the EBL model from a given AsgardpyConfig file to the
+    given spectral model (assumed intrinsic).
+    """
+    ebl_model = model_config.spectral.ebl_abs
+
+    # First check for filename of a custom EBL model
+    if ebl_model.filename.is_file():
+        model2 = EBLAbsorptionNormSpectralModel.read(str(ebl_model.filename), redshift=ebl_model.redshift)
+        # Update the reference name when using the custom EBL model for logging
+        ebl_model.reference = ebl_model.filename.name[:-8].replace("-", "_")
+    else:
+        model2 = EBLAbsorptionNormSpectralModel.read_builtin(ebl_model.reference, redshift=ebl_model.redshift)
+    if ebl_model.alpha_norm:
+        model2.alpha_norm.value = ebl_model.alpha_norm
+
+    spectral_model *= model2
+
+    return spectral_model
+
+
 def read_models_from_asgardpy_config(config):
     """
     Reading Models information from AsgardpyConfig and return Models object.
@@ -445,83 +500,42 @@ def read_models_from_asgardpy_config(config):
     models = Models()
 
     for model_config in config.components:
-        if model_config.type == "SkyModel":
-            # Spectral Model
-            if model_config.spectral.ebl_abs.reference != "":
-                model1 = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
-                    {"spectral": config_to_dict(model_config.spectral)}
-                )
+        # Spectral Model
+        spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
+            {"spectral": config_to_dict(model_config.spectral)}
+        )
+        if model_config.spectral.ebl_abs.reference != "":
+            spectral_model = add_ebl_model_from_config(spectral_model, model_config)
 
-                ebl_model = model_config.spectral.ebl_abs
+        spectral_model.name = config.source_name
 
-                # First check for filename of a custom EBL model
-                if ebl_model.filename.is_file():
-                    model2 = EBLAbsorptionNormSpectralModel.read(
-                        str(ebl_model.filename), redshift=ebl_model.redshift
-                    )
-                    # Update the reference name when using the custom EBL model for logging
-                    ebl_model.reference = ebl_model.filename.name[:-8].replace("-", "_")
-                else:
-                    model2 = EBLAbsorptionNormSpectralModel.read_builtin(
-                        ebl_model.reference, redshift=ebl_model.redshift
-                    )
-                if ebl_model.alpha_norm:
-                    model2.alpha_norm.value = ebl_model.alpha_norm
-                spectral_model = model1 * model2
-            else:
-                if model_config.spectral.type == "ExpCutoffLogParabolaSpectralModel":
-                    spectral_model = ExpCutoffLogParabolaSpectralModel().from_dict(
-                        {"spectral": config_to_dict(model_config.spectral)}
-                    )
-                elif model_config.spectral.type == "BrokenPowerLaw2SpectralModel":
-                    spectral_model = BrokenPowerLaw2SpectralModel().from_dict(
-                        {"spectral": config_to_dict(model_config.spectral)}
-                    )
-                else:
-                    spectral_model = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
-                        {"spectral": config_to_dict(model_config.spectral)}
-                    )
-            spectral_model.name = config.source_name
-
-            # Spatial model if provided
-            if model_config.spatial.type != "":
-                spatial_model = SPATIAL_MODEL_REGISTRY.get_cls(model_config.spatial.type)().from_dict(
-                    {"spatial": config_to_dict(model_config.spatial)}
-                )
-            else:
-                spatial_model = None
-
-            models.append(
-                SkyModel(
-                    spectral_model=spectral_model,
-                    spatial_model=spatial_model,
-                    name=config.source_name,
-                )
+        # Spatial model if provided
+        if model_config.spatial.type != "":
+            spatial_model = SPATIAL_MODEL_REGISTRY.get_cls(model_config.spatial.type)().from_dict(
+                {"spatial": config_to_dict(model_config.spatial)}
             )
+        else:
+            spatial_model = None
 
-        # FoVBackgroundModel is the second component
-        if model_config.type == "FoVBackgroundModel":
-            # Spectral Model. At least this has to be provided for distinct
-            # parameter values
-            spectral_model_fov = SPECTRAL_MODEL_REGISTRY.get_cls(model_config.spectral.type)().from_dict(
-                {"spectral": config_to_dict(model_config.spectral)}
-            )
-
-            # Spatial model if provided
-            if model_config.spatial.type != "":
-                spatial_model_fov = SPATIAL_MODEL_REGISTRY.get_cls(model_config.spatial.type)().from_dict(
-                    {"spatial": config_to_dict(model_config.spatial)}
+        match model_config.type:
+            case "SkyModel":
+                models.append(
+                    SkyModel(
+                        spectral_model=spectral_model,
+                        spatial_model=spatial_model,
+                        name=config.source_name,
+                    )
                 )
-            else:
-                spatial_model_fov = None
 
-            models.append(
-                FoVBackgroundModel(
-                    spectral_model=spectral_model_fov,
-                    spatial_model=spatial_model_fov,
-                    dataset_name=model_config.datasets_names[0],
+            # FoVBackgroundModel is the second component
+            case "FoVBackgroundModel":
+                models.append(
+                    FoVBackgroundModel(
+                        spectral_model=spectral_model,
+                        spatial_model=spatial_model,
+                        dataset_name=model_config.datasets_names[0],
+                    )
                 )
-            )
 
     return models
 

@@ -39,6 +39,7 @@ def test_xml_only_source_models(gammapy_data_path):
     assert list_source_models[7].spectral_model.tag[1] == "sbpl"
     assert list_source_models[8].spectral_model.tag[1] == "pl"
     assert list_source_models[8].spatial_model.tag[0] == "GaussianSpatialModel"
+    assert list_source_models[-1].spectral_model.tag[1] == "pl-2"
 
 
 @pytest.mark.test_data

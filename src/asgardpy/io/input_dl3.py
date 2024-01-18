@@ -103,19 +103,20 @@ class DL3Files:
         The dl3_type of 'gadf-dl3' is used for all GADF v0.3 following DL3
         files that can be directly read by Gammapy, for 1D Datasets.
         """
-        if self.dl3_type.lower() in ["lat"]:
-            self.events_files = sorted(list(self.dl3_path.glob(self.glob_dict["events"])))
-            self.edrm_files = sorted(list(self.dl3_path.glob(self.glob_dict["edisp"])))
-            self.xml_files = sorted(list(self.dl3_path.glob(self.glob_dict["xml_model"])))
-            self.expmap_files = sorted(list(self.dl3_path.glob(self.glob_dict["exposure"])))
-            self.psf_files = sorted(list(self.dl3_path.glob(self.glob_dict["psf"])))
+        match self.dl3_type.lower():
+            case "lat":
+                self.events_files = sorted(list(self.dl3_path.glob(self.glob_dict["events"])))
+                self.edrm_files = sorted(list(self.dl3_path.glob(self.glob_dict["edisp"])))
+                self.xml_files = sorted(list(self.dl3_path.glob(self.glob_dict["xml_model"])))
+                self.expmap_files = sorted(list(self.dl3_path.glob(self.glob_dict["exposure"])))
+                self.psf_files = sorted(list(self.dl3_path.glob(self.glob_dict["psf"])))
 
-        if self.dl3_type.lower() in ["lat-aux"]:
-            self.gal_diff_files = sorted(list(self.dl3_path.glob(self.glob_dict["gal_diffuse"])))
-            self.iso_diff_files = sorted(list(self.dl3_path.glob(self.glob_dict["iso_diffuse"])))
+            case "lat-aux":
+                self.gal_diff_files = sorted(list(self.dl3_path.glob(self.glob_dict["gal_diffuse"])))
+                self.iso_diff_files = sorted(list(self.dl3_path.glob(self.glob_dict["iso_diffuse"])))
 
-        if self.dl3_type.lower() in ["gadf-dl3"]:
-            self.events_files = sorted(list(self.dl3_path.glob(self.glob_dict["dl3"])))
+            case "gadf-dl3":
+                self.events_files = sorted(list(self.dl3_path.glob(self.glob_dict["dl3"])))
 
     def select_unique_files(self, key, file_list):
         """
