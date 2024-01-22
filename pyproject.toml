@@ -42,7 +42,7 @@ classifiers = [
 requires-python = ">=3.11"
 dependencies = [
   "numpy",
-  "scipy>=1.4,!=1.10",
+  "scipy~=1.11.4",
   "astropy>=5.1,<6.0",
   "jupyter",
   "gammapy~=1.1",
