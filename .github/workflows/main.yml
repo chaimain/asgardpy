@@ -17,7 +17,7 @@ on:
 env:
   # Change this to invalidate existing cache.
   CACHE_PREFIX: v0
-  # PYTHONPATH: ./
+  PYTHONPATH: ./
   PYTEST_ADDOPTS: -v --color=yes
   GITHUB_PR_NUMBER: ${{ github.event.number }}
 
@@ -25,6 +25,9 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python environment
@@ -91,7 +94,7 @@ jobs:
 
           - os: windows-latest
             python: '3.11'
-            shell: bash
+            # shell: bash -l {0}
             tox_env: 'py311-test-quick'
             gammapy_data_path: D:\a\asgardpy\asgardpy\gammapy-datasets\1.1\
             allowed_fail: false
