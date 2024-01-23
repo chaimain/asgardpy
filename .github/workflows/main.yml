@@ -16,7 +16,7 @@ on:
 
 env:
   # Change this to invalidate existing cache.
-  CACHE_PREFIX: v0
+  # CACHE_PREFIX: v0
   PYTHONPATH: ./
   PYTEST_ADDOPTS: -v --color=yes
   GITHUB_PR_NUMBER: ${{ github.event.number }}
@@ -34,7 +34,7 @@ jobs:
         uses: ./.github/actions/setup-venv
         with:
           python-version: '3.11'
-          cache-prefix: ${{ env.CACHE_PREFIX }}
+          # cache-prefix: ${{ env.CACHE_PREFIX }}
       - run: |
           . .venv/bin/activate
           python -m build
@@ -56,7 +56,7 @@ jobs:
         uses: ./.github/actions/setup-venv
         with:
           python-version: '3.11'
-          cache-prefix: ${{ env.CACHE_PREFIX }}
+          # cache-prefix: ${{ env.CACHE_PREFIX }}
       - name: Produce Changelog
         run: |
           python -m pip install towncrier
@@ -82,12 +82,14 @@ jobs:
         include:
           - os: ubuntu-latest
             python: '3.11'
+            enableCrossOsArchive: true
             tox_env: 'py311-test-quick'
             gammapy_data_path: /home/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
             allowed_fail: false
 
           - os: macos-latest
             python: '3.11'
+            enableCrossOsArchive: true
             tox_env: 'py311-test-quick'
             gammapy_data_path: /Users/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
             allowed_fail: false
@@ -95,6 +97,7 @@ jobs:
           - os: windows-latest
             python: '3.11'
             # shell: bash -l {0}
+            enableCrossOsArchive: true
             tox_env: 'py311-test-quick'
             gammapy_data_path: D:\a\asgardpy\asgardpy\gammapy-datasets\1.1\
             allowed_fail: false
@@ -116,7 +119,7 @@ jobs:
         uses: ./.github/actions/setup-venv
         with:
           python-version: ${{ matrix.python }}
-          cache-prefix: ${{ env.CACHE_PREFIX }}
+          # cache-prefix: ${{ env.CACHE_PREFIX }}
 
       - name: Download Gammapy Datasets
         if: ${{ matrix.gammapy_data_path }}
