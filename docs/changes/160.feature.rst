@@ -1,0 +1,1 @@
+Add a temporary stats function to fetch pivot energy for any spectral model. This function will be present in the upcoming release of Gammapy v1.2.
