@@ -26,6 +26,14 @@ runs:
         # Get the exact Python version to use in the cache key.
         echo "PYTHON_VERSION=$(python --version)" >> $GITHUB_ENV
 
+    - if: startsWith(matrix.os, "windows")
+      uses: actions/cache@v4
+      id: virtualenv-cache
+      with:
+        path: C:\hostedtoolcache\windows\Python\${{ inputs.python-version }}
+        enableCrossOsArchive: true
+        key: ${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('pyproject.toml') }}  # ${{ inputs.cache-prefix }}-
+
     - uses: actions/cache@v4
       id: virtualenv-cache
       with:
