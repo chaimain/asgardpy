@@ -89,6 +89,13 @@ jobs:
             gammapy_data_path: /Users/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
             allowed_fail: false
 
+          - os: windows-latest
+            python: '3.11'
+            shell: bash
+            tox_env: 'py311-test-quick'
+            gammapy_data_path: D:\a\asgardpy\asgardpy\gammapy-datasets\1.1\
+            allowed_fail: false
+
     steps:
       - name: Increase swapfile
         if: "contains(matrix.os, 'ubuntu')"
