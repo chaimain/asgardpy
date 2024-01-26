@@ -19,7 +19,7 @@ runs:
     - shell: ${{ runner.shell }}
       run: |
         # Install prerequisites.
-        python -m pip install -e .[dev]
+        python -m pip install tox
 
     - shell: ${{ runner.shell }}
       run: |
@@ -29,7 +29,7 @@ runs:
     - uses: actions/cache@v4
       id: virtualenv-cache
       with:
-        path: .venv
+        path: ${{ matrix.path }}
         enableCrossOsArchive: true
         key: ${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('pyproject.toml') }}  # ${{ inputs.cache-prefix }}-
 
@@ -38,20 +38,20 @@ runs:
       run: |
         # Set up virtual environment without cache hit.
         test -d .venv || virtualenv -p $(which python) --copies --reset-app-data .venv
-        . .venv/bin/activate
+        echo ${{ runner.venv_activate_command }}
         python -m pip install -e .[dev]
 
     - if: steps.virtualenv-cache.outputs.cache-hit == 'true'
       shell: ${{ runner.shell }}
       run: |
         # Set up virtual environment from cache hit.
-        . .venv/bin/activate
+        echo ${{ runner.venv_activate_command }}
         python -m pip install --no-deps -e .[dev]
 
     - shell: ${{ runner.shell }}
       run: |
         # Show environment info.
-        . .venv/bin/activate
+        echo ${{ runner.venv_activate_command }}
         echo "✓ Installed $(python --version) virtual environment to $(which python)"
         echo "Packages:"
         python -m pip freeze

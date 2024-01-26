@@ -83,7 +83,8 @@ jobs:
           - os: ubuntu-latest
             python: '3.11'
             enableCrossOsArchive: true
-            # path: .venv
+            path: ~/.cache/pip
+            venv_activate_command: "source .venv/bin/activate"
             tox_env: 'py311-test-quick'
             gammapy_data_path: /home/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
             allowed_fail: false
@@ -91,7 +92,8 @@ jobs:
           - os: macos-latest
             python: '3.11'
             enableCrossOsArchive: true
-            # path: .venv
+            path: ~/Library/Caches/pip
+            venv_activate_command: "source .venv/bin/activate"
             tox_env: 'py311-test-quick'
             gammapy_data_path: /Users/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
             allowed_fail: false
@@ -100,7 +102,8 @@ jobs:
             python: '3.11'
             shell: pwsh
             enableCrossOsArchive: true
-            # path: C:\hostedtoolcache\windows\Python\3.11.7\
+            path: ~\AppData\Local\pip\Cache
+            venv_activate_command: .\.venv\Scripts\activate
             tox_env: 'py311-test-quick'
             gammapy_data_path: D:\a\asgardpy\asgardpy\gammapy-datasets\1.1\
             allowed_fail: false
@@ -157,7 +160,7 @@ jobs:
 
       - name: Clean up
         run: |
-          . .venv/bin/activate
+          echo ${{ matrix.venv_activate_command }}
           pip uninstall -y asgardpy
 
   release:  # Separate this into a unique yml file?
