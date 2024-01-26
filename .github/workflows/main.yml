@@ -17,7 +17,7 @@ on:
 env:
   # Change this to invalidate existing cache.
   # CACHE_PREFIX: v0
-  PYTHONPATH: ./
+  # PYTHONPATH: ./
   PYTEST_ADDOPTS: -v --color=yes
   GITHUB_PR_NUMBER: ${{ github.event.number }}
 
