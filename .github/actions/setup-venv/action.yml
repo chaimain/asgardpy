@@ -47,13 +47,13 @@ runs:
       shell: ${{ runner.shell }}
       run: |
         # Set up virtual environment from cache hit.
-        echo ${{ runner.venv_activate_command }}
+        echo "${{ runner.venv_activate_command }}"
         python -m pip install --no-deps -e .[dev]
 
     - shell: ${{ runner.shell }}
       run: |
         # Show environment info.
-        echo ${{ runner.venv_activate_command }}
+        echo "${{ runner.venv_activate_command }}"
         echo "✓ Installed $(python --version) virtual environment to $(which python)"
         echo "Packages:"
         python -m pip freeze
