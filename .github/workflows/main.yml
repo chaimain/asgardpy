@@ -136,19 +136,11 @@ jobs:
           gammapy download datasets
 
       - name: Download extra test data
-        if: contains(fromJSON('["ubuntu", "mac"]'), matrix.os)
+        if: ${{ matrix.gammapy_data_path}}
         env:
           GAMMAPY_DATA: ${{ matrix.gammapy_data_path}}
         run: |
-          ./scripts/download_asgardpy_data.sh
-
-      - name: Download extra test data
-        if: contains(matrix.os, 'windows')
-        env:
-          GAMMAPY_DATA: ${{ matrix.gammapy_data_path}}
-        run: |
-          bash
-          ./scripts/download_asgardpy_data.sh
+          sh ./scripts/download_asgardpy_data.sh
 
       - name: Test
         if: ${{ matrix.gammapy_data_path }}
