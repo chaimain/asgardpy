@@ -147,7 +147,7 @@ jobs:
         env:
           GAMMAPY_DATA: ${{ matrix.gammapy_data_path}}
         run: |
-          source .venv/bin/activate
+          echo ${{ matrix.venv_activate_command }}
           tox -e ${{ matrix.tox_env }}
 
       - name: Upload coverage reports to Codecov

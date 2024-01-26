@@ -32,8 +32,8 @@ runs:
         path: ${{ matrix.path }}
         enableCrossOsArchive: true
         key: ${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('pyproject.toml') }}  # ${{ inputs.cache-prefix }}-
-        restore-keys: |
-          ${{ runner.os }}-pip-
+        # restore-keys: |
+        #   ${{ runner.os }}-pip-
 
     - if: steps.virtualenv-cache.outputs.cache-hit != 'true'
       shell: ${{ runner.shell }}
