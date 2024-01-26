@@ -83,7 +83,7 @@ jobs:
           - os: ubuntu-latest
             python: '3.11'
             enableCrossOsArchive: true
-            path: .venv
+            # path: .venv
             tox_env: 'py311-test-quick'
             gammapy_data_path: /home/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
             allowed_fail: false
@@ -91,16 +91,16 @@ jobs:
           - os: macos-latest
             python: '3.11'
             enableCrossOsArchive: true
-            path: .venv
+            # path: .venv
             tox_env: 'py311-test-quick'
             gammapy_data_path: /Users/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
             allowed_fail: false
 
           - os: windows-latest
             python: '3.11'
-            # shell: bash -l {0}
+            shell: pwsh {0}
             enableCrossOsArchive: true
-            path: C:\hostedtoolcache\windows\Python\3.11.7\
+            # path: C:\hostedtoolcache\windows\Python\3.11.7\
             tox_env: 'py311-test-quick'
             gammapy_data_path: D:\a\asgardpy\asgardpy\gammapy-datasets\1.1\
             allowed_fail: false
@@ -179,7 +179,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python }}
 
       - name: Install requirements
         run: |

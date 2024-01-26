@@ -19,7 +19,7 @@ runs:
     - shell: bash
       run: |
         # Install prerequisites.
-        pip install --upgrade pip setuptools wheel virtualenv
+        pip install -e .[dev]
 
     - shell: bash
       run: |
@@ -29,7 +29,7 @@ runs:
     - uses: actions/cache@v4
       id: virtualenv-cache
       with:
-        path: ${{ runner.path }}
+        path: .venv
         enableCrossOsArchive: true
         key: ${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('pyproject.toml') }}  # ${{ inputs.cache-prefix }}-
 
