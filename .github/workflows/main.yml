@@ -36,15 +36,17 @@ jobs:
           python-version: '3.11'
           # cache-prefix: ${{ env.CACHE_PREFIX }}
       - run: |
-          . .venv/bin/activate
           python -m build
+      - name: Activate virtualenv
+        run: |
+          source .venv/bin/activate
+          echo PATH=$PATH >> $GITHUB_ENV
       - uses: actions/upload-artifact@v4
         with:
           name: package
           path: dist
       - name: Clean up
         run: |
-          . .venv/bin/activate
           pip uninstall -y asgardpy
 
   docs:
@@ -62,13 +64,15 @@ jobs:
           python -m pip install towncrier
           python -m pip install -e .[dev]
           towncrier build --yes
+      - name: Activate virtualenv
+        run: |
+          source .venv/bin/activate
+          echo PATH=$PATH >> $GITHUB_ENV
       - name: Docs
         run: |
-          . .venv/bin/activate
           cd docs && make html
       - name: Clean up
         run: |
-          . .venv/bin/activate
           pip uninstall -y asgardpy
 
   tests:
@@ -147,7 +151,7 @@ jobs:
         env:
           GAMMAPY_DATA: ${{ matrix.gammapy_data_path}}
         run: |
-          . .venv/bin/activate
+          source .venv/bin/activate
           tox -e ${{ matrix.tox_env }}
 
       - name: Upload coverage reports to Codecov
