@@ -40,7 +40,7 @@ runs:
       run: |
         # Set up virtual environment without cache hit.
         test -d .venv || virtualenv -p $(which python) --copies --reset-app-data .venv
-        echo ${{ runner.venv_activate_command }}
+        echo "${{ runner.venv_activate_command }}"
         python -m pip install -e .[dev]
 
     - if: steps.virtualenv-cache.outputs.cache-hit == 'true'

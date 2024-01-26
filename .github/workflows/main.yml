@@ -103,7 +103,7 @@ jobs:
             shell: pwsh
             enableCrossOsArchive: true
             path: ~\AppData\Local\pip\Cache
-            venv_activate_command: .\.venv\Scripts\activate
+            venv_activate_command: .\venv\Scripts\activate
             tox_env: 'py311-test-quick'
             gammapy_data_path: D:\a\asgardpy\asgardpy\gammapy-datasets\1.1\
             allowed_fail: false
