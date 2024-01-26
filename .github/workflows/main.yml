@@ -98,7 +98,7 @@ jobs:
 
           - os: windows-latest
             python: '3.11'
-            shell: pwsh {0}
+            shell: pwsh
             enableCrossOsArchive: true
             # path: C:\hostedtoolcache\windows\Python\3.11.7\
             tox_env: 'py311-test-quick'
