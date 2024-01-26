@@ -37,16 +37,14 @@ jobs:
           # cache-prefix: ${{ env.CACHE_PREFIX }}
       - run: |
           python -m build
-      - name: Activate virtualenv
-        run: |
           source .venv/bin/activate
-          echo PATH=$PATH >> $GITHUB_ENV
       - uses: actions/upload-artifact@v4
         with:
           name: package
           path: dist
       - name: Clean up
         run: |
+          source .venv/bin/activate
           pip uninstall -y asgardpy
 
   docs:
@@ -64,15 +62,13 @@ jobs:
           python -m pip install towncrier
           python -m pip install -e .[dev]
           towncrier build --yes
-      - name: Activate virtualenv
-        run: |
-          source .venv/bin/activate
-          echo PATH=$PATH >> $GITHUB_ENV
       - name: Docs
         run: |
+          source .venv/bin/activate
           cd docs && make html
       - name: Clean up
         run: |
+          source .venv/bin/activate
           pip uninstall -y asgardpy
 
   tests:

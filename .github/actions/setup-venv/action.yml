@@ -35,27 +35,25 @@ runs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Activate virtualenv
-      run: |
-        echo ${{ runner.venv_activate_command }}
-        echo PATH=$PATH >> $GITHUB_ENV
-
     - if: steps.virtualenv-cache.outputs.cache-hit != 'true'
       shell: ${{ runner.shell }}
       run: |
         # Set up virtual environment without cache hit.
         test -d .venv || virtualenv -p $(which python) --copies --reset-app-data .venv
+        echo ${{ runner.venv_activate_command }}
         python -m pip install -e .[dev]
 
     - if: steps.virtualenv-cache.outputs.cache-hit == 'true'
       shell: ${{ runner.shell }}
       run: |
         # Set up virtual environment from cache hit.
+        echo ${{ runner.venv_activate_command }}
         python -m pip install --no-deps -e .[dev]
 
     - shell: ${{ runner.shell }}
       run: |
         # Show environment info.
+        echo ${{ runner.venv_activate_command }}
         echo "✓ Installed $(python --version) virtual environment to $(which python)"
         echo "Packages:"
         python -m pip freeze
