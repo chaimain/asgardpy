@@ -1,1 +1,1 @@
-Adapt tox env and start using pre-commit hooks. Have CI also run on Mac and Windows OS. Completes the remaining tasks in the Issue [`#127 <https://github.com/chaimain/asgardpy/issues/127>`_].
+Adapt tox env and start using pre-commit hooks. Have CI also run on Mac OS. Completes the remaining tasks in the Issue [`#127 <https://github.com/chaimain/asgardpy/issues/127>`_].

@@ -16,8 +16,8 @@ on:
 
 env:
   # Change this to invalidate existing cache.
-  CACHE_PREFIX: v0
-  PYTHONPATH: ./
+  # CACHE_PREFIX: v0
+  # PYTHONPATH: ./
   PYTEST_ADDOPTS: -v --color=yes
   GITHUB_PR_NUMBER: ${{ github.event.number }}
 
@@ -25,23 +25,26 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python environment
         uses: ./.github/actions/setup-venv
         with:
           python-version: '3.11'
-          cache-prefix: ${{ env.CACHE_PREFIX }}
+          # cache-prefix: ${{ env.CACHE_PREFIX }}
       - run: |
-          . .venv/bin/activate
           python -m build
+          source .venv/bin/activate
       - uses: actions/upload-artifact@v4
         with:
           name: package
           path: dist
       - name: Clean up
         run: |
-          . .venv/bin/activate
+          source .venv/bin/activate
           pip uninstall -y asgardpy
 
   docs:
@@ -53,7 +56,7 @@ jobs:
         uses: ./.github/actions/setup-venv
         with:
           python-version: '3.11'
-          cache-prefix: ${{ env.CACHE_PREFIX }}
+          # cache-prefix: ${{ env.CACHE_PREFIX }}
       - name: Produce Changelog
         run: |
           python -m pip install towncrier
@@ -61,11 +64,11 @@ jobs:
           towncrier build --yes
       - name: Docs
         run: |
-          . .venv/bin/activate
+          source .venv/bin/activate
           cd docs && make html
       - name: Clean up
         run: |
-          . .venv/bin/activate
+          source .venv/bin/activate
           pip uninstall -y asgardpy
 
   tests:
@@ -79,14 +82,30 @@ jobs:
         include:
           - os: ubuntu-latest
             python: '3.11'
+            enableCrossOsArchive: true
+            path: ~/.cache/pip
+            venv_activate_command: "source .venv/bin/activate"
             tox_env: 'py311-test-quick'
             gammapy_data_path: /home/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
             allowed_fail: false
 
           - os: macos-latest
             python: '3.11'
+            enableCrossOsArchive: true
+            path: ~/Library/Caches/pip
+            venv_activate_command: "source .venv/bin/activate"
             tox_env: 'py311-test-quick'
             gammapy_data_path: /Users/runner/work/asgardpy/asgardpy/gammapy-datasets/1.1/
+            allowed_fail: false
+
+          - os: windows-latest
+            python: '3.11'
+            shell: pwsh
+            enableCrossOsArchive: true
+            path: ~\AppData\Local\pip\Cache
+            venv_activate_command: .\venv\Scripts\activate
+            tox_env: 'py311-test-quick'
+            gammapy_data_path: D:\a\asgardpy\asgardpy\gammapy-datasets\1.1\
             allowed_fail: false
 
     steps:
@@ -106,7 +125,7 @@ jobs:
         uses: ./.github/actions/setup-venv
         with:
           python-version: ${{ matrix.python }}
-          cache-prefix: ${{ env.CACHE_PREFIX }}
+          # cache-prefix: ${{ env.CACHE_PREFIX }}
 
       - name: Download Gammapy Datasets
         if: ${{ matrix.gammapy_data_path }}
@@ -117,18 +136,18 @@ jobs:
           gammapy download datasets
 
       - name: Download extra test data
-        if: ${{ matrix.gammapy_data_path }}
+        if: ${{ matrix.gammapy_data_path}}
         env:
           GAMMAPY_DATA: ${{ matrix.gammapy_data_path}}
         run: |
-          ./scripts/download_asgardpy_data.sh
+          sh ./scripts/download_asgardpy_data.sh
 
       - name: Test
         if: ${{ matrix.gammapy_data_path }}
         env:
           GAMMAPY_DATA: ${{ matrix.gammapy_data_path}}
         run: |
-          . .venv/bin/activate
+          echo ${{ matrix.venv_activate_command }}
           tox -e ${{ matrix.tox_env }}
 
       - name: Upload coverage reports to Codecov
@@ -141,7 +160,7 @@ jobs:
 
       - name: Clean up
         run: |
-          . .venv/bin/activate
+          echo ${{ matrix.venv_activate_command }}
           pip uninstall -y asgardpy
 
   release:  # Separate this into a unique yml file?
@@ -163,7 +182,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python }}
 
       - name: Install requirements
         run: |
@@ -184,7 +203,6 @@ jobs:
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          # skip-existing: true  # remove this for post 0.4.1 releases
           verbose: true
 
       - name: Publish GitHub release
@@ -192,7 +210,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # body_path: ${{ github.workspace }}-RELEASE_NOTES.md - Removed for post 0.4.1
-          # prerelease: ${{ contains(env.TAG, 'rc') }}
           files: |
             dist/*

@@ -4,53 +4,56 @@ inputs:
   python-version:
     description: The Python version to use
     required: true
-  cache-prefix:
-    description: Update this to invalidate the cache
-    required: true
-    default: v3
+  # cache-prefix:
+  #   description: Update this to invalidate the cache
+  #   required: true
+  #   default: v3
 runs:
   using: composite
   steps:
     - name: Setup Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ inputs.python-version }}
 
-    - shell: bash
+    - shell: ${{ runner.shell }}
       run: |
         # Install prerequisites.
-        pip install --upgrade pip setuptools wheel virtualenv
+        python -m pip install tox
 
-    - shell: bash
+    - shell: ${{ runner.shell }}
       run: |
         # Get the exact Python version to use in the cache key.
         echo "PYTHON_VERSION=$(python --version)" >> $GITHUB_ENV
 
-    - uses: actions/cache@v3
+    - uses: actions/cache@v4
       id: virtualenv-cache
       with:
-        path: .venv
-        key: ${{ inputs.cache-prefix }}-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('pyproject.toml') }}
+        path: ${{ matrix.path }}
+        enableCrossOsArchive: true
+        key: ${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('pyproject.toml') }}  # ${{ inputs.cache-prefix }}-
+        # restore-keys: |
+        #   ${{ runner.os }}-pip-
 
     - if: steps.virtualenv-cache.outputs.cache-hit != 'true'
-      shell: bash
+      shell: ${{ runner.shell }}
       run: |
         # Set up virtual environment without cache hit.
         test -d .venv || virtualenv -p $(which python) --copies --reset-app-data .venv
-        . .venv/bin/activate
-        pip install -e .[dev]
+        echo "${{ runner.venv_activate_command }}"
+        python -m pip install -e .[dev]
 
     - if: steps.virtualenv-cache.outputs.cache-hit == 'true'
-      shell: bash
+      shell: ${{ runner.shell }}
       run: |
         # Set up virtual environment from cache hit.
-        . .venv/bin/activate
-        pip install --no-deps -e .[dev]
+        echo "${{ runner.venv_activate_command }}"
+        python -m pip install --no-deps -e .[dev]
 
-    - shell: bash
+    - shell: ${{ runner.shell }}
       run: |
         # Show environment info.
-        . .venv/bin/activate
+        echo "${{ runner.venv_activate_command }}"
         echo "✓ Installed $(python --version) virtual environment to $(which python)"
         echo "Packages:"
-        pip freeze
+        python -m pip freeze
