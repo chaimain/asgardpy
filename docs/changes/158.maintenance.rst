@@ -1,1 +1,0 @@
-Limit scipy version until gammapy v1.2 fixes its dependency.

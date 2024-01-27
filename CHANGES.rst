@@ -1,3 +1,39 @@
+Asgardpy 0.4.3 (2024-01-27)
+===========================
+
+
+API Changes
+-----------
+
+
+Bug Fixes
+---------
+
+
+New Features
+------------
+
+- Separate the functionality of reading from a Fermi-XML model file into a distinct function in gammapy module. Completes the Issue [`#153 <https://github.com/chaimain/asgardpy/issues/153>`_]. [`#155 <https://github.com/chaimain/asgardpy/pull/155>`__]
+
+- Add a temporary stats function to fetch pivot energy for any spectral model. This function will be present in the upcoming release of Gammapy v1.2.
+
+  Also include Windows OS in CI tests. [`#160 <https://github.com/chaimain/asgardpy/pull/160>`__]
+
+
+Maintenance
+-----------
+
+- Show Towncrier created fragments for changelog drafts before release of a new project version. [`#151 <https://github.com/chaimain/asgardpy/pull/151>`__]
+
+- Adapt tox env and start using pre-commit hooks. Have CI also run on Mac OS. Completes the remaining tasks in the Issue [`#127 <https://github.com/chaimain/asgardpy/issues/127>`_]. [`#154 <https://github.com/chaimain/asgardpy/pull/154>`__]
+
+- Adapt code suggestions from Scientific Python Development Guide and remove some coverage redundancies. [`#156 <https://github.com/chaimain/asgardpy/pull/156>`__]
+
+- Adapt code suggestions from Scrutinizer Code Quality scan. Use ``match-case`` instead of list of ``if-elif-else`` condition blocks. [`#157 <https://github.com/chaimain/asgardpy/pull/157>`__]
+
+- Limit scipy version until gammapy v1.2 fixes its dependency. [`#158 <https://github.com/chaimain/asgardpy/pull/158>`__]
+
+
 Asgardpy 0.4.2 (2023-11-20)
 ===========================
 
@@ -9,7 +45,7 @@ API Changes
 Bug Fixes
 ---------
 
-- Apply Bug fix on the definition of `TimeIntervals` config and usage in `ObservationsConfig` by changing it to just be a dict type and letting the `ObservationsConfig` have the `obs_time` as list of `TimeIntervalsType`. Fixes the issue [`#144 <https://github.com/chaimain/asgardpy/issues/144>`_]. [`#145 <https://github.com/chaimain/asgardpy/pull/145>`__]
+- Apply Bug fix on the definition of ``TimeIntervals`` config and usage in ``ObservationsConfig`` by changing it to just be a dict type and letting the ``ObservationsConfig`` have the ``obs_time`` as list of ``TimeIntervalsType``. Fixes the issue [`#144 <https://github.com/chaimain/asgardpy/issues/144>`_]. [`#145 <https://github.com/chaimain/asgardpy/pull/145>`__]
 
 
 New Features
@@ -23,10 +59,10 @@ New Features
 
 - Implement towncrier for maintaining PR changes as new fragments. [`#141 <https://github.com/chaimain/asgardpy/pull/141>`__]
 
-- Adapt the basic Time format to use any format and list of intervals as part of BaseConfig.
-  Remove redundant classes, adapt tests and use TimeIntervalsType as the main Time input type. [`#142 <https://github.com/chaimain/asgardpy/pull/142>`__]
+- Adapt the basic Time format to use any format and list of intervals as part of ``BaseConfig``.
+  Remove redundant classes, adapt tests and use ``TimeIntervalsType`` as the main Time input type. [`#142 <https://github.com/chaimain/asgardpy/pull/142>`__]
 
-- Extend the functionality of recursive_merge_dicts when comparing 2 lists of values with different lengths. [`#143 <https://github.com/chaimain/asgardpy/pull/143>`__]
+- Extend the functionality of ``recursive_merge_dicts`` when comparing 2 lists of values with different lengths. [`#143 <https://github.com/chaimain/asgardpy/pull/143>`__]
 
 
 Maintenance
