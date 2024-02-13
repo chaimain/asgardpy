@@ -27,7 +27,7 @@ from gammapy.maps import Map
 from gammapy.utils.scripts import make_path
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion
 
-from asgardpy.base.base import AngleType, BaseConfig, PathType, TimeIntervalsType
+from asgardpy.base.base import AngleType, BaseConfig, PathType, TimeInterval
 from asgardpy.base.geom import SkyPositionConfig, get_energy_axis
 
 __all__ = [
@@ -86,8 +86,8 @@ class ObservationsConfig(BaseConfig):
     """
 
     obs_ids: list[int] = []
-    obs_file: PathType = PathType("None")
-    obs_time: list[TimeIntervalsType] = []
+    obs_file: PathType = "None"
+    obs_time: list[TimeInterval] = []
     obs_cone: SkyPositionConfig = SkyPositionConfig()
     required_irfs: list[RequiredHDUEnum] = [RequiredHDUEnum.aeff]
 
@@ -155,7 +155,7 @@ class ExclusionRegionsConfig(BaseConfig):
 
     target_source: bool = True
     regions: list[RegionsConfig] = []
-    exclusion_file: PathType = PathType("None")
+    exclusion_file: PathType = "None"
 
 
 class SafeMaskMethodsEnum(str, Enum):
