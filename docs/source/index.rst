@@ -1,13 +1,13 @@
 .. asgardpy documentation master file, created by
    sphinx-quickstart on Tue Sep 21 08:07:48 2021.
    You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+   contain the root toctree directive.
 
 **asgardpy pipeline**
 =====================
 
 Gammapy-based pipeline to support high-level analysis for multi-instruments joint datasets.
-Follow the `Gammapy v1.1 <https://docs.gammapy.org/1.1/>`_ documentation for understanding the core Gammapy objects.
+Follow the `Gammapy v1.2 <https://docs.gammapy.org/1.2/>`_ documentation for understanding the core Gammapy objects.
 
 The various Data Levels used here follow the descriptions suggested by
 `GADF v0.3 <https://gamma-astro-data-formats.readthedocs.io/en/latest/>`_ and CTAO Data Model.

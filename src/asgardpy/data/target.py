@@ -321,7 +321,7 @@ def set_models(
     # Have some checks on argument types
     if isinstance(models, DatasetModels | list):
         models = Models(models)
-    elif isinstance(models, PathType):
+    elif isinstance(models, str):
         models = Models.read(models)
     elif models is None:
         models = Models(models)
@@ -372,8 +372,8 @@ def apply_models_mask_in_roi(list_sources_excluded, target_source, roi_radius, f
     if roi_radius.to_value("deg") != 0:
         for model_ in list_sources_excluded:
             model_pos = model_.spatial_model.position
-            separation = target_source_pos.separation(model_pos).deg
-            if separation >= roi_radius.deg:
+            separation = target_source_pos.separation(model_pos).to_value("deg")
+            if separation >= roi_radius.to_value("deg"):
                 model_.spectral_model.freeze()
     else:
         if len(free_sources) > 0:

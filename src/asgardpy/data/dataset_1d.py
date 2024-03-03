@@ -251,6 +251,5 @@ class Dataset1DGeneration:
             # Use custom safe energy mask
             if "custom-mask" in safe_cfg.methods:
                 data.mask_safe = data.counts.geom.energy_mask(
-                    energy_min=u.Quantity(pars["min"]),
-                    energy_max=u.Quantity(pars["max"]),
+                    energy_min=u.Quantity(pars["min"]), energy_max=u.Quantity(pars["max"]), round_to_edge=True
                 )

@@ -256,7 +256,7 @@ def get_filtered_observations(dl3_path, obs_config, log):
         for i, intervals in enumerate(obs_time):
             gti_select = {
                 "type": "time_box",
-                "time_range": [intervals["start"], intervals["stop"]],
+                "time_range": [intervals.interval["start"], intervals.interval["stop"]],
             }
 
             if i == 0:

@@ -124,13 +124,19 @@ class TimeInterval:
     object.
     """
 
-    interval: dict[str, str]
+    interval: dict[str, str | float]
 
     def build(self) -> dict:
-        self.interval["start"] = Time(self.interval["start"], format=self.interval["format"])
-        self.interval["stop"] = Time(self.interval["stop"], format=self.interval["format"])
+        # self.interval["start"] = Time(self.interval["start"], format=self.interval["format"])
+        # self.interval["stop"] = Time(self.interval["stop"], format=self.interval["format"])
+        value_dict = {}
+        value_dict["format"] = Time(self.interval["start"]).format
 
-        return self.interval
+        value_dict["start"] = str(self.interval["start"])
+
+        value_dict["stop"] = str(self.interval["stop"])
+
+        return value_dict
 
     @classmethod
     def __get_pydantic_core_schema__(
@@ -151,10 +157,14 @@ class TimeInterval:
 
     @staticmethod
     def _validate(value: dict) -> "TimeInterval":
-        inv_dict: dict[str, str] = {}
+        inv_dict: dict[str, str | float] = {}
 
         if isinstance(value["format"], TimeFormatEnum):
             inv_dict["format"] = value["format"]
+
+        # Read all values as string
+        value["start"] = str(value["start"])
+        value["stop"] = str(value["stop"])
 
         if not Time(value["start"], format=value["format"]):
             raise ValueError(f"{value['start']} is not the right Time value for format {value['format']}")
@@ -184,6 +194,7 @@ class BaseConfig(BaseModel):
         extra="forbid",
         validate_default=True,
         use_enum_values=True,
+        json_encoders={u.Quantity: lambda v: f"{v.value} {v.unit}"},
     )
 
 
