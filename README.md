@@ -30,7 +30,7 @@ If you use Asgardpy in a publication, please cite the exact version you used fro
 
 Pipeline generated based on the template by [python-package-template](https://github.com/allenai/python-package-template) with additional standards being followed -
 
+- [PEP 517](https://peps.python.org/pep-0517)
 - [PEP 518](https://peps.python.org/pep-0518/)
 - [PyPA specs following PEP 621](https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#declaring-project-metadata)
-- [PEP 517](https://peps.python.org/pep-0517)
 - [PEP 660](https://peps.python.org/pep-0660/)

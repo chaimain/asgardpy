@@ -169,8 +169,8 @@ class ExpCutoffLogParabolaSpectralModel(SpectralModel):
         "1e-12 cm-2 s-1 TeV-1",
         scale_method="scale10",
         interp="log",
-        is_norm=True,
     )
+    amplitude._is_norm = True
     reference = Parameter("reference", "1 TeV", frozen=True)
     alpha_1 = Parameter("alpha_1", -2)
     alpha_2 = Parameter("alpha_2", 1, frozen=True)
@@ -228,8 +228,8 @@ class BrokenPowerLaw2SpectralModel(SpectralModel):
         value="1e-12 cm-2 s-1 TeV-1",
         scale_method="scale10",
         interp="log",
-        is_norm=True,
     )
+    amplitude._is_norm = True
     ebreak = Parameter("ebreak", "1 TeV")
 
     @staticmethod
