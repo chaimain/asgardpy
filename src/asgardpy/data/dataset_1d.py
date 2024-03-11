@@ -130,7 +130,7 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
                         # "telescope": "CTA-N",
                         "instrument": config_1d_dataset.name,
                     }
-                    dataset._meta.creation.creator += f", Asgardpy {__public_version__}"
+                    data._meta.creation.creator += f", Asgardpy {__public_version__}"
                     en_bins = get_reco_energy_bins(data, en_bins)
                     datasets_1d_final.append(data)
 

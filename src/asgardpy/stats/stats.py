@@ -305,6 +305,5 @@ def fetch_pivot_energy(analysis):
     ).matrix
 
     temp_model.covariance = cov_matrix[: len(temp_model.parameters), : len(temp_model.parameters)]
-    print(temp_model.covariance)  # Test for Windows OS CI run
 
     return temp_model.pivot_energy
