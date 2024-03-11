@@ -3,6 +3,7 @@ Data Module
 
 isort:skip_file
 """
+
 from asgardpy.data.dataset_1d import (
     Dataset1DConfig,
     Dataset1DGeneration,

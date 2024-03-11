@@ -21,8 +21,8 @@ except Exception:  # pragma: no cover
 
 __version__ = version
 
-# Save the base version for creating Tags for release
+# Save the public version for creating Tags for release
 from packaging.version import Version
 
-base_version = Version(__version__).base_version
-__base_version__ = base_version
+public_version = Version(__version__).public
+__public_version__ = public_version

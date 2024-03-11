@@ -290,6 +290,8 @@ def get_filtered_observations(dl3_path, obs_config, log):
     irfs_selected = obs_config.required_irfs
     observations = datastore.get_observations(filtered_obs_ids, required_irf=irfs_selected)
 
+    # Get the metadata?
+
     return observations
 
 

@@ -1,6 +1,7 @@
 """
 Config-driven high level analysis interface.
 """
+
 import logging
 
 from gammapy.datasets import Datasets

@@ -1,6 +1,7 @@
 """
 Main AsgardpyConfig Generator Module
 """
+
 import json
 import logging
 from collections.abc import Mapping

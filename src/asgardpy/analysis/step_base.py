@@ -1,6 +1,7 @@
 """
 Base Classes for creating the intermediate High-level Analysis Steps
 """
+
 import abc
 import logging
 from enum import Enum

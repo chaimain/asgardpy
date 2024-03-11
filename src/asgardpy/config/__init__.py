@@ -1,6 +1,7 @@
 """
 Configuration Module
 """
+
 from asgardpy.config.generator import (
     AsgardpyConfig,
     GeneralConfig,

@@ -3,6 +3,7 @@ Base Module
 
 isort:skip_file
 """
+
 from asgardpy.base.base import (
     AngleType,
     BaseConfig,

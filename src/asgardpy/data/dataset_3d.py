@@ -50,6 +50,7 @@ from asgardpy.gammapy.read_models import (
 )
 from asgardpy.io.input_dl3 import DL3Files, InputDL3Config
 from asgardpy.io.io_dl4 import DL4BaseConfig, DL4Files, get_reco_energy_bins
+from asgardpy.version import __public_version__
 
 __all__ = [
     "Datasets3DAnalysisStep",
@@ -167,6 +168,11 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             instrument_spectral_info["spectral_energy_ranges"].append(energy_bin_edges)
 
             for data in dataset_instrument:
+                data._meta.optional = {
+                    # "telescope": "Fermi",
+                    "instrument": config_3d_dataset.name,
+                }
+                data._meta.creation.creator += f", Asgardpy {__public_version__}"
                 en_bins = get_reco_energy_bins(data, en_bins)
                 datasets_3d_final.append(data)
 
