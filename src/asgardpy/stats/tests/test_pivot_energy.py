@@ -22,12 +22,12 @@ def test_get_pivot_energy(gpy_hess_magic):
 def test_get_pivot_energy_from_start(gpy_hess_magic):
     """
     Check the pivot energy for given fit model on a dataset from the start of
-    the AsgardpyAnalysis object. Test using the custom SpectralModel of ECLP
+    the AsgardpyAnalysis object. Test using the SpectralModel of ECPL
     and without any associated EBL absorption model.
     """
     from asgardpy.config.generator import get_model_template
 
-    new_model = get_model_template("eclp")
+    new_model = get_model_template("ecpl2")
     gpy_hess_magic.target.models_file = new_model
     gpy_hess_magic.target.components[0].spectral.ebl_abs.reference = ""
 
@@ -35,8 +35,4 @@ def test_get_pivot_energy_from_start(gpy_hess_magic):
 
     e_ref = fetch_pivot_energy(analysis)
 
-    if analysis.fit_result.success:
-        assert e_ref.value == 0.030128153004345924
-    else:
-        # For windows OS CI, the fit fails
-        assert e_ref.value == 0.0014998909471849885
+    assert e_ref.value == 0.030128153004345924

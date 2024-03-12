@@ -276,7 +276,7 @@ def fetch_pivot_energy(analysis):
 
     In Gammapy v1.2, use instead
     'analysis.fit_result.models[0].spectral_model.model1.pivot_energy' to get this value.
-    However, it still needs some internal checks to confirm.
+    However, it still needs some internal updates.
 
     Returns
     -------
@@ -295,15 +295,19 @@ def fetch_pivot_energy(analysis):
     # Assuming EBL model is present
     if isinstance(analysis.datasets[0].models[0].spectral_model, CompoundSpectralModel):
         temp_model = analysis.datasets[0].models[0].spectral_model.model1
+        # pivot = analysis.fit_result.models[0].spectral_model.model1.pivot_energy
     else:
         temp_model = analysis.datasets[0].models[0].spectral_model
+        # pivot = analysis.fit_result.models[0].spectral_model.pivot_energy
 
-    # Not sure how this is reflected internally in Gammapy 1.2
-    # Fetching the covariance matrix for the given dataset and optimized fit model
+    # The internal working in Gammapy might be updated in the near future, but
+    # to confirm the process, fetching the covariance matrix for the given
+    # dataset and optimized fit model
     cov_matrix = analysis.fit.covariance(
         datasets=analysis.datasets, optimize_result=analysis.fit_result.optimize_result
     ).matrix
 
     temp_model.covariance = cov_matrix[: len(temp_model.parameters), : len(temp_model.parameters)]
+    pivot = temp_model.pivot_energy
 
-    return temp_model.pivot_energy
+    return pivot
