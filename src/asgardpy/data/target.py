@@ -54,7 +54,7 @@ class EBLAbsorptionModel(BaseConfig):
     Config section for parameters to use for EBLAbsorptionNormSpectralModel.
     """
 
-    filename: PathType = PathType("None")
+    filename: PathType = "None"
     reference: str = ""
     type: str = "EBLAbsorptionNormSpectralModel"
     redshift: float = 0.0
@@ -127,7 +127,7 @@ class Target(BaseConfig):
     source_name: str = ""
     sky_position: SkyPositionConfig = SkyPositionConfig()
     use_uniform_position: bool = True
-    models_file: PathType = PathType("None")
+    models_file: PathType = "None"
     datasets_with_fov_bkg_model: list[str] = []
     use_catalog: CatalogConfig = CatalogConfig()
     components: list[ModelComponent] = [ModelComponent()]
@@ -169,8 +169,8 @@ class ExpCutoffLogParabolaSpectralModel(SpectralModel):
         "1e-12 cm-2 s-1 TeV-1",
         scale_method="scale10",
         interp="log",
-        is_norm=True,
     )
+    amplitude._is_norm = True
     reference = Parameter("reference", "1 TeV", frozen=True)
     alpha_1 = Parameter("alpha_1", -2)
     alpha_2 = Parameter("alpha_2", 1, frozen=True)
@@ -228,8 +228,8 @@ class BrokenPowerLaw2SpectralModel(SpectralModel):
         value="1e-12 cm-2 s-1 TeV-1",
         scale_method="scale10",
         interp="log",
-        is_norm=True,
     )
+    amplitude._is_norm = True
     ebreak = Parameter("ebreak", "1 TeV")
 
     @staticmethod
@@ -321,7 +321,7 @@ def set_models(
     # Have some checks on argument types
     if isinstance(models, DatasetModels | list):
         models = Models(models)
-    elif isinstance(models, PathType):
+    elif isinstance(models, str):
         models = Models.read(models)
     elif models is None:
         models = Models(models)
@@ -372,8 +372,8 @@ def apply_models_mask_in_roi(list_sources_excluded, target_source, roi_radius, f
     if roi_radius.to_value("deg") != 0:
         for model_ in list_sources_excluded:
             model_pos = model_.spatial_model.position
-            separation = target_source_pos.separation(model_pos).deg
-            if separation >= roi_radius.deg:
+            separation = target_source_pos.separation(model_pos).to_value("deg")
+            if separation >= roi_radius.to_value("deg"):
                 model_.spectral_model.freeze()
     else:
         if len(free_sources) > 0:

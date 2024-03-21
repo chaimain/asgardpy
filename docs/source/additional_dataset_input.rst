@@ -4,7 +4,7 @@ Additional Support of Datasets input
 
 :ref:`dataset-intro` provides the general overview of the inputs used in asgardpy
 for the data reduction of DL3 data to DL4 data, following the Gammapy documentation on
-`Data Reduction (DL3 to DL4) <https://docs.gammapy.org/1.1/user-guide/makers/index.html>`_
+`Data Reduction (DL3 to DL4) <https://docs.gammapy.org/1.2/user-guide/makers/index.html>`_
 
 
 Asgardpy can also read from already reduced DL4 datasets, like the examples from gammapy-data,

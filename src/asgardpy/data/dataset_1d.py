@@ -7,8 +7,6 @@ import logging
 
 import numpy as np
 from astropy import units as u
-
-# from gammapy.analysis import Analysis, AnalysisConfig - no support for DL3 with RAD_MAX
 from gammapy.datasets import Datasets
 
 from asgardpy.analysis.step_base import AnalysisStepBase
@@ -35,6 +33,7 @@ from asgardpy.base.reduction import (
 )
 from asgardpy.io.input_dl3 import DL3Files, InputDL3Config
 from asgardpy.io.io_dl4 import DL4BaseConfig, DL4Files, get_reco_energy_bins
+from asgardpy.version import __public_version__
 
 __all__ = [
     "Datasets1DAnalysisStep",
@@ -117,11 +116,21 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
 
             if self.config.general.stacked_dataset:
                 dataset = dataset.stack_reduce(name=config_1d_dataset.name)
+                dataset._meta.optional = {
+                    # "telescope": "CTA-N",
+                    "instrument": config_1d_dataset.name,
+                }
+                dataset._meta.creation.creator += f", Asgardpy {__public_version__}"
 
                 en_bins = get_reco_energy_bins(dataset, en_bins)
                 datasets_1d_final.append(dataset)
             else:
                 for data in dataset:
+                    data._meta.optional = {
+                        # "telescope": "CTA-N",
+                        "instrument": config_1d_dataset.name,
+                    }
+                    data._meta.creation.creator += f", Asgardpy {__public_version__}"
                     en_bins = get_reco_energy_bins(data, en_bins)
                     datasets_1d_final.append(data)
 
@@ -251,6 +260,5 @@ class Dataset1DGeneration:
             # Use custom safe energy mask
             if "custom-mask" in safe_cfg.methods:
                 data.mask_safe = data.counts.geom.energy_mask(
-                    energy_min=u.Quantity(pars["min"]),
-                    energy_max=u.Quantity(pars["max"]),
+                    energy_min=u.Quantity(pars["min"]), energy_max=u.Quantity(pars["max"]), round_to_edge=True
                 )

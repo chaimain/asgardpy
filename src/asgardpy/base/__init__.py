@@ -3,6 +3,7 @@ Base Module
 
 isort:skip_file
 """
+
 from asgardpy.base.base import (
     AngleType,
     BaseConfig,
@@ -11,7 +12,7 @@ from asgardpy.base.base import (
     FrameEnum,
     PathType,
     TimeFormatEnum,
-    TimeIntervalsType,
+    TimeInterval,
 )
 from asgardpy.base.reduction import (
     ObservationsConfig,
@@ -74,7 +75,7 @@ __all__ = [
     "SelectionConfig",
     "SkyPositionConfig",
     "TimeFormatEnum",
-    "TimeIntervalsType",
+    "TimeInterval",
     "WcsConfig",
     "create_counts_map",
     "generate_dl4_dataset",

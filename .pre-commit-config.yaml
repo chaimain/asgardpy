@@ -22,7 +22,7 @@ repos:
       - id: isort
         args: ["--profile", "black", "--filter-files"]
   - repo: https://github.com/psf/black
-    rev: 23.12.1
+    rev: 24.2.0
     hooks:
       - id: black
   # https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html?highlight=other%20tools#flake8
@@ -30,7 +30,7 @@ repos:
     rev: "1.16.0"
     hooks:
       - id: blacken-docs
-        additional_dependencies: [black==23.*]
+        additional_dependencies: [black==24.*]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
     rev: v0.1.11

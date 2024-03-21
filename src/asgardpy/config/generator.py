@@ -1,15 +1,16 @@
 """
 Main AsgardpyConfig Generator Module
 """
+
 import json
 import logging
+from collections.abc import Mapping
 from enum import Enum
 from pathlib import Path
 
 import yaml
 from gammapy.modeling.models import Models
 from gammapy.utils.scripts import make_path, read_yaml
-from pydantic.utils import deep_update
 
 from asgardpy.analysis.step_base import AnalysisStepEnum
 from asgardpy.base import BaseConfig, PathType
@@ -56,7 +57,7 @@ class GeneralConfig(BaseConfig):
     """Config section for general information for running AsgardpyAnalysis."""
 
     log: LogConfig = LogConfig()
-    outdir: PathType = PathType("None")
+    outdir: PathType = "None"
     n_jobs: int = 1
     parallel_backend: ParallelBackendEnum = ParallelBackendEnum.multi
     steps: list[AnalysisStepEnum] = []
@@ -130,6 +131,20 @@ def recursive_merge_dicts(base_config, extra_config):
     return final_config
 
 
+def deep_update(d, u):
+    """
+    Recursively update a nested dictionary.
+
+    Just like in Gammapy, taken from: https://stackoverflow.com/a/3233356/19802442
+    """
+    for k, v in u.items():
+        if isinstance(v, Mapping):
+            d[k] = deep_update(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
+
+
 def gammapy_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=None, recursive_merge=True):
     """
     Read the Gammapy Models YAML file and save it as AsgardpyConfig object.
@@ -153,7 +168,7 @@ def gammapy_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=None, r
         asgardpy_config = asgardpy_config_file
 
     models_gpy_dict = models_gpy.to_dict()
-    asgardpy_config_target_dict = asgardpy_config.dict()["target"]
+    asgardpy_config_target_dict = asgardpy_config.model_dump()["target"]
 
     if recursive_merge:
         temp_target_dict = recursive_merge_dicts(asgardpy_config_target_dict, models_gpy_dict)
@@ -225,8 +240,8 @@ class AsgardpyConfig(BaseConfig):
         # Here using `dict()` instead of `json()` would be more natural.
         # We should change this once pydantic adds support for custom encoders
         # to `dict()`. See https://github.com/samuelcolvin/pydantic/issues/1043
-        config = json.loads(self.json())
-        return yaml.dump(config, sort_keys=False, indent=4, width=80, default_flow_style=None)
+        data = json.loads(self.model_dump_json())
+        return yaml.dump(data, sort_keys=False, indent=4, width=80, default_flow_style=None)
 
     def set_logging(self):
         """
@@ -234,8 +249,8 @@ class AsgardpyConfig(BaseConfig):
         Calls ``logging.basicConfig``, i.e. adjusts global logging state.
         """
         self.general.log.level = self.general.log.level.upper()
-        logging.basicConfig(**self.general.log.dict())
-        log.info("Setting logging config: %s", self.general.log.dict())
+        logging.basicConfig(**self.general.log.model_dump())
+        log.info("Setting logging config: %s", self.general.log.model_dump())
 
     def update(self, config=None, merge_recursive=False):
         """
@@ -265,7 +280,11 @@ class AsgardpyConfig(BaseConfig):
             merge_recursive = True
 
         if merge_recursive:
-            config_new = recursive_merge_dicts(self.dict(exclude_defaults=True), other.dict(exclude_defaults=True))
+            config_new = recursive_merge_dicts(
+                self.model_dump(exclude_defaults=True), other.model_dump(exclude_defaults=True)
+            )
         else:
-            config_new = deep_update(self.dict(exclude_defaults=True), other.dict(exclude_defaults=True))
+            config_new = deep_update(
+                self.model_dump(exclude_defaults=True), other.model_dump(exclude_defaults=True)
+            )
         return AsgardpyConfig(**config_new)

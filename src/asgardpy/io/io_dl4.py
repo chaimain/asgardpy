@@ -50,7 +50,7 @@ class InputDL4Config(BaseConfig):
     """
 
     type: DatasetTypeEnum = DatasetTypeEnum.MapDataset
-    input_dir: PathType = PathType("None")
+    input_dir: PathType = "None"
     # Can be OGIP format (Stacked or unstacked obs) or fits format (stacked obs)
     glob_pattern: str = "pha*fits"
     dl4_format: DL4FormatEnum = DL4FormatEnum.gadf

@@ -2,13 +2,22 @@
 Classes containing the Base for the Analysis steps and some Basic Config types.
 """
 
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+from typing import Annotated
 
 from astropy import units as u
-from astropy.coordinates import Angle
 from astropy.time import Time
-from pydantic import BaseModel
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    GetCoreSchemaHandler,
+    PlainSerializer,
+    WithJsonSchema,
+)
+from pydantic_core import core_schema
 
 __all__ = [
     "AngleType",
@@ -18,59 +27,75 @@ __all__ = [
     "FrameEnum",
     "PathType",
     "TimeFormatEnum",
-    "TimeIntervalsType",
+    "TimeInterval",
 ]
 
 
 # Basic Quantities Type for building the Config
-class AngleType(Angle):
-    """Base Angle Type Quantity"""
-
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v):
-        return Angle(v)
-
-
-class EnergyType(u.Quantity):
-    """Base Energy Type Quantity"""
-
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v):
-        v = u.Quantity(v)
-        if v.unit.physical_type != "energy":
-            raise ValueError(f"Invalid unit for energy: {v.unit!r}")
-        return v
+def validate_angle_type(v: str) -> u.Quantity:
+    """Validation for Base Angle Type Quantity"""
+    if isinstance(v, u.Quantity):
+        v_ = v
+    elif isinstance(v, str):
+        v_ = u.Quantity(v)
+    if v_.unit.physical_type != "angle":
+        raise ValueError(f"Invalid unit for angle: {v_.unit!r}")
+    else:
+        return v_
 
 
-class PathType(str):
-    """Base Path Type Quantity"""
+# Base Angle Type Quantity
+AngleType = Annotated[
+    str | u.Quantity,
+    AfterValidator(validate_angle_type),
+    PlainSerializer(lambda x: u.Quantity(x), return_type=u.Quantity),
+    WithJsonSchema({"type": "string"}, mode="serialization"),
+]
 
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
 
-    @classmethod
-    def validate(cls, v):
-        if v == "None":
-            return Path(".")
+def validate_energy_type(v: str) -> u.Quantity:
+    """Validation for Base Energy Type Quantity"""
+    if isinstance(v, u.Quantity):
+        v_ = v
+    elif isinstance(v, str):
+        v_ = u.Quantity(v)
+    if v_.unit.physical_type != "energy":
+        raise ValueError(f"Invalid unit for energy: {v_.unit!r}")
+    else:
+        return v_
+
+
+# Base Energy Type Quantity
+EnergyType = Annotated[
+    str | u.Quantity,
+    AfterValidator(validate_energy_type),
+    PlainSerializer(lambda x: u.Quantity(x), return_type=u.Quantity),
+    WithJsonSchema({"type": "string"}, mode="serialization"),
+]
+
+
+def validate_path_type(v: str) -> Path:
+    """Validation for Base Path Type Quantity"""
+    if v == "None":
+        return Path(".")
+    else:
+        path_ = Path(v).resolve()
+        # Only check if the file location or directory path exists
+        if path_.is_file():
+            path_ = path_.parent
+
+        if path_.exists():
+            return Path(v)
         else:
-            path_ = Path(v).resolve()
-            # Only check if the file location or directory path exists
-            if path_.is_file():
-                path_ = path_.parent
+            raise ValueError(f"Path {v} does not exist")
 
-            if path_.exists():
-                return Path(v)
-            else:
-                raise ValueError(f"Path {v} does not exist")
+
+PathType = Annotated[
+    str | Path,
+    AfterValidator(validate_path_type),
+    PlainSerializer(lambda x: Path(x), return_type=Path),
+    WithJsonSchema({"type": "string"}, mode="serialization"),
+]
 
 
 class FrameEnum(str, Enum):
@@ -92,31 +117,70 @@ class TimeFormatEnum(str, Enum):
     unix = "unix"
 
 
-class TimeIntervalsType(list):
+@dataclass
+class TimeInterval:
     """
-    Config section for getting main information for creating a Time Intervals
+    Config section for getting main information for creating a Time Interval
     object.
     """
 
-    intervals: dict = {"format": TimeFormatEnum.iso, "start": "1970-01-01", "stop": "2000-01-01"}
+    interval: dict[str, str | float]
+
+    def build(self) -> dict:
+        # self.interval["start"] = Time(self.interval["start"], format=self.interval["format"])
+        # self.interval["stop"] = Time(self.interval["stop"], format=self.interval["format"])
+        value_dict = {}
+        value_dict["format"] = Time(self.interval["start"]).format
+
+        value_dict["start"] = str(self.interval["start"])
+
+        value_dict["stop"] = str(self.interval["stop"])
+
+        return value_dict
 
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+    def __get_pydantic_core_schema__(
+        cls, source: type[dict], handler: GetCoreSchemaHandler
+    ) -> core_schema.CoreSchema:
+        assert source is TimeInterval
+        return core_schema.no_info_after_validator_function(
+            cls._validate,
+            core_schema.dict_schema(keys_schema=core_schema.str_schema(), values_schema=core_schema.str_schema()),
+            serialization=core_schema.plain_serializer_function_ser_schema(
+                cls._serialize,
+                info_arg=False,
+                return_schema=core_schema.dict_schema(
+                    keys_schema=core_schema.str_schema(), values_schema=core_schema.str_schema()
+                ),
+            ),
+        )
 
-    @classmethod
-    def validate(cls, v):
-        if Time(v["start"], format=v["format"]):
-            v["start"] = Time(v["start"], format=v["format"])
+    @staticmethod
+    def _validate(value: dict) -> "TimeInterval":
+        inv_dict: dict[str, str | float] = {}
+
+        if isinstance(value["format"], TimeFormatEnum):
+            inv_dict["format"] = value["format"]
+
+        # Read all values as string
+        value["start"] = str(value["start"])
+        value["stop"] = str(value["stop"])
+
+        if not Time(value["start"], format=value["format"]):
+            raise ValueError(f"{value['start']} is not the right Time value for format {value['format']}")
         else:
-            raise ValueError(f"{v['start']} is not the right Time value for format {v['format']}")
+            inv_dict["start"] = Time(value["start"], format=value["format"])
 
-        if Time(v["stop"], format=v["format"]):
-            v["stop"] = Time(v["stop"], format=v["format"])
+        if not Time(value["stop"], format=value["format"]):
+            raise ValueError(f"{value['stop']} is not the right Time value for format {value['format']}")
         else:
-            raise ValueError(f"{v['stop']} is not the right Time value for format {v['format']}")
+            inv_dict["stop"] = Time(value["stop"], format=value["format"])
 
-        return v
+        return TimeInterval(inv_dict)
+
+    @staticmethod
+    def _serialize(value: "TimeInterval") -> dict:
+        return value.build()
 
 
 class BaseConfig(BaseModel):
@@ -124,16 +188,14 @@ class BaseConfig(BaseModel):
     Base Config class for creating other Config sections with specific encoders.
     """
 
-    class Config:
-        validate_all = True
-        validate_assignment = True
-        extra = "forbid"
-        json_encoders = {
-            Angle: lambda v: f"{v.value} {v.unit}",
-            u.Quantity: lambda v: f"{v.value} {v.unit}",
-            Path: lambda v: PathType(v),
-            Time: lambda v: Time(v).iso,
-        }
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        validate_assignment=True,
+        extra="forbid",
+        validate_default=True,
+        use_enum_values=True,
+        json_encoders={u.Quantity: lambda v: f"{v.value} {v.unit}"},
+    )
 
 
 # Basic Quantity ranges Type for building the Config

@@ -38,7 +38,6 @@ def test_set_models(base_config, gammapy_data_path):
     """Test non-standard components of Target module."""
 
     from asgardpy.analysis import AsgardpyAnalysis
-    from asgardpy.base.base import PathType
     from asgardpy.data.target import set_models
 
     ebl_file_name = "ebl_franceschini_2017.fits.gz"
@@ -68,7 +67,7 @@ def test_set_models(base_config, gammapy_data_path):
         analysis_0.config.target,
         analysis_0.datasets,
         datasets_name_list=None,
-        models=PathType(model_file_0),
+        models=model_file_0,
     )
 
     data_1, model_1 = set_models(
@@ -90,12 +89,19 @@ def test_set_models(base_config, gammapy_data_path):
         datasets_name_list=None,
     )
 
-    with pytest.raises(TypeError):
+    with pytest.raises(KeyError):
         _, _ = set_models(
             analysis_0.config.target,
             analysis_0.datasets,
             datasets_name_list=None,
             models=model_file_1,
+        )
+    with pytest.raises(TypeError):
+        _, _ = set_models(
+            analysis_0.config.target,
+            analysis_0.datasets,
+            datasets_name_list=None,
+            models=1,
         )
     assert model_0[0].datasets_names == ["Fermi-LAT_00", "Fermi-LAT_01"]
     assert model_1[0].spectral_model.model2.filename.name == ebl_file_name

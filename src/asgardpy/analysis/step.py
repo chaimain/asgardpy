@@ -1,6 +1,7 @@
 """
 Main Class for the intermediate High-level Analysis Steps
 """
+
 from gammapy.utils.registry import Registry
 
 from asgardpy.data import (

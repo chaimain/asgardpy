@@ -10,7 +10,7 @@ import sys
 import tomllib
 from datetime import datetime
 
-from asgardpy.version import __base_version__, __version__  # noqa: E402
+from asgardpy.version import __public_version__, __version__  # noqa: E402
 
 # -- Path setup --------------------------------------------------------------
 
@@ -40,7 +40,7 @@ copyright = f"{datetime.today().year}, {author}"
 
 version = __version__
 # The full version contains alpha, beta, rc tags
-release = __base_version__
+release = __public_version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -85,7 +85,7 @@ source_suffix = [".rst", ".md"]
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3.11/", None),
-    "gammapy": ("https://docs.gammapy.org/1.1/", None),
+    "gammapy": ("https://docs.gammapy.org/1.2/", None),
     "astropy": ("https://docs.astropy.org/en/latest/", None),
     # Uncomment these if you use them in your codebase:
     #  "torch": ("https://pytorch.org/docs/stable", None),

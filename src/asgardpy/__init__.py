@@ -4,8 +4,9 @@ asgardpy - Gammapy-based pipeline for easy joint analysis of different gamma-ray
 Licensed under `Apache 2.0 <https://www.apache.org/licenses/LICENSE-2.0>`_.
 See `License <https://github.com/chaimain/asgardpy/blob/main/LICENSE>`_.
 """
+
 from . import analysis, base, config, data, gammapy, io, stats
-from .version import __base_version__, __version__
+from .version import __public_version__, __version__
 
 __all__ = [
     "analysis",
@@ -15,6 +16,6 @@ __all__ = [
     "gammapy",
     "io",
     "stats",
-    "__base_version__",
+    "__public_version__",
     "__version__",
 ]

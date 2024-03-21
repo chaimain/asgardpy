@@ -2,6 +2,7 @@
 Functions for reading different Models type objects with Gammapy
 objects.
 """
+
 import xmltodict
 from gammapy.maps import Map
 from gammapy.modeling.models import (
@@ -277,8 +278,8 @@ def create_iso_diffuse_skymodel(iso_file, key_name):
         diff_iso._name = f"{diff_iso.name}-{key_name}"
 
     # Parameters' limits
-    diff_iso.spectral_model.model1.parameters[0].min = 0.001
-    diff_iso.spectral_model.model1.parameters[0].max = 10
+    # diff_iso.spectral_model.model1.parameters[0].min = 0.001 - Removed in gammapy v1.2
+    # diff_iso.spectral_model.model1.parameters[0].max = 10
     diff_iso.spectral_model.model2.parameters[0].min = 0
     diff_iso.spectral_model.model2.parameters[0].max = 10
 

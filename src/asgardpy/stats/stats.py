@@ -1,10 +1,10 @@
 """
 Module for performing some statistic functions.
 """
+
 import numpy as np
 from gammapy.modeling.models import CompoundSpectralModel
 from gammapy.stats.fit_statistics import cash, wstat
-from scipy.optimize import minimize_scalar
 from scipy.stats import chi2, norm
 
 __all__ = [
@@ -25,7 +25,7 @@ def get_chi2_sig_pval(test_stat, ndof):
 
     In Gammapy, for 3D analysis, cash statistics is used, while for 1D analysis,
     wstat statistics is used. Check the documentation for more details
-    https://docs.gammapy.org/1.1/user-guide/stats/index.html
+    https://docs.gammapy.org/1.2/user-guide/stats/index.html
 
     Parameters
     ----------
@@ -195,9 +195,9 @@ def get_ts_target(datasets):
     For consistency in the evaluation of the statistic values, we will use the
     basic Fit Statistic functions in Gammapy for Poisson Data:
 
-    * `cash <https://docs.gammapy.org/1.1/api/gammapy.stats.cash.html>`_
+    * `cash <https://docs.gammapy.org/1.2/api/gammapy.stats.cash.html>`_
 
-    * `wstat <https://docs.gammapy.org/1.1/api/gammapy.stats.wstat.html>`_
+    * `wstat <https://docs.gammapy.org/1.2/api/gammapy.stats.wstat.html>`_
 
     For the different type of Statistics used in Gammapy for 3D/1D datasets,
     and for our use case of getting the best fit and perfect fit, we will pass
@@ -205,15 +205,15 @@ def get_ts_target(datasets):
 
     * Best Fit (Observed):
 
-        * `Cash stat_array <https://docs.gammapy.org/1.1/api/gammapy.datasets.MapDataset.html#gammapy.datasets.MapDataset.stat_array # noqa>`_
+        * `Cash stat_array <https://docs.gammapy.org/1.2/api/gammapy.datasets.MapDataset.html#gammapy.datasets.MapDataset.stat_array # noqa>`_
 
-        * `Wstat stat_array <https://docs.gammapy.org/1.1/api/gammapy.datasets.MapDatasetOnOff.html#gammapy.datasets.MapDatasetOnOff.stat_array # noqa>`_
+        * `Wstat stat_array <https://docs.gammapy.org/1.2/api/gammapy.datasets.MapDatasetOnOff.html#gammapy.datasets.MapDatasetOnOff.stat_array # noqa>`_
 
     * Perfect Fit (Expected):
 
-        * `Cash stat_max <https://docs.gammapy.org/1.1/api/gammapy.stats.CashCountsStatistic.html#gammapy.stats.CashCountsStatistic.stat_max # noqa>`_
+        * `Cash stat_max <https://docs.gammapy.org/1.2/api/gammapy.stats.CashCountsStatistic.html#gammapy.stats.CashCountsStatistic.stat_max # noqa>`_
 
-        * `Wstat stat_max <https://docs.gammapy.org/1.1/api/gammapy.stats.WStatCountsStatistic.html#gammapy.stats.WStatCountsStatistic.stat_max # noqa>`_
+        * `Wstat stat_max <https://docs.gammapy.org/1.2/api/gammapy.stats.WStatCountsStatistic.html#gammapy.stats.WStatCountsStatistic.stat_max # noqa>`_
 
     Parameter
     ---------
@@ -269,45 +269,6 @@ def get_ts_target(datasets):
     return stat_best_fit, stat_max_fit
 
 
-def pivot_energy(spectral_model):
-    """
-    Using function of SpectralModel object in Gammapy 1.2.dev build. Will be removed
-    with the new Gammapy release.
-
-    Pivot or decorrelation energy, for a given spectral model calculated numerically.
-
-    It is defined as the energy at which the correlation between the spectral parameters is minimized.
-
-    Returns
-    -------
-    pivot energy : `~astropy.units.Quantity`
-        The energy at which the statistical error in the computed flux is smallest.
-        If no minimum is found, NaN will be returned.
-    """
-    x_unit = spectral_model.reference.unit
-
-    def min_func(x):
-        """Function to minimise."""
-        x = np.exp(x)
-        dnde, dnde_error = spectral_model.evaluate_error(x * x_unit)
-        return dnde_error / dnde
-
-    bounds = [np.log(spectral_model.reference.value) - 3, np.log(spectral_model.reference.value) + 3]
-
-    std = np.std(min_func(x=np.linspace(bounds[0], bounds[1], 100)))
-    if std < 1e-5:
-        print("The relative error on the flux does not depend on energy. No pivot energy found.")
-        return np.nan * x_unit
-
-    minimizer = minimize_scalar(min_func, bounds=bounds)
-
-    if not minimizer.success:
-        print("No minima found in the relative error on the flux. Pivot energy computation failed.")
-        return np.nan * x_unit
-    else:
-        return np.exp(minimizer.x) * x_unit
-
-
 def fetch_pivot_energy(analysis):
     """
     Using an 'AsgardpyAnalysis' object to get the pivot energy for a given dataset
@@ -315,6 +276,7 @@ def fetch_pivot_energy(analysis):
 
     In Gammapy v1.2, use instead
     'analysis.fit_result.models[0].spectral_model.model1.pivot_energy' to get this value.
+    However, it still needs some internal updates.
 
     Returns
     -------
@@ -333,14 +295,19 @@ def fetch_pivot_energy(analysis):
     # Assuming EBL model is present
     if isinstance(analysis.datasets[0].models[0].spectral_model, CompoundSpectralModel):
         temp_model = analysis.datasets[0].models[0].spectral_model.model1
+        # pivot = analysis.fit_result.models[0].spectral_model.model1.pivot_energy
     else:
         temp_model = analysis.datasets[0].models[0].spectral_model
+        # pivot = analysis.fit_result.models[0].spectral_model.pivot_energy
 
-    # Fetching the covariance matrix for the given dataset and optimized fit model
+    # The internal working in Gammapy might be updated in the near future, but
+    # to confirm the process, fetching the covariance matrix for the given
+    # dataset and optimized fit model
     cov_matrix = analysis.fit.covariance(
         datasets=analysis.datasets, optimize_result=analysis.fit_result.optimize_result
     ).matrix
 
     temp_model.covariance = cov_matrix[: len(temp_model.parameters), : len(temp_model.parameters)]
+    pivot = temp_model.pivot_energy
 
-    return pivot_energy(temp_model)
+    return pivot

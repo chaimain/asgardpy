@@ -27,7 +27,7 @@ from gammapy.maps import Map
 from gammapy.utils.scripts import make_path
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion
 
-from asgardpy.base.base import AngleType, BaseConfig, PathType, TimeIntervalsType
+from asgardpy.base.base import AngleType, BaseConfig, PathType, TimeInterval
 from asgardpy.base.geom import SkyPositionConfig, get_energy_axis
 
 __all__ = [
@@ -86,8 +86,8 @@ class ObservationsConfig(BaseConfig):
     """
 
     obs_ids: list[int] = []
-    obs_file: PathType = PathType("None")
-    obs_time: list[TimeIntervalsType] = []
+    obs_file: PathType = "None"
+    obs_time: list[TimeInterval] = []
     obs_cone: SkyPositionConfig = SkyPositionConfig()
     required_irfs: list[RequiredHDUEnum] = [RequiredHDUEnum.aeff]
 
@@ -155,7 +155,7 @@ class ExclusionRegionsConfig(BaseConfig):
 
     target_source: bool = True
     regions: list[RegionsConfig] = []
-    exclusion_file: PathType = PathType("None")
+    exclusion_file: PathType = "None"
 
 
 class SafeMaskMethodsEnum(str, Enum):
@@ -256,7 +256,7 @@ def get_filtered_observations(dl3_path, obs_config, log):
         for i, intervals in enumerate(obs_time):
             gti_select = {
                 "type": "time_box",
-                "time_range": [intervals["start"], intervals["stop"]],
+                "time_range": [intervals.interval["start"], intervals.interval["stop"]],
             }
 
             if i == 0:
@@ -289,6 +289,8 @@ def get_filtered_observations(dl3_path, obs_config, log):
     # IRFs selection
     irfs_selected = obs_config.required_irfs
     observations = datastore.get_observations(filtered_obs_ids, required_irf=irfs_selected)
+
+    # Get the metadata?
 
     return observations
 

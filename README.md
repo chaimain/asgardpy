@@ -7,7 +7,7 @@ Agardpy: Analysis Software for GAmma-Ray Data in Python
 Example: 3D Fermi-LAT (with various source models in the Region of Interest stored in XML file) + 1D energy-dependent directional cuts MAGIC/LST [PointSkyRegion geometry for ON region] + 1D global directional cut VERITAS [CircleSkyRegion geometry for ON region].
 
 Follow the documentation at https://asgardpy.readthedocs.io/en/latest/ for the main functionality of this pipeline.
-Follow the [Gammapy v1.1](https://docs.gammapy.org/1.1/) documentation for understanding the core Gammapy objects.
+Follow the [Gammapy v1.2](https://docs.gammapy.org/1.2/) documentation for understanding the core Gammapy objects.
 
 The various Data Levels	used here follow the descriptions suggested by [GADF v0.3](https://gamma-astro-data-formats.readthedocs.io/en/latest/) and CTAO Data Model
 
@@ -19,7 +19,7 @@ The pipeline can be further expanded to support more types of DL3 files of gamma
 # Examples with Data
 An example of configuration file that can be used with asgardpy can be found at ``asgardpy/config/template.yaml``
 
-For working with some public data to check the pipeline functionality, one should first download the public dataset available with gammapy as indicated in [Gammapy v1.1 Introduction](https://docs.gammapy.org/1.1/getting-started/index.html) and then run the ``scripts/download_asgardpy_data.sh`` script to add separate Fermi-LAT dataset for the usecase of the pipeline.
+For working with some public data to check the pipeline functionality, one should first download the public dataset available with gammapy as indicated in [Gammapy v1.2 Introduction](https://docs.gammapy.org/1.2/getting-started/index.html) and then run the ``scripts/download_asgardpy_data.sh`` script to add separate Fermi-LAT dataset for the usecase of the pipeline.
 
 Examples of usage of asgardpy is shown in jupyter notebooks in ``notebooks/``.
 
@@ -30,7 +30,7 @@ If you use Asgardpy in a publication, please cite the exact version you used fro
 
 Pipeline generated based on the template by [python-package-template](https://github.com/allenai/python-package-template) with additional standards being followed -
 
+- [PEP 517](https://peps.python.org/pep-0517)
 - [PEP 518](https://peps.python.org/pep-0518/)
 - [PyPA specs following PEP 621](https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#declaring-project-metadata)
-- [PEP 517](https://peps.python.org/pep-0517)
 - [PEP 660](https://peps.python.org/pep-0660/)
