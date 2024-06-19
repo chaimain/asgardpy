@@ -31,7 +31,7 @@ runs:
       with:
         path: .venv
         enableCrossOsArchive: true
-        key: ${{ runner.os }}-${{ env.PYTHON_VERSION }}  # -${{ hashFiles('pyproject.toml') }}  # ${{ inputs.cache-prefix }}-
+        key: ${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('pyproject.toml') }}  # ${{ inputs.cache-prefix }}-
         restore-keys: |
           ${{ runner.os }}-pip-
 
