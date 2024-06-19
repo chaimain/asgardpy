@@ -4,10 +4,10 @@ inputs:
   python-version:
     description: The Python version to use
     required: true
-  cache-prefix:
-    description: Update this to invalidate the cache
-    required: true
-    default: v4
+  # cache-prefix:
+  #   description: Update this to invalidate the cache
+  #   required: true
+  #   default: v4
 runs:
   using: composite
   steps:
@@ -29,9 +29,9 @@ runs:
     - uses: actions/cache@v4
       id: virtualenv-cache
       with:
-        path: .venv  # ${{ runner.path }}
+        path: ${{ matrix.path }}  # .venv
         enableCrossOsArchive: true
-        key: ${{ inputs.cache-prefix }}-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('pyproject.toml') }}  # ${{ inputs.cache-prefix }}-
+        key: ${{ env.PYTHON_VERSION }}  # -${{ hashFiles('pyproject.toml') }}  # ${{ inputs.cache-prefix }}-
         # restore-keys: |
         #   ${{ runner.os }}-pip-
 
