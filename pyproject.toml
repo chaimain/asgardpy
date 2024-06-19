@@ -170,7 +170,6 @@ extend-select = [
 [tool.mypy]
 ignore_missing_imports = true
 no_site_packages = true
-hide_error_codes = true
 strict = false
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 warn_unreachable = true
