@@ -29,7 +29,7 @@ runs:
     - uses: actions/cache@v4
       id: virtualenv-cache
       with:
-        path: ${{ matrix.path }}
+        path: ${{ runner.path }}
         enableCrossOsArchive: true
         key: ${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('pyproject.toml') }}  # ${{ inputs.cache-prefix }}-
         # restore-keys: |
