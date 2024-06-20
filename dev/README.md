@@ -10,9 +10,9 @@ The data is generated for the time exposure from January 2019 - May 2022.
 The zipped file also contains several extra files to aid in covering tests for
 support provided by Asgardpy, for reading such files.
 
-# Additional PKS2155-304 data
+# Additional PKS 2155-304 data
 
-The pks2155_int_spec.zip file contains the additional data of PKS2155-304,
+The pks2155_int_spec.zip file contains the additional data of PKS 2155-304,
 added in [gammapy-data](https://github.com/gammapy/gammapy-data), to be able to
 demonstrate EBL absorption of the AGN spectra, and thereby also to fetch the
 intrinsic spectrum from the observed spectrum.

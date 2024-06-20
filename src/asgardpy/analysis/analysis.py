@@ -5,7 +5,7 @@ Config-driven high level analysis interface.
 import logging
 
 from gammapy.datasets import Datasets
-from gammapy.modeling.models import Models
+from gammapy.modeling.models import Models, SkyModel
 from pydantic import ValidationError
 
 from asgardpy.analysis.step import AnalysisStep
@@ -65,7 +65,7 @@ class AsgardpyAnalysis:
         self.dataset_name_list = []
 
         self.final_model = Models()
-        self.final_data_products = ["fit", "fit_result", "flux_points"]
+        self.final_data_products = ["fit", "fit_result", "flux_points", "model_deabs", "flux_points_deabs"]
 
         for data_product in self.final_data_products:
             setattr(self, data_product, None)
@@ -114,6 +114,50 @@ class AsgardpyAnalysis:
                     "The target source %s only has spectral model",
                     self.config.target.source_name,
                 )
+
+    def get_correct_intrinsic_model(self):
+        """
+        After running the Fit analysis step, one can retrieve the correct
+        covariance matrix for only the intrinsic or EBL-deabsorbed spectra.
+
+        This function will be redundant in Gammapy v1.3
+        """
+        temp_model = self.final_model[0].spectral_model.model1
+
+        cov_matrix = self.fit.covariance(
+            datasets=self.datasets, optimize_result=self.fit_result.optimize_result
+        ).matrix
+
+        temp_model.covariance = cov_matrix[: len(temp_model.parameters), : len(temp_model.parameters)]
+
+        self.model_deabs = SkyModel(
+            spectral_model=temp_model,
+            name=self.final_model[0].name,
+            datasets_names=self.final_model[0].datasets_names,
+        )
+
+    def get_correct_ebl_deabs_flux_points(self):
+        """
+        After running the get_correct_intrinsic_model function, this function
+        will re-run the flux-points analysis step again, by using only the
+        intrinsic model as the reference spectral model.
+
+        This function will be redundant in Gammapy v1.3
+        """
+        temp_fp = self.flux_points
+        self.flux_points = None
+
+        if not self.model_deabs:
+            self.get_correct_intrinsic_model()
+
+        self.run(["flux-points"])
+
+        for fp in self.flux_points:
+            fp._models = self.model_deabs
+            fp._reference_model = self.model_deabs
+
+        self.flux_points_deabs = self.flux_points
+        self.flux_points = temp_fp
 
     def add_to_instrument_info(self, info_dict):
         """
