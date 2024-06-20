@@ -1,0 +1,1 @@
+Add supporting functions to generate correct intrinsic spectral model and flux points. Adds the new addition of PKS 2155 data to GAMMAPY_DATA which will be available with Gammapy v1.3 and using it to display an example notebook. Solves Issue [`#169 <https://github.com/chaimain/asgardpy/issues/169>`_].
