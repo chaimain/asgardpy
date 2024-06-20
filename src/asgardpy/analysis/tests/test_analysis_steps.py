@@ -53,3 +53,17 @@ def test_analysis_basics(gammapy_data_path, base_config):
     analysis_1.config = config_dict
 
     assert analysis_1.config.general.n_jobs == 111
+
+
+@pytest.mark.test_data
+def test_ebl_deabsorbed(gammapy_data_path, ebl_hess_pks):
+    """Testing generation of EBL-deabsorbed Flux points."""
+
+    analysis = AsgardpyAnalysis(ebl_hess_pks)
+
+    analysis.run()
+
+    analysis.get_correct_ebl_deabs_flux_points()
+
+    assert len(analysis.model_deabs.parameters) == 3
+    assert analysis.flux_points_deabs
