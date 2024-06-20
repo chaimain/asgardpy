@@ -71,7 +71,7 @@ dev = [
   "ruff",
   "codespell",
   "mypy>=1.2",
-  "black>=24.2.0",
+  # "black>=24.2.0",
   "isort>=5.10",
   "pytest>7.0",
   "pytest-sphinx",
@@ -177,23 +177,6 @@ warn_unreachable = true
 [[tool.mypy.overrides]]
 module = "tests.*"
 strict_optional = false
-
-[tool.black]
-line-length = 115
-include = '\.pyi?$'
-exclude = '''
-(
-      __pycache__
-    | \.git
-    | \.mypy_cache
-    | \.pytest_cache
-    | \.vscode
-    | \.venv
-    | \bdist\b
-    | \bdoc\b
-    | src/asgardpy/_version.py
-)
-'''
 
 [tool.codespell]
 skip = '*.ipynb,*.map,*.css,*.js'
