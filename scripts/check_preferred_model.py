@@ -40,24 +40,11 @@ parser.add_argument(
 )
 
 
-def main():
-    args = parser.parse_args()
-
-    main_config = AsgardpyConfig.read(args.config)
-    config_path = Path(args.config)
-    config_path_file_name = config_path.name.split(".")[0]
-    target_source_name = main_config.target.source_name
-
-    steps_list = []
-    for s in main_config.general.steps:
-        if s.value != "flux-points":
-            steps_list.append(s.value)
-    log.info("Target source is: %s", target_source_name)
+def get_model_config_files(select_model_tags):
+    """From the default model templates, select some."""
 
     spec_model_template_files = sorted(list(CONFIG_PATH.glob("model_templates/model_template*yaml")))
 
-    # Only use the following spectral model templates for comparison
-    select_model_tags = ["lp", "bpl", "ecpl", "pl", "eclp", "sbpl"]
     spec_model_temp_files = []
 
     for p in spec_model_template_files:
@@ -68,6 +55,34 @@ def main():
 
     spec_model_temp_files = np.array(spec_model_temp_files)
 
+    return spec_model_temp_files
+
+
+def update_config(config_1, config_2):
+    """From config_1 update information in config_2."""
+
+    # Have the same value of amplitude
+    config_2.config.target.components[0].spectral.parameters[0].value = (
+        config_1.config.target.components[0].spectral.parameters[0].value
+    )
+    # Have the same value of reference/e_break energy
+    config_2.config.target.components[0].spectral.parameters[1].value = (
+        config_1.config.target.components[0].spectral.parameters[1].value
+    )
+    # Have the same value of redshift value and EBL reference model
+    config_2.config.target.components[0].spectral.ebl_abs.redshift = config_1.config.target.components[
+        0
+    ].spectral.ebl_abs.redshift
+
+    # Make sure the source names are the same
+    config_2.config.target.source_name = config_1.config.target.source_name
+    config_2.config.target.components[0].name = config_1.config.target.components[0].name
+
+    return config_2
+
+
+def fetch_all_analysis_objects(main_config, spec_model_temp_files, ebl_scale_factor, ebl_model_name):
+    """For a list of spectral models, initiate AsgardpyAnalysis objects."""
     main_analysis_list = {}
     spec_models_list = []
 
@@ -77,34 +92,17 @@ def main():
 
         temp_model_2 = AsgardpyAnalysis(temp_model.config)
 
-        # Have the same value of amplitude
-        temp_model_2.config.target.components[0].spectral.parameters[0].value = (
-            temp_model.config.target.components[0].spectral.parameters[0].value
-        )
-        # Have the same value of reference/e_break energy
-        temp_model_2.config.target.components[0].spectral.parameters[1].value = (
-            temp_model.config.target.components[0].spectral.parameters[1].value
-        )
-        # Have the same value of redshift value and EBL reference model
-        temp_model_2.config.target.components[0].spectral.ebl_abs.redshift = temp_model.config.target.components[
-            0
-        ].spectral.ebl_abs.redshift
+        update_config(temp_model, temp_model_2)
 
-        if args.ebl_scale_factor != 1.0:
-            temp_model_2.config.target.components[0].spectral.ebl_abs.alpha_norm = args.ebl_scale_factor
+        if ebl_scale_factor != 1.0:
+            temp_model_2.config.target.components[0].spectral.ebl_abs.alpha_norm = ebl_scale_factor
 
-        if args.ebl_model_name != "dominguez":
-            temp_model_2.config.target.components[0].spectral.ebl_abs.reference = args.ebl_model_name.replace(
-                "_", "-"
-            )
+        if ebl_model_name != "dominguez":
+            temp_model_2.config.target.components[0].spectral.ebl_abs.reference = ebl_model_name.replace("_", "-")
         else:
             temp_model_2.config.target.components[
                 0
             ].spectral.ebl_abs.reference = temp_model.config.target.components[0].spectral.ebl_abs.reference
-
-        # Make sure the source names are the same
-        temp_model_2.config.target.source_name = temp_model.config.target.source_name
-        temp_model_2.config.target.components[0].name = temp_model.config.target.components[0].name
 
         spec_tag = temp.name.split(".")[0].split("_")[-1]
         spec_models_list.append(spec_tag)
@@ -114,15 +112,14 @@ def main():
 
     spec_models_list = np.array(spec_models_list)
 
-    # Run Analysis Steps till Fit
-    for i, tag in enumerate(spec_models_list):
-        log.info("Spectral model being tested: %s", tag)
+    return main_analysis_list, spec_models_list
 
-        main_analysis_list[tag]["Analysis"].run(steps_list)
 
-        if tag == "pl":
-            PL_idx = i
-
+def fetch_all_analysis_fit_info(main_analysis_list, spec_models_list):
+    """
+    For a list of spectral models, with the AsgardpyAnalysis run till the fit
+    step, get the relevant information for testing the model preference.
+    """
     fit_success_list = []
     pref_over_pl_chi2_list = []
     stat_list = []
@@ -170,6 +167,98 @@ def main():
     dof_list = np.array(dof_list)[fit_success_list]
     pref_over_pl_chi2_list = np.array(pref_over_pl_chi2_list)[fit_success_list]
 
+    return fit_success_list, stat_list, dof_list, pref_over_pl_chi2_list
+
+
+def tabulate_best_fit_stats(spec_models_list, fit_success_list, main_analysis_list, list_rel_p):
+    """For a list of spectral models, tabulate the best fit information."""
+
+    fit_stats_table = []
+
+    for i, tag in enumerate(spec_models_list[fit_success_list]):
+        info_ = main_analysis_list[tag]["Analysis"].instrument_spectral_info
+
+        t = main_analysis_list[tag]
+
+        ts_gof = round(info_["best_fit_stat"] - info_["max_fit_stat"], 3)
+        t_fits = {
+            "Spectral Model": tag.upper(),
+            "TS of Best Fit": round(info_["best_fit_stat"], 3),
+            "TS of Max Fit": round(info_["max_fit_stat"], 3),
+            "TS of Goodness of Fit": ts_gof,
+            "DoF of Fit": info_["DoF"],
+            r"Significance ($\sigma$) of Goodness of Fit": round(info_["fit_chi2_sig"], 3),
+            "p-value of Goodness of Fit": float(f"{info_['fit_pval']:.4g}"),
+            "Pref over PL (chi2)": round(t["Pref_over_pl_chi2"], 3),
+            "Pref over PL (p-value)": float(f"{t['Pref_over_pl_pval']:.4g}"),
+            "Pref over PL (DoF)": t["DoF_over_pl"],
+            "Relative p-value (AIC)": float(f"{list_rel_p[i]:.4g}"),
+        }
+        fit_stats_table.append(t_fits)
+    stats_table = QTable(fit_stats_table)
+
+    return stats_table
+
+
+def write_output_config_yaml(model_):
+    """With the selected spectral model, update a default config in yaml."""
+
+    spec_model = model_.spectral_model.model1.to_dict()
+
+    temp_config = AsgardpyConfig()
+    temp_config.target.components[0] = spec_model
+    # Update with the spectral model info
+    temp_ = temp_config.dict(exclude_defaults=True)
+
+    # Remove some of the unnecessary keys
+    temp_["target"].pop("models_file", None)
+    temp_["target"]["components"][0]["spectral"].pop("ebl_abs", None)
+
+    yaml_ = yaml.dump(
+        temp_,
+        sort_keys=False,
+        indent=4,
+        width=80,
+        default_flow_style=None,
+    )
+    return yaml_
+
+
+def main():
+    args = parser.parse_args()
+
+    main_config = AsgardpyConfig.read(args.config)
+    config_path = Path(args.config)
+    config_path_file_name = config_path.name.split(".")[0]
+    target_source_name = main_config.target.source_name
+
+    steps_list = []
+    for s in main_config.general.steps:
+        if s.value != "flux-points":
+            steps_list.append(s.value)
+    log.info("Target source is: %s", target_source_name)
+
+    spec_model_temp_files = get_model_config_files(["lp", "bpl", "ecpl", "pl", "eclp", "sbpl"])
+
+    main_analysis_list, spec_models_list = fetch_all_analysis_objects(
+        main_config, spec_model_temp_files, args.ebl_scale_factor, args.ebl_model_name
+    )
+
+    # Run Analysis Steps till Fit
+    PL_idx = 0
+
+    for i, tag in enumerate(spec_models_list):
+        log.info("Spectral model being tested: %s", tag)
+
+        main_analysis_list[tag]["Analysis"].run(steps_list)
+
+        if tag == "pl":
+            PL_idx = i
+
+    fit_success_list, stat_list, dof_list, pref_over_pl_chi2_list = fetch_all_analysis_fit_info(
+        main_analysis_list, spec_models_list
+    )
+
     # If any spectral model has at least 5 sigmas preference over PL
     best_sp_idx_lrt = np.nonzero(pref_over_pl_chi2_list == np.nanmax(pref_over_pl_chi2_list))[0]
     for idx in best_sp_idx_lrt:
@@ -192,28 +281,7 @@ def main():
             sp_idx_aic = PL_idx
             log.info("No other model preferred, hence PL is selected")
 
-    fit_stats_table = []
-    for i, tag in enumerate(spec_models_list[fit_success_list]):
-        info_ = main_analysis_list[tag]["Analysis"].instrument_spectral_info
-
-        t = main_analysis_list[tag]
-
-        ts_gof = round(info_["best_fit_stat"] - info_["max_fit_stat"], 3)
-        t_fits = {
-            "Spectral Model": tag.upper(),
-            "TS of Best Fit": round(info_["best_fit_stat"], 3),
-            "TS of Max Fit": round(info_["max_fit_stat"], 3),
-            "TS of Goodness of Fit": ts_gof,
-            "DoF of Fit": info_["DoF"],
-            r"Significance ($\sigma$) of Goodness of Fit": round(info_["fit_chi2_sig"], 3),
-            "p-value of Goodness of Fit": float("%.4g" % info_["fit_pval"]),
-            "Pref over PL (chi2)": round(t["Pref_over_pl_chi2"], 3),
-            "Pref over PL (p-value)": float("%.4g" % t["Pref_over_pl_pval"]),
-            "Pref over PL (DoF)": t["DoF_over_pl"],
-            "Relative p-value (AIC)": float("%.4g" % list_rel_p[i]),
-        }
-        fit_stats_table.append(t_fits)
-    stats_table = QTable(fit_stats_table)
+    stats_table = tabulate_best_fit_stats(spec_models_list, fit_success_list, main_analysis_list, list_rel_p)
 
     stats_table.meta["Target source name"] = target_source_name
     stats_table.meta["EBL model"] = args.ebl_model_name
@@ -229,29 +297,12 @@ def main():
     if args.write_config:
         log.info("Write the spectral model")
 
-        for idx, name in zip([sp_idx_lrt, sp_idx_aic], ["lrt", "aic"]):
+        for idx, name in zip([sp_idx_lrt, sp_idx_aic], ["lrt", "aic"], strict=False):
             tag = spec_models_list[fit_success_list][idx]
-            model_ = main_analysis_list[tag]["Analysis"].final_model[0]
-            spec_model = model_.spectral_model.model1.to_dict()
 
             path = config_path.parent / f"{config_path_file_name}_model_most_pref_{name}.yaml"
-            # Create a temp config file
-            temp_config = AsgardpyConfig()
-            temp_config.target.components[0] = spec_model
-            # Update with the spectral model info
-            temp_ = temp_config.dict(exclude_defaults=True)
 
-            # Remove some of the unnecessary keys
-            temp_["target"].pop("models_file", None)
-            temp_["target"]["components"][0]["spectral"].pop("ebl_abs", None)
-
-            yaml_ = yaml.dump(
-                temp_,
-                sort_keys=False,
-                indent=4,
-                width=80,
-                default_flow_style=None,
-            )
+            yaml_ = write_output_config_yaml(main_analysis_list[tag]["Analysis"].final_model[0])
             path.write_text(yaml_)
 
 

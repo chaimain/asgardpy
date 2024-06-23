@@ -13,9 +13,8 @@ from asgardpy.analysis.step_base import AnalysisStepBase
 from asgardpy.base import BaseConfig, EnergyRangeConfig
 
 # from gammapy.utils.metadata import CreatorMetaData, TargetMetaData
-
-
 # from asgardpy.version import __public_version__
+
 
 __all__ = [
     "FitAnalysisStep",

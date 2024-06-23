@@ -45,7 +45,7 @@ follow the instructions as mentioned in [Gammapy v1.2 Introduction](https://docs
 
 ```bash
 gammapy download datasets
-export GAMMAPY_DATA=$PWD/gammapy-datasets/1.2
+export GAMMAPY_DATA=$PWD/gammapy-datasets/1.2/
 ```
 
 Next, to add the extra test data for asgardpy tests, run the following,
