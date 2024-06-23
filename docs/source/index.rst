@@ -10,7 +10,7 @@ Gammapy-based pipeline to support high-level analysis for multi-instruments join
 Follow the `Gammapy v1.2 <https://docs.gammapy.org/1.2/>`_ documentation for understanding the core Gammapy objects.
 
 The various Data Levels used here follow the descriptions suggested by
-`GADF v0.3 <https://gamma-astro-data-formats.readthedocs.io/en/latest/>`_ and CTAO Data Model.
+`GADF v0.3 <https://gamma-astro-data-formats.readthedocs.io/en/latest/>`_ and `CTAO <https://www.ctao.org/>`_ Data Model.
 
 The pipeline was developed with first testing with Fermi-LAT (`enrico <https://enrico.readthedocs.io/en/latest/>`_ and
 `fermipy <https://fermipy.readthedocs.io/en/latest/>`_) files and LST-1 (`cta-lstchain <https://cta-observatory.github.io/cta-lstchain/>`_)

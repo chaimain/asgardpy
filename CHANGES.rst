@@ -1,3 +1,34 @@
+Asgardpy 0.5.0 (2024-06-23)
+===========================
+
+
+API Changes
+-----------
+
+- Update overall dependency of Gammapy to v1.2 and resolves Issue [`#152 <https://github.com/chaimain/asgardpy/issues/152>`_]. [`#165 <https://github.com/chaimain/asgardpy/pull/165>`__]
+
+- Add supporting functions to generate correct intrinsic spectral model and flux points. Adds the new addition of PKS 2155 data to GAMMAPY_DATA which will be available with Gammapy v1.3 and using it to display an example notebook. Solves Issue [`#169 <https://github.com/chaimain/asgardpy/issues/169>`_]. [`#174 <https://github.com/chaimain/asgardpy/pull/174>`__]
+
+
+Bug Fixes
+---------
+
+
+New Features
+------------
+
+- Add an example notebook to explore filtering options for data and models in FoV and resolves Issue [`#166 <https://github.com/chaimain/asgardpy/issues/166>`_]. [`#172 <https://github.com/chaimain/asgardpy/pull/172>`__]
+
+
+Maintenance
+-----------
+
+- Fix the issue with the build of the virtual env [`#171 <https://github.com/chaimain/asgardpy/pull/171>`__]
+
+- Update pre-commit dependencies and remove redundant arguments in pyproject [`#173 <https://github.com/chaimain/asgardpy/pull/173>`__]
+
+- General clean-up of code. [`#176 <https://github.com/chaimain/asgardpy/pull/176>`__]
+
 Asgardpy 0.4.3 (2024-01-27)
 ===========================
 

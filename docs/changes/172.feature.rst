@@ -1,1 +1,0 @@
-Add an example notebook to explore filtering options for data and models in FoV and resolves Issue [`#166 <https://github.com/chaimain/asgardpy/issues/166>`_].

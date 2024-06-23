@@ -1,1 +1,0 @@
-Update pre-commit dependencies and remove redundant arguments in pyproject
