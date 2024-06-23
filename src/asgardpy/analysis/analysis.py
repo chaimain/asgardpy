@@ -5,7 +5,7 @@ Config-driven high level analysis interface.
 import logging
 
 from gammapy.datasets import Datasets
-from gammapy.modeling.models import Models, SkyModel
+from gammapy.modeling.models import CompoundSpectralModel, Models, SkyModel
 from pydantic import ValidationError
 
 from asgardpy.analysis.step import AnalysisStep
@@ -122,7 +122,11 @@ class AsgardpyAnalysis:
 
         This function will be redundant in Gammapy v1.3
         """
-        temp_model = self.final_model[0].spectral_model.model1
+        # Assuming EBL model is present
+        if isinstance(self.final_model[0].spectral_model, CompoundSpectralModel):
+            temp_model = self.final_model[0].spectral_model.model1
+        else:
+            temp_model = self.final_model[0].spectral_model
 
         cov_matrix = self.fit.covariance(
             datasets=self.datasets, optimize_result=self.fit_result.optimize_result
