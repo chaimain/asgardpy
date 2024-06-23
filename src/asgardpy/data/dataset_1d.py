@@ -117,7 +117,6 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
             if self.config.general.stacked_dataset:
                 dataset = dataset.stack_reduce(name=config_1d_dataset.name)
                 dataset._meta.optional = {
-                    # "telescope": "CTA-N",
                     "instrument": config_1d_dataset.name,
                 }
                 dataset._meta.creation.creator += f", Asgardpy {__public_version__}"
@@ -127,7 +126,6 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
             else:
                 for data in dataset:
                     data._meta.optional = {
-                        # "telescope": "CTA-N",
                         "instrument": config_1d_dataset.name,
                     }
                     data._meta.creation.creator += f", Asgardpy {__public_version__}"

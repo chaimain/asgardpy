@@ -127,8 +127,6 @@ class TimeInterval:
     interval: dict[str, str | float]
 
     def build(self) -> dict:
-        # self.interval["start"] = Time(self.interval["start"], format=self.interval["format"])
-        # self.interval["stop"] = Time(self.interval["stop"], format=self.interval["format"])
         value_dict = {}
         value_dict["format"] = Time(self.interval["start"]).format
 

@@ -134,7 +134,9 @@ When you're ready to contribute code to address an open issue, please follow the
         mypy src/asgardpy
         codespell src/asgardpy
 
-    We also have [`pre-commit hook`](https://pre-commit.com/) for automatic adherence for the above checks with each commit.
+    We also have [`pre-commit hook`](https://pre-commit.com/) for automatic adherence for the above checks with each commit. With this you can can run all the above tests with
+
+        pre-commit run
 
     We also strive to maintain high test coverage, so most contributions should include additions to the existing unit tests. These tests are run with [`pytest`](https://docs.pytest.org/en/latest/), which you can use to locally run any test modules that you've added or changed.
 

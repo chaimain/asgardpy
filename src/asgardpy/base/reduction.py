@@ -239,7 +239,6 @@ def get_filtered_observations(dl3_path, obs_config, log):
 
     # Use the given list of Observation IDs to select Observations
     if len(obs_list) > 0:
-        # if len(obs_list) > 2:
         # list of observation ids to be included
         filtered_obs_ids = obs_list
         # else:  # Find another way to make the distinction between list and range

@@ -104,6 +104,8 @@ The various Config components and Analysis steps for the high-level analysis can
 For the analysis step of flux-points :class:`~asgardpy.data.dl4.FluxPointsAnalysisStep`, the flux points are estimated for each instrument dataset, using the respective energy ranges
 provided in the respective config section of ``spectral_energy_range``.
 
+For deriving the correct EBL-deabsorbed spectrum, one can use :class:`~asgardpy.analysis.analysis.get_correct_intrinsic_model` and
+:class:`~asgardpy.analysis.analysis.get_correct_ebl_deabs_flux_points` after running the flux-points analysis step.
 
 .. _stats-intro:
 

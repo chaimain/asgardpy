@@ -169,7 +169,6 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
 
             for data in dataset_instrument:
                 data._meta.optional = {
-                    # "telescope": "Fermi",
                     "instrument": config_3d_dataset.name,
                 }
                 data._meta.creation.creator += f", Asgardpy {__public_version__}"

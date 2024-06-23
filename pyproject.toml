@@ -68,10 +68,9 @@ Documentation = "https://asgardpy.readthedocs.io/en/latest/"
 [project.optional-dependencies]
 # Have more references like doc, test, etc?
 dev = [
-  "ruff",
-  "codespell",
-  "mypy>=1.2",
-  # "black>=24.2.0",
+  "ruff>=0.4.9",
+  "codespell>=2.3.0",
+  "mypy>=1.10",
   "isort>=5.10",
   "pytest>7.0",
   "pytest-sphinx",
@@ -93,9 +92,6 @@ dev = [
 where = ["src"]
 exclude = [
     "asgardpy._dev_version",
-    # "*.tests",
-    # "*.tests.*",
-    # "tests.*",
     "tests",
     "docs",
     "scripts",
@@ -142,7 +138,6 @@ write_to = 'src/asgardpy/_version.py'
 [tool.ruff]
 src = ["src"]
 line-length = 115
-# target-version = "py311"  # Not needed as it is defined in [project]
 # whitespace before : E203
 exclude = [
     ".venv",
