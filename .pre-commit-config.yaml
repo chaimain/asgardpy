@@ -17,7 +17,7 @@ repos:
       - id: trailing-whitespace
   # https://pycqa.github.io/isort/docs/configuration/black_compatibility.html#integration-with-pre-commit
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.9
+    rev: v0.4.10
     hooks:
       # Run the linter.
       - id: ruff
