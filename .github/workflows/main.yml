@@ -24,11 +24,7 @@ env:
 jobs:
   build:
     name: Build
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.11", "3.12"]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash -l {0}
@@ -37,33 +33,21 @@ jobs:
       - name: Setup Python environment
         uses: ./.github/actions/setup-venv
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.11"
           # cache-prefix: ${{ env.CACHE_PREFIX }}
       - run: |
-          pip install --upgrade build
-          python -m build
           source .venv/bin/activate
+          python -m pip install --upgrade build
+          python -m build
       - uses: actions/upload-artifact@v4
         with:
-          name: asgardpy-${{ matrix.os }}-${{ matrix.python-version }}
-          path: file-${{ matrix.os }}-${{ matrix.python-version }}.txt
-          overwrite: true
+          name: asgardpy-release
+          path: dist/
       - name: Clean up
         run: |
           source .venv/bin/activate
           pip uninstall -y asgardpy
-  merge:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Merge Artifacts
-        uses: actions/upload-artifact/merge@v4
-        with:
-          name: asgardpy-merged
-          pattern: asgardpy-*
-          path: file-*
-          # retention-days: 90  # Default for public repo
-          # compression-level: 9  # Default is 6
+
   docs:
     name: Build docs
     runs-on: ubuntu-latest
@@ -242,9 +226,8 @@ jobs:
       - name: Download package distribution files
         uses: actions/download-artifact@v4
         with:
-          name: asgardpy-merged
-          path: asgardpy
-          # merge-multiple: true
+          name: asgardpy-release
+          path: dist/
 
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
