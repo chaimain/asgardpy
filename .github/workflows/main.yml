@@ -29,9 +29,9 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.11", "3.12"]
     runs-on: ${{ matrix.os }}
-    # defaults:
-    #   run:
-    #     shell: bash -l {0}
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python environment
@@ -40,6 +40,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           # cache-prefix: ${{ env.CACHE_PREFIX }}
       - run: |
+          pip install --upgrade build
           python -m build
           source .venv/bin/activate
       - uses: actions/upload-artifact@v4
