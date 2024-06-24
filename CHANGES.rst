@@ -5,25 +5,6 @@ Asgardpy 0.5.0 (2024-06-24)
 API Changes
 -----------
 
-
-Bug Fixes
----------
-
-
-New Features
-------------
-
-
-Maintenance
------------
-
-Asgardpy 0.5.0 (2024-06-23)
-===========================
-
-
-API Changes
------------
-
 - Update overall dependency of Gammapy to v1.2 and resolves Issue [`#152 <https://github.com/chaimain/asgardpy/issues/152>`_]. [`#165 <https://github.com/chaimain/asgardpy/pull/165>`__]
 
 - Add supporting functions to generate correct intrinsic spectral model and flux points. Adds the new addition of PKS 2155 data to GAMMAPY_DATA which will be available with Gammapy v1.3 and using it to display an example notebook. Solves Issue [`#169 <https://github.com/chaimain/asgardpy/issues/169>`_]. [`#174 <https://github.com/chaimain/asgardpy/pull/174>`__]
