@@ -69,7 +69,7 @@ def test_preferred_model(base_config_1d):
 
     assert lrt_best_model == "lp"
     assert aic_best_model == "lp"
-    assert len(stats_table.names) == 11
+    assert len(stats_table.colnames) == 11
 
     tag = spec_models_list[fit_success_list][0]
     write_output_config_yaml(main_analysis_list[tag]["Analysis"].final_model[0])
