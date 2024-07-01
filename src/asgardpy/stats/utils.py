@@ -43,12 +43,11 @@ def get_spec_params_indices(aa_config):
         par_names.append(p.name)
     par_names = np.array(par_names)
 
+    amp_idx = None
+    # For models without this parameter, name has not yet been included or
+    # checked with Asgardpy
     if "amplitude" in par_names:
         amp_idx = np.where(par_names == "amplitude")[0][0]
-    else:
-        # For models without this parameter name has not yet been included or
-        # checked with Asgardpy
-        amp_idx = None
 
     if "reference" in par_names:
         eref_idx = np.where(par_names == "reference")[0][0]
