@@ -8,6 +8,7 @@ from collections.abc import Mapping
 from enum import Enum
 from pathlib import Path
 
+import numpy as np
 import yaml
 from gammapy.modeling.models import Models
 from gammapy.utils.scripts import make_path, read_yaml
@@ -23,6 +24,7 @@ from asgardpy.data import (
 )
 
 __all__ = [
+    "all_model_templates",
     "AsgardpyConfig",
     "GeneralConfig",
     "gammapy_to_asgardpy_model_config",
@@ -65,14 +67,30 @@ class GeneralConfig(BaseConfig):
     stacked_dataset: bool = False
 
 
-def get_model_template(spec_model_tag):
+def all_model_templates():
     """
-    Read a particular template model yaml file into AsgardpyConfig object.
+    Collect all Template Models provided in Asgardpy, and their small tag names.
     """
     template_files = sorted(list(CONFIG_PATH.glob("model_templates/model_template*yaml")))
-    new_model_file = None
+
+    all_tags = []
     for file in template_files:
-        if spec_model_tag == file.name.split("_")[-1].split(".")[0]:
+        all_tags.append(file.name.split("_")[-1].split(".")[0])
+    all_tags = np.array(all_tags)
+
+    return all_tags, template_files
+
+
+def get_model_template(spec_model_tag):
+    """
+    Read a particular template model yaml filename to create an AsgardpyConfig
+    object.
+    """
+    all_tags, template_files = all_model_templates()
+    new_model_file = None
+
+    for file, tag in zip(template_files, all_tags, strict=True):
+        if spec_model_tag == tag:
             new_model_file = file
     return new_model_file
 
