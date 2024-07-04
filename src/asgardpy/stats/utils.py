@@ -3,10 +3,9 @@ Module containing additional utility functions for selecting a preferred model.
 """
 
 import numpy as np
-import yaml
 from astropy.table import QTable
 
-from asgardpy.config.generator import AsgardpyConfig, all_model_templates
+from asgardpy.config.generator import all_model_templates
 from asgardpy.stats.stats import check_model_preference_lrt
 
 __all__ = [
@@ -14,7 +13,6 @@ __all__ = [
     "get_model_config_files",
     "tabulate_best_fit_stats",
     "copy_target_config",
-    "write_output_config_yaml",
 ]
 
 
@@ -166,28 +164,3 @@ def tabulate_best_fit_stats(spec_models_list, fit_success_list, main_analysis_li
     stats_table = QTable(fit_stats_table)
 
     return stats_table
-
-
-def write_output_config_yaml(model_):
-    """With the selected spectral model, update a default config in yaml."""
-
-    spec_model = model_.spectral_model.model1.to_dict()
-
-    temp_config = AsgardpyConfig()
-    temp_config.target.components[0] = spec_model
-
-    # Update with the spectral model info
-    temp_ = temp_config.dict(exclude_defaults=True)
-
-    # Remove some of the unnecessary keys
-    temp_["target"].pop("models_file", None)
-    temp_["target"]["components"][0]["spectral"].pop("ebl_abs", None)
-
-    yaml_ = yaml.dump(
-        temp_,
-        sort_keys=False,
-        indent=4,
-        width=80,
-        default_flow_style=None,
-    )
-    return yaml_
