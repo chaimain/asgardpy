@@ -1,8 +1,9 @@
-components:
--   spectral:
-        type: ExpCutoffPowerLaw3FGLSpectralModel
-        parameters:
-        - {name: index, value: 1.5}
-        - {name: amplitude, value: 1.0e-12, unit: TeV-1 s-1 cm-2}
-        - {name: reference, unit: TeV}
-        - {name: ecut, value: 10.0, unit: TeV}
+target:
+    components:
+    -   spectral:
+            type: ExpCutoffPowerLaw3FGLSpectralModel
+            parameters:
+            - {name: index, value: 1.5}
+            - {name: amplitude, value: 1.0e-12, unit: TeV-1 s-1 cm-2}
+            - {name: reference, unit: TeV}
+            - {name: ecut, value: 10.0, unit: TeV}
