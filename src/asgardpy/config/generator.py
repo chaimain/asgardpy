@@ -240,10 +240,10 @@ def write_asgardpy_model_to_file(gammapy_model, output_file=None, recursive_merg
         if not isinstance(output_file, Path):
             output_file = Path(os.path.expandvars(output_file))
 
-    temp_ = asgardpy_config.model_dump(exclude_defaults=True)["target"]
-    temp_.pop("models_file", None)
-    temp_["components"][0]["spectral"].pop("ebl_abs", None)
-    temp_["components"][0].pop("name", None)
+    temp_ = asgardpy_config.model_dump(exclude_defaults=True)
+    temp_["target"].pop("models_file", None)
+    temp_["target"]["components"][0]["spectral"].pop("ebl_abs", None)
+    temp_["target"]["components"][0].pop("name", None)
 
     yaml_ = yaml.dump(
         temp_,
