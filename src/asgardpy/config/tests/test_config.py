@@ -83,25 +83,25 @@ def test_config_update_gammapy(gammapy_data_path, base_config_1d):
 
     import os
 
-    from asgardpy.config.generator import gammapy_to_asgardpy_model_config
+    from asgardpy.config.generator import gammapy_model_to_asgardpy_model_config
 
     main_config = AsgardpyConfig()
 
     other_config_path = f"{gammapy_data_path}fermi-3fhl-crab/Fermi-LAT-3FHL_models.yaml"
     other_config_path_2 = f"{gammapy_data_path}estimators/pks2155_hess_lc/models.yaml"
 
-    other_config_1 = gammapy_to_asgardpy_model_config(
+    other_config_1 = gammapy_model_to_asgardpy_model_config(
         other_config_path,
         recursive_merge=False,
     )
-    other_config_2 = gammapy_to_asgardpy_model_config(
+    other_config_2 = gammapy_model_to_asgardpy_model_config(
         other_config_path,
         base_config_1d,
         recursive_merge=False,
     )
 
     main_config.write("test_base_config.yaml", overwrite=True)
-    other_config_3 = gammapy_to_asgardpy_model_config(
+    other_config_3 = gammapy_model_to_asgardpy_model_config(
         other_config_path_2,
         "test_base_config.yaml",
         recursive_merge=False,
@@ -158,3 +158,29 @@ def test_config_update():
         main_config.update(5)
     assert new_spectral_model_name_2 == "SmoothBrokenPowerLawSpectralModel"
     assert len(spectral_model_params) == 6
+
+
+def test_write_model_config():
+    """From a Gammapy Models object, write it as an AsgardpyConfig file."""
+
+    from gammapy.modeling.models import (
+        ExpCutoffPowerLaw3FGLSpectralModel,
+        Models,
+        SkyModel,
+    )
+
+    from asgardpy.analysis import AsgardpyAnalysis
+    from asgardpy.config import (
+        AsgardpyConfig,
+        get_model_template,
+        write_asgardpy_model_to_file,
+    )
+
+    config_ = AsgardpyConfig()
+    analysis_ = AsgardpyAnalysis(config_)
+    model_ = SkyModel(name="Template", spectral_model=ExpCutoffPowerLaw3FGLSpectralModel())
+    analysis_.final_model = Models(model_)
+
+    write_asgardpy_model_to_file(analysis_.final_model)
+
+    assert get_model_template("ecpl-3fgl")
