@@ -4,13 +4,14 @@ Main AsgardpyConfig Generator Module
 
 import json
 import logging
+import os
 from collections.abc import Mapping
 from enum import Enum
 from pathlib import Path
 
 import numpy as np
 import yaml
-from gammapy.modeling.models import Models
+from gammapy.modeling.models import CompoundSpectralModel, Models
 from gammapy.utils.scripts import make_path, read_yaml
 
 from asgardpy.analysis.step_base import AnalysisStepEnum
@@ -27,9 +28,10 @@ __all__ = [
     "all_model_templates",
     "AsgardpyConfig",
     "GeneralConfig",
-    "gammapy_to_asgardpy_model_config",
+    "gammapy_model_to_asgardpy_model_config",
     "get_model_template",
     "recursive_merge_dicts",
+    "write_asgardpy_model_to_file",
 ]
 
 CONFIG_PATH = Path(__file__).resolve().parent
@@ -163,20 +165,27 @@ def deep_update(d, u):
     return d
 
 
-def gammapy_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=None, recursive_merge=True):
+def gammapy_model_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=None, recursive_merge=True):
     """
-    Read the Gammapy Models YAML file and save it as AsgardpyConfig object.
+    Read the Gammapy Models object and save it as AsgardpyConfig object.
+
+    The gammapy_model object may be a YAML config filename/path/object or a
+    Gammapy Models object itself.
 
     Return
     ------
     asgardpy_config: `asgardpy.config.generator.AsgardpyConfig`
         Updated AsgardpyConfig object
     """
-    try:
-        models_gpy = Models.read(gammapy_model)
-    except KeyError:
-        log.error("%s File cannot be read by Gammapy Models", gammapy_model)
-        return None
+
+    if isinstance(gammapy_model, Models):
+        models_gpy = gammapy_model
+    else:
+        try:
+            models_gpy = Models.read(gammapy_model)
+        except KeyError:
+            log.error("%s File cannot be read by Gammapy Models", gammapy_model)
+            return None
 
     if not asgardpy_config_file:
         asgardpy_config = AsgardpyConfig()  # Default object
@@ -198,6 +207,53 @@ def gammapy_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=None, r
     asgardpy_config.target = temp_target_dict
 
     return asgardpy_config
+
+
+def write_asgardpy_model_to_file(gammapy_model, output_file=None, recursive_merge=True):
+    """
+    Read the Gammapy Models object and save it as AsgardpyConfig YAML file
+    containing only the Model parameters, similar to the model templates
+    available.
+    """
+    if not isinstance(gammapy_model, Models):
+        try:
+            gammapy_model = Models(gammapy_model)
+        except KeyError:
+            log.error("%s Object cannot be read as Gammapy Models", gammapy_model)
+            return None
+
+    asgardpy_config = gammapy_model_to_asgardpy_model_config(
+        gammapy_model=gammapy_model,
+        asgardpy_config_file=None,
+        recursive_merge=recursive_merge,
+    )
+
+    if not output_file:
+        if isinstance(gammapy_model[0].spectral_model, CompoundSpectralModel):
+            model_tag = gammapy_model[0].spectral_model.model1.tag[1]
+        else:
+            model_tag = gammapy_model[0].spectral_model.tag[1]
+
+        output_file = CONFIG_PATH / f"model_templates/model_template_{model_tag}.yaml"
+        os.path.expandvars(output_file)
+    else:
+        if not isinstance(output_file, Path):
+            output_file = Path(os.path.expandvars(output_file))
+
+    temp_ = asgardpy_config.model_dump(exclude_defaults=True)["target"]
+    temp_.pop("models_file", None)
+    temp_["components"][0]["spectral"].pop("ebl_abs", None)
+    temp_["components"][0].pop("name", None)
+
+    yaml_ = yaml.dump(
+        temp_,
+        sort_keys=False,
+        indent=4,
+        width=80,
+        default_flow_style=None,
+    )
+
+    output_file.write_text(yaml_)
 
 
 # Combine everything!
