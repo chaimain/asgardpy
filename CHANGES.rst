@@ -29,6 +29,27 @@ Maintenance
 
 - General clean-up of code. [`#176 <https://github.com/chaimain/asgardpy/pull/176>`__]
 
+Asgardpy 0.4.4 (2024-07-12)
+===========================
+
+Hotfix for 0.4.3 by including commits from [`#161 <https://github.com/chaimain/asgardpy/pull/161>`__], [`#171 <https://github.com/chaimain/asgardpy/pull/171>`__] and [`#174 <https://github.com/chaimain/asgardpy/pull/174>`__].
+
+
+API Changes
+-----------
+
+
+Bug Fixes
+---------
+
+
+New Features
+------------
+
+
+Maintenance
+-----------
+
 Asgardpy 0.4.3 (2024-01-27)
 ===========================
 
@@ -60,10 +81,9 @@ Maintenance
 
 - Adapt code suggestions from Scientific Python Development Guide and remove some coverage redundancies. [`#156 <https://github.com/chaimain/asgardpy/pull/156>`__]
 
-- Adapt code suggestions from Scrutinizer Code Quality scan. Use ``match-case`` instead of list of ``if-elif-else`` condition blocks. [`#157 <https://github.com/chaimain/asgardpy/pull/157>`__]
+- Adapt code suggestions from Scrutinizer Code Quality scan. Use match-case instead of list of if-elif-else condition blocks. [`#157 <https://github.com/chaimain/asgardpy/pull/157>`__]
 
 - Limit scipy version until gammapy v1.2 fixes its dependency. [`#158 <https://github.com/chaimain/asgardpy/pull/158>`__]
-
 
 Asgardpy 0.4.2 (2023-11-20)
 ===========================
