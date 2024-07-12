@@ -1,3 +1,24 @@
+Asgardpy 0.4.4 (2024-07-12)
+===========================
+
+Hotfix for 0.4.3 by including commits from [`#161 <https://github.com/chaimain/asgardpy/pull/161>`__] and [`#174 <https://github.com/chaimain/asgardpy/pull/174>`__].
+
+
+API Changes
+-----------
+
+
+Bug Fixes
+---------
+
+
+New Features
+------------
+
+
+Maintenance
+-----------
+
 Asgardpy 0.4.3 (2024-01-27)
 ===========================
 
