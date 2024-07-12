@@ -1,1 +1,0 @@
-Adapt code suggestions from Scrutinizer Code Quality scan. Use match-case instead of list of if-elif-else condition blocks.

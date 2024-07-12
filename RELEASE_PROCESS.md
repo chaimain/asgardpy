@@ -16,8 +16,13 @@
   towncrier build --version=<VERSION NUMBER>
   ```
 
-3. Add TAG of the version number:
+3. Commit the changes made:
 
+  ```bash
+  git commit -a
+  ```
+
+4. Add TAG of the version number:
   ```bash
   git tag v<VERSION NUMBER> -m v<VERSION NUMBER>
   git push --tags
