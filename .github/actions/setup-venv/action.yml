@@ -29,11 +29,11 @@ runs:
     - uses: actions/cache@v4
       id: virtualenv-cache
       with:
-        path: ${{ matrix.path }}
+        path: .venv
         enableCrossOsArchive: true
         key: ${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('pyproject.toml') }}  # ${{ inputs.cache-prefix }}-
-        # restore-keys: |
-        #   ${{ runner.os }}-pip-
+        restore-keys: |
+          ${{ runner.os }}-pip-
 
     - if: steps.virtualenv-cache.outputs.cache-hit != 'true'
       shell: ${{ runner.shell }}

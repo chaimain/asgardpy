@@ -1,7 +1,7 @@
 Asgardpy 0.4.4 (2024-07-12)
 ===========================
 
-Hotfix for 0.4.3 by including commits from [`#161 <https://github.com/chaimain/asgardpy/pull/161>`__] and [`#174 <https://github.com/chaimain/asgardpy/pull/174>`__].
+Hotfix for 0.4.3 by including commits from [`#161 <https://github.com/chaimain/asgardpy/pull/161>`__], [`#171 <https://github.com/chaimain/asgardpy/pull/171>`__] and [`#174 <https://github.com/chaimain/asgardpy/pull/174>`__].
 
 
 API Changes
