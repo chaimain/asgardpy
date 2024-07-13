@@ -11,7 +11,7 @@ from pathlib import Path
 
 import numpy as np
 import yaml
-from gammapy.modeling.models import CompoundSpectralModel, Models
+from gammapy.modeling.models import CompoundSpectralModel, Models, SkyModel
 from gammapy.utils.scripts import make_path, read_yaml
 
 from asgardpy.analysis.step_base import AnalysisStepEnum
@@ -180,11 +180,11 @@ def gammapy_model_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=N
 
     if isinstance(gammapy_model, Models):
         models_gpy = gammapy_model
-    elif isinstance(gammapy_model, str | Path):
-        models_gpy = Models.read(gammapy_model)
+    elif isinstance(gammapy_model, SkyModel):
+        models_gpy = Models(gammapy_model)
     else:
         try:
-            models_gpy = Models(gammapy_model)
+            models_gpy = Models.read(gammapy_model)
         except KeyError:
             log.error("%s File cannot be read by Gammapy Models", gammapy_model)
             return None
@@ -250,7 +250,7 @@ def write_asgardpy_model_to_file(gammapy_model, output_file=None, recursive_merg
     temp_ = asgardpy_config.model_dump(exclude_defaults=True)
     temp_["target"].pop("models_file", None)
     temp_["target"]["components"][0]["spectral"].pop("ebl_abs", None)
-    temp_["target"]["components"][0].pop("name", None)
+    # temp_["target"]["components"][0].pop("name", None) # Extra?
 
     yaml_ = yaml.dump(
         temp_,
