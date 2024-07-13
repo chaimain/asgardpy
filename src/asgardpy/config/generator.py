@@ -180,21 +180,27 @@ def gammapy_model_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=N
 
     if isinstance(gammapy_model, Models):
         models_gpy = gammapy_model
+    elif isinstance(gammapy_model, str | Path):
+        models_gpy = Models.read(gammapy_model)
     else:
         try:
-            models_gpy = Models.read(gammapy_model)
+            models_gpy = Models(gammapy_model)
         except KeyError:
             log.error("%s File cannot be read by Gammapy Models", gammapy_model)
             return None
 
+    models_gpy_dict = models_gpy.to_dict()
+
     if not asgardpy_config_file:
         asgardpy_config = AsgardpyConfig()  # Default object
+        # Remove any name values in the model dict
+        models_gpy_dict["components"][0].pop("datasets_names", None)
+        models_gpy_dict["components"][0].pop("name", None)
     elif isinstance(asgardpy_config_file, str):  # File path
         asgardpy_config = AsgardpyConfig.read(asgardpy_config_file)
     elif isinstance(asgardpy_config_file, AsgardpyConfig):
         asgardpy_config = asgardpy_config_file
 
-    models_gpy_dict = models_gpy.to_dict()
     asgardpy_config_target_dict = asgardpy_config.model_dump()["target"]
 
     if recursive_merge:
@@ -204,6 +210,7 @@ def gammapy_model_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=N
         # the defaults in Gammapy, but NOT in Asgardpy.
         # E.g. test data Fermi-3fhl-crab model file
         temp_target_dict = deep_update(asgardpy_config_target_dict, models_gpy_dict)
+
     asgardpy_config.target = temp_target_dict
 
     return asgardpy_config
@@ -223,7 +230,7 @@ def write_asgardpy_model_to_file(gammapy_model, output_file=None, recursive_merg
             return None
 
     asgardpy_config = gammapy_model_to_asgardpy_model_config(
-        gammapy_model=gammapy_model,
+        gammapy_model=gammapy_model[0],
         asgardpy_config_file=None,
         recursive_merge=recursive_merge,
     )
