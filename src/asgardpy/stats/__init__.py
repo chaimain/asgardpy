@@ -18,7 +18,6 @@ from asgardpy.stats.utils import (
     get_model_config_files,
     tabulate_best_fit_stats,
     copy_target_config,
-    write_output_config_yaml,
 )
 
 __all__ = [
@@ -32,5 +31,4 @@ __all__ = [
     "get_model_config_files",
     "tabulate_best_fit_stats",
     "copy_target_config",
-    "write_output_config_yaml",
 ]
