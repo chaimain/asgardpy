@@ -14,7 +14,13 @@ pip install asgardpy
 and for specific versions, run
 
 ```bash
-pip install asgardpy=VERSION
+pip install asgardpy==VERSION
+```
+
+For example, using the Hotfix release of v0.4.4 with extended support for Gammapy v1.1, run
+
+```bash
+pip install asgardpy==0.4.4
 ```
 
 ## Installing from source

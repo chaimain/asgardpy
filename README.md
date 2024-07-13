@@ -11,6 +11,14 @@ Follow the [Gammapy v1.2](https://docs.gammapy.org/1.2/) documentation for under
 
 The various Data Levels	used here follow the descriptions suggested by [GADF v0.3](https://gamma-astro-data-formats.readthedocs.io/en/latest/) and [CTAO](https://www.ctao.org/) Data Model.
 
+# NOTE
+
+For requiring support only for [Gammapy v1.1](https://docs.gammapy.org/1.1/), one may follow the latest Hotfix release [v0.4.4](https://github.com/chaimain/asgardpy/tree/v0.4.4) which benefits from the correct usage of getting EBL-deabsorbed data products as included in [v0.5.0](https://github.com/chaimain/asgardpy/tree/v0.5.0). This can be done by using
+
+```bash
+git checkout tags/v0.4.4
+```
+
 # Pipeline development
 
 The pipeline was developed with first testing with Fermi-LAT ([enrico](https://enrico.readthedocs.io/en/latest/) and [fermipy](https://fermipy.readthedocs.io/en/latest/)) files and LST-1 ([cta-lstchain](https://cta-observatory.github.io/cta-lstchain/)) DL3 files (with energy-dependent and global directional cuts) for point-like sources.
