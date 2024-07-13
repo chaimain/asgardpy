@@ -170,7 +170,8 @@ def test_write_model_config():
     )
 
     from asgardpy.analysis import AsgardpyAnalysis
-    from asgardpy.config import (
+    from asgardpy.config.generator import (
+        CONFIG_PATH,
         AsgardpyConfig,
         get_model_template,
         write_asgardpy_model_to_file,
@@ -179,8 +180,15 @@ def test_write_model_config():
     config_ = AsgardpyConfig()
     analysis_ = AsgardpyAnalysis(config_)
     model_ = SkyModel(name="Template", spectral_model=ExpCutoffPowerLaw3FGLSpectralModel())
+
     analysis_.final_model = Models(model_)
 
-    write_asgardpy_model_to_file(analysis_.final_model)
-
     assert get_model_template("ecpl-3fgl")
+
+    write_asgardpy_model_to_file(
+        gammapy_model=model_,
+        output_file=str(CONFIG_PATH) + "/model_templates/model_template_ecpl-3fgl.yaml",
+    )
+
+    with pytest.raises(TypeError):
+        write_asgardpy_model_to_file("None")
