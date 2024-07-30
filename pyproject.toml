@@ -77,7 +77,7 @@ dev = [
   "pytest-cov",
   "build",
   "setuptools_scm",
-  "Sphinx>=6.0,<8",
+  "Sphinx>=6.0,<9",
   "furo>=2022.12.7",
   "myst-parser>=2.0",
   "sphinx-copybutton>=0.5.0",
