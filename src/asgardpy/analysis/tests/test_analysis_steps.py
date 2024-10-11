@@ -58,6 +58,7 @@ def test_analysis_basics(gammapy_data_path, base_config):
 @pytest.mark.test_data
 def test_ebl_deabsorbed(gammapy_data_path, ebl_hess_pks):
     """Testing generation of EBL-deabsorbed Flux points."""
+    from asgardpy.config.generator import write_asgardpy_model_to_file
 
     analysis = AsgardpyAnalysis(ebl_hess_pks)
 
@@ -67,3 +68,8 @@ def test_ebl_deabsorbed(gammapy_data_path, ebl_hess_pks):
 
     assert len(analysis.model_deabs.parameters) == 3
     assert analysis.flux_points_deabs
+
+    write_asgardpy_model_to_file(
+        gammapy_model=analysis.final_model,
+        output_file=None,
+    )

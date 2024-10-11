@@ -222,6 +222,25 @@ def gammapy_model_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=N
     else:
         asgardpy_config = check_config(asgardpy_config_file)
 
+    # For EBL part only
+    if "model1" in models_gpy_dict["components"][0]["spectral"].keys():
+        ebl_abs = models_gpy_dict["components"][0]["spectral"]["model2"]
+        ebl_abs["alpha_norm"] = ebl_abs["parameters"][0]["value"]
+        ebl_abs["redshift"] = ebl_abs["parameters"][1]["value"]
+        ebl_abs.pop("parameters", None)
+
+        models_gpy_dict["components"][0]["spectral"]["type"] = models_gpy_dict["components"][0]["spectral"][
+            "model1"
+        ]["type"]
+        models_gpy_dict["components"][0]["spectral"]["parameters"] = models_gpy_dict["components"][0]["spectral"][
+            "model1"
+        ]["parameters"]
+        models_gpy_dict["components"][0]["spectral"]["ebl_abs"] = ebl_abs
+
+        models_gpy_dict["components"][0]["spectral"].pop("model1", None)
+        models_gpy_dict["components"][0]["spectral"].pop("model2", None)
+        models_gpy_dict["components"][0]["spectral"].pop("operator", None)
+
     asgardpy_config_target_dict = asgardpy_config.model_dump()["target"]
 
     if recursive_merge:
@@ -253,8 +272,7 @@ def write_asgardpy_model_to_file(gammapy_model, output_file=None, recursive_merg
 
     if not output_file:
         if isinstance(gammapy_model[0].spectral_model, CompoundSpectralModel):
-            # Have to consider whether to write the EBL Absorption part or not
-            model_tag = gammapy_model[0].spectral_model.model1.tag[1]
+            model_tag = gammapy_model[0].spectral_model.model1.tag[1] + "_ebl"
         else:
             model_tag = gammapy_model[0].spectral_model.tag[1]
 
@@ -266,7 +284,13 @@ def write_asgardpy_model_to_file(gammapy_model, output_file=None, recursive_merg
 
     temp_ = asgardpy_config.model_dump(exclude_defaults=True)
     temp_["target"].pop("models_file", None)
-    temp_["target"]["components"][0]["spectral"].pop("ebl_abs", None)
+
+    if isinstance(gammapy_model[0].spectral_model, CompoundSpectralModel):
+        temp_["target"]["components"][0]["spectral"]["ebl_abs"]["filename"] = str(
+            temp_["target"]["components"][0]["spectral"]["ebl_abs"]["filename"]
+        )
+    else:
+        temp_["target"]["components"][0]["spectral"].pop("ebl_abs", None)
 
     yaml_ = yaml.dump(
         temp_,

@@ -192,3 +192,8 @@ def test_write_model_config():
 
     with pytest.raises(TypeError):
         write_asgardpy_model_to_file()
+
+    write_asgardpy_model_to_file(
+        gammapy_model=model_,
+        output_file=None,
+    )
