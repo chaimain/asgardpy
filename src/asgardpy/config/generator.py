@@ -97,6 +97,38 @@ def get_model_template(spec_model_tag):
     return new_model_file
 
 
+def check_config(config):
+    """
+    For a given object type, try to read it as an AsgardpyConfig object.
+    """
+    if isinstance(config, str | Path):
+        if Path(config).is_file():
+            AConfig = AsgardpyConfig.read(config)
+        else:
+            AConfig = AsgardpyConfig.from_yaml(config)
+    elif isinstance(config, AsgardpyConfig):
+        AConfig = config
+    else:
+        raise TypeError(f"Invalid type: {config}")
+
+    return AConfig
+
+
+def check_gammapy_model(gammapy_model):
+    """
+    For a given object type, try to read it as a Gammapy Models object.
+    """
+    if isinstance(gammapy_model, Models | SkyModel):
+        models_gpy = Models(gammapy_model)
+    else:
+        try:
+            models_gpy = Models.read(gammapy_model)
+        except KeyError:
+            raise TypeError("%s File cannot be read by Gammapy Models", gammapy_model) from KeyError
+
+    return models_gpy
+
+
 def recursive_merge_dicts(base_config, extra_config):
     """
     recursively merge two dictionaries.
@@ -178,16 +210,7 @@ def gammapy_model_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=N
         Updated AsgardpyConfig object
     """
 
-    if isinstance(gammapy_model, Models):
-        models_gpy = gammapy_model
-    elif isinstance(gammapy_model, SkyModel):
-        models_gpy = Models(gammapy_model)
-    else:
-        try:
-            models_gpy = Models.read(gammapy_model)
-        except KeyError:
-            log.error("%s File cannot be read by Gammapy Models", gammapy_model)
-            return None
+    models_gpy = check_gammapy_model(gammapy_model)
 
     models_gpy_dict = models_gpy.to_dict()
 
@@ -196,10 +219,8 @@ def gammapy_model_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=N
         # Remove any name values in the model dict
         models_gpy_dict["components"][0].pop("datasets_names", None)
         models_gpy_dict["components"][0].pop("name", None)
-    elif isinstance(asgardpy_config_file, str):  # File path
-        asgardpy_config = AsgardpyConfig.read(asgardpy_config_file)
-    elif isinstance(asgardpy_config_file, AsgardpyConfig):
-        asgardpy_config = asgardpy_config_file
+    else:
+        asgardpy_config = check_config(asgardpy_config_file)
 
     asgardpy_config_target_dict = asgardpy_config.model_dump()["target"]
 
@@ -222,12 +243,7 @@ def write_asgardpy_model_to_file(gammapy_model, output_file=None, recursive_merg
     containing only the Model parameters, similar to the model templates
     available.
     """
-    if not isinstance(gammapy_model, Models):
-        try:
-            gammapy_model = Models(gammapy_model)
-        except KeyError:
-            log.error("%s Object cannot be read as Gammapy Models", gammapy_model)
-            return None
+    gammapy_model = check_gammapy_model(gammapy_model)
 
     asgardpy_config = gammapy_model_to_asgardpy_model_config(
         gammapy_model=gammapy_model[0],
@@ -237,6 +253,7 @@ def write_asgardpy_model_to_file(gammapy_model, output_file=None, recursive_merg
 
     if not output_file:
         if isinstance(gammapy_model[0].spectral_model, CompoundSpectralModel):
+            # Have to consider whether to write the EBL Absorption part or not
             model_tag = gammapy_model[0].spectral_model.model1.tag[1]
         else:
             model_tag = gammapy_model[0].spectral_model.tag[1]
@@ -347,12 +364,7 @@ class AsgardpyConfig(BaseConfig):
         config : `AsgardpyConfig` object
             Updated config object.
         """
-        if isinstance(config, str):
-            other = AsgardpyConfig.from_yaml(config)
-        elif isinstance(config, AsgardpyConfig):
-            other = config
-        else:
-            raise TypeError(f"Invalid type: {config}")
+        other = check_config(config)
 
         # Special case of when only updating target model parameters from a
         # separate file, where the name of the source is not provided.
