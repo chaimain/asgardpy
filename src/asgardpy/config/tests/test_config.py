@@ -56,7 +56,7 @@ def test_config_time():
 def test_get_model_template():
     """Test for reading a model template by a given tag."""
 
-    from asgardpy.config.generator import get_model_template
+    from asgardpy.config.operations import get_model_template
 
     new_model = get_model_template("eclp")
 
@@ -128,7 +128,7 @@ def test_config_update_gammapy(gammapy_data_path, base_config_1d):
 def test_config_update():
     """Tests to update target model config from other AsgardpyConfig file."""
 
-    from asgardpy.config.generator import get_model_template
+    from asgardpy.config.operations import get_model_template
 
     main_config = AsgardpyConfig()
 
@@ -170,12 +170,8 @@ def test_write_model_config():
     )
 
     from asgardpy.analysis import AsgardpyAnalysis
-    from asgardpy.config.generator import (
-        CONFIG_PATH,
-        AsgardpyConfig,
-        get_model_template,
-        write_asgardpy_model_to_file,
-    )
+    from asgardpy.config.generator import AsgardpyConfig, write_asgardpy_model_to_file
+    from asgardpy.config.operations import CONFIG_PATH, get_model_template
 
     config_ = AsgardpyConfig()
     analysis_ = AsgardpyAnalysis(config_)

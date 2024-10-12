@@ -25,7 +25,7 @@ def test_get_pivot_energy_from_start(gpy_hess_magic):
     the AsgardpyAnalysis object. Test using the SpectralModel of ECPL
     and without any associated EBL absorption model.
     """
-    from asgardpy.config.generator import get_model_template
+    from asgardpy.config.operations import get_model_template
 
     new_model = get_model_template("ecpl2")
     gpy_hess_magic.target.models_file = new_model

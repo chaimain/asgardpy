@@ -1,1 +1,2 @@
 Generalize functions to read and write Gammapy model config files via AsgardpyConfig.
+Separate some of the functions responsible for operations in a distinct ``asgardpy.config.operations`` module.

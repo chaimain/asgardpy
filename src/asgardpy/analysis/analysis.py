@@ -9,10 +9,7 @@ from gammapy.modeling.models import CompoundSpectralModel, Models, SkyModel
 from pydantic import ValidationError
 
 from asgardpy.analysis.step import AnalysisStep
-from asgardpy.config.generator import (
-    AsgardpyConfig,
-    gammapy_model_to_asgardpy_model_config,
-)
+from asgardpy.config import AsgardpyConfig, gammapy_model_to_asgardpy_model_config
 from asgardpy.data.target import set_models
 from asgardpy.stats.stats import get_goodness_of_fit_stats
 

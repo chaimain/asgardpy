@@ -5,7 +5,7 @@ Module containing additional utility functions for selecting a preferred model.
 import numpy as np
 from astropy.table import QTable
 
-from asgardpy.config.generator import all_model_templates
+from asgardpy.config.operations import all_model_templates
 from asgardpy.stats.stats import check_model_preference_lrt
 
 __all__ = [

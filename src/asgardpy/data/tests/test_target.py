@@ -4,7 +4,7 @@ import pytest
 def test_models_from_config():
     """Test reading models from asgardpy config."""
 
-    from asgardpy.config.generator import AsgardpyConfig, get_model_template
+    from asgardpy.config import AsgardpyConfig, get_model_template
     from asgardpy.data.target import read_models_from_asgardpy_config, set_models
 
     config_eclp = AsgardpyConfig.read(get_model_template("eclp"))
