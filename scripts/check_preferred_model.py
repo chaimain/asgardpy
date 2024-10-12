@@ -5,14 +5,13 @@ from pathlib import Path
 import numpy as np
 
 from asgardpy.analysis import AsgardpyAnalysis
-from asgardpy.config import AsgardpyConfig
+from asgardpy.config import AsgardpyConfig, write_asgardpy_model_to_file
 from asgardpy.stats import (
     check_model_preference_aic,
     copy_target_config,
     fetch_all_analysis_fit_info,
     get_model_config_files,
     tabulate_best_fit_stats,
-    write_output_config_yaml,
 )
 
 log = logging.getLogger(__name__)
@@ -155,8 +154,9 @@ def main():
 
             path = config_path.parent / f"{config_path_file_name}_model_most_pref_{name}.yaml"
 
-            yaml_ = write_output_config_yaml(main_analysis_list[tag]["Analysis"].final_model[0])
-            path.write_text(yaml_)
+            write_asgardpy_model_to_file(
+                gammapy_model=main_analysis_list[tag]["Analysis"].final_model[0], output_file=path
+            )
 
 
 if __name__ == "__main__":

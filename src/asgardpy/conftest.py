@@ -110,7 +110,7 @@ def base_config_1d(base_config):
 def gpy_mwl_config(mwl_config_path, gammapy_data_path):
     """Define the Gammapy MWL Tutorial config."""
 
-    from asgardpy.config import AsgardpyConfig, gammapy_to_asgardpy_model_config
+    from asgardpy.config import AsgardpyConfig, gammapy_model_to_asgardpy_model_config
 
     config = AsgardpyConfig().read(mwl_config_path)
 
@@ -123,7 +123,7 @@ def gpy_mwl_config(mwl_config_path, gammapy_data_path):
         0
     ].dl4_dataset_info.dl4_dataset.input_dir = f"{gammapy_data_path}joint-crab/spectra/hess/"
 
-    other_config = gammapy_to_asgardpy_model_config(config.target.models_file, recursive_merge=False)
+    other_config = gammapy_model_to_asgardpy_model_config(config.target.models_file, recursive_merge=False)
 
     config = config.update(other_config)
 

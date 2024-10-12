@@ -2,7 +2,7 @@ asgardpy.config.generator module
 ================================
 
 .. automodule:: asgardpy.config.generator
-   :members: AsgardpyConfig, GeneralConfig, get_model_template, recursive_merge_dicts
+   :members: AsgardpyConfig, GeneralConfig, gammapy_model_to_asgardpy_model_config, write_asgardpy_model_to_file
    :undoc-members:
    :show-inheritance:
 

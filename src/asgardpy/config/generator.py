@@ -4,17 +4,23 @@ Main AsgardpyConfig Generator Module
 
 import json
 import logging
-from collections.abc import Mapping
+import os
 from enum import Enum
 from pathlib import Path
 
-import numpy as np
 import yaml
-from gammapy.modeling.models import Models
+from gammapy.modeling.models import CompoundSpectralModel
 from gammapy.utils.scripts import make_path, read_yaml
 
 from asgardpy.analysis.step_base import AnalysisStepEnum
 from asgardpy.base import BaseConfig, PathType
+from asgardpy.config.operations import (
+    CONFIG_PATH,
+    check_gammapy_model,
+    compound_model_dict_converstion,
+    deep_update,
+    recursive_merge_dicts,
+)
 from asgardpy.data import (
     Dataset1DConfig,
     Dataset3DConfig,
@@ -24,15 +30,11 @@ from asgardpy.data import (
 )
 
 __all__ = [
-    "all_model_templates",
     "AsgardpyConfig",
     "GeneralConfig",
-    "gammapy_to_asgardpy_model_config",
-    "get_model_template",
-    "recursive_merge_dicts",
+    "gammapy_model_to_asgardpy_model_config",
+    "write_asgardpy_model_to_file",
 ]
-
-CONFIG_PATH = Path(__file__).resolve().parent
 
 log = logging.getLogger(__name__)
 
@@ -67,125 +69,54 @@ class GeneralConfig(BaseConfig):
     stacked_dataset: bool = False
 
 
-def all_model_templates():
+def check_config(config):
     """
-    Collect all Template Models provided in Asgardpy, and their small tag names.
+    For a given object type, try to read it as an AsgardpyConfig object.
     """
-    template_files = sorted(list(CONFIG_PATH.glob("model_templates/model_template*yaml")))
-
-    all_tags = []
-    for file in template_files:
-        all_tags.append(file.name.split("_")[-1].split(".")[0])
-    all_tags = np.array(all_tags)
-
-    return all_tags, template_files
-
-
-def get_model_template(spec_model_tag):
-    """
-    Read a particular template model yaml filename to create an AsgardpyConfig
-    object.
-    """
-    all_tags, template_files = all_model_templates()
-    new_model_file = None
-
-    for file, tag in zip(template_files, all_tags, strict=True):
-        if spec_model_tag == tag:
-            new_model_file = file
-    return new_model_file
-
-
-def recursive_merge_dicts(base_config, extra_config):
-    """
-    recursively merge two dictionaries.
-    Entries in extra_config override entries in base_config. The built-in
-    update function cannot be used for hierarchical dicts.
-
-    Also for the case when there is a list of dicts involved, one has to be
-    more careful. The extra_config may have longer list of dicts as compared
-    with the base_config, in which case, the extra items are simply added to
-    the merged final list.
-
-    Combined here are 2 options from SO.
-
-    See:
-    http://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth/3233356#3233356
-    and also
-    https://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth/18394648#18394648
-
-    Parameters
-    ----------
-    base_config : dict
-        dictionary to be merged
-    extra_config : dict
-        dictionary to be merged
-    Returns
-    -------
-    final_config : dict
-        merged dict
-    """
-    final_config = base_config.copy()
-
-    for key, value in extra_config.items():
-        if key in final_config and isinstance(final_config[key], list):
-            new_config = []
-
-            for key_, value_ in zip(final_config[key], value, strict=False):
-                key_ = recursive_merge_dicts(key_ or {}, value_)
-                new_config.append(key_)
-
-            # For example moving from a smaller list of model parameters to a
-            # longer list.
-            if len(final_config[key]) < len(extra_config[key]):
-                for value_ in value[len(final_config[key]) :]:
-                    new_config.append(value_)
-            final_config[key] = new_config
-
-        elif key in final_config and isinstance(final_config[key], dict):
-            final_config[key] = recursive_merge_dicts(final_config.get(key) or {}, value)
+    if isinstance(config, str | Path):
+        if Path(config).is_file():
+            AConfig = AsgardpyConfig.read(config)
         else:
-            final_config[key] = value
+            AConfig = AsgardpyConfig.from_yaml(config)
+    elif isinstance(config, AsgardpyConfig):
+        AConfig = config
+    else:
+        raise TypeError(f"Invalid type: {config}")
 
-    return final_config
+    return AConfig
 
 
-def deep_update(d, u):
+def gammapy_model_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=None, recursive_merge=True):
     """
-    Recursively update a nested dictionary.
+    Read the Gammapy Models object and save it as AsgardpyConfig object.
 
-    Just like in Gammapy, taken from: https://stackoverflow.com/a/3233356/19802442
-    """
-    for k, v in u.items():
-        if isinstance(v, Mapping):
-            d[k] = deep_update(d.get(k, {}), v)
-        else:
-            d[k] = v
-    return d
-
-
-def gammapy_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=None, recursive_merge=True):
-    """
-    Read the Gammapy Models YAML file and save it as AsgardpyConfig object.
+    The gammapy_model object may be a YAML config filename/path/object or a
+    Gammapy Models object itself.
 
     Return
     ------
     asgardpy_config: `asgardpy.config.generator.AsgardpyConfig`
         Updated AsgardpyConfig object
     """
-    try:
-        models_gpy = Models.read(gammapy_model)
-    except KeyError:
-        log.error("%s File cannot be read by Gammapy Models", gammapy_model)
-        return None
+
+    models_gpy = check_gammapy_model(gammapy_model)
+
+    models_gpy_dict = models_gpy.to_dict()
 
     if not asgardpy_config_file:
         asgardpy_config = AsgardpyConfig()  # Default object
-    elif isinstance(asgardpy_config_file, str):  # File path
-        asgardpy_config = AsgardpyConfig.read(asgardpy_config_file)
-    elif isinstance(asgardpy_config_file, AsgardpyConfig):
-        asgardpy_config = asgardpy_config_file
+        # Remove any name values in the model dict
+        models_gpy_dict["components"][0].pop("datasets_names", None)
+        models_gpy_dict["components"][0].pop("name", None)
+    else:
+        asgardpy_config = check_config(asgardpy_config_file)
 
-    models_gpy_dict = models_gpy.to_dict()
+    # For EBL part only
+    if "model1" in models_gpy_dict["components"][0]["spectral"].keys():
+        models_gpy_dict["components"][0]["spectral"] = compound_model_dict_converstion(
+            models_gpy_dict["components"][0]["spectral"]
+        )
+
     asgardpy_config_target_dict = asgardpy_config.model_dump()["target"]
 
     if recursive_merge:
@@ -195,9 +126,57 @@ def gammapy_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=None, r
         # the defaults in Gammapy, but NOT in Asgardpy.
         # E.g. test data Fermi-3fhl-crab model file
         temp_target_dict = deep_update(asgardpy_config_target_dict, models_gpy_dict)
+
     asgardpy_config.target = temp_target_dict
 
     return asgardpy_config
+
+
+def write_asgardpy_model_to_file(gammapy_model, output_file=None, recursive_merge=True):
+    """
+    Read the Gammapy Models object and save it as AsgardpyConfig YAML file
+    containing only the Model parameters, similar to the model templates
+    available.
+    """
+    gammapy_model = check_gammapy_model(gammapy_model)
+
+    asgardpy_config = gammapy_model_to_asgardpy_model_config(
+        gammapy_model=gammapy_model[0],
+        asgardpy_config_file=None,
+        recursive_merge=recursive_merge,
+    )
+
+    if not output_file:
+        if isinstance(gammapy_model[0].spectral_model, CompoundSpectralModel):
+            model_tag = gammapy_model[0].spectral_model.model1.tag[1] + "_ebl"
+        else:
+            model_tag = gammapy_model[0].spectral_model.tag[1]
+
+        output_file = CONFIG_PATH / f"model_templates/model_template_{model_tag}.yaml"
+        os.path.expandvars(output_file)
+    else:
+        if not isinstance(output_file, Path):
+            output_file = Path(os.path.expandvars(output_file))
+
+    temp_ = asgardpy_config.model_dump(exclude_defaults=True)
+    temp_["target"].pop("models_file", None)
+
+    if isinstance(gammapy_model[0].spectral_model, CompoundSpectralModel):
+        temp_["target"]["components"][0]["spectral"]["ebl_abs"]["filename"] = str(
+            temp_["target"]["components"][0]["spectral"]["ebl_abs"]["filename"]
+        )
+    else:
+        temp_["target"]["components"][0]["spectral"].pop("ebl_abs", None)
+
+    yaml_ = yaml.dump(
+        temp_,
+        sort_keys=False,
+        indent=4,
+        width=80,
+        default_flow_style=None,
+    )
+
+    output_file.write_text(yaml_)
 
 
 # Combine everything!
@@ -285,12 +264,7 @@ class AsgardpyConfig(BaseConfig):
         config : `AsgardpyConfig` object
             Updated config object.
         """
-        if isinstance(config, str):
-            other = AsgardpyConfig.from_yaml(config)
-        elif isinstance(config, AsgardpyConfig):
-            other = config
-        else:
-            raise TypeError(f"Invalid type: {config}")
+        other = check_config(config)
 
         # Special case of when only updating target model parameters from a
         # separate file, where the name of the source is not provided.

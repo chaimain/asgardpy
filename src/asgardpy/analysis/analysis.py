@@ -9,7 +9,7 @@ from gammapy.modeling.models import CompoundSpectralModel, Models, SkyModel
 from pydantic import ValidationError
 
 from asgardpy.analysis.step import AnalysisStep
-from asgardpy.config.generator import AsgardpyConfig, gammapy_to_asgardpy_model_config
+from asgardpy.config import AsgardpyConfig, gammapy_model_to_asgardpy_model_config
 from asgardpy.data.target import set_models
 from asgardpy.stats.stats import get_goodness_of_fit_stats
 
@@ -48,7 +48,7 @@ class AsgardpyAnalysis:
                 other_config = AsgardpyConfig.read(self.config.target.models_file)
                 self.config = self.config.update(other_config)
             except ValidationError:
-                self.config = gammapy_to_asgardpy_model_config(
+                self.config = gammapy_model_to_asgardpy_model_config(
                     gammapy_model=self.config.target.models_file,
                     asgardpy_config_file=self.config,
                 )
