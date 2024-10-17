@@ -18,3 +18,14 @@ demonstrate EBL absorption of the AGN spectra, and thereby also to fetch the
 intrinsic spectrum from the observed spectrum.
 
 This will be removed when Gammapy v1.3 dependency will be supported.
+
+# Additional CTAO-LST1 data
+
+The lst1_crab_dl4.zip file contains the reduced DL4 dataset of the Crab Nebula
+example dataset from the [LST1 Performance Study](https://iopscience.iop.org/article/10.3847/1538-4357/ace89d),
+stored on the public record at [zenodo](https://zenodo.org/records/11445184),
+provided by [Daniel Morcuende](https://orcid.org/0000-0001-9400-0922). The
+original dataset were DL3 files and over 750 MBs in size, hence they were
+reduced to DL4 data and stored here for easier access.
+
+Detailed information about the data can be found at the links provided.
