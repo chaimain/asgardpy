@@ -29,3 +29,15 @@ unzip \
   -u \
   ${OUT_ZIP} \
   -d $OUT_DIR
+
+# Extra CTA-LST1 Crab Nebula data, from https://zenodo.org/records/11445184
+OUT_ZIP="dev/lst1_crab_dl4.zip"
+
+OUT_DIR=$GAMMAPY_DATA"cta-lst1/"
+
+mkdir -p $OUT_DIR
+
+unzip \
+  -u \
+  ${OUT_ZIP} \
+  -d $OUT_DIR

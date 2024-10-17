@@ -71,7 +71,7 @@ dataset3d:
   -   name: Fermi-LAT
       input_dl3:
       -   type: lat
-          input_dir: "." #../../gammapy-datasets/1.1/fermipy-crab/
+          input_dir: "." #../../gammapy-datasets/1.2/fermipy-crab/
           glob_pattern:
             events: "ft1*.fits*"
             edisp: "drm*.fits*"
@@ -79,7 +79,7 @@ dataset3d:
             exposure: "bexpmap*.fits*"
             psf: "psf*.fits*"
       -   type: lat-aux
-          input_dir: "." #../../gammapy-datasets/1.1/fermipy-crab/
+          input_dir: "." #../../gammapy-datasets/1.2/fermipy-crab/
           glob_pattern:
             gal_diffuse: "gll_iem_v07_cutout.fits*"
             iso_diffuse: "iso_P8R3_SOURCE_V3_*.txt"
@@ -133,7 +133,7 @@ dataset3d:
   -   name: HESS
       input_dl3:
       -   type: gadf-dl3
-          input_dir: "." #../../gammapy-datasets/1.1/hess-dl3-dr1/
+          input_dir: "." #../../gammapy-datasets/1.2/hess-dl3-dr1/
           glob_pattern:
             dl3: "data/hess_*fits.gz"
       dataset_info:
@@ -200,7 +200,7 @@ dataset1d:
   -   name: MAGIC
       input_dl3:
       -   type: gadf-dl3
-          input_dir: "." #../../gammapy-datasets/1.1/magic/rad_max/data
+          input_dir: "." #../../gammapy-datasets/1.2/magic/rad_max/data
           glob_pattern:
             dl3: "2013*fits"
       dataset_info:
@@ -269,6 +269,27 @@ dataset1d:
           axis_custom:
             unit: TeV
             edges: [0.0631, 0.1, 0.1585, 0.2512, 0.3981, 0.631, 1.0, 1.585, 2.512]
+  -   name: LST-1
+      input_dl4: true
+      dataset_info:
+        observation:
+          obs_ids: []
+      dl4_dataset_info:
+        dl4_dataset:
+          type: SpectrumDatasetOnOff
+          input_dir: "." #../../gammapy-datasets/1.2/cta-lst1/
+          glob_pattern: "DL4*fits"
+          dl4_format: "gadf"
+        spectral_energy_range:
+          name: energy
+          axis:
+            min: "100 GeV"
+            max: "10 TeV"
+            nbins: 5
+            per_decade: true
+          axis_custom:
+            unit: TeV
+            edges: [0.0251, 0.0398, 0.0631, 0.1, 0.1585, 0.2512, 0.3981, 0.631, 1.0, 1.585, 2.512, 3.981, 6.31, 10, 15.85, 25.12]
 
 
 # Fit parameters
@@ -286,4 +307,3 @@ flux_points_params:
   parameters:
     selection_optional: "all"
   reoptimize: false
-
