@@ -44,6 +44,22 @@ and for developers, run
 pip install -e .[dev]
 ```
 
+## Creating conda environment
+
+In general, for the latest version, one can use
+
+```bash
+conda env create -f environment.yml
+```
+
+and for the Hotfix release,
+
+```bash
+conda env create -f environment_0.4.4.yml
+```
+
+This method was included after v0.5.0, and for earlier (<v0.4.4) releases, one can simply use the gammapy conda environment and install asgardpy on top of it.
+
 ## Downloading Test data
 
 To download the primary source of Test data, ie, the public data available with gammapy,
@@ -59,3 +75,5 @@ Next, to add the extra test data for asgardpy tests, run the following,
 ```bash
 ./scripts/download_asgardpy_data.sh
 ```
+
+This adds the additional datasets in the same location as ``GAMMAPY_DATA``.

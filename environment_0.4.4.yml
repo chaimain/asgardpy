@@ -1,0 +1,64 @@
+# Conda environment for asgardpy v0.4.4
+#
+# Install:    conda env create -f environment.yml
+# Update:     conda env update -f environment.yml
+# Activate:   conda activate asgardpy_0.4.4
+# Deactivate: conda deactivate
+
+name: asgardpy_0.4.4
+
+channels:
+  - conda-forge
+
+variables:
+  PYTHONNOUSERSITE: "1"
+
+dependencies:
+  # core dependencies
+  - python=3.11
+  - pip
+  - astropy>=5.1,<6.0
+  - numpy<2.0
+  - gammapy~=1.1
+  - pydantic<2
+  - ruamel.yaml
+  - regions>=0.5
+  - matplotlib>=3.4
+  - scipy~=1.11.4
+  - iminuit>=2.8.0
+  - towncrier<24.7
+  - xmltodict
+  # test dependencies
+  - pytest>7.0
+  - pytest-cov
+  - tqdm
+  - pre-commit
+  - tox
+  # extra dependencies
+  - ipython
+  - jupyter
+  - jupyterlab
+  # dev dependencies
+  - ruff
+  - black>=22.10
+  - codespell
+  - mypy>=1.2
+  - isort>=5.10
+  - nbsphinx
+  - numdifftools
+  - pandoc
+  - pydocstyle
+  - pylint
+  - setuptools_scm
+  - sphinx
+  - furo>=2022.12.7
+  - myst-parser>=2.0
+  - sphinx-copybutton>=0.5.0
+  - sphinx-autobuild>=2021.3.14
+  - sphinx-autodoc-typehints
+  - sphinxcontrib-towncrier
+  - packaging
+  - pip:
+      - pytest-sphinx
+      - autodoc_pydantic<2
+      - asgardpy==0.4.4
