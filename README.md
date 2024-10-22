@@ -16,8 +16,23 @@ The various Data Levels	used here follow the descriptions suggested by [GADF v0.
 For requiring support only for [Gammapy v1.1](https://docs.gammapy.org/1.1/), one may follow the latest Hotfix release [v0.4.4](https://github.com/chaimain/asgardpy/tree/v0.4.4) which benefits from the correct usage of getting EBL-deabsorbed data products as included in [v0.5.0](https://github.com/chaimain/asgardpy/tree/v0.5.0). This can be done by using
 
 ```bash
-git checkout tags/v0.4.4
+git fetch --tags
+git switch -c tags/v0.4.4
 ```
+
+For creating a conda environment, for this Hotfix release, one can use
+
+```bash
+conda env create -f environment_0.4.4.yml
+```
+
+and in general, for the latest release,
+
+```bash
+conda env create -f environment.yml
+```
+
+This method was included after v0.5.0, and for earlier (<v0.4.4) releases, one can simply use the gammapy conda environment and install asgardpy on top of it.
 
 # Pipeline development
 

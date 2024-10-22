@@ -6,15 +6,15 @@ Main structure
 
 The package is structured in 2 ways -
 
-#. Creating the AnalysisConfig based on several Config components - :doc:`_api_docs/config`
+#. Creating the AnalysisConfig based on several Config components - :class:`~asgardpy.config`
 
-#. Generating AsgardpyAnalysis based on several Analysis Step components - :doc:`_api_docs/analysis`
+#. Generating AsgardpyAnalysis based on several Analysis Step components - :class:`~asgardpy.analysis`
 
 Analysis Steps
 --------------
 
 The configuration-based pipeline separates the Gammapy-based High-Level Analysis into serialized intermediate steps.
-Check :doc:`_api_docs/analysis/analysis_step_base` for more details.
+Check :class:`~asgardpy.analysis.analysis_step_base` for more details.
 The steps are:
 
 #. datasets-3d :class:`~asgardpy.data.dataset_3d.Datasets3DAnalysisStep`
@@ -48,19 +48,19 @@ by the :class:`~asgardpy.io.io.DL3Files`.
 
 The main modules dealing with the 2 types of data being read are -
 
-#. 3D Dataset :doc:`_api_docs/data/data_3d`
+#. 3D Dataset :class:`~asgardpy.data.data_3d`
 
-#. 1D Dataset :doc:`_api_docs/data/data_1d`
+#. 1D Dataset :class:`~asgardpy.data.data_1d`
 
 They each build their Config components using classes defined with,
 
-#. a base in :class:`asgardpy.base.base`,
+#. a base in :class:`~asgardpy.base.base`,
 
 #. from distinct modules -
 
-   #. Base Geometry :doc:`_api_docs/base/base_geom`
+   #. Base Geometry :class:`~asgardpy.base.geom`
 
-   #. Dataset Reduction :doc:`_api_docs/base/base_reduction`
+   #. Dataset Reduction :class:`~asgardpy.base.reduction`
 
 #. and from their own respective modules
 
@@ -99,7 +99,7 @@ The :class:`~asgardpy.data.target.apply_selection_mask_to_models` function is us
 High-level Analysis
 -------------------
 
-The various Config components and Analysis steps for the high-level analysis can be found in :doc:`_api_docs/data/data_dl4`.
+The various Config components and Analysis steps for the high-level analysis can be found in :class:`~asgardpy.data.dl4`.
 
 For the analysis step of flux-points :class:`~asgardpy.data.dl4.FluxPointsAnalysisStep`, the flux points are estimated for each instrument dataset, using the respective energy ranges
 provided in the respective config section of ``spectral_energy_range``.
@@ -112,5 +112,5 @@ For deriving the correct EBL-deabsorbed spectrum, one can use :class:`~asgardpy.
 Statistics
 ----------
 
-The :doc:`_api_docs/stats` contains various functions to perform some statistics with the fitted DL4 datasets.
+The :class:`~asgardpy.stats` contains various functions to perform some statistics with the fitted DL4 datasets.
 One can perform tests on the preference of the assumed spectral model of the target source, by using either :class:`~asgardpy.stats.stats.check_model_preference_lrt` or :class:`~asgardpy.stats.stats.check_model_preference_aic`.
