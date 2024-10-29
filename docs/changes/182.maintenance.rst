@@ -1,1 +1,0 @@
-Fixing Sphinx build issue caused by the upgrade from [`#181 <https://github.com/chaimain/asgardpy/pull/181>`__] by pinning Towncrier.

@@ -1,1 +1,0 @@
-Clean-up code to check model preference, by creating a new stats.utils module containing common functions to be used.

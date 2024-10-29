@@ -15,7 +15,7 @@ keywords:
 - Astronomy
 - "Gamma-rays"
 - "Data analysis"
-version: v0.4.2
+version: v0.5.1
 repository-code: "https://github.com/chaimain/asgardpy"
 license: Apache-2.0
 contact:
@@ -30,4 +30,4 @@ authors:
   family-names: Nievas Rosillo
   affiliation: "Instituto de Astrofísica de Canarias, San Cristobal de La Laguna, Canarias, Spain"
   orcid: "https://orcid.org/0000-0002-8321-9168"
-data_released: 2023-08-31
+data_released: 2024-10-29

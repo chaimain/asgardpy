@@ -1,3 +1,35 @@
+Asgardpy 0.5.1 (2024-10-29)
+===========================
+
+
+API Changes
+-----------
+
+
+Bug Fixes
+---------
+
+- Generalize functions to read and write Gammapy model config files via AsgardpyConfig.
+  Separate some of the functions responsible for operations in a distinct ``asgardpy.config.operations`` module. [`#179 <https://github.com/chaimain/asgardpy/pull/179>`__]
+
+
+New Features
+------------
+
+- Clean-up code to check model preference, by creating a new stats.utils module containing common functions to be used. [`#178 <https://github.com/chaimain/asgardpy/pull/178>`__]
+
+- Add the public sample data of CTAO-LST1 Crab Nebula data and fixes [`#183 <https://github.com/chaimain/asgardpy/issues/183>`__] [`#184 <https://github.com/chaimain/asgardpy/pull/184>`__]
+
+
+Maintenance
+-----------
+
+- Rebase for the Hotfix release v0.4.4 and update documentation regarding its usage. [`#180 <https://github.com/chaimain/asgardpy/pull/180>`__]
+
+- Fixing Sphinx build issue caused by the upgrade from [`#181 <https://github.com/chaimain/asgardpy/pull/181>`__] by pinning Towncrier. [`#182 <https://github.com/chaimain/asgardpy/pull/182>`__]
+
+- Adding conda environment files and updating the documentation with its usage. [`#185 <https://github.com/chaimain/asgardpy/pull/185>`__]
+
 Asgardpy 0.5.0 (2024-06-24)
 ===========================
 
