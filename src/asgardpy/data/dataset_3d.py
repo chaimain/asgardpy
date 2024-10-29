@@ -249,6 +249,7 @@ class Dataset3DGeneration:
             "edisp_kernel": None,
             "edisp_interp_kernel": None,
             "exposure_interp": None,
+            "transit_map": None,
         }
         self.events = {"events": None, "event_fits": None, "gti": None, "counts_map": None}
         self.diffuse_models = {
@@ -279,6 +280,9 @@ class Dataset3DGeneration:
         elif "lat" in self.config_3d_dataset.input_dl3[0].type:
             dataset = self.generate_fermi_lat_dataset(file_list, exclusion_regions, key_name)
 
+        # elif self.config_3d_dataset.input_dl3[0].type == "hawc":
+        #     dataset = self.generate_hawc_dataset(exclusion_regions, filled_skymodel, key_name)
+
         # Option for reading HAWC data
         if len(self.list_source_models) != 0:
             # Apply the same exclusion mask to the list of source models as applied
@@ -308,6 +312,9 @@ class Dataset3DGeneration:
                 # if they exist or leave it for the next step
                 # get_filtered_observations to report any error?
                 #     file_list, _ = self.get_base_objects(io_dict, key_name, file_list)
+
+                # case "hawc":
+                #     file_list, self.irfs["transit_map"] = self.get_base_objects(io_dict, key_names, file_list)
 
                 case "lat":
                     (
@@ -363,7 +370,7 @@ class Dataset3DGeneration:
         dl3_info = DL3Files(dl3_dir_dict, log=self.log)
         object_list = []
 
-        if dl3_dir_dict.type.lower() not in ["gadf-dl3"]:
+        if "lat" in dl3_dir_dict.type.lower():
             #            dl3_info.list_dl3_files()
             #            file_list = dl3_info.events_files
 
@@ -380,7 +387,12 @@ class Dataset3DGeneration:
             if dl3_dir_dict.type.lower() in ["lat-aux"]:
                 object_list = [file_list["gal_diff_file"], file_list["iso_diff_file"], key]
 
-            return file_list, object_list
+        if dl3_dir_dict.type.lower() in ["hawc"]:
+            file_list = dl3_info.prepare_hawc_hdu_files(key)
+            transit_map = Map.read(file_list["transit"])
+            object_list = [transit_map]
+
+        return file_list, object_list
 
     def update_source_pos_from_3d_dataset(self):
         """
@@ -533,10 +545,12 @@ class Dataset3DGeneration:
             geom_config=self.config_3d_dataset.dataset_info.geom,
             center_pos=center_pos,
         )
+        # Until this things are common for HAWC data
 
         dataset_reference = get_dataset_reference(
             tag="3d", geom=geom, geom_config=self.config_3d_dataset.dataset_info.geom
         )
+        # This needs name for HAWC data, "fHit " + str(key)
 
         dataset_maker = get_dataset_maker(
             tag="3d",
@@ -591,6 +605,9 @@ class Dataset3DGeneration:
             exclusion_mask=exclusion_mask,
         )
 
+        # transit_number = self.irfs["transit_map"].get_by_coord(geom.center_skydir)
+        # For HAWC data, we have to give livetime info and transit number for
+        # creating the final DL4 data
         dataset = generate_dl4_dataset(
             tag="3d",
             observations=observations,

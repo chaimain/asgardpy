@@ -10,7 +10,7 @@ import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from gammapy.catalog import CATALOG_REGISTRY
-from gammapy.data import DataStore
+from gammapy.data import DataStore  # , HDUIndexTable, ObservationTable
 from gammapy.datasets import MapDataset, SpectrumDataset
 from gammapy.makers import (
     DatasetsMaker,
@@ -79,13 +79,35 @@ class RequiredHDUEnum(str, Enum):
     full_enclosure = "full-enclosure"
 
 
+class EventClassEnum(str, Enum):
+    """
+    Config section for list of different event classes used for energy estimations.
+    Currently the only non-standard types are those used for HAWC data as per
+    the paper https://iopscience.iop.org/article/10.3847/1538-4357/ab2f7d
+
+    Default follows standard GADF guidelines.
+    """
+
+    nn = "NN"
+    gp = "GP"
+    std = "STD"
+
+
+# class ObservationEventType
+
+
 class ObservationsConfig(BaseConfig):
     """
     Config section for getting main information for creating an Observations
     object.
+
+    Currently event types are considered only for HAWC data where events are
+    classified as portion of arrays being used for recording them.
     """
 
     obs_ids: list[int] = []
+    obs_algorithm: EventClassEnum = EventClassEnum.std
+    event_type: list[int] = []
     obs_file: PathType = "None"
     obs_time: list[TimeInterval] = []
     obs_cone: SkyPositionConfig = SkyPositionConfig()
@@ -228,8 +250,18 @@ def get_filtered_observations(dl3_path, obs_config, log):
         Selected list of Observation object
     """
     # For HAWC, separate names of HDU and OBS index files are needed. Also, fHit values are needed for hdu index values for HDU Index file<
-    datastore = DataStore.from_dir(dl3_path)
-
+    if obs_config.obs_algorithm == "gadf":
+        datastore = DataStore.from_dir(dl3_path)
+    """
+    elif obs_config.obs_algorithm in ["NN", "GP"]:
+        hdu_filename = list(dl3_path.glob(f"obs-index*{obs_config.obs_algorithm}*.fits*"))[0].name
+        print(hdu_filename)
+        obs_filename = list(dl3_path.glob(f"hdu-index*{obs_config.obs_algorithm}*.fits*"))[0].name
+        print(obs_filename)
+        hdu_table = HDUIndexTable.read(dl3_path + hdu_filename, hdu=obs_config.event_type)
+        # Move it to dataset_3d script or input_dl3 to get the DL3/index files
+        # datastore = DataStore.
+    """
     obs_time = obs_config.obs_time
     obs_list = obs_config.obs_ids
     obs_cone = obs_config.obs_cone
@@ -335,7 +367,7 @@ def get_dataset_reference(tag, geom, geom_config, name=None):
             geom=geom,
             name=name,  # name is dependent on fHit value as "fHit #"
             binsz_irf=binsize_irf,
-            # reco_psf=True for HAWC
+            reco_psf=geom_config.reco_psf,  # True for HAWC
         )
 
     return dataset_reference
@@ -575,6 +607,7 @@ def generate_dl4_dataset(
     if safe_maker:
         makers = [dataset_maker, safe_maker, bkg_maker]
         # For HAWC we need dataset.exposure.meta["livetime"] = "6 h", and then run the safe_maker
+        # Probably cannot use DatasetsMaker for this process
     else:
         makers = [dataset_maker, bkg_maker]
 
@@ -598,9 +631,8 @@ def generate_dl4_dataset(
     datasets = datasets_maker.run(dataset_reference, observations)
 
     # For HAWC, we need transit Map file location and update background and exposure
-    # transit_map = Map.read(data_path + "irfs/TransitsMap_Crab.fits.gz")
-    # transit_number = transit_map.get_by_coord(geom.center_skydir)
     # dataset.background.data *= transit_number
     # dataset.exposure.data *= transit_number
+    # dataset.exposure.meta["livetime"] = 1 s or 6 h?
 
     return datasets

@@ -121,6 +121,7 @@ class GeomConfig(BaseConfig):
     selection: SelectionConfig = SelectionConfig()
     axes: list[MapAxesConfig] = [MapAxesConfig()]
     from_events_file: bool = True
+    reco_psf: bool = False
 
 
 def get_energy_axis(axes_config, only_edges=False, custom_range=False):

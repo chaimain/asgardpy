@@ -13,7 +13,7 @@ from asgardpy.base import BaseConfig, PathType
 
 __all__ = ["InputDL3Config", "DL3Files", "DL3InputFilePatterns"]
 
-EXPECTED_DL3_RANGE = ["gadf-dl3", "lat", "lat-aux"]
+EXPECTED_DL3_RANGE = ["gadf-dl3", "lat", "lat-aux", "hawc"]
 
 
 # Basic Components for the DL3 Input Config
@@ -33,6 +33,8 @@ class DL3InputFilePatterns(BaseConfig):
 
     gal_diffuse: str = "gll_iem_v*.fits*"
     iso_diffuse: str = "iso_P8R3_SOURCE_V*_*.txt"
+
+    transit: str = "TransitsMap*fits.gz"
 
 
 class InputDL3Config(BaseConfig):
@@ -72,6 +74,7 @@ class DL3Files:
         self.psf_files = None
         self.gal_diff_files = None
         self.iso_diff_files = None
+        self.transit = None
 
         self.xml_f = None
         self.gal_diff_f = None
@@ -94,6 +97,12 @@ class DL3Files:
         file_list = self.select_unique_files(key, file_list)
 
         return file_list
+
+    def prepare_hawc_hdu_files(key):
+        """
+        Prepare a list of HAWC HDU files following a particular key. They key
+        comprises of event_class and event_type, separated by "-".
+        """
 
     def list_dl3_files(self):
         """
@@ -124,6 +133,11 @@ class DL3Files:
                     # For backward compatibility
                     self.events_files = sorted(list(self.dl3_path.glob(self.glob_dict["dl3"])))
 
+            case "hawc":
+                self.transit = sorted(list(self.dl3_path.glob(self.glob_dict["transit"])))
+                # All HDU index files
+                self.events_files = sorted(list(self.dl3_path.glob("hdu-index*fits.gz")))
+
     def select_unique_files(self, key, file_list):
         """
         Select Unique files from all of the provided LAT files, as per the
@@ -131,6 +145,8 @@ class DL3Files:
         """
         # Have to make more checks or add conditions on selecting only select
         # files instead from the glob-searched lists.
+        # if self.dl3_type.lower() in ["hawc"]:
+        # var_
         if self.dl3_type.lower() in ["lat"]:
             var_list = [
                 "events_files",
