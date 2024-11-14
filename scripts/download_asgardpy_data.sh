@@ -18,18 +18,6 @@ unzip \
   ${OUT_ZIP} \
   -d $OUT_DIR
 
-# Extra GAMMAPY_DATA on PKS2155-304, to be released with Gammapy v1.3
-OUT_ZIP="dev/pks2155_int_spec.zip"
-
-OUT_DIR=$GAMMAPY_DATA"PKS2155-steady/"
-
-mkdir -p $OUT_DIR
-
-unzip \
-  -u \
-  ${OUT_ZIP} \
-  -d $OUT_DIR
-
 # Extra CTA-LST1 Crab Nebula data, from https://zenodo.org/records/11445184
 OUT_ZIP="dev/lst1_crab_dl4.zip"
 

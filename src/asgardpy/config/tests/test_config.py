@@ -176,6 +176,7 @@ def test_write_model_config():
     config_ = AsgardpyConfig()
     analysis_ = AsgardpyAnalysis(config_)
     model_ = SkyModel(name="Template", spectral_model=ExpCutoffPowerLaw3FGLSpectralModel())
+    model_.spectral_model.index.value = 1.5
 
     analysis_.final_model = Models(model_)
 
