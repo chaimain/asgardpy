@@ -68,7 +68,7 @@ dataset1d:
       dl4_dataset_info:
         dl4_dataset:
           type: SpectrumDatasetOnOff
-          input_dir: "." #../gammapy-datasets/1.2/PKS2155-steady/
+          input_dir: "." #../gammapy-datasets/1.3/PKS2155-steady/
           glob_pattern: "pks2155-304_steady.fits.gz"
           dl4_format: "ogip"
         spectral_energy_range:

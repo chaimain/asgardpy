@@ -24,7 +24,7 @@ def get_chi2_sig_pval(test_stat, ndof):
 
     In Gammapy, for 3D analysis, cash statistics is used, while for 1D analysis,
     wstat statistics is used. Check the documentation for more details
-    https://docs.gammapy.org/1.2/user-guide/stats/index.html
+    https://docs.gammapy.org/1.3/user-guide/stats/index.html
 
     Parameters
     ----------
@@ -194,9 +194,9 @@ def get_ts_target(datasets):
     For consistency in the evaluation of the statistic values, we will use the
     basic Fit Statistic functions in Gammapy for Poisson Data:
 
-    * `cash <https://docs.gammapy.org/1.2/api/gammapy.stats.cash.html>`_
+    * `cash <https://docs.gammapy.org/1.3/api/gammapy.stats.cash.html>`_
 
-    * `wstat <https://docs.gammapy.org/1.2/api/gammapy.stats.wstat.html>`_
+    * `wstat <https://docs.gammapy.org/1.3/api/gammapy.stats.wstat.html>`_
 
     For the different type of Statistics used in Gammapy for 3D/1D datasets,
     and for our use case of getting the best fit and perfect fit, we will pass
@@ -204,15 +204,15 @@ def get_ts_target(datasets):
 
     * Best Fit (Observed):
 
-        * `Cash stat_array <https://docs.gammapy.org/1.2/api/gammapy.datasets.MapDataset.html#gammapy.datasets.MapDataset.stat_array # noqa>`_
+        * `Cash stat_array <https://docs.gammapy.org/1.3/api/gammapy.datasets.MapDataset.html#gammapy.datasets.MapDataset.stat_array # noqa>`_
 
-        * `Wstat stat_array <https://docs.gammapy.org/1.2/api/gammapy.datasets.MapDatasetOnOff.html#gammapy.datasets.MapDatasetOnOff.stat_array # noqa>`_
+        * `Wstat stat_array <https://docs.gammapy.org/1.3/api/gammapy.datasets.MapDatasetOnOff.html#gammapy.datasets.MapDatasetOnOff.stat_array # noqa>`_
 
     * Perfect Fit (Expected):
 
-        * `Cash stat_max <https://docs.gammapy.org/1.2/api/gammapy.stats.CashCountsStatistic.html#gammapy.stats.CashCountsStatistic.stat_max # noqa>`_
+        * `Cash stat_max <https://docs.gammapy.org/1.3/api/gammapy.stats.CashCountsStatistic.html#gammapy.stats.CashCountsStatistic.stat_max # noqa>`_
 
-        * `Wstat stat_max <https://docs.gammapy.org/1.2/api/gammapy.stats.WStatCountsStatistic.html#gammapy.stats.WStatCountsStatistic.stat_max # noqa>`_
+        * `Wstat stat_max <https://docs.gammapy.org/1.3/api/gammapy.stats.WStatCountsStatistic.html#gammapy.stats.WStatCountsStatistic.stat_max # noqa>`_
 
     Parameter
     ---------

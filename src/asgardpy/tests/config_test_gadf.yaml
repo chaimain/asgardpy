@@ -90,7 +90,7 @@ dataset3d:
   -   name: HESS
       input_dl3:
       -   type: gadf-dl3
-          input_dir: "." #../../gammapy-datasets/1.1/hess-dl3-dr1/
+          input_dir: "." #../../gammapy-datasets/1.3/hess-dl3-dr1/
           glob_pattern:
             dl3: "data/hess_*fits.gz"
       dataset_info:
@@ -138,7 +138,7 @@ dataset3d:
           parameters: {"method": "scale"}
           exclusion:
             target_source: true
-            exclusion_file: "." # ../gammapy-datasets/1.1/joint-crab/exclusion/exclusion_mask_crab.fits.gz
+            exclusion_file: "." # ../gammapy-datasets/1.3/joint-crab/exclusion/exclusion_mask_crab.fits.gz
         safe_mask:
           methods: ["aeff-default"]
           # parameters:
@@ -168,7 +168,7 @@ dataset1d:
   -   name: MAGIC
       input_dl3:
       -   type: gadf-dl3
-          input_dir: "." #../../gammapy-datasets/1.1/magic/rad_max/data
+          input_dir: "." #../../gammapy-datasets/1.3/magic/rad_max/data
           glob_pattern:
             dl3: "2013*fits"
       dataset_info:

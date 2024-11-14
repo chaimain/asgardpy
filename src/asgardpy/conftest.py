@@ -55,8 +55,8 @@ def gammapy_data_path():
     """Save a copy of path of gammapy-data for easy and general use."""
 
     # Check first for the path used in CI test
-    if os.path.exists("./gammapy-datasets/1.2/"):
-        GAMMAPY_DATA = "./gammapy-datasets/1.2/"
+    if os.path.exists("./gammapy-datasets/1.3/"):
+        GAMMAPY_DATA = "./gammapy-datasets/1.3/"
         # Update the environ for builtin EBL models
         os.environ["GAMMAPY_DATA"] = GAMMAPY_DATA
     else:

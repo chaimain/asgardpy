@@ -531,9 +531,9 @@ def read_models_from_asgardpy_config(config):
             case "FoVBackgroundModel":
                 models.append(
                     FoVBackgroundModel(
+                        dataset_name=model_config.datasets_names[0],
                         spectral_model=spectral_model,
                         spatial_model=spatial_model,
-                        dataset_name=model_config.datasets_names[0],
                     )
                 )
 

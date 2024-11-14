@@ -21,7 +21,7 @@ target:
   source_name: &source_name "Crab Nebula"
   sky_position: &source_pos {frame: icrs, lon: 83.633 deg, lat: 22.02 deg}
   use_uniform_position: true
-  models_file: "." #"../gammapy-datasets/1.1/fermi-3fhl-crab/Fermi-LAT-3FHL_models.yaml" #
+  models_file: "." #"../gammapy-datasets/1.3/fermi-3fhl-crab/Fermi-LAT-3FHL_models.yaml" #
   # use_catalog: 4fgl
   datasets_with_fov_bkg_model: []
   components:
@@ -47,7 +47,7 @@ dataset3d:
       dl4_dataset_info:
         dl4_dataset:
           # type: SpectrumDatasetOnOff
-          input_dir: "." # ../gammapy-datasets/1.1/fermi-3fhl-crab/Fermi-LAT-3FHL_datasets.yaml
+          input_dir: "." # ../gammapy-datasets/1.3/fermi-3fhl-crab/Fermi-LAT-3FHL_datasets.yaml
           # glob_pattern: "obs_*fits"
           dl4_format: "gadf"
         spectral_energy_range:
@@ -70,7 +70,7 @@ dataset1d:
       dl4_dataset_info:
         dl4_dataset:
           type: SpectrumDatasetOnOff
-          input_dir: "." #../gammapy-datasets/1.1/joint-crab/spectra/hess/
+          input_dir: "." #../gammapy-datasets/1.3/joint-crab/spectra/hess/
           glob_pattern: "pha_obs*fits"
           dl4_format: "ogip"
         spectral_energy_range:
