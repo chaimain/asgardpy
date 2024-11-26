@@ -133,7 +133,7 @@ jobs:
             path: ~\AppData\Local\pip\Cache
             venv_activate_command: .\venv\Scripts\activate
             tox_env: 'py311-test-quick'
-            gammapy_data_path: D:\a\asgardpy\asgardpy\gammapy-datasets\1.2\
+            gammapy_data_path: D:\a\asgardpy\asgardpy\gammapy-datasets\1.3\
             allowed_fail: false
 
           - os: windows-latest
@@ -143,7 +143,7 @@ jobs:
             path: ~\AppData\Local\pip\Cache
             venv_activate_command: .\venv\Scripts\activate
             tox_env: 'py312-test-quick'
-            gammapy_data_path: D:\a\asgardpy\asgardpy\gammapy-datasets\1.2\
+            gammapy_data_path: D:\a\asgardpy\asgardpy\gammapy-datasets\1.3\
             allowed_fail: false
 
     steps:
