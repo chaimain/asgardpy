@@ -37,6 +37,7 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Astronomy",
 ]
 
@@ -70,8 +71,8 @@ Documentation = "https://asgardpy.readthedocs.io/en/latest/"
 dev = [
   "ruff>=0.4.10",
   "codespell>=2.3.0",
-  "mypy>=1.10",
-  "isort>=5.10",
+  "mypy>=1.13",
+  "isort>=5.13",
   "pytest>7.0",
   "pytest-sphinx",
   "pytest-cov",
