@@ -11,13 +11,13 @@ import logging
 
 from asgardpy.base import BaseConfig, PathType
 
-__all__ = ["InputFilePatterns", "InputDL3Config", "DL3Files"]
+__all__ = ["InputDL3Config", "DL3Files", "DL3InputFilePatterns"]
 
 EXPECTED_DL3_RANGE = ["gadf-dl3", "lat", "lat-aux"]
 
 
-# Basic Components for the Input Config
-class InputFilePatterns(BaseConfig):
+# Basic Components for the DL3 Input Config
+class DL3InputFilePatterns(BaseConfig):
     """
     Config section for list of file patterns to use for fetching relevant DL3
     files.
@@ -29,7 +29,7 @@ class InputFilePatterns(BaseConfig):
     xml_model: str = "*out.xml"
     psf: str = "*psf.fits*"
 
-    dl3: str = "dl3*fits"
+    dl3_files: str = "dl3*fits"
 
     gal_diffuse: str = "gll_iem_v*.fits*"
     iso_diffuse: str = "iso_P8R3_SOURCE_V*_*.txt"
@@ -116,7 +116,10 @@ class DL3Files:
                 self.iso_diff_files = sorted(list(self.dl3_path.glob(self.glob_dict["iso_diffuse"])))
 
             case "gadf-dl3":
-                self.events_files = sorted(list(self.dl3_path.glob(self.glob_dict["dl3"])))
+                self.events_files = sorted(list(self.dl3_path.glob(self.glob_dict["dl3_files"])))
+                # For backward compatibility
+                if len(self.events_files) == 0:
+                    self.events_files = sorted(list(self.dl3_path.glob(self.glob_dict["dl3"])))
 
     def select_unique_files(self, key, file_list):
         """
