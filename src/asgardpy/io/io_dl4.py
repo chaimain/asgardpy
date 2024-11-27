@@ -141,6 +141,9 @@ class DL4Files:
         return dl4_file_list, dl4_model_files
 
     def read_dl4_file(self, filename):
+        """
+        Read a single file, which may be serialized in FITS or yaml format.
+        """
         if str(filename)[-4:] == "yaml":
             return Datasets.read(filename=filename)
         elif str(filename)[-4:] in ["fits", "s.gz"]:

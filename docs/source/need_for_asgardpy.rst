@@ -6,33 +6,34 @@ Main reasons
 
 The simple main reasons are the following -
 
-#. Only for 3D + 1D analysis from the DL3 level
+#. For [3D + 1D joint analysis](https://docs.gammapy.org/1.3/tutorials/analysis-3d/analysis_mwl.html), starting from DL3 level data
 
-#. Using HLI for 1D with energy-dependent RAD_MAX values
+#. Using [HLI](https://docs.gammapy.org/1.3/user-guide/hli.html) for 1D with energy-dependent RAD_MAX values
 
-#. Additional supporting features while using the HLI
+#. Additional supporting features while using [HLI](https://docs.gammapy.org/1.3/user-guide/hli.html)
 
-Detailed list
--------------
+Unique reasons
+--------------
 
-Following are the detailed reasons for using asgardpy -
+Some of the unique features in asgardpy are -
 
-#. Having common central location of the spatial geom of the DL4 dataset.
-
-#. Using the High Level Interface for 1D dataset with energy-dependent RAD_MAX cuts (geom using PointSkyRegion)
-
-#. Having intermediate analysis steps, distinct for DL3->DL4->DL5
+#. While creating a multi-instrument list of DL4 datasets, letting the central spatial coordinate if the geom objects, be commonly shared
 
 #. Being able to read Fermi files as produced by enrico and fermipy
 
-#. Easily reading Fermi XML files into Gammapy Models
-
-#. Providing Goodness of Fit estimation for 3D+1D datasets
-
-#. Distinct functions to fetch the EBL-deabsorbed spectra and model of a dataset
-
-#. Using multiple time interval selection for a given list of observations.
-
-#. Comprehensive selection on list of models in the FoV.
+#. Easily reading existing Fermi XML files into Gammapy Models objects
 
 #. Useful scripts and functions to help with the spectral analyses.
+
+Reasons that may be added in future Gammapy releases
+----------------------------------------------------
+
+The following features may become redundant in asgardpy -
+
+#. Using the High Level Interface for 1D dataset with energy-dependent RAD_MAX cuts
+
+#. Having intermediate analysis steps, distinct for DL3 -> DL4 -> DL5
+
+#. Providing Goodness of Fit estimation for 3D + 1D datasets
+
+#. Using multiple time interval selection for a given list of observations.
