@@ -18,6 +18,13 @@ def test_dataset1d(base_config_1d):
     assert isinstance(analysis.datasets[0], SpectrumDatasetOnOff)
     assert round(analysis.datasets[0].energy_range[-1].data[0][0]) == 10
 
+    analysis_1 = AsgardpyAnalysis(base_config_1d)
+    analysis_1.config.dataset1d.instruments[0].input_dl3[0].glob_pattern.pop("dl3_files", None)
+    analysis_1.config.dataset1d.instruments[0].input_dl3[0].glob_pattern["dl3_files"] = "data/hess_*fits.gz"
+    analysis_1.run(["datasets-1d"])
+
+    assert len(analysis_1.datasets) == 2
+
 
 def test_dataset1d_no_stack(base_config_1d):
     """Test for creating 1D unstacked DL4 dataset."""
