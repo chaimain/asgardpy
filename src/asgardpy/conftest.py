@@ -17,7 +17,6 @@ def pytest_configure(config):
 check_tutorials_setup(download_datasets_path="./gammapy-data")
 
 
-@pytest.mark.test_data
 @pytest.fixture  # (scope="session")
 def base_config_path():
     """Get the base config path for basic tests."""
@@ -25,7 +24,7 @@ def base_config_path():
     return "src/asgardpy/tests/config_test_base.yaml"
 
 
-@pytest.mark.test_data
+# @pytest.mark.test_data
 @pytest.fixture  # (scope="session")
 def mwl_config_path():
     """Get the Gammapy MWL tutorial config path."""
@@ -33,7 +32,6 @@ def mwl_config_path():
     return "src/asgardpy/tests/config_gpy_mwl.yaml"
 
 
-@pytest.mark.test_data
 @pytest.fixture  # (scope="session")
 def hess_magic_config_path():
     """Get the config path for HESS (3D) + MAGIC (1D)."""
@@ -41,7 +39,6 @@ def hess_magic_config_path():
     return "src/asgardpy/tests/config_test_gadf.yaml"
 
 
-@pytest.mark.test_data
 @pytest.fixture  # (scope="session")
 def ebl_deabs_path():
     """Get the base config path for basic tests."""
@@ -49,14 +46,13 @@ def ebl_deabs_path():
     return "src/asgardpy/tests/config_test_ebl.yaml"
 
 
-@pytest.mark.test_data
 @pytest.fixture  # (scope="session")
 def gammapy_data_path():
     """Save a copy of path of gammapy-data for easy and general use."""
 
     # Check first for the path used in CI test
-    if os.path.exists("./gammapy-datasets/1.2/"):
-        GAMMAPY_DATA = "./gammapy-datasets/1.2/"
+    if os.path.exists("./gammapy-datasets/1.3/"):
+        GAMMAPY_DATA = "./gammapy-datasets/1.3/"
         # Update the environ for builtin EBL models
         os.environ["GAMMAPY_DATA"] = GAMMAPY_DATA
     else:
@@ -66,7 +62,6 @@ def gammapy_data_path():
     return GAMMAPY_DATA
 
 
-@pytest.mark.test_data
 @pytest.fixture  # (scope="session")
 def base_config(base_config_path, gammapy_data_path):
     """Define the base config for basic tests."""
@@ -87,7 +82,6 @@ def base_config(base_config_path, gammapy_data_path):
     return config
 
 
-@pytest.mark.test_data
 @pytest.fixture  # (scope="session")
 def base_config_1d(base_config):
     """Define base config for only 1D analysis."""
@@ -105,7 +99,6 @@ def base_config_1d(base_config):
     return base_config_1d
 
 
-@pytest.mark.test_data
 @pytest.fixture  # (scope="session")
 def gpy_mwl_config(mwl_config_path, gammapy_data_path):
     """Define the Gammapy MWL Tutorial config."""
@@ -130,7 +123,6 @@ def gpy_mwl_config(mwl_config_path, gammapy_data_path):
     return config
 
 
-@pytest.mark.test_data
 @pytest.fixture  # (scope="session")
 def gpy_hess_magic(hess_magic_config_path, gammapy_data_path):
     """Define the config for HESS (3D) + MAGIC (1D)."""
@@ -153,7 +145,6 @@ def gpy_hess_magic(hess_magic_config_path, gammapy_data_path):
     return config
 
 
-@pytest.mark.test_data
 @pytest.fixture  # (scope="session")
 def ebl_hess_pks(ebl_deabs_path, gammapy_data_path):
     """Define the config for HESS PKS 2155-304 data."""

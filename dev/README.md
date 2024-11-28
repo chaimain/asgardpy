@@ -10,15 +10,6 @@ The data is generated for the time exposure from January 2019 - May 2022.
 The zipped file also contains several extra files to aid in covering tests for
 support provided by Asgardpy, for reading such files.
 
-# Additional PKS 2155-304 data
-
-The pks2155_int_spec.zip file contains the additional data of PKS 2155-304,
-added in [gammapy-data](https://github.com/gammapy/gammapy-data), to be able to
-demonstrate EBL absorption of the AGN spectra, and thereby also to fetch the
-intrinsic spectrum from the observed spectrum.
-
-This will be removed when Gammapy v1.3 dependency will be supported.
-
 # Additional CTAO-LST1 data
 
 The lst1_crab_dl4.zip file contains the reduced DL4 dataset of the Crab Nebula

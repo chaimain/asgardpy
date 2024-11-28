@@ -7,7 +7,7 @@
 =====================
 
 Gammapy-based pipeline to support high-level analysis for multi-instruments joint datasets.
-Follow the `Gammapy v1.2 <https://docs.gammapy.org/1.2/>`_ documentation for understanding the core Gammapy objects.
+Follow the `Gammapy v1.3 <https://docs.gammapy.org/1.3/>`_ documentation for understanding the core Gammapy objects.
 
 The various Data Levels used here follow the descriptions suggested by
 `GADF v0.3 <https://gamma-astro-data-formats.readthedocs.io/en/latest/>`_ and `CTAO <https://www.ctao.org/>`_ Data Model.
@@ -18,6 +18,8 @@ DL3 files (with energy-dependent and global selection cuts) for point-like sourc
 
 The pipeline can be further expanded to support more types of DL3 files of gamma-ray instruments.
 See some example notebooks and tests, which use the public data used in Gammapy Tutorials, with an additional Fermi-LAT data.
+
+See :doc:`need_for_asgardpy` for a brief overview of the pipeline and its future.
 
 GitHub Repository: https://github.com/chaimain/asgardpy
 
@@ -32,6 +34,7 @@ GitHub Repository: https://github.com/chaimain/asgardpy
    additional_dataset_input
    additional_model_input
    additional_stats
+   need_for_asgardpy
    installation
 
 .. _changes:

@@ -3,7 +3,6 @@ import pytest
 from asgardpy.analysis import AsgardpyAnalysis
 
 
-@pytest.mark.test_data
 def test_dataset3d(base_config, caplog):
     """Test for creating 3D DL4 dataset."""
 
@@ -25,7 +24,6 @@ def test_dataset3d(base_config, caplog):
     assert caplog.record_tuples[-3][2] == "Using counts_map to create safe mask"
 
 
-@pytest.mark.test_data
 def test_dataset3d_different_config(base_config, caplog):
     """Test for creating 3D DL4 dataset with target model info from DL3 files."""
 
@@ -55,7 +53,6 @@ def test_dataset3d_different_config(base_config, caplog):
         analysis_2.get_3d_datasets()
 
 
-@pytest.mark.test_data
 def test_fermi_fits_file(gammapy_data_path):
     """Basic test on I/O of Fermi-LAT Fits files."""
 

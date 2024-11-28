@@ -77,7 +77,6 @@ def test_create_config_from_dict():
     assert config.general.log.level == "warning"
 
 
-@pytest.mark.test_data
 def test_config_update_gammapy(gammapy_data_path, base_config_1d):
     """Tests to update target model config from Gammapy-based YAML files."""
 
@@ -176,6 +175,7 @@ def test_write_model_config():
     config_ = AsgardpyConfig()
     analysis_ = AsgardpyAnalysis(config_)
     model_ = SkyModel(name="Template", spectral_model=ExpCutoffPowerLaw3FGLSpectralModel())
+    model_.spectral_model.index.value = 1.5
 
     analysis_.final_model = Models(model_)
 

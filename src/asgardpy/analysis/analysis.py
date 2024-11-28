@@ -117,22 +117,15 @@ class AsgardpyAnalysis:
 
     def get_correct_intrinsic_model(self):
         """
-        After running the Fit analysis step, one can retrieve the correct
-        covariance matrix for only the intrinsic or EBL-deabsorbed spectra.
-
-        This function will be redundant in Gammapy v1.3
+        After running the Fit analysis step, one can retrieve the intrinsic or
+        EBL-deabsorbed spectra. This function is just an accessory to the
+        feature in Gammapy v1.3.
         """
         # Assuming EBL model is present
         if isinstance(self.final_model[0].spectral_model, CompoundSpectralModel):
             temp_model = self.final_model[0].spectral_model.model1
         else:
             temp_model = self.final_model[0].spectral_model
-
-        cov_matrix = self.fit.covariance(
-            datasets=self.datasets, optimize_result=self.fit_result.optimize_result
-        ).matrix
-
-        temp_model.covariance = cov_matrix[: len(temp_model.parameters), : len(temp_model.parameters)]
 
         self.model_deabs = SkyModel(
             spectral_model=temp_model,
@@ -143,25 +136,17 @@ class AsgardpyAnalysis:
     def get_correct_ebl_deabs_flux_points(self):
         """
         After running the get_correct_intrinsic_model function, this function
-        will re-run the flux-points analysis step again, by using only the
-        intrinsic model as the reference spectral model.
-
-        This function will be redundant in Gammapy v1.3
+        will use the intrinsic model as the reference spectral model to get the
+        flux points for the intrinsic spectra. This function uses the workaround
+        as described in Gammapy v1.3.
         """
-        temp_fp = self.flux_points
-        self.flux_points = None
+        self.flux_points_deabs = []
 
         if not self.model_deabs:
             self.get_correct_intrinsic_model()
 
-        self.run(["flux-points"])
-
         for fp in self.flux_points:
-            fp._models = self.model_deabs
-            fp._reference_model = self.model_deabs
-
-        self.flux_points_deabs = self.flux_points
-        self.flux_points = temp_fp
+            self.flux_points_deabs.append(fp.copy(reference_model=self.model_deabs))
 
     def add_to_instrument_info(self, info_dict):
         """

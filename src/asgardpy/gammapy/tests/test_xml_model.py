@@ -1,12 +1,10 @@
 from pathlib import Path
 
-import pytest
 from gammapy.modeling.models import Models
 
 from asgardpy.gammapy.read_models import read_fermi_xml_models_list
 
 
-@pytest.mark.test_data
 def test_xml_only_source_models(gammapy_data_path):
     """Test reading various different Fermi-XML source models."""
     from asgardpy.config import AsgardpyConfig
@@ -42,7 +40,6 @@ def test_xml_only_source_models(gammapy_data_path):
     assert list_source_models[-1].spectral_model.tag[1] == "pl-2"
 
 
-@pytest.mark.test_data
 def test_xml_with_diffuse_models(gammapy_data_path):
     """Test reading Fermi-XML models with diffuse models included."""
 

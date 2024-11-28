@@ -134,7 +134,8 @@ dataset3d:
         # dl4_dataset:
           # type: MapDatasetOnOff
           # input_dir: "."
-          # glob_pattern: "pha*fits"
+          # glob_pattern:
+          #   dl4_files: "pha*fits"
           # dl4_format: "ogip"
         spectral_energy_range:
           name: energy
@@ -158,7 +159,7 @@ dataset1d:
       -   type: gadf-dl3
           input_dir: "."
           glob_pattern:
-            dl3: ""
+            dl3_files: ""
       input_dl4: false
       dataset_info:
         name: LST-1
@@ -208,7 +209,8 @@ dataset1d:
         # dl4_dataset:
           # type: SpectrumDatasetOnOff
           # input_dir: "."
-          # glob_pattern: "obs_*fits"
+          # glob_pattern:
+          #   dl4_files: "obs_*fits"
           # dl4_format: "gadf"
         spectral_energy_range:
           name: energy

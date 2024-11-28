@@ -33,7 +33,6 @@ def test_models_from_config():
         _, _ = set_models()
 
 
-@pytest.mark.test_data
 def test_set_models(base_config, gammapy_data_path):
     """Test non-standard components of Target module."""
 

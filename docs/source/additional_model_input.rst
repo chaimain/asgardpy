@@ -7,7 +7,7 @@ The list of associated Models can be provided by -
 
 #. Using models defined in Gammapy
     The list of Models used in Gammapy can be seen in
-    `Model Gallery <https://docs.gammapy.org/1.2/user-guide/model-gallery/index.html>`_.
+    `Model Gallery <https://docs.gammapy.org/1.3/user-guide/model-gallery/index.html>`_.
 
     Additional models following the Gammapy standards, are defined in
     :doc:`_api_docs/data/target/data_target_b`, and to use these models,
@@ -24,7 +24,7 @@ The list of associated Models can be provided by -
 #. Using a Catalog available in Gammapy
     This is done by adding information in :class:`~asgardpy.data.target.Target.use_catalog`.
     The list of available catalogs in Gammapy is documented at
-    `Source Catalogs <https://docs.gammapy.org/1.2/user-guide/catalog.html>`_
+    `Source Catalogs <https://docs.gammapy.org/1.3/user-guide/catalog.html>`_
 
 #. Using FoV Background Model as defined in Gammapy
     To add a default Gammapy `FoVBackgroundModel` to the 3D dataset, use

@@ -1,10 +1,7 @@
-import pytest
-
 from asgardpy.analysis import AsgardpyAnalysis
 from asgardpy.stats import fetch_pivot_energy
 
 
-@pytest.mark.test_data
 def test_get_pivot_energy(gpy_hess_magic):
     """
     Check the pivot energy for given fit model on a dataset.
@@ -18,7 +15,6 @@ def test_get_pivot_energy(gpy_hess_magic):
     assert e_ref.value == 0.20085434771049843
 
 
-@pytest.mark.test_data
 def test_get_pivot_energy_from_start(gpy_hess_magic):
     """
     Check the pivot energy for given fit model on a dataset from the start of

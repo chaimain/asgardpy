@@ -7,7 +7,7 @@ Agardpy: Analysis Software for GAmma-Ray Data in Python
 Example: 3D Fermi-LAT (with various source models in the Region of Interest stored in XML file) + 1D energy-dependent directional cuts MAGIC/LST [``PointSkyRegion`` geometry for ``ON`` region] + 1D global directional cut VERITAS [``CircleSkyRegion`` geometry for ``ON`` region].
 
 Follow the documentation at https://asgardpy.readthedocs.io/en/latest/ for the main functionality of this pipeline.
-Follow the [Gammapy v1.2](https://docs.gammapy.org/1.2/) documentation for understanding the core Gammapy objects.
+Follow the [Gammapy v1.3](https://docs.gammapy.org/1.3/) documentation for understanding the core Gammapy objects.
 
 The various Data Levels	used here follow the descriptions suggested by [GADF v0.3](https://gamma-astro-data-formats.readthedocs.io/en/latest/) and [CTAO](https://www.ctao.org/) Data Model.
 
@@ -42,7 +42,7 @@ The pipeline can be further expanded to support more types of DL3 files of gamma
 # Examples with Data
 An example of configuration file that can be used with asgardpy can be found at ``asgardpy/config/template.yaml``
 
-For working with some public data to check the pipeline functionality, one should first download the public dataset available with Gammapy as indicated in [Gammapy v1.2 Introduction](https://docs.gammapy.org/1.2/getting-started/index.html) and then run the ``scripts/download_asgardpy_data.sh`` script to add datasets for the full usage of the pipeline.
+For working with some public data to check the pipeline functionality, one should first download the public dataset available with Gammapy as indicated in [Gammapy v1.3 Introduction](https://docs.gammapy.org/1.3/getting-started/index.html) and then run the ``scripts/download_asgardpy_data.sh`` script to add datasets for the full usage of the pipeline.
 
 Examples of usage of Asgardpy is shown in jupyter [notebooks](https://github.com/chaimain/asgardpy/tree/main/notebooks).
 

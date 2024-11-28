@@ -9,6 +9,7 @@ from enum import Enum
 from pathlib import Path
 
 from gammapy.datasets import DATASET_REGISTRY, Datasets
+from gammapy.modeling.models import Models
 
 from asgardpy.base.base import BaseConfig, PathType
 from asgardpy.base.geom import MapAxesConfig, get_energy_axis
@@ -16,6 +17,7 @@ from asgardpy.base.geom import MapAxesConfig, get_energy_axis
 __all__ = [
     "InputDL4Config",
     "DL4Files",
+    "DL4InputFilePatterns",
     "DL4BaseConfig",
     "get_reco_energy_bins",
 ]
@@ -44,6 +46,16 @@ class DL4FormatEnum(str, Enum):
     gadf_sed = "gadf-sed"
 
 
+class DL4InputFilePatterns(BaseConfig):
+    """
+    Config section for list of file patterns to use for fetching relevant DL4
+    files.
+    """
+
+    dl4_files: str = "pha*.fits*"
+    dl4_model_files: str = "model*yaml"
+
+
 class InputDL4Config(BaseConfig):
     """
     Config section for main information on getting the relevant DL4 files.
@@ -52,7 +64,7 @@ class InputDL4Config(BaseConfig):
     type: DatasetTypeEnum = DatasetTypeEnum.MapDataset
     input_dir: PathType = "None"
     # Can be OGIP format (Stacked or unstacked obs) or fits format (stacked obs)
-    glob_pattern: str = "pha*fits"
+    glob_pattern: dict = {}
     dl4_format: DL4FormatEnum = DL4FormatEnum.gadf
 
 
@@ -75,6 +87,7 @@ class DL4Files:
         self.dl4_type = self.dl4_dataset.type
         self.dl4_path = None
         self.dl4_file = None
+        self.dl4_model = None
 
         if Path(self.dl4_dataset.input_dir).is_file():
             self.dl4_file = Path(self.dl4_dataset.input_dir)
@@ -94,10 +107,17 @@ class DL4Files:
         """
         Fetch the required DL4 files from the given directory path, file glob
         search and possible list of observation ids to select the dataset files
-        from the full list in th directory.
+        from the full list in the directory.
+
+        If Model files are also given, fetch them as well
         """
         dl4_file_list = []
-        all_dl4_files = sorted(list(self.dl4_path.glob(self.dl4_dataset.glob_pattern)))
+        dl4_model_files = []
+
+        all_dl4_files = sorted(list(self.dl4_path.glob(self.dl4_dataset.glob_pattern["dl4_files"])))
+        # Get model files as well
+        if "dl4_model_files" in self.dl4_dataset.glob_pattern.keys():
+            dl4_model_files = sorted(list(self.dl4_path.glob(self.dl4_dataset.glob_pattern["dl4_model_files"])))
 
         if len(all_dl4_files) == 0:
             self.log.error("No datasets found in %s", self.dl4_path)
@@ -118,7 +138,21 @@ class DL4Files:
 
         self.log.info("List of DL4 files are: %s", dl4_file_list)
 
-        return dl4_file_list
+        return dl4_file_list, dl4_model_files
+
+    def read_dl4_file(self, filename):
+        """
+        Read a single file, which may be serialized in FITS or yaml format.
+        """
+        if str(filename)[-4:] == "yaml":
+            return Datasets.read(filename=filename)
+        elif str(filename)[-4:] in ["fits", "s.gz"]:
+            dataset_ = DATASET_REGISTRY.get_cls(self.dl4_type)().read(
+                filename=filename, format=self.dl4_dataset.dl4_format
+            )
+            return Datasets(dataset_)
+        else:
+            return None
 
     def get_dl4_dataset(self, observation_config=None):
         """
@@ -129,14 +163,17 @@ class DL4Files:
             datasets = Datasets.read(filename=self.dl4_file)
 
         elif self.dl4_path:
-            dl4_file_list = self.get_dl4_files(observation_config)
+            dl4_file_list, dl4_model_files = self.get_dl4_files(observation_config)
 
-            datasets = Datasets()
-            for dl4_file in dl4_file_list:
-                dataset = DATASET_REGISTRY.get_cls(self.dl4_type)().read(
-                    filename=dl4_file, format=self.dl4_dataset.dl4_format
-                )
-                datasets.append(dataset)
+            if len(dl4_model_files) == 0:
+                datasets = Datasets()
+                for dl4_file in dl4_file_list:
+                    dataset = self.read_dl4_file(dl4_file)
+                    datasets.append(dataset[0])
+            else:
+                # Assuming a single DL4 file and model
+                datasets = self.read_dl4_file(dl4_file_list[0])
+                datasets.models = Models.read(dl4_model_files[0])
 
         return datasets
 
