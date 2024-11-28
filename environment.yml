@@ -29,7 +29,7 @@ dependencies:
   - towncrier<24.7
   - xmltodict
   # test dependencies
-  - pytest>7.0
+  - pytest>8.0
   - pytest-cov
   - tqdm
   - pre-commit

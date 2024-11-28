@@ -39,7 +39,6 @@ def test_io_dl4(caplog):
         1 / len(d_list)
 
 
-@pytest.mark.test_data
 def test_io_dl4_w_models(gammapy_data_path):
     """Testing some more IO options when DL4 have associated models."""
 
@@ -63,3 +62,5 @@ def test_io_dl4_w_models(gammapy_data_path):
     d_list = dl4_files.get_dl4_dataset(obs_config)
 
     assert d_list[0].tag == "MapDataset"
+
+    assert dl4_files.read_dl4_file("random.txt") is None

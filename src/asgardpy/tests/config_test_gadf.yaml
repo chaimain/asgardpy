@@ -52,13 +52,13 @@ target:
               unit: ''
               error: 0.1
               min: 0.5
-              max: 5.0
+              max: 3.0
               frozen: false
           -   name: beta
               value: 0.1
               unit: ''
               error: 0.001
-              min: 1.0e-6
+              min: 1.0e-3
               max: 1.0
               frozen: false
           ebl_abs:

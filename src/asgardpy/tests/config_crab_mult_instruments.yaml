@@ -7,7 +7,7 @@ general:
   log:
     level: info
   outdir: .
-  n_jobs: 50
+  n_jobs: 20
   parallel_backend: multiprocessing
   steps: [datasets-3d, datasets-1d, fit, flux-points]
   overwrite: true
@@ -30,10 +30,10 @@ target:
               unit: cm-2 s-1 TeV-1
               error: 1.5e-07
               min: 1.0e-13
-              max: 0.01
+              max: 1.0e-4
               frozen: false
           -   name: reference
-              value: 0.015
+              value: 0.05
               unit: TeV
               error: 0.0
               min: 0.0001
@@ -44,13 +44,13 @@ target:
               unit: ''
               error: 0.1
               min: 0.5
-              max: 5.0
+              max: 3.0
               frozen: false
           -   name: beta
               value: 0.01
               unit: ''
               error: 0.001
-              min: 1.0e-6
+              min: 1.0e-3
               max: 1.0
               frozen: false
           ebl_abs:

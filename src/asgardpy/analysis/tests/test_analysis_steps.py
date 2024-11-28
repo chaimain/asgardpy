@@ -3,7 +3,6 @@ import pytest
 from asgardpy.analysis import AsgardpyAnalysis
 
 
-@pytest.mark.test_data
 def test_joint_3d_1d(base_config):
     """
     Test to run a major Fermi (3D) + HESS (1D) + MAGIC (1D) joint analysis.
@@ -11,7 +10,7 @@ def test_joint_3d_1d(base_config):
 
     analysis = AsgardpyAnalysis(base_config)
 
-    extra_config = base_config.copy()
+    extra_config = base_config.model_copy()
     extra_config.general.n_jobs = 33
     analysis.update_config(extra_config)
 
@@ -25,7 +24,6 @@ def test_joint_3d_1d(base_config):
     assert analysis.fit_result.success is True
 
 
-@pytest.mark.test_data
 def test_analysis_basics(gammapy_data_path, base_config):
     """Testing some basic analysis functions."""
 
@@ -54,8 +52,11 @@ def test_analysis_basics(gammapy_data_path, base_config):
 
     assert analysis_1.config.general.n_jobs == 111
 
+    wrong_config = []
+    with pytest.raises(TypeError):
+        analysis_1.config(wrong_config)
 
-@pytest.mark.test_data
+
 def test_ebl_deabsorbed(gammapy_data_path, ebl_hess_pks):
     """Testing generation of EBL-deabsorbed Flux points."""
     from asgardpy.config.generator import write_asgardpy_model_to_file

@@ -77,7 +77,6 @@ def test_create_config_from_dict():
     assert config.general.log.level == "warning"
 
 
-@pytest.mark.test_data
 def test_config_update_gammapy(gammapy_data_path, base_config_1d):
     """Tests to update target model config from Gammapy-based YAML files."""
 

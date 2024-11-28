@@ -1,10 +1,8 @@
-import pytest
 from regions import PointSkyRegion
 
 from asgardpy.analysis import AsgardpyAnalysis
 
 
-@pytest.mark.test_data
 def test_gpy_mwl(gpy_mwl_config, gammapy_data_path):
     """
     Test for running the 3D+1D joint analysis tutorial example from Gammapy.
@@ -99,7 +97,6 @@ def test_gpy_mwl(gpy_mwl_config, gammapy_data_path):
     assert analysis.datasets[1].counts.geom.region is None
 
 
-@pytest.mark.test_data
 def test_3d_hess_1d_magic(gpy_hess_magic):
     """Test for running HESS (3D) + MAGIC (1D) joint analysis."""
 

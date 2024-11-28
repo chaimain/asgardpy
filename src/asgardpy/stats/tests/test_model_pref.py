@@ -1,24 +1,20 @@
-import pytest
+import numpy as np
+
+from asgardpy.analysis import AsgardpyAnalysis
+from asgardpy.stats import (
+    check_model_preference_aic,
+    check_model_preference_lrt,
+    copy_target_config,
+    fetch_all_analysis_fit_info,
+    get_model_config_files,
+    tabulate_best_fit_stats,
+)
 
 
-@pytest.mark.test_data
 def test_preferred_model(base_config_1d):
     """
     Testing the script code of checking the preferred spectral model.
     """
-
-    import numpy as np
-
-    from asgardpy.analysis import AsgardpyAnalysis
-    from asgardpy.stats import (
-        check_model_preference_aic,
-        check_model_preference_lrt,
-        copy_target_config,
-        fetch_all_analysis_fit_info,
-        get_model_config_files,
-        tabulate_best_fit_stats,
-    )
-
     select_model_tags = ["lp", "bpl2", "ecpl", "pl", "eclp"]
     spec_model_temp_files = []
     spec_model_temp_files = get_model_config_files(select_model_tags)

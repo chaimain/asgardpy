@@ -31,11 +31,11 @@ target:
           type: LogParabolaSpectralModel
           parameters:
           -   name: amplitude
-              value: 1.0e-06
+              value: 1.0e-07
               unit: cm-2 s-1 TeV-1
-              error: 1.5e-07
+              error: 1.5e-08
               min: 1.0e-13
-              max: 0.01
+              max: 1.0e-4
               frozen: false
           -   name: reference
               value: 0.015
@@ -47,15 +47,15 @@ target:
           -   name: alpha
               value: 1.7
               unit: ''
-              error: 0.1
+              error: 0.05
               min: 0.5
-              max: 5.0
+              max: 3.0
               frozen: false
           -   name: beta
               value: 0.1
               unit: ''
               error: 0.001
-              min: 1.0e-6
+              min: 1.0e-3
               max: 1.0
               frozen: false
           ebl_abs:

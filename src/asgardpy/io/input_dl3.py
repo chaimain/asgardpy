@@ -116,9 +116,10 @@ class DL3Files:
                 self.iso_diff_files = sorted(list(self.dl3_path.glob(self.glob_dict["iso_diffuse"])))
 
             case "gadf-dl3":
-                self.events_files = sorted(list(self.dl3_path.glob(self.glob_dict["dl3_files"])))
-                # For backward compatibility
-                if len(self.events_files) == 0:
+                if "dl3_files" in self.glob_dict:
+                    self.events_files = sorted(list(self.dl3_path.glob(self.glob_dict["dl3_files"])))
+                else:
+                    # For backward compatibility
                     self.events_files = sorted(list(self.dl3_path.glob(self.glob_dict["dl3"])))
 
     def select_unique_files(self, key, file_list):
