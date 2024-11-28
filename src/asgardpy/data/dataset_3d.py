@@ -274,11 +274,12 @@ class Dataset3DGeneration:
         exclusion_regions = []
 
         if self.config_3d_dataset.input_dl3[0].type == "gadf-dl3":
-            dataset = self.generate_gadf_dataset(file_list, exclusion_regions, filled_skymodel)
+            dataset = self.generate_gadf_dataset(exclusion_regions, filled_skymodel)
 
         elif "lat" in self.config_3d_dataset.input_dl3[0].type:
             dataset = self.generate_fermi_lat_dataset(file_list, exclusion_regions, key_name)
 
+        # Option for reading HAWC data
         if len(self.list_source_models) != 0:
             # Apply the same exclusion mask to the list of source models as applied
             # to the Counts Map
@@ -302,8 +303,11 @@ class Dataset3DGeneration:
 
         for io_dict in self.config_3d_dataset.input_dl3:
             match io_dict.type:
-                case "gadf-dl3":
-                    file_list, _ = self.get_base_objects(io_dict, key_name, file_list)
+                # case "gadf-dl3":
+                # file_list is not required so why bother? Maybe just check
+                # if they exist or leave it for the next step
+                # get_filtered_observations to report any error?
+                #     file_list, _ = self.get_base_objects(io_dict, key_name, file_list)
 
                 case "lat":
                     (
@@ -341,6 +345,7 @@ class Dataset3DGeneration:
                         self.diffuse_models,
                         asgardpy_target_config=self.config_target,
                     )
+                # case hawc¨:
 
         # Check if the source position needs to be updated from the list provided.
         self.update_source_pos_from_3d_dataset()
@@ -358,12 +363,12 @@ class Dataset3DGeneration:
         dl3_info = DL3Files(dl3_dir_dict, log=self.log)
         object_list = []
 
-        if dl3_dir_dict.type.lower() in ["gadf-dl3"]:
-            dl3_info.list_dl3_files()
-            file_list = dl3_info.events_files
+        if dl3_dir_dict.type.lower() not in ["gadf-dl3"]:
+            #            dl3_info.list_dl3_files()
+            #            file_list = dl3_info.events_files
 
-            return file_list, object_list
-        else:
+            #            return file_list, object_list
+            #        else:
             file_list = dl3_info.prepare_lat_files(key, file_list)
 
             if dl3_dir_dict.type.lower() in ["lat"]:
@@ -509,10 +514,12 @@ class Dataset3DGeneration:
         return dataset
 
     # Main functions for compiling different DL4 dataset generating procedures
-    def generate_gadf_dataset(self, file_list, exclusion_regions, filled_skymodel):
+    def generate_gadf_dataset(self, exclusion_regions, filled_skymodel):
         """
         Separate function containing the procedures on creating a GADF DL4
         dataset.
+
+        file_list is not required here?
         """
         observations = get_filtered_observations(
             dl3_path=self.config_3d_dataset.input_dl3[0].input_dir,

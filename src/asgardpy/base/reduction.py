@@ -227,6 +227,7 @@ def get_filtered_observations(dl3_path, obs_config, log):
     observations: `gammapy.data.Observations`
         Selected list of Observation object
     """
+    # For HAWC, separate names of HDU and OBS index files are needed. Also, fHit values are needed for hdu index values for HDU Index file<
     datastore = DataStore.from_dir(dl3_path)
 
     obs_time = obs_config.obs_time
@@ -332,8 +333,9 @@ def get_dataset_reference(tag, geom, geom_config, name=None):
         binsize_irf = geom_config.wcs.binsize_irf.to_value("deg")
         dataset_reference = MapDataset.create(
             geom=geom,
-            name=name,
+            name=name,  # name is dependent on fHit value as "fHit #"
             binsz_irf=binsize_irf,
+            # reco_psf=True for HAWC
         )
 
     return dataset_reference
@@ -572,6 +574,7 @@ def generate_dl4_dataset(
     """
     if safe_maker:
         makers = [dataset_maker, safe_maker, bkg_maker]
+        # For HAWC we need dataset.exposure.meta["livetime"] = "6 h", and then run the safe_maker
     else:
         makers = [dataset_maker, bkg_maker]
 
@@ -593,5 +596,11 @@ def generate_dl4_dataset(
         )
 
     datasets = datasets_maker.run(dataset_reference, observations)
+
+    # For HAWC, we need transit Map file location and update background and exposure
+    # transit_map = Map.read(data_path + "irfs/TransitsMap_Crab.fits.gz")
+    # transit_number = transit_map.get_by_coord(geom.center_skydir)
+    # dataset.background.data *= transit_number
+    # dataset.exposure.data *= transit_number
 
     return datasets
