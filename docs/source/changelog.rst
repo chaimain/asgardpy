@@ -8,4 +8,7 @@ Changelog
 
 .. towncrier release notes start
 
-.. include:: ../../CHANGES.rst
+.. changelog::
+   :towncrier: ../../
+   :changelog_file: ../../CHANGES.rst
+   :towncrier-skip-if-empty:

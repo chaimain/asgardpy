@@ -85,6 +85,7 @@ dev = [
   "sphinx-autobuild>=2021.3.14",
   "sphinx-autodoc-typehints",
   "sphinxcontrib-towncrier",
+  "sphinx_changelog",
   "autodoc_pydantic>=2.1",
   "packaging",
 ]

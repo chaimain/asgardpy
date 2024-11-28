@@ -66,6 +66,7 @@ extensions = [
     "sphinx.ext.inheritance_diagram",
     "sphinxcontrib.autodoc_pydantic",
     "sphinxcontrib.towncrier.ext",
+    "sphinx_changelog",
 ]
 
 # Tell myst-parser to assign header anchors for h1-h3.
