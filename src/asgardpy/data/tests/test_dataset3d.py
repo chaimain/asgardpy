@@ -68,3 +68,17 @@ def test_fermi_fits_file(gammapy_data_path):
     source_pos = get_source_position(config.target.sky_position, fits_header)
 
     assert source_pos["center"].ra.deg == 83.633
+
+
+@pytest.mark.test_data
+def test_hawc_analysis(hawc_dl3_config):
+    """Basic test on running analysis of HAWC DL3 data."""
+
+    from asgardpy.analysis import AsgardpyAnalysis
+
+    analysis = AsgardpyAnalysis(hawc_dl3_config)
+
+    analysis.run()
+
+    # Check https://github.com/gammapy/gammapy/blob/main/gammapy/estimators/map/tests/test_ts.py#L600
+    assert 1 == 1

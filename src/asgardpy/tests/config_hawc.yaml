@@ -85,7 +85,7 @@ dataset3d:
   -   name: HAWC
       input_dl3:
       -   type: hawc
-          input_dir: "../gammapy-datasets/1.2/hawc/crab_events_pass4/"
+          input_dir: "/home/chaitanya/software/gammapy-datasets/1.2/hawc/crab_events_pass4/"
           glob_pattern:
             en_est: "*NN*fits.gz"
             transit: "irfs/TransitsMap*fits.gz"
@@ -94,7 +94,7 @@ dataset3d:
         # map_selection: []
         geom:
           wcs:
-            binsize: 0.05 deg
+            binsize: 0.02 deg
             proj: TAN
             map_frame_shape:
               width: 6 deg
@@ -117,7 +117,7 @@ dataset3d:
                 nbins: 10
                 per_decade: true
         observation:
-          event_type: [6]
+          event_type: [5, 6, 7, 8, 9]
         background:
           # method: reflected
           # parameters:
@@ -128,7 +128,7 @@ dataset3d:
                 name: *source_name
                 position: *source_pos
                 parameters:
-                  rad_0: 5 deg
+                  rad_0: 1 deg
                   rad_1: 30 deg
             -   type: CircleSkyRegion
                 name: "4FGL J0521.7+2112"

@@ -676,6 +676,7 @@ class Dataset3DGeneration:
         datasets_list = Datasets()
 
         for bin_id in self.config_3d_dataset.dataset_info.observation.event_type:
+            print("Preparing for fHit number ", bin_id)
             observations = get_filtered_observations(
                 dl3_path=self.config_3d_dataset.input_dl3[0].input_dir,
                 dl3_index_files=file_list,
@@ -717,8 +718,9 @@ class Dataset3DGeneration:
 
             for obs in observations:
                 dataset = dataset_maker.run(dataset_reference, obs)
-                dataset.exposure.meta["livetime"] = "6 h"  # Put by hand from Gammapy tutorial
+                dataset.exposure.meta["livetime"] = 1 * u.s  # Put by hand from Gammapy tutorial
                 dataset = safe_maker.run(dataset)
+                # Problem with stack_reduce - the PSFmap has a missing exposure map (IRFMap.stack, l905)
 
                 dataset.background.data *= transit_number
                 dataset.exposure.data *= transit_number

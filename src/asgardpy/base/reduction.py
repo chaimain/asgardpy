@@ -349,9 +349,10 @@ def get_dataset_reference(tag, geom, geom_config, name=None):
     else:  # For tag == "3d"
         binsize_irf = geom_config.wcs.binsize_irf.to_value("deg")
 
-        if geom_config.axes[1].name == "energy_true":  # Also for HAWC
+        if geom_config.reco_psf:
             energy_axis = get_energy_axis(geom_config.axes[1])
             # print("Energy name before creating dataset_reference", energy_axis.name)
+            # print(geom)
             dataset_reference = MapDataset.create(
                 geom=geom,
                 name=name,
