@@ -279,9 +279,8 @@ class Dataset3DGeneration:
 
         elif "lat" in self.config_3d_dataset.input_dl3[0].type:
             dataset = self.generate_fermi_lat_dataset(file_list, exclusion_regions, key_name)
-
-        # elif self.config_3d_dataset.input_dl3[0].type == "hawc":
-        #     dataset = self.generate_hawc_dataset(exclusion_regions, filled_skymodel, key_name)
+        elif self.config_3d_dataset.input_dl3[0].type == "hawc":
+            dataset = self.generate_hawc_dataset(file_list, exclusion_regions)
 
         # Option for reading HAWC data
         if len(self.list_source_models) != 0:
@@ -307,14 +306,15 @@ class Dataset3DGeneration:
 
         for io_dict in self.config_3d_dataset.input_dl3:
             match io_dict.type:
-                # case "gadf-dl3":
-                # file_list is not required so why bother? Maybe just check
-                # if they exist or leave it for the next step
-                # get_filtered_observations to report any error?
-                #     file_list, _ = self.get_base_objects(io_dict, key_name, file_list)
+                case "gadf-dl3":
+                    # file_list is not required so why bother? Maybe just check
+                    # if they exist or leave it for the next step
+                    # get_filtered_observations to report any error?
+                    # file_list, _ = self.get_base_objects(io_dict, key_name, file_list)
+                    file_list = None
 
-                # case "hawc":
-                #     file_list, self.irfs["transit_map"] = self.get_base_objects(io_dict, key_names, file_list)
+                case "hawc":
+                    file_list, self.irfs["transit_map"] = self.get_base_objects(io_dict, key_name, file_list)
 
                 case "lat":
                     (
@@ -352,7 +352,6 @@ class Dataset3DGeneration:
                         self.diffuse_models,
                         asgardpy_target_config=self.config_target,
                     )
-                # case hawc¨:
 
         # Check if the source position needs to be updated from the list provided.
         self.update_source_pos_from_3d_dataset()
@@ -388,9 +387,10 @@ class Dataset3DGeneration:
                 object_list = [file_list["gal_diff_file"], file_list["iso_diff_file"], key]
 
         if dl3_dir_dict.type.lower() in ["hawc"]:
-            file_list = dl3_info.prepare_hawc_hdu_files(key)
-            transit_map = Map.read(file_list["transit"])
-            object_list = [transit_map]
+            dl3_info.list_dl3_files()
+            file_list = dl3_info.dl3_index_files
+            transit_map = Map.read(dl3_info.transit[0])
+            object_list = transit_map
 
         return file_list, object_list
 
@@ -545,12 +545,10 @@ class Dataset3DGeneration:
             geom_config=self.config_3d_dataset.dataset_info.geom,
             center_pos=center_pos,
         )
-        # Until this things are common for HAWC data
 
         dataset_reference = get_dataset_reference(
             tag="3d", geom=geom, geom_config=self.config_3d_dataset.dataset_info.geom
         )
-        # This needs name for HAWC data, "fHit " + str(key)
 
         dataset_maker = get_dataset_maker(
             tag="3d",
@@ -605,9 +603,6 @@ class Dataset3DGeneration:
             exclusion_mask=exclusion_mask,
         )
 
-        # transit_number = self.irfs["transit_map"].get_by_coord(geom.center_skydir)
-        # For HAWC data, we have to give livetime info and transit number for
-        # creating the final DL4 data
         dataset = generate_dl4_dataset(
             tag="3d",
             observations=observations,
@@ -666,3 +661,68 @@ class Dataset3DGeneration:
         dataset = self.generate_dataset(key_name)
 
         return dataset
+
+    def update_hawc_energy_axis(self, bkg_geom, geom_config):
+        """ """
+        energy_edges = []
+        for en in bkg_geom.axes["energy"].edges.value:
+            energy_edges.append(round(en, 2))
+        geom_config.axes[0].axis_custom.edges = energy_edges
+
+        return geom_config
+
+    def generate_hawc_dataset(self, file_list, exclusion_regions):
+        """ """
+        datasets_list = Datasets()
+
+        for bin_id in self.config_3d_dataset.dataset_info.observation.event_type:
+            observations = get_filtered_observations(
+                dl3_path=self.config_3d_dataset.input_dl3[0].input_dir,
+                dl3_index_files=file_list,
+                event_type=bin_id,
+                obs_config=self.config_3d_dataset.dataset_info.observation,
+                log=self.log,
+            )
+            center_pos = get_source_position(target_region=self.config_3d_dataset.dataset_info.on_region)
+
+            # print("These are the energy bins to be used ", observations[0].bkg.geom.axes["energy"].edges.value)
+            self.config_3d_dataset.dataset_info.geom = self.update_hawc_energy_axis(
+                observations[0].bkg.geom,
+                self.config_3d_dataset.dataset_info.geom,
+            )
+            # print("These are the energy bins that are saved ", self.config_3d_dataset.dataset_info.geom.axes[0].axis_custom.edges)
+
+            geom = generate_geom(
+                tag="3d",
+                geom_config=self.config_3d_dataset.dataset_info.geom,
+                center_pos=center_pos,
+            )
+            # print(geom)
+
+            dataset_reference = get_dataset_reference(
+                tag="3d",
+                geom=geom,
+                geom_config=self.config_3d_dataset.dataset_info.geom,
+                name="nHit-" + str(bin_id),  # "fhit "?
+            )
+            # print(dataset_reference._geom)
+
+            dataset_maker = get_dataset_maker(
+                tag="3d",
+                dataset_config=self.config_3d_dataset.dataset_info,
+            )
+
+            safe_maker = get_safe_mask_maker(safe_config=self.config_3d_dataset.dataset_info.safe_mask)
+            transit_number = self.irfs["transit_map"].get_by_coord(geom.center_skydir)
+
+            for obs in observations:
+                dataset = dataset_maker.run(dataset_reference, obs)
+                dataset.exposure.meta["livetime"] = "6 h"  # Put by hand from Gammapy tutorial
+                dataset = safe_maker.run(dataset)
+
+                dataset.background.data *= transit_number
+                dataset.exposure.data *= transit_number
+
+                datasets_list.append(dataset)
+
+        return datasets_list

@@ -34,6 +34,7 @@ class DL3InputFilePatterns(BaseConfig):
     gal_diffuse: str = "gll_iem_v*.fits*"
     iso_diffuse: str = "iso_P8R3_SOURCE_V*_*.txt"
 
+    en_est: str = "*NN*fits.gz"
     transit: str = "TransitsMap*fits.gz"
 
 
@@ -74,6 +75,7 @@ class DL3Files:
         self.psf_files = None
         self.gal_diff_files = None
         self.iso_diff_files = None
+        self.dl3_index_files = None
         self.transit = None
 
         self.xml_f = None
@@ -97,12 +99,6 @@ class DL3Files:
         file_list = self.select_unique_files(key, file_list)
 
         return file_list
-
-    def prepare_hawc_hdu_files(key):
-        """
-        Prepare a list of HAWC HDU files following a particular key. They key
-        comprises of event_class and event_type, separated by "-".
-        """
 
     def list_dl3_files(self):
         """
@@ -135,8 +131,8 @@ class DL3Files:
 
             case "hawc":
                 self.transit = sorted(list(self.dl3_path.glob(self.glob_dict["transit"])))
-                # All HDU index files
-                self.events_files = sorted(list(self.dl3_path.glob("hdu-index*fits.gz")))
+                # All DL3 index files for a given energy estimator type
+                self.dl3_index_files = sorted(list(self.dl3_path.glob(self.glob_dict["en_est"])))
 
     def select_unique_files(self, key, file_list):
         """

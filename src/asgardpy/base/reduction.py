@@ -10,7 +10,7 @@ import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from gammapy.catalog import CATALOG_REGISTRY
-from gammapy.data import DataStore  # , HDUIndexTable, ObservationTable
+from gammapy.data import DataStore, HDUIndexTable, ObservationTable
 from gammapy.datasets import MapDataset, SpectrumDataset
 from gammapy.makers import (
     DatasetsMaker,
@@ -23,7 +23,7 @@ from gammapy.makers import (
     SpectrumDatasetMaker,
     WobbleRegionsFinder,
 )
-from gammapy.maps import Map
+from gammapy.maps import Map  # , MapAxis
 from gammapy.utils.scripts import make_path
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion
 
@@ -79,23 +79,6 @@ class RequiredHDUEnum(str, Enum):
     full_enclosure = "full-enclosure"
 
 
-class EventClassEnum(str, Enum):
-    """
-    Config section for list of different event classes used for energy estimations.
-    Currently the only non-standard types are those used for HAWC data as per
-    the paper https://iopscience.iop.org/article/10.3847/1538-4357/ab2f7d
-
-    Default follows standard GADF guidelines.
-    """
-
-    nn = "NN"
-    gp = "GP"
-    std = "STD"
-
-
-# class ObservationEventType
-
-
 class ObservationsConfig(BaseConfig):
     """
     Config section for getting main information for creating an Observations
@@ -106,7 +89,6 @@ class ObservationsConfig(BaseConfig):
     """
 
     obs_ids: list[int] = []
-    obs_algorithm: EventClassEnum = EventClassEnum.std
     event_type: list[int] = []
     obs_file: PathType = "None"
     obs_time: list[TimeInterval] = []
@@ -229,7 +211,7 @@ class SafeMaskConfig(BaseConfig):
     parameters: dict = {}
 
 
-def get_filtered_observations(dl3_path, obs_config, log):
+def get_filtered_observations(dl3_path, obs_config, log, dl3_index_files=None, event_type=None):
     """
     From the path of the DL3 index files, create gammapy Observations object and
     apply any observation filters provided in the obs_config object to return
@@ -243,25 +225,28 @@ def get_filtered_observations(dl3_path, obs_config, log):
         Config information for creating the `gammapy.data.Observations` object.
     log: `logging()`
         Common log file.
+    dl3_index_files: list
+        List of HDU and Observation index files (in that order) to create the
+        DataStore object with. Currently being used only for HAWC data.
+        Default is an empty list.
+    event_type: str or int
+        Event type, currently being used only for HAWC data as defined in the paper
+        https://iopscience.iop.org/article/10.3847/1538-4357/ab2f7d. Default is None.
 
     Return
     ------
     observations: `gammapy.data.Observations`
         Selected list of Observation object
     """
-    # For HAWC, separate names of HDU and OBS index files are needed. Also, fHit values are needed for hdu index values for HDU Index file<
-    if obs_config.obs_algorithm == "gadf":
+    if len(obs_config.event_type) == 0:
         datastore = DataStore.from_dir(dl3_path)
-    """
-    elif obs_config.obs_algorithm in ["NN", "GP"]:
-        hdu_filename = list(dl3_path.glob(f"obs-index*{obs_config.obs_algorithm}*.fits*"))[0].name
-        print(hdu_filename)
-        obs_filename = list(dl3_path.glob(f"hdu-index*{obs_config.obs_algorithm}*.fits*"))[0].name
-        print(obs_filename)
-        hdu_table = HDUIndexTable.read(dl3_path + hdu_filename, hdu=obs_config.event_type)
-        # Move it to dataset_3d script or input_dl3 to get the DL3/index files
-        # datastore = DataStore.
-    """
+    else:
+        hdu_table = HDUIndexTable.read(dl3_index_files[0], hdu=event_type)
+        obs_table = ObservationTable.read(dl3_index_files[1])
+        hdu_table[-1]["HDU_CLASS"] = "psf_map_reco"
+
+        datastore = DataStore(hdu_table=hdu_table, obs_table=obs_table)
+
     obs_time = obs_config.obs_time
     obs_list = obs_config.obs_ids
     obs_cone = obs_config.obs_cone
@@ -354,7 +339,7 @@ def get_dataset_reference(tag, geom, geom_config, name=None):
 
     if tag == "1d":
         for axes_ in geom_config.axes:
-            if axes_.name == "energy_true":
+            if axes_.name == "energy_true":  # Also for HAWC
                 energy_axis = get_energy_axis(axes_)
                 dataset_reference = SpectrumDataset.create(
                     geom=geom,
@@ -363,12 +348,24 @@ def get_dataset_reference(tag, geom, geom_config, name=None):
                 )
     else:  # For tag == "3d"
         binsize_irf = geom_config.wcs.binsize_irf.to_value("deg")
-        dataset_reference = MapDataset.create(
-            geom=geom,
-            name=name,  # name is dependent on fHit value as "fHit #"
-            binsz_irf=binsize_irf,
-            reco_psf=geom_config.reco_psf,  # True for HAWC
-        )
+
+        if geom_config.axes[1].name == "energy_true":  # Also for HAWC
+            energy_axis = get_energy_axis(geom_config.axes[1])
+            # print("Energy name before creating dataset_reference", energy_axis.name)
+            dataset_reference = MapDataset.create(
+                geom=geom,
+                name=name,
+                binsz_irf=binsize_irf,
+                reco_psf=geom_config.reco_psf,  # True for HAWC
+                energy_axis_true=energy_axis,
+                # rad_axis=MapAxis.from_bounds(0, 3, 200, unit='deg', name='rad'),
+            )
+        else:
+            dataset_reference = MapDataset.create(
+                geom=geom,
+                name=name,
+                binsz_irf=binsize_irf,
+            )
 
     return dataset_reference
 
@@ -606,8 +603,6 @@ def generate_dl4_dataset(
     """
     if safe_maker:
         makers = [dataset_maker, safe_maker, bkg_maker]
-        # For HAWC we need dataset.exposure.meta["livetime"] = "6 h", and then run the safe_maker
-        # Probably cannot use DatasetsMaker for this process
     else:
         makers = [dataset_maker, bkg_maker]
 
@@ -629,10 +624,5 @@ def generate_dl4_dataset(
         )
 
     datasets = datasets_maker.run(dataset_reference, observations)
-
-    # For HAWC, we need transit Map file location and update background and exposure
-    # dataset.background.data *= transit_number
-    # dataset.exposure.data *= transit_number
-    # dataset.exposure.meta["livetime"] = 1 s or 6 h?
 
     return datasets
