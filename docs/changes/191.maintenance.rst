@@ -1,0 +1,1 @@
+Add an extended example of the usage for asgardpy and partially resolves Issue [`#188 <https://github.com/chaimain/asgardpy/issues/188>`_].
