@@ -61,6 +61,7 @@ jobs:
       - name: Docs
         run: |
           source .venv/bin/activate
+          python -m pip install -e .[dev]
           cd docs && make html
       - name: Clean up
         run: |
