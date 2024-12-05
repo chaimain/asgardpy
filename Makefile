@@ -1,7 +1,7 @@
 .PHONY : docs
 docs :
 	rm -rf docs/build/
-	sphinx-autobuild -b html --watch asgardpy/ docs/source/ docs/build/
+	sphinx-autobuild -b html --watch src/asgardpy/ docs/source/ docs/build/
 
 .PHONY : run-checks
 run-checks :
