@@ -4,8 +4,6 @@
 Changelog
 =========
 
-.. towncrier-draft-entries:: |release| [UNRELEASED DRAFT]
-
 .. towncrier release notes start
 
 .. changelog::
