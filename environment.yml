@@ -57,7 +57,6 @@ dependencies:
   - sphinx-autobuild>=2021.3.14
   - sphinx-autodoc-typehints
   - sphinx_changelog
-  - sphinxcontrib-towncrier
   - packaging
   - pip:
       - pytest-sphinx
