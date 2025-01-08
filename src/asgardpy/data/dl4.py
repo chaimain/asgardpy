@@ -6,13 +6,15 @@ from enum import Enum
 
 from astropy import units as u
 from gammapy.datasets import Datasets, FluxPointsDataset
-from gammapy.estimators import FluxPointsEstimator  # , FluxMetaData
+from gammapy.estimators import FluxMetaData, FluxPointsEstimator
 from gammapy.modeling import Fit
-from gammapy.utils.metadata import CreatorMetaData  # , TargetMetaData
 
 from asgardpy.analysis.step_base import AnalysisStepBase
 from asgardpy.base import BaseConfig, EnergyRangeConfig
 from asgardpy.version import __public_version__
+
+# from gammapy.utils.metadata import CreatorMetaData  # , TargetMetaData
+
 
 __all__ = [
     "FitAnalysisStep",
@@ -115,9 +117,9 @@ class FluxPointsAnalysisStep(AnalysisStepBase):
             flux_points = self.fpe.run(datasets=dataset)
             flux_points.name = dataset.names
 
-            flux_points._meta.creation = CreatorMetaData()
-            flux_points._meta.creation.creator += f", Asgardpy {__public_version__}"
-            flux_points._meta.optional = {
+            flux_points.meta = FluxMetaData()
+            flux_points.meta.creation.creator += f", Asgardpy {__public_version__}"
+            flux_points.meta.optional = {
                 "instrument": flux_points.name,
             }
 
