@@ -69,9 +69,9 @@ Documentation = "https://asgardpy.readthedocs.io/en/latest/"
 [project.optional-dependencies]
 # Have more references like doc, test, etc?
 dev = [
-  "ruff>=0.4.10",
-  "codespell>=2.3.0",
-  "mypy>=1.13",
+  "ruff>=0.9.3",
+  "codespell>=2.4.0",
+  "mypy>=1.14",
   "isort>=5.13",
   "pytest>8.0",
   "pytest-sphinx",
