@@ -2,6 +2,7 @@
 Classes containing the Base for the Analysis steps and some Basic Config types.
 """
 
+import html
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -10,12 +11,11 @@ from typing import Annotated
 from astropy import units as u
 from astropy.time import Time
 from pydantic import (
-    AfterValidator,
     BaseModel,
+    BeforeValidator,
     ConfigDict,
     GetCoreSchemaHandler,
     PlainSerializer,
-    WithJsonSchema,
 )
 from pydantic_core import core_schema
 
@@ -31,7 +31,7 @@ __all__ = [
 ]
 
 
-# Basic Quantities Type for building the Config
+# Base Angle Type Quantity
 def validate_angle_type(v: str) -> u.Quantity:
     """Validation for Base Angle Type Quantity"""
     if isinstance(v, u.Quantity):
@@ -44,15 +44,14 @@ def validate_angle_type(v: str) -> u.Quantity:
         return v_
 
 
-# Base Angle Type Quantity
 AngleType = Annotated[
     str | u.Quantity,
-    AfterValidator(validate_angle_type),
-    PlainSerializer(lambda x: u.Quantity(x), return_type=u.Quantity),
-    WithJsonSchema({"type": "string"}, mode="serialization"),
+    BeforeValidator(validate_angle_type),
+    PlainSerializer(lambda x: f"{x.value} {x.unit}", when_used="json-unless-none", return_type=str),
 ]
 
 
+# Base Energy Type Quantity
 def validate_energy_type(v: str) -> u.Quantity:
     """Validation for Base Energy Type Quantity"""
     if isinstance(v, u.Quantity):
@@ -65,15 +64,14 @@ def validate_energy_type(v: str) -> u.Quantity:
         return v_
 
 
-# Base Energy Type Quantity
 EnergyType = Annotated[
     str | u.Quantity,
-    AfterValidator(validate_energy_type),
-    PlainSerializer(lambda x: u.Quantity(x), return_type=u.Quantity),
-    WithJsonSchema({"type": "string"}, mode="serialization"),
+    BeforeValidator(validate_energy_type),
+    PlainSerializer(lambda x: f"{x.value} {x.unit}", when_used="json-unless-none", return_type=str),
 ]
 
 
+# Base Path Type Quantity
 def validate_path_type(v: str) -> Path:
     """Validation for Base Path Type Quantity"""
     if v == "None":
@@ -92,9 +90,8 @@ def validate_path_type(v: str) -> Path:
 
 PathType = Annotated[
     str | Path,
-    AfterValidator(validate_path_type),
-    PlainSerializer(lambda x: Path(x), return_type=Path),
-    WithJsonSchema({"type": "string"}, mode="serialization"),
+    BeforeValidator(validate_path_type),
+    PlainSerializer(lambda x: Path(x), when_used="json-unless-none", return_type=Path),
 ]
 
 
@@ -192,8 +189,13 @@ class BaseConfig(BaseModel):
         extra="forbid",
         validate_default=True,
         use_enum_values=True,
-        json_encoders={u.Quantity: lambda v: f"{v.value} {v.unit}"},
     )
+
+    def _repr_html_(self):
+        try:
+            return self.to_html()
+        except AttributeError:
+            return f"<pre>{html.escape(str(self))}</pre>"
 
 
 # Basic Quantity ranges Type for building the Config

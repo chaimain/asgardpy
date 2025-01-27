@@ -7,7 +7,8 @@ def test_config_basic():
     """Test on basic Config features."""
 
     config = AsgardpyConfig()
-    assert "AsgardpyConfig" in str(config)
+    assert "AsgardpyConfig\n\n" in str(config)
+    assert "AsgardpyConfig(general" in repr(config)
 
     config_str_0 = """
     general:
