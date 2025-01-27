@@ -31,36 +31,6 @@ __all__ = [
 ]
 
 
-# Basic Quantities Type for building the Config
-"""
-class JsonQuantityEncoder(json.JSONEncoder):
-    #Support for quantities that JSON default encoder
-
-    def default(self, obj):
-        if isinstance(obj, u.Quantity):
-            return obj.to_string()
-
-        return json.JSONEncoder.default(self, obj)
-
-
-# Todo: replace by QuantityType and pydantic TypeAdapter
-class JsonQuantityDecoder(json.JSONDecoder):
-    #Support for quantities that JSON default encoder
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(object_hook=self.object_hook, *args, **kwargs)
-
-    @staticmethod
-    def object_hook(data):
-        for key, value in data.items():
-            try:
-                data[key] = u.Quantity(value)
-            except TypeError:
-                continue
-        return data
-"""
-
-
 def validate_angle_type(v: str) -> u.Quantity:
     """Validation for Base Angle Type Quantity"""
     if isinstance(v, u.Quantity):
@@ -77,7 +47,7 @@ def validate_angle_type(v: str) -> u.Quantity:
 AngleType = Annotated[
     str | u.Quantity,
     BeforeValidator(validate_angle_type),
-    PlainSerializer(lambda x: u.Quantity(x), when_used="json-unless-none", return_type=u.Quantity),
+    PlainSerializer(lambda x: f"{x.value} {x.unit}", when_used="json-unless-none", return_type=str),
 ]
 
 
@@ -97,7 +67,7 @@ def validate_energy_type(v: str) -> u.Quantity:
 EnergyType = Annotated[
     str | u.Quantity,
     BeforeValidator(validate_energy_type),
-    PlainSerializer(lambda x: u.Quantity(x), when_used="json-unless-none", return_type=u.Quantity),
+    PlainSerializer(lambda x: f"{x.value} {x.unit}", when_used="json-unless-none", return_type=str),
 ]
 
 

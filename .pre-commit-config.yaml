@@ -46,6 +46,7 @@ repos:
       - id: mypy
         files: src
         args: []
+        additional_dependencies: ["types-PyYAML"]
   - repo: https://github.com/pre-commit/pygrep-hooks
     # For .rst files
     rev: "v1.10.0"

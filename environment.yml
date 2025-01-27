@@ -43,6 +43,7 @@ dependencies:
   - black
   - codespell
   - mypy
+  - types-PyYAML
   - isort
   - nbsphinx
   - numdifftools

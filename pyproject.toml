@@ -73,6 +73,7 @@ dev = [
   "codespell>=2.4.0",
   "mypy>=1.14",
   "isort>=5.13",
+  "types-PyYAML",
   "pytest>8.0",
   "pytest-sphinx",
   "pytest-cov",
@@ -168,11 +169,16 @@ ignore_missing_imports = true
 no_site_packages = true
 strict = false
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+# disable_error_code = ["import-untyped"]
 warn_unreachable = true
 
 [[tool.mypy.overrides]]
-module = "tests.*"
+module = [
+  "tests.*",
+  "yaml",
+]
 strict_optional = false
+ignore_missing_imports = true
 
 [tool.codespell]
 skip = '*.ipynb,*.map,*.css,*.js'
