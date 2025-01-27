@@ -31,6 +31,7 @@ __all__ = [
 ]
 
 
+# Base Angle Type Quantity
 def validate_angle_type(v: str) -> u.Quantity:
     """Validation for Base Angle Type Quantity"""
     if isinstance(v, u.Quantity):
@@ -43,7 +44,6 @@ def validate_angle_type(v: str) -> u.Quantity:
         return v_
 
 
-# Base Angle Type Quantity
 AngleType = Annotated[
     str | u.Quantity,
     BeforeValidator(validate_angle_type),
@@ -51,6 +51,7 @@ AngleType = Annotated[
 ]
 
 
+# Base Energy Type Quantity
 def validate_energy_type(v: str) -> u.Quantity:
     """Validation for Base Energy Type Quantity"""
     if isinstance(v, u.Quantity):
@@ -63,7 +64,6 @@ def validate_energy_type(v: str) -> u.Quantity:
         return v_
 
 
-# Base Energy Type Quantity
 EnergyType = Annotated[
     str | u.Quantity,
     BeforeValidator(validate_energy_type),
@@ -71,6 +71,7 @@ EnergyType = Annotated[
 ]
 
 
+# Base Path Type Quantity
 def validate_path_type(v: str) -> Path:
     """Validation for Base Path Type Quantity"""
     if v == "None":

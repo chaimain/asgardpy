@@ -169,7 +169,6 @@ ignore_missing_imports = true
 no_site_packages = true
 strict = false
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
-# disable_error_code = ["import-untyped"]
 warn_unreachable = true
 
 [[tool.mypy.overrides]]
