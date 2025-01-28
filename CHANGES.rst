@@ -9,14 +9,14 @@ API Changes
 Bug Fixes
 ---------
 
-- Generalize functions to read and write Gammapy model config files via AsgardpyConfig.
+- Generalize functions to read and write Gammapy model config files via ``AsgardpyConfig``.
   Separate some of the functions responsible for operations in a distinct ``asgardpy.config.operations`` module. [`#179 <https://github.com/chaimain/asgardpy/pull/179>`__]
 
 
 New Features
 ------------
 
-- Clean-up code to check model preference, by creating a new stats.utils module containing common functions to be used. [`#178 <https://github.com/chaimain/asgardpy/pull/178>`__]
+- Clean-up code to check model preference, by creating a new ``stats.utils`` module containing common functions to be used. [`#178 <https://github.com/chaimain/asgardpy/pull/178>`__]
 
 - Add the public sample data of CTAO-LST1 Crab Nebula data and fixes [`#183 <https://github.com/chaimain/asgardpy/issues/183>`__] [`#184 <https://github.com/chaimain/asgardpy/pull/184>`__]
 
@@ -26,7 +26,7 @@ Maintenance
 
 - Rebase for the Hotfix release v0.4.4 and update documentation regarding its usage. [`#180 <https://github.com/chaimain/asgardpy/pull/180>`__]
 
-- Fixing Sphinx build issue caused by the upgrade from [`#181 <https://github.com/chaimain/asgardpy/pull/181>`__] by pinning Towncrier. [`#182 <https://github.com/chaimain/asgardpy/pull/182>`__]
+- Fixing Sphinx build issue caused by the upgrade from [`#181 <https://github.com/chaimain/asgardpy/pull/181>`__] by pinning ``Towncrier``. [`#182 <https://github.com/chaimain/asgardpy/pull/182>`__]
 
 - Adding conda environment files and updating the documentation with its usage. [`#185 <https://github.com/chaimain/asgardpy/pull/185>`__]
 
@@ -39,7 +39,7 @@ API Changes
 
 - Update overall dependency of Gammapy to v1.2 and resolves Issue [`#152 <https://github.com/chaimain/asgardpy/issues/152>`_]. [`#165 <https://github.com/chaimain/asgardpy/pull/165>`__]
 
-- Add supporting functions to generate correct intrinsic spectral model and flux points. Adds the new addition of PKS 2155 data to GAMMAPY_DATA which will be available with Gammapy v1.3 and using it to display an example notebook. Solves Issue [`#169 <https://github.com/chaimain/asgardpy/issues/169>`_]. [`#174 <https://github.com/chaimain/asgardpy/pull/174>`__]
+- Add supporting functions to generate correct intrinsic spectral model and flux points. Adds the new addition of PKS 2155 data to ``GAMMAPY_DATA`` which will be available with Gammapy v1.3 and using it to display an example notebook. Solves Issue [`#169 <https://github.com/chaimain/asgardpy/issues/169>`_]. [`#174 <https://github.com/chaimain/asgardpy/pull/174>`__]
 
 
 Bug Fixes
@@ -99,7 +99,7 @@ Bug Fixes
 New Features
 ------------
 
-- Separate the functionality of reading from a Fermi-XML model file into a distinct function in gammapy module. Completes the Issue [`#153 <https://github.com/chaimain/asgardpy/issues/153>`_]. [`#155 <https://github.com/chaimain/asgardpy/pull/155>`__]
+- Separate the functionality of reading from a Fermi-XML model file into a distinct function in ``gammapy`` module. Completes the Issue [`#153 <https://github.com/chaimain/asgardpy/issues/153>`_]. [`#155 <https://github.com/chaimain/asgardpy/pull/155>`__]
 
 - Add a temporary stats function to fetch pivot energy for any spectral model. This function will be present in the upcoming release of Gammapy v1.2.
 
@@ -117,7 +117,7 @@ Maintenance
 
 - Adapt code suggestions from Scrutinizer Code Quality scan. Use ``match-case`` instead of list of ``if-elif-else`` condition blocks. [`#157 <https://github.com/chaimain/asgardpy/pull/157>`__]
 
-- Limit scipy version until gammapy v1.2 fixes its dependency. [`#158 <https://github.com/chaimain/asgardpy/pull/158>`__]
+- Limit scipy version until Gammapy v1.2 fixes its dependency. [`#158 <https://github.com/chaimain/asgardpy/pull/158>`__]
 
 
 Asgardpy 0.4.2 (2023-11-20)
@@ -143,7 +143,7 @@ New Features
 
 - Extend capacity to have more than 1 3D datasets, with any of them being able to add an extra FoV Background Model, to show the full support of the pipeline. [`#139 <https://github.com/chaimain/asgardpy/pull/139>`__]
 
-- Implement towncrier for maintaining PR changes as new fragments. [`#141 <https://github.com/chaimain/asgardpy/pull/141>`__]
+- Implement Towncrier for maintaining PR changes as new fragments. [`#141 <https://github.com/chaimain/asgardpy/pull/141>`__]
 
 - Adapt the basic Time format to use any format and list of intervals as part of ``BaseConfig``.
   Remove redundant classes, adapt tests and use ``TimeIntervalsType`` as the main Time input type. [`#142 <https://github.com/chaimain/asgardpy/pull/142>`__]
@@ -181,13 +181,13 @@ Bug fixes
   [`#136 <https://github.com/chaimain/asgardpy/pull/136>`_]
 
 - Update documentation to have separate pages for describing additional support
-  for asgardpy inputs, from the standard ones, mentioned in the overview page.
+  for Asgardpy inputs, from the standard ones, mentioned in the overview page.
 
   Also updates test coverage for ``data.target`` and ``io`` modules.
   [`#134 <https://github.com/chaimain/asgardpy/pull/134>`_]
 
 - Update test coverage on reading different XML models for Fermi-LAT data as
-  supported by ``gammapy`` module of asgardpy and move the zipped additional
+  supported by ``gammapy`` module of Asgardpy and move the zipped additional
   data to ``dev`` folder. [`#133 <https://github.com/chaimain/asgardpy/pull/133>`_]
 
 - Updated pytests to follow proper code style with proper assert statements as
@@ -202,7 +202,7 @@ Maintenance
 - Restructure the package to follow some PEP guidelines as described in
   Issue [`#125 <https://github.com/chaimain/asgardpy/issues/125>`_].
 
-  Add a separate Citation file, move codespell_ignore_words file to ``dev`` folder,
+  Add a separate Citation file, move ``codespell_ignore_words`` file to ``dev`` folder,
   Contributing file to ``.github`` folder. Start to use dynamic versioning.
   [`#126 <https://github.com/chaimain/asgardpy/pull/126>`_]
 
@@ -229,11 +229,11 @@ New Features
   jupyter notebook. [`#121 <https://github.com/chaimain/asgardpy/pull/121>`_]
 
 - Add tests to various modules and extend support for CI test runs by
-  increasing swapfile size of the system. Also allow conftest to check for
+  increasing swapfile size of the system. Also allow ``conftest`` to check for
   existing ``gammapy-data`` in the system before running any tests with data.
 
   Update notebooks after running with the test data, the overall documentation
-  about the tests and pytest options in pyproject.toml file.
+  about the tests and pytest options in ``pyproject.toml`` file.
 
   Fully resolves Issue [`#55 <https://github.com/chaimain/asgardpy/issues/55>`_].
   [`#120 <https://github.com/chaimain/asgardpy/pull/120>`_]
@@ -314,7 +314,7 @@ Bug Fixes
 
   From recommendations of pylint code style, update pending docstrings of
   various functions and modules, fix logging strings. Also include flake8 and
-  codespell settings in setup.cfg file and include codespell check in CI.
+  codespell settings in ``setup.cfg`` file and include codespell check in CI.
   [`#102 <https://github.com/chaimain/asgardpy/pull/102>`_]
 
 - Fix estimation of Goodness of Fit statistics by removing the extra function
@@ -341,7 +341,7 @@ Bug Fixes
 Maintenance
 -----------
 
-- Add codespell to dev-requirements.
+- Add codespell to ``dev-requirements``.
   [`#104 <https://github.com/chaimain/asgardpy/pull/104>`_]
 
 - Compress and update sphinx docs, by having documentation pages based on
@@ -371,7 +371,7 @@ API Changes
   Keep GADF-based DL3 input as default priority for generating 3D datasets.
 
   Have a simple test for importing main Asgardpy classes, and a simple script
-  to run all Analysis steps of a given AsgardpyConfig file.
+  to run all Analysis steps of a given ``AsgardpyConfig`` file.
 
   Update basic docstrings of various functions and classes.
   [`#94 <https://github.com/chaimain/asgardpy/pull/94>`_]
@@ -388,7 +388,7 @@ API Changes
   Group the processing of Analysis Steps into DL3 to DL4 and DL4 to DL5 stages.
   [`#98 <https://github.com/chaimain/asgardpy/pull/98>`_]
 
-- Add a single function to get the chi2 and p-value of a given test statistic
+- Add a single function to get the ``chi2`` and ``p-value`` of a given test statistic
   and degrees of freedom and generalize other stat functions, to use more specific
   variables. [`#101 <https://github.com/chaimain/asgardpy/pull/101>`_]
 
@@ -423,7 +423,7 @@ New Features
 - Add script to get most preferred spectral model fit based on the existing
   notebook.
   Also add extra supporting functions to get any model template config files,
-  have a check on statistically preferred models based on likelihood ratio test
+  have a check on statistically preferred models based on Likelihood Ratio Test
   and Akaike Information Criterion and updating the notebook accordingly.
   [`#87 <https://github.com/chaimain/asgardpy/pull/87>`_]
 
@@ -450,7 +450,7 @@ Bug Fixes
 Maintenance
 -----------
 
-- Constrain pydantic and autodoc-pydantic versions until corresponding updates
+- Constrain ``pydantic`` and ``autodoc-pydantic`` versions until corresponding updates
   are made in Gammapy. [`#92 <https://github.com/chaimain/asgardpy/pull/92>`_]
 
 
@@ -503,7 +503,7 @@ Asgardpy v0.3.1 (2023-04-28)
 Maintenance
 -----------
 
-- Remove support of python 3.8. [`#76 <https://github.com/chaimain/asgardpy/pull/76>`_]
+- Remove support of Python 3.8. [`#76 <https://github.com/chaimain/asgardpy/pull/76>`_]
 
 
 Asgardpy v0.3.0 (2023-04-28)
@@ -521,7 +521,7 @@ Bug Fixes
 
   Using the multiple available options for spectral models, one can check for a
   statistically preferred model for a given dataset, by using methods like
-  likelihood ratio test, Akaike Information Criterion, etc. A notebook is added
+  Likelihood Ratio Test, Akaike Information Criterion, etc. A notebook is added
   to demonstrate this procedure.
 
   Also fixed a URL link of a badge in README.
@@ -530,12 +530,12 @@ Bug Fixes
 - Update README with more description and a Build status badge.
 
   Update general documentation, change the description of ``asgardpy`` from a
-  ``package`` to a ``pipeline`` and add a setup.cfg file with the general
-  description of asgardpy. [`#73 <https://github.com/chaimain/asgardpy/pull/73>`_]
+  ``package`` to a ``pipeline`` and add a ``setup.cfg`` file with the general
+  description of Asgardpy. [`#73 <https://github.com/chaimain/asgardpy/pull/73>`_]
 
 - Fix Safe Mask reduction code for 1D Dataset and add a custom Spectral Model of
-  Broken Power Law with ``index_diff`` as a parameter, to get the second power
-  law index, with respect to the index of the first one.
+  Broken Power Law with ``index_diff`` as a parameter, to get the second Power
+  Law index, with respect to the index of the first one.
   [`#74 <https://github.com/chaimain/asgardpy/pull/74>`_]
 
 
@@ -573,7 +573,7 @@ Bug Fixes
 New Features
 ------------
 
-- Build some custom SpectralModel classes.
+- Build some custom ``SpectralModel`` classes.
   [`#59 <https://github.com/chaimain/asgardpy/pull/59>`_]
 
 - Add support for common data types for different instruments by have a standard
@@ -597,7 +597,7 @@ API Changes
   [`#56 <https://github.com/chaimain/asgardpy/pull/56>`_]
 
 - Adding the possibility to use a separate yaml file for providing Target source
-  model information and reading the file pathas ``models_file`` variable.
+  model information and reading the file paths ``models_file`` variable.
 
   Fix some variable names to be the same as used in Gammapy and for moving
   towards generalizing the pipeline.
@@ -673,7 +673,7 @@ Asgardpy v0.1 (2023-02-16)
 New Features
 ------------
 
-- Start adding requirements and dependencies and use a minimum python version
+- Start adding requirements and dependencies and use a minimum Python version
   of 3.8 instead of 3.7.
   [`#6 <https://github.com/chaimain/asgardpy/pull/6>`_]
 
@@ -696,16 +696,16 @@ New Features
   best-fit model
 
   The other functionalities can be left to the user to perform without using
-  asgardpy. [`#15 <https://github.com/chaimain/asgardpy/pull/15>`_]
+  Asgardpy. [`#15 <https://github.com/chaimain/asgardpy/pull/15>`_]
 
 - Build further the pipeline structure, by generalizing the dataset production
   as 1D or 3D, let the ``DL3Files`` class be the base class for all DL3 Files
   input.
 
-  Also include a release drafter template in .github folder.
+  Also include a release drafter template in ``.github`` folder.
   [`#16 <https://github.com/chaimain/asgardpy/pull/16>`_]
 
-- Include the release-drafter in github CI workflow.
+- Include the ``release-drafter`` in github CI workflow.
   [`#18 <https://github.com/chaimain/asgardpy/pull/18>`_]
 
 - Begin preparations for adding workable scripts.
@@ -799,7 +799,7 @@ API Changes
 - Optimize Models assignment with additional inputs of list of dataset names and
   the name of the target source, to read from either the config or the XML file.
 
-  Add a separate notebook, showing the asgardpy processes related with Models.
+  Add a separate notebook, showing the Asgardpy processes related with Models.
   [`#46 <https://github.com/chaimain/asgardpy/pull/46>`_]
 
 - Update reading of Model parameters from XML file, by including the
@@ -814,7 +814,7 @@ API Changes
 Bug Fixes
 ---------
 
-- Fixes ``python_requires`` version in setup.py.
+- Fixes ``python_requires`` version in ``setup.py``.
   [`#8 <https://github.com/chaimain/asgardpy/pull/8>`_]
 
 - Try to fix some coding styles to avoid test errors by using isort and
