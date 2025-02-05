@@ -282,7 +282,7 @@ class Dataset3DGeneration:
         elif self.config_3d_dataset.input_dl3[0].type == "hawc":
             dataset = self.generate_hawc_dataset(file_list, exclusion_regions)
 
-        # Option for reading HAWC data
+        ## Option for reading HAWC data
         if len(self.list_source_models) != 0:
             # Apply the same exclusion mask to the list of source models as applied
             # to the Counts Map
@@ -307,7 +307,7 @@ class Dataset3DGeneration:
         for io_dict in self.config_3d_dataset.input_dl3:
             match io_dict.type:
                 case "gadf-dl3":
-                    # file_list is not required so why bother? Maybe just check
+                    ## file_list is not required so why bother? Maybe just check
                     # if they exist or leave it for the next step
                     # get_filtered_observations to report any error?
                     # file_list, _ = self.get_base_objects(io_dict, key_name, file_list)
@@ -370,11 +370,6 @@ class Dataset3DGeneration:
         object_list = []
 
         if "lat" in dl3_dir_dict.type.lower():
-            #            dl3_info.list_dl3_files()
-            #            file_list = dl3_info.events_files
-
-            #            return file_list, object_list
-            #        else:
             file_list = dl3_info.prepare_lat_files(key, file_list)
 
             if dl3_dir_dict.type.lower() in ["lat"]:
@@ -676,7 +671,7 @@ class Dataset3DGeneration:
         datasets_list = Datasets()
 
         for bin_id in self.config_3d_dataset.dataset_info.observation.event_type:
-            print("Preparing for fHit number ", bin_id)
+            self.log.info(f"Preparing for fHit number {bin_id}")
             observations = get_filtered_observations(
                 dl3_path=self.config_3d_dataset.input_dl3[0].input_dir,
                 dl3_index_files=file_list,
@@ -704,7 +699,7 @@ class Dataset3DGeneration:
                 tag="3d",
                 geom=geom,
                 geom_config=self.config_3d_dataset.dataset_info.geom,
-                name="nHit-" + str(bin_id),  # "fhit "?
+                name=f"{self.config_3d_dataset.name}_nHit-{bin_id}",  ## "fhit "?
             )
             # print(dataset_reference._geom)
 
@@ -718,9 +713,11 @@ class Dataset3DGeneration:
 
             for obs in observations:
                 dataset = dataset_maker.run(dataset_reference, obs)
-                dataset.exposure.meta["livetime"] = 1 * u.s  # Put by hand from Gammapy tutorial
+                dataset.exposure.meta["livetime"] = (
+                    6 * u.hour
+                )  ## Put by hand from Gammapy tutorial. Make a new entry in config?
                 dataset = safe_maker.run(dataset)
-                # Problem with stack_reduce - the PSFmap has a missing exposure map (IRFMap.stack, l905)
+                ## Problem with stack_reduce - the PSFmap has a missing exposure map (IRFMap.stack, l905)
 
                 dataset.background.data *= transit_number
                 dataset.exposure.data *= transit_number

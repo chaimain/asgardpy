@@ -85,7 +85,7 @@ dataset3d:
   -   name: HAWC
       input_dl3:
       -   type: hawc
-          input_dir: "/home/chaitanya/software/gammapy-datasets/1.3/hawc/crab_events_pass4/"
+          input_dir: "." #"/home/chaitanya/software/gammapy-datasets/1.3/hawc/crab_events_pass4/"
           glob_pattern:
             en_est: "*NN*fits.gz"
             transit: "irfs/TransitsMap*fits.gz"

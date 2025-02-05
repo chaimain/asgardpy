@@ -79,6 +79,6 @@ def test_hawc_analysis(hawc_dl3_config):
     analysis = AsgardpyAnalysis(hawc_dl3_config)
 
     analysis.run()
+    flux_table = analysis.flux_points[0].to_table(sed_type="e2dnde", formatted=True, format="gadf-sed")
 
-    # Check https://github.com/gammapy/gammapy/blob/main/gammapy/estimators/map/tests/test_ts.py#L600
-    assert 1 == 1
+    assert flux_table["counts"][3] == 4388.0
