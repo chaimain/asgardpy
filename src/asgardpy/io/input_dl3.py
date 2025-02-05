@@ -120,18 +120,9 @@ class DL3Files:
                 self.gal_diff_files = sorted(list(self.dl3_path.glob(self.glob_dict["gal_diffuse"])))
                 self.iso_diff_files = sorted(list(self.dl3_path.glob(self.glob_dict["iso_diffuse"])))
 
-            # case "gadf-dl3":
-            ## Is it absolutely essential? we basically rely on the index tables instead of each DL3 file
-            # The function is mainly used by LAT files alone at the moment to create a MapDataset from the provided files
-            #     if "dl3_files" in self.glob_dict:
-            #         self.events_files = sorted(list(self.dl3_path.glob(self.glob_dict["dl3_files"])))
-            #     else:
-            # For backward compatibility
-            #         self.events_files = sorted(list(self.dl3_path.glob(self.glob_dict["dl3"])))
-
             case "hawc":
                 self.transit = sorted(list(self.dl3_path.glob(self.glob_dict["transit"])))
-                ## All DL3 index files for a given energy estimator type
+                # All DL3 index files for a given energy estimator type
                 self.dl3_index_files = sorted(list(self.dl3_path.glob(self.glob_dict["en_est"])))
 
     def select_unique_files(self, key, file_list):
@@ -141,7 +132,8 @@ class DL3Files:
         """
         # Have to make more checks or add conditions on selecting only select
         # files instead from the glob-searched lists.
-        ## if self.dl3_type.lower() in ["hawc"]:
+
+        # if self.dl3_type.lower() in ["hawc"]:
         # var_
         if self.dl3_type.lower() in ["lat"]:
             var_list = [

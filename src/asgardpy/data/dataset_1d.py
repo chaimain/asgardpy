@@ -31,7 +31,7 @@ from asgardpy.base.reduction import (
     get_filtered_observations,
     get_safe_mask_maker,
 )
-from asgardpy.io.input_dl3 import InputDL3Config  # DL3Files
+from asgardpy.io.input_dl3 import InputDL3Config
 from asgardpy.io.io_dl4 import DL4BaseConfig, DL4Files, get_reco_energy_bins
 from asgardpy.version import __public_version__
 

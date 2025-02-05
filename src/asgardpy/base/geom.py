@@ -147,7 +147,6 @@ def get_energy_axis(axes_config, only_edges=False, custom_range=False):
 
     if custom_range:
         energy_range = energy_axis_custom.edges * u.Unit(energy_axis_custom.unit)
-        # print("Energy edges evaluated from the geom config info", energy_range)
     else:
         energy_range = MapAxis.from_energy_bounds(
             energy_min=u.Quantity(energy_axis.min),
@@ -332,7 +331,6 @@ def generate_geom(tag, geom_config, center_pos):
                 geom_params["width"] = (width_, height_)
         else:
             # 3D dataset for DL4 creation
-            # print("Energy edges before creating the geom", energy_axis.name)
             geom_params["width"] = (width_, height_)
             geom_params["axes"] = [energy_axis]
 

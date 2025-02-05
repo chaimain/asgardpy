@@ -23,7 +23,7 @@ from gammapy.makers import (
     SpectrumDatasetMaker,
     WobbleRegionsFinder,
 )
-from gammapy.maps import Map  # , MapAxis
+from gammapy.maps import Map
 from gammapy.utils.scripts import make_path
 from regions import CircleAnnulusSkyRegion, CircleSkyRegion
 
@@ -307,8 +307,6 @@ def get_filtered_observations(dl3_path, obs_config, log, dl3_index_files=None, e
     irfs_selected = obs_config.required_irfs
     observations = datastore.get_observations(filtered_obs_ids, required_irf=irfs_selected)
 
-    ## Get the metadata?
-
     return observations
 
 
@@ -339,7 +337,7 @@ def get_dataset_reference(tag, geom, geom_config, name=None):
 
     if tag == "1d":
         for axes_ in geom_config.axes:
-            if axes_.name == "energy_true":  ## Also for HAWC
+            if axes_.name == "energy_true":
                 energy_axis = get_energy_axis(axes_)
                 dataset_reference = SpectrumDataset.create(
                     geom=geom,
@@ -351,13 +349,11 @@ def get_dataset_reference(tag, geom, geom_config, name=None):
 
         if geom_config.reco_psf:
             energy_axis = get_energy_axis(geom_config.axes[1])
-            # print("Energy name before creating dataset_reference", energy_axis.name)
-            # print(geom)
             dataset_reference = MapDataset.create(
                 geom=geom,
                 name=name,
                 binsz_irf=binsize_irf,
-                reco_psf=geom_config.reco_psf,  ## True for HAWC
+                reco_psf=geom_config.reco_psf,  # True for HAWC
                 energy_axis_true=energy_axis,
                 # rad_axis=MapAxis.from_bounds(0, 3, 200, unit='deg', name='rad'),
             )
