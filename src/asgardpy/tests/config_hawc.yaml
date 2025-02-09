@@ -30,14 +30,14 @@ target:
           type: LogParabolaSpectralModel
           parameters:
           -   name: amplitude
-              value: 1.0e-11
+              value: 1.0e-13
               unit: cm-2 s-1 TeV-1
-              error: 1.5e-12
+              error: 1.5e-14
               min: 1.0e-15
               max: 0.01
               frozen: false
           -   name: reference
-              value: 7
+              value: 9
               unit: TeV
               error: 0.0
               min: 0.0001
@@ -103,18 +103,18 @@ dataset3d:
           axes:
           -   name: energy
               axis:
-                min: "1 TeV"
-                max: "316 TeV"
+                min: "3.16 TeV"
+                max: "31.6 TeV"
                 nbins: 4
                 per_decade: true
               axis_custom:
-                edges: [1.00, 1.78, 3.16, 5.62, 10.0, 17.8, 31.6, 56.2, 100, 177, 316]
+                edges: [3.16, 5.62, 10.0, 17.8, 31.6]
                 unit: "TeV"
           -   name: energy_true
               axis:
-                min: "10 GeV"
-                max: "1e4 TeV"
-                nbins: 10
+                min: "1 TeV"
+                max: "1e3 TeV"
+                nbins: 8
                 per_decade: true
         observation:
           event_type: [5, 6, 7, 8, 9]
@@ -153,16 +153,16 @@ dataset3d:
         spectral_energy_range:
           name: energy
           axis:
-            min: "1 TeV"
-            max: "316 TeV"
-            nbins: 5
+            min: "3.16 TeV"
+            max: "31.6 TeV"
+            nbins: 4
             per_decade: true
 
 # Fit parameters
 fit_params:
   fit_range:
-    min: "1 TeV"
-    max: "316 TeV"
+    min: "3.16 TeV"
+    max: "31.6 TeV"
   backend: minuit
   optimize_opts: {}
   covariance_opts: {}

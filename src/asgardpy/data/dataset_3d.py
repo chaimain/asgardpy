@@ -144,7 +144,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             # Only read unique SkyModels for the first instrument, unless there
             # are associated files like XML to read from for the particular instrument.
             filled_skymodel = False
-            if len(models_final) > 0:
+            if len(models_final) != 0:
                 filled_skymodel = True
 
             # Retrieving a single dataset for each instrument.
@@ -157,11 +157,22 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                     models = []
 
                 # Use the individual Dataset type object for following tasks
+                # HAWC datasets cannot be stacked together as the PSF is in reco energies and it is not
+                # yet supported by Gammapy.
                 if isinstance(dataset, Datasets):
-                    dataset = dataset[0]
+                    if len(dataset) == 1:
+                        dataset = dataset[0]
+                    else:
+                        if self.config.general.stacked_dataset and config_3d_dataset.name not in ["HAWC"]:
+                            dataset = dataset.stack_reduce(config_3d_dataset.name)
 
-                self.update_model_dataset_names(models, dataset, models_final)
-                dataset_instrument.append(dataset)
+                if config_3d_dataset.name not in ["HAWC"]:
+                    self.update_model_dataset_names(models, dataset, models_final)
+                    dataset_instrument.append(dataset)
+                else:
+                    for data in dataset:
+                        self.update_model_dataset_names(models, data, models_final)
+                        dataset_instrument.append(data)
 
             models_final, free_params = self.link_diffuse_models(models_final, free_params)
             energy_bin_edges = dl4_files.get_spectral_energies()
@@ -197,8 +208,8 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                         model_name
                     ].spectral_model.model2
                     free_params -= 1
-        else:
-            models_final = None
+        # else:
+        #    models_final = None
 
         return models_final, free_params
 
@@ -211,11 +222,16 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
         model for target and an entry of catalog to fill in.
         """
         if len(models) > 0:
+            # if models_final is None:
+            #    models_final = Models()
             for model_ in models:
                 model_.datasets_names = [dataset.name]
 
-                if model_.name in models_final.names:
-                    models_final[model_.name].datasets_names.append(dataset.name)
+                if len(models_final) != 0:
+                    if model_.name in models_final.names:
+                        models_final[model_.name].datasets_names.append(dataset.name)
+                    else:
+                        models_final.append(model_)
                 else:
                     models_final.append(model_)
 
@@ -271,16 +287,15 @@ class Dataset3DGeneration:
         """
         # First check for the given file list if they are readable or not.
         non_gadf_file_list = self.read_to_objects(key_name)
-
         exclusion_regions = []
 
-        if self.config_3d_dataset.input_dl3[0].type == "gadf-dl3":
-            dataset = self.generate_gadf_dataset(exclusion_regions, filled_skymodel)
-
-        elif "lat" in self.config_3d_dataset.input_dl3[0].type:
-            dataset = self.generate_fermi_lat_dataset(non_gadf_file_list, exclusion_regions, key_name)
-        elif self.config_3d_dataset.input_dl3[0].type == "hawc":
-            dataset = self.generate_hawc_dataset(non_gadf_file_list, exclusion_regions)
+        match self.config_3d_dataset.input_dl3[0].type:
+            case "gadf-dl3":
+                dataset = self.generate_gadf_dataset(exclusion_regions, filled_skymodel)
+            case "lat" | "lat-aux":
+                dataset = self.generate_fermi_lat_dataset(non_gadf_file_list, exclusion_regions, key_name)
+            case "hawc":
+                dataset = self.generate_hawc_dataset(non_gadf_file_list, exclusion_regions)
 
         # Option for reading HAWC data
         if len(self.list_source_models) != 0:
@@ -691,7 +706,7 @@ class Dataset3DGeneration:
                 tag="3d",
                 geom=geom,
                 geom_config=self.config_3d_dataset.dataset_info.geom,
-                name=f"{self.config_3d_dataset.name}_nHit-{bin_id}",  # "fhit "?
+                name=f"{self.config_3d_dataset.name}_fHit-{bin_id}",
             )
 
             dataset_maker = get_dataset_maker(
@@ -708,7 +723,6 @@ class Dataset3DGeneration:
                     6 * u.hour
                 )  ## Put by hand from Gammapy tutorial. Make a new entry in config?
                 dataset = safe_maker.run(dataset)
-                ## Problem with stack_reduce - the PSFmap has a missing exposure map (IRFMap.stack, l905)
 
                 dataset.background.data *= transit_number
                 dataset.exposure.data *= transit_number

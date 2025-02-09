@@ -38,7 +38,7 @@ This method was included after v0.5.0, and for earlier (<v0.4.4) releases, one c
 
 # Pipeline development
 
-The pipeline was developed with first testing with Fermi-LAT ([enrico](https://enrico.readthedocs.io/en/latest/) and [fermipy](https://fermipy.readthedocs.io/en/latest/)) files and LST-1 ([cta-lstchain](https://cta-observatory.github.io/cta-lstchain/)) DL3 files (with energy-dependent and global directional cuts) for point-like sources.
+The pipeline was developed with first testing with Fermi-LAT ([enrico](https://enrico.readthedocs.io/en/latest/) and [fermipy](https://fermipy.readthedocs.io/en/latest/)) files and LST-1 ([cta-lstchain](https://cta-observatory.github.io/cta-lstchain/)) DL3 files (with energy-dependent and global directional cuts) for point-like sources. It also allows for a preliminary analysis of HAWC datasets (stored in Gammapy-readable data).
 The pipeline can be further expanded to support more types of DL3 files of gamma-ray instruments.
 
 # Examples with Data
