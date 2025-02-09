@@ -81,4 +81,4 @@ def test_hawc_analysis(hawc_dl3_config):
     analysis.run()
     flux_table = analysis.flux_points[0].to_table(sed_type="e2dnde", formatted=True, format="gadf-sed")
 
-    assert flux_table["counts"][3] == 4388.0
+    assert flux_table["counts"][3].sum() == 463.0

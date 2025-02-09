@@ -208,8 +208,6 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                         model_name
                     ].spectral_model.model2
                     free_params -= 1
-        # else:
-        #    models_final = None
 
         return models_final, free_params
 
@@ -222,8 +220,6 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
         model for target and an entry of catalog to fill in.
         """
         if len(models) > 0:
-            # if models_final is None:
-            #    models_final = Models()
             for model_ in models:
                 model_.datasets_names = [dataset.name]
 

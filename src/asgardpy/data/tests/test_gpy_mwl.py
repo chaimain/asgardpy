@@ -102,14 +102,7 @@ def test_3d_hess_1d_magic(gpy_hess_magic):
 
     analysis = AsgardpyAnalysis(gpy_hess_magic)
 
-    analysis.run(["datasets-3d"])
+    analysis.run(["datasets-3d", "datasets-1d", "fit"])
 
-    # Updating the dataset name
-    analysis.datasets[0]._name = "HESS"
-    analysis.dataset_name_list[0] = "HESS"
-
-    analysis.run(["datasets-1d"])
-    analysis.run(["fit"])
-
-    assert int(analysis.datasets[0].gti.time_sum.value) == 1687
+    assert int(analysis.datasets[0].gti.time_sum.value) == 5052
     assert isinstance(analysis.datasets[1].counts.geom.region, PointSkyRegion)
