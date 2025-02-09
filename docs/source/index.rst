@@ -16,7 +16,7 @@ The pipeline was developed with first testing with Fermi-LAT (`enrico <https://e
 `fermipy <https://fermipy.readthedocs.io/en/latest/>`_) files and LST-1 (`cta-lstchain <https://cta-observatory.github.io/cta-lstchain/>`_)
 DL3 files (with energy-dependent and global selection cuts) for point-like sources.
 
-The pipeline can be further expanded to support more types of DL3 files of gamma-ray instruments.
+It also allows for a preliminary analysis of HAWC datasets (stored in Gammapy-readable data). The pipeline can be further expanded to support more types of DL3 files of gamma-ray instruments.
 See some example notebooks and tests, which use the public data used in Gammapy Tutorials, with an additional Fermi-LAT data.
 
 See :doc:`need_for_asgardpy` for a brief overview of the pipeline and its future and :doc:`crab_sed` for an extended example of the usage of the pipeline.

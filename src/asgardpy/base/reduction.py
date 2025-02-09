@@ -10,7 +10,7 @@ import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from gammapy.catalog import CATALOG_REGISTRY
-from gammapy.data import DataStore
+from gammapy.data import DataStore, HDUIndexTable, ObservationTable
 from gammapy.datasets import MapDataset, SpectrumDataset
 from gammapy.makers import (
     DatasetsMaker,
@@ -83,9 +83,13 @@ class ObservationsConfig(BaseConfig):
     """
     Config section for getting main information for creating an Observations
     object.
+
+    Currently event types are considered only for HAWC data where events are
+    classified as portion of arrays being used for recording them.
     """
 
     obs_ids: list[int] = []
+    event_type: list[int] = []
     obs_file: PathType = "None"
     obs_time: list[TimeInterval] = []
     obs_cone: SkyPositionConfig = SkyPositionConfig()
@@ -207,7 +211,7 @@ class SafeMaskConfig(BaseConfig):
     parameters: dict = {}
 
 
-def get_filtered_observations(dl3_path, obs_config, log):
+def get_filtered_observations(dl3_path, obs_config, log, dl3_index_files=None, event_type=None):
     """
     From the path of the DL3 index files, create gammapy Observations object and
     apply any observation filters provided in the obs_config object to return
@@ -221,13 +225,27 @@ def get_filtered_observations(dl3_path, obs_config, log):
         Config information for creating the `gammapy.data.Observations` object.
     log: `logging()`
         Common log file.
+    dl3_index_files: list
+        List of HDU and Observation index files (in that order) to create the
+        DataStore object with. Currently being used only for HAWC data.
+        Default is an empty list.
+    event_type: str or int
+        Event type, currently being used only for HAWC data as defined in the paper
+        https://iopscience.iop.org/article/10.3847/1538-4357/ab2f7d. Default is None.
 
     Return
     ------
     observations: `gammapy.data.Observations`
         Selected list of Observation object
     """
-    datastore = DataStore.from_dir(dl3_path)
+    if len(obs_config.event_type) == 0:
+        datastore = DataStore.from_dir(dl3_path)
+    else:
+        hdu_table = HDUIndexTable.read(dl3_index_files[0], hdu=event_type)
+        obs_table = ObservationTable.read(dl3_index_files[1])
+        hdu_table[-1]["HDU_CLASS"] = "psf_map_reco"
+
+        datastore = DataStore(hdu_table=hdu_table, obs_table=obs_table)
 
     obs_time = obs_config.obs_time
     obs_list = obs_config.obs_ids
@@ -289,8 +307,6 @@ def get_filtered_observations(dl3_path, obs_config, log):
     irfs_selected = obs_config.required_irfs
     observations = datastore.get_observations(filtered_obs_ids, required_irf=irfs_selected)
 
-    # Get the metadata?
-
     return observations
 
 
@@ -330,11 +346,23 @@ def get_dataset_reference(tag, geom, geom_config, name=None):
                 )
     else:  # For tag == "3d"
         binsize_irf = geom_config.wcs.binsize_irf.to_value("deg")
-        dataset_reference = MapDataset.create(
-            geom=geom,
-            name=name,
-            binsz_irf=binsize_irf,
-        )
+
+        if geom_config.reco_psf:
+            energy_axis = get_energy_axis(geom_config.axes[1])
+            dataset_reference = MapDataset.create(
+                geom=geom,
+                name=name,
+                binsz_irf=binsize_irf,
+                reco_psf=geom_config.reco_psf,  # True for HAWC
+                energy_axis_true=energy_axis,
+                # rad_axis=MapAxis.from_bounds(0, 3, 200, unit='deg', name='rad'),
+            )
+        else:
+            dataset_reference = MapDataset.create(
+                geom=geom,
+                name=name,
+                binsz_irf=binsize_irf,
+            )
 
     return dataset_reference
 

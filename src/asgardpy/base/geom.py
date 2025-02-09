@@ -121,6 +121,7 @@ class GeomConfig(BaseConfig):
     selection: SelectionConfig = SelectionConfig()
     axes: list[MapAxesConfig] = [MapAxesConfig()]
     from_events_file: bool = True
+    reco_psf: bool = False
 
 
 def get_energy_axis(axes_config, only_edges=False, custom_range=False):
@@ -288,9 +289,14 @@ def generate_geom(tag, geom_config, center_pos):
     """
     # Getting the energy axes
     axes_list = geom_config.axes
+
     for axes_ in axes_list:
         if axes_.name == "energy":
-            energy_axis = get_energy_axis(axes_)
+            custom_range = len(axes_.axis_custom.edges) > 1
+            energy_axis = get_energy_axis(axes_, custom_range=custom_range)
+
+            if custom_range:
+                energy_axis = MapAxis.from_energy_edges(energy_axis, name=axes_.name)
 
     if tag == "1d":
         # Defining the ON region's geometry for DL4 dataset

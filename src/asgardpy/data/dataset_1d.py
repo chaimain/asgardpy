@@ -31,7 +31,7 @@ from asgardpy.base.reduction import (
     get_filtered_observations,
     get_safe_mask_maker,
 )
-from asgardpy.io.input_dl3 import DL3Files, InputDL3Config
+from asgardpy.io.input_dl3 import InputDL3Config
 from asgardpy.io.io_dl4 import DL4BaseConfig, DL4Files, get_reco_energy_bins
 from asgardpy.version import __public_version__
 
@@ -176,16 +176,6 @@ class Dataset1DGeneration:
         """
         Main function to run the creation of 1D dataset.
         """
-        # First check for the given file list if they are readable or not.
-        dl3_info = DL3Files(
-            self.config_1d_dataset_io[0],
-            log=self.log,
-        )
-        dl3_info.list_dl3_files()
-
-        if len(dl3_info.events_files) == 0:
-            self.log.error("No DL3 files found at %s", dl3_info.dl3_path)
-
         # Applying all provided filters to get the Observations object
         observations = get_filtered_observations(
             dl3_path=self.config_1d_dataset_io[0].input_dir,

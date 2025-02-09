@@ -144,7 +144,7 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             # Only read unique SkyModels for the first instrument, unless there
             # are associated files like XML to read from for the particular instrument.
             filled_skymodel = False
-            if len(models_final) > 0:
+            if len(models_final) != 0:
                 filled_skymodel = True
 
             # Retrieving a single dataset for each instrument.
@@ -157,11 +157,22 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                     models = []
 
                 # Use the individual Dataset type object for following tasks
+                # HAWC datasets cannot be stacked together as the PSF is in reco energies and it is not
+                # yet supported by Gammapy.
                 if isinstance(dataset, Datasets):
-                    dataset = dataset[0]
+                    if len(dataset) == 1:
+                        dataset = dataset[0]
+                    else:
+                        if self.config.general.stacked_dataset and config_3d_dataset.name not in ["HAWC"]:
+                            dataset = dataset.stack_reduce(config_3d_dataset.name)
 
-                self.update_model_dataset_names(models, dataset, models_final)
-                dataset_instrument.append(dataset)
+                if config_3d_dataset.name not in ["HAWC"]:
+                    self.update_model_dataset_names(models, dataset, models_final)
+                    dataset_instrument.append(dataset)
+                else:
+                    for data in dataset:
+                        self.update_model_dataset_names(models, data, models_final)
+                        dataset_instrument.append(data)
 
             models_final, free_params = self.link_diffuse_models(models_final, free_params)
             energy_bin_edges = dl4_files.get_spectral_energies()
@@ -197,8 +208,6 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
                         model_name
                     ].spectral_model.model2
                     free_params -= 1
-        else:
-            models_final = None
 
         return models_final, free_params
 
@@ -214,8 +223,11 @@ class Datasets3DAnalysisStep(AnalysisStepBase):
             for model_ in models:
                 model_.datasets_names = [dataset.name]
 
-                if model_.name in models_final.names:
-                    models_final[model_.name].datasets_names.append(dataset.name)
+                if len(models_final) != 0:
+                    if model_.name in models_final.names:
+                        models_final[model_.name].datasets_names.append(dataset.name)
+                    else:
+                        models_final.append(model_)
                 else:
                     models_final.append(model_)
 
@@ -249,6 +261,7 @@ class Dataset3DGeneration:
             "edisp_kernel": None,
             "edisp_interp_kernel": None,
             "exposure_interp": None,
+            "transit_map": None,
         }
         self.events = {"events": None, "event_fits": None, "gti": None, "counts_map": None}
         self.diffuse_models = {
@@ -269,16 +282,18 @@ class Dataset3DGeneration:
         Main function to run the creation of 3D dataset.
         """
         # First check for the given file list if they are readable or not.
-        file_list = self.read_to_objects(key_name)
-
+        non_gadf_file_list = self.read_to_objects(key_name)
         exclusion_regions = []
 
-        if self.config_3d_dataset.input_dl3[0].type == "gadf-dl3":
-            dataset = self.generate_gadf_dataset(file_list, exclusion_regions, filled_skymodel)
+        match self.config_3d_dataset.input_dl3[0].type:
+            case "gadf-dl3":
+                dataset = self.generate_gadf_dataset(exclusion_regions, filled_skymodel)
+            case "lat" | "lat-aux":
+                dataset = self.generate_fermi_lat_dataset(non_gadf_file_list, exclusion_regions, key_name)
+            case "hawc":
+                dataset = self.generate_hawc_dataset(non_gadf_file_list, exclusion_regions)
 
-        elif "lat" in self.config_3d_dataset.input_dl3[0].type:
-            dataset = self.generate_fermi_lat_dataset(file_list, exclusion_regions, key_name)
-
+        # Option for reading HAWC data
         if len(self.list_source_models) != 0:
             # Apply the same exclusion mask to the list of source models as applied
             # to the Counts Map
@@ -298,46 +313,48 @@ class Dataset3DGeneration:
         Read the first IO list for events, IRFs and XML files, and then
         get the Diffuse models files list.
         """
-        file_list = {}
+        non_gadf_file_list = {}
 
         for io_dict in self.config_3d_dataset.input_dl3:
             match io_dict.type:
-                case "gadf-dl3":
-                    file_list, _ = self.get_base_objects(io_dict, key_name, file_list)
+                case "hawc":
+                    non_gadf_file_list, self.irfs["transit_map"] = self.get_base_objects(
+                        io_dict, key_name, non_gadf_file_list
+                    )
 
                 case "lat":
                     (
-                        file_list,
+                        non_gadf_file_list,
                         [
                             self.irfs["exposure"],
                             self.irfs["psf"],
                             self.irfs["edisp"],
                         ],
-                    ) = self.get_base_objects(io_dict, key_name, file_list)
+                    ) = self.get_base_objects(io_dict, key_name, non_gadf_file_list)
 
                 case "lat-aux":
                     if io_dict.glob_pattern["iso_diffuse"] == "":
                         io_dict.glob_pattern = update_aux_info_from_fermi_xml(
-                            io_dict.glob_pattern, file_list["xml_file"], fetch_iso_diff=True
+                            io_dict.glob_pattern, non_gadf_file_list["xml_file"], fetch_iso_diff=True
                         )
                     if io_dict.glob_pattern["gal_diffuse"] == "":
                         io_dict.glob_pattern = update_aux_info_from_fermi_xml(
-                            io_dict.glob_pattern, file_list["xml_file"], fetch_gal_diff=True
+                            io_dict.glob_pattern, non_gadf_file_list["xml_file"], fetch_gal_diff=True
                         )
 
                     (
-                        file_list,
+                        non_gadf_file_list,
                         [
                             self.diffuse_models["gal_diffuse"],
                             self.diffuse_models["iso_diffuse"],
                             self.diffuse_models["key_name"],
                         ],
-                    ) = self.get_base_objects(io_dict, key_name, file_list)
+                    ) = self.get_base_objects(io_dict, key_name, non_gadf_file_list)
 
                     self.list_source_models, self.diffuse_models = read_fermi_xml_models_list(
                         self.list_source_models,
                         io_dict.input_dir,
-                        file_list["xml_file"],
+                        non_gadf_file_list["xml_file"],
                         self.diffuse_models,
                         asgardpy_target_config=self.config_target,
                     )
@@ -345,9 +362,9 @@ class Dataset3DGeneration:
         # Check if the source position needs to be updated from the list provided.
         self.update_source_pos_from_3d_dataset()
 
-        return file_list
+        return non_gadf_file_list
 
-    def get_base_objects(self, dl3_dir_dict, key, file_list):
+    def get_base_objects(self, dl3_dir_dict, key, non_gadf_file_list):
         """
         For a DL3 files type and tag of the 'mode of observations' or key
         (FRONT/00 and BACK/01 for Fermi-LAT in enrico/fermipy files),
@@ -358,24 +375,25 @@ class Dataset3DGeneration:
         dl3_info = DL3Files(dl3_dir_dict, log=self.log)
         object_list = []
 
-        if dl3_dir_dict.type.lower() in ["gadf-dl3"]:
-            dl3_info.list_dl3_files()
-            file_list = dl3_info.events_files
-
-            return file_list, object_list
-        else:
-            file_list = dl3_info.prepare_lat_files(key, file_list)
+        if "lat" in dl3_dir_dict.type.lower():
+            non_gadf_file_list = dl3_info.prepare_lat_files(key, non_gadf_file_list)
 
             if dl3_dir_dict.type.lower() in ["lat"]:
-                exposure = Map.read(file_list["expmap_file"])
-                psf = PSFMap.read(file_list["psf_file"], format="gtpsf")
-                drmap = fits.open(file_list["edrm_file"])
+                exposure = Map.read(non_gadf_file_list["expmap_file"])
+                psf = PSFMap.read(non_gadf_file_list["psf_file"], format="gtpsf")
+                drmap = fits.open(non_gadf_file_list["edrm_file"])
                 object_list = [exposure, psf, drmap]
 
             if dl3_dir_dict.type.lower() in ["lat-aux"]:
-                object_list = [file_list["gal_diff_file"], file_list["iso_diff_file"], key]
+                object_list = [non_gadf_file_list["gal_diff_file"], non_gadf_file_list["iso_diff_file"], key]
 
-            return file_list, object_list
+        if dl3_dir_dict.type.lower() in ["hawc"]:
+            dl3_info.list_dl3_files()
+            non_gadf_file_list = dl3_info.dl3_index_files
+            transit_map = Map.read(dl3_info.transit[0])
+            object_list = transit_map
+
+        return non_gadf_file_list, object_list
 
     def update_source_pos_from_3d_dataset(self):
         """
@@ -509,10 +527,12 @@ class Dataset3DGeneration:
         return dataset
 
     # Main functions for compiling different DL4 dataset generating procedures
-    def generate_gadf_dataset(self, file_list, exclusion_regions, filled_skymodel):
+    def generate_gadf_dataset(self, exclusion_regions, filled_skymodel):
         """
         Separate function containing the procedures on creating a GADF DL4
         dataset.
+
+        non_gadf_file_list is not required here?
         """
         observations = get_filtered_observations(
             dl3_path=self.config_3d_dataset.input_dl3[0].input_dir,
@@ -596,12 +616,12 @@ class Dataset3DGeneration:
         )
         return dataset
 
-    def generate_fermi_lat_dataset(self, file_list, exclusion_regions, key_name):
+    def generate_fermi_lat_dataset(self, non_gadf_file_list, exclusion_regions, key_name):
         """
         Separate function containing the procedures on creating a Fermi-LAT DL4
         dataset.
         """
-        self.load_events(file_list["events_file"])
+        self.load_events(non_gadf_file_list["events_file"])
 
         # Start preparing objects to create the counts map
         self.set_energy_dispersion_matrix()
@@ -642,3 +662,67 @@ class Dataset3DGeneration:
         dataset = self.generate_dataset(key_name)
 
         return dataset
+
+    def update_hawc_energy_axis(self, bkg_geom, geom_config):
+        """ """
+        energy_edges = []
+        for en in bkg_geom.axes["energy"].edges.value:
+            energy_edges.append(round(en, 2))
+        geom_config.axes[0].axis_custom.edges = energy_edges
+
+        return geom_config
+
+    def generate_hawc_dataset(self, non_gadf_file_list, exclusion_regions):
+        """ """
+        datasets_list = Datasets()
+
+        for bin_id in self.config_3d_dataset.dataset_info.observation.event_type:
+            self.log.info(f"Preparing for fHit number {bin_id}")
+            observations = get_filtered_observations(
+                dl3_path=self.config_3d_dataset.input_dl3[0].input_dir,
+                dl3_index_files=non_gadf_file_list,
+                event_type=bin_id,
+                obs_config=self.config_3d_dataset.dataset_info.observation,
+                log=self.log,
+            )
+            center_pos = get_source_position(target_region=self.config_3d_dataset.dataset_info.on_region)
+
+            self.config_3d_dataset.dataset_info.geom = self.update_hawc_energy_axis(
+                observations[0].bkg.geom,
+                self.config_3d_dataset.dataset_info.geom,
+            )
+
+            geom = generate_geom(
+                tag="3d",
+                geom_config=self.config_3d_dataset.dataset_info.geom,
+                center_pos=center_pos,
+            )
+
+            dataset_reference = get_dataset_reference(
+                tag="3d",
+                geom=geom,
+                geom_config=self.config_3d_dataset.dataset_info.geom,
+                name=f"{self.config_3d_dataset.name}_fHit-{bin_id}",
+            )
+
+            dataset_maker = get_dataset_maker(
+                tag="3d",
+                dataset_config=self.config_3d_dataset.dataset_info,
+            )
+
+            safe_maker = get_safe_mask_maker(safe_config=self.config_3d_dataset.dataset_info.safe_mask)
+            transit_number = self.irfs["transit_map"].get_by_coord(geom.center_skydir)
+
+            for obs in observations:
+                dataset = dataset_maker.run(dataset_reference, obs)
+                dataset.exposure.meta["livetime"] = (
+                    6 * u.hour
+                )  ## Put by hand from Gammapy tutorial. Make a new entry in config?
+                dataset = safe_maker.run(dataset)
+
+                dataset.background.data *= transit_number
+                dataset.exposure.data *= transit_number
+
+                datasets_list.append(dataset)
+
+        return datasets_list

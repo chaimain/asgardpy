@@ -264,7 +264,7 @@ def extend_bkg_models(models, all_datasets, datasets_with_fov_bkg_model):
         for dataset in all_datasets:
             if dataset.name in datasets_with_fov_bkg_model:
                 if "MapDataset" in dataset.tag and dataset.background_model is None:
-                    bkg_models.append(FoVBackgroundModel(dataset_name=f"{dataset.name}-bkg"))
+                    bkg_models.append(FoVBackgroundModel(dataset_name=dataset.name))
 
         models.extend(bkg_models)
 

@@ -16,4 +16,4 @@ def test_3d_hess_1d_magic_catalog(gpy_hess_magic):
     analysis.run()
 
     assert "3FHL J0536.2+1733" in analysis.final_model.names
-    assert len(list(analysis.final_model.parameters.free_parameters)) == 31
+    assert len(list(analysis.final_model.parameters.free_parameters)) == 32
