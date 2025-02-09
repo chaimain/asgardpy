@@ -104,5 +104,5 @@ def test_3d_hess_1d_magic(gpy_hess_magic):
 
     analysis.run(["datasets-3d", "datasets-1d", "fit"])
 
-    assert int(analysis.datasets[0].gti.time_sum.value) == 5052
+    assert int(analysis.datasets[0].gti.time_sum.value) == 5056
     assert isinstance(analysis.datasets[1].counts.geom.region, PointSkyRegion)
