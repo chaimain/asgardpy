@@ -1,1 +1,0 @@
-Fixes Issue [`#193 <https://github.com/chaimain/asgardpy/issues/193>`_] and resolves problem of the changelog as introduced in PR [`#191 <https://github.com/chaimain/asgardpy/pull/191>`_].

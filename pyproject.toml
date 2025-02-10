@@ -138,7 +138,7 @@ write_to = 'src/asgardpy/_version.py'
 
 
 [tool.ruff]
-src = ["src"]
+# src = ["src"] # Not needed for v0.6+
 line-length = 115
 # whitespace before : E203
 exclude = [
