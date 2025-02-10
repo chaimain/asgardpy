@@ -1,1 +1,0 @@
-Update usage of ``pydantic`` to be closer to that in Gammapy and resolves Issue [`#175 <https://github.com/chaimain/asgardpy/issues/175>`_].

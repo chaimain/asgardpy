@@ -1,3 +1,34 @@
+Asgardpy 0.5.2 (2025-02-10)
+===========================
+
+
+API Changes
+-----------
+
+- Update overall dependency of Gammapy to v1.3 and partly resolve Issue [`#186 <https://github.com/chaimain/asgardpy/issues/186>`_]. [`#190 <https://github.com/chaimain/asgardpy/pull/190>`__]
+
+- Adds basic support for HAWC data analysis and resolves Issue [`#187 <https://github.com/chaimain/asgardpy/issues/187>`_]. [`#200 <https://github.com/chaimain/asgardpy/pull/200>`__]
+
+
+Bug Fixes
+---------
+
+- Fixes Issue [`#193 <https://github.com/chaimain/asgardpy/issues/193>`_] and resolves problem of the changelog as introduced in PR [`#191 <https://github.com/chaimain/asgardpy/pull/191>`_]. [`#194 <https://github.com/chaimain/asgardpy/pull/194>`__]
+
+
+New Features
+------------
+
+
+Maintenance
+-----------
+
+- Add an extended example of the usage for Asgardpy and partially resolves Issue [`#188 <https://github.com/chaimain/asgardpy/issues/188>`_]. [`#192 <https://github.com/chaimain/asgardpy/pull/192>`__]
+
+- Update usage of ``pydantic`` to be closer to that in Gammapy and resolves Issue [`#175 <https://github.com/chaimain/asgardpy/issues/175>`_]. [`#197 <https://github.com/chaimain/asgardpy/pull/197>`__]
+
+- Update the comparison between Asgardpy and the upcoming release of Gammapy and resolves Issue [`#195 <https://github.com/chaimain/asgardpy/issues/195>`_]. [`#199 <https://github.com/chaimain/asgardpy/pull/199>`__]
+
 Asgardpy 0.5.1 (2024-10-29)
 ===========================
 

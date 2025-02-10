@@ -1,1 +1,0 @@
-Adds basic support for HAWC data analysis and resolves Issue [`#187 <https://github.com/chaimain/asgardpy/issues/187>`_].

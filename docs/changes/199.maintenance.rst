@@ -1,1 +1,0 @@
-Update the comparison between Asgardpy and the upcoming release of Gammapy and resolves Issue [`#195 <https://github.com/chaimain/asgardpy/issues/195>`_].

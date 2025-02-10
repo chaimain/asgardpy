@@ -1,1 +1,0 @@
-Update overall dependency of Gammapy to v1.3 and partly resolve Issue [`#186 <https://github.com/chaimain/asgardpy/issues/186>`_].
