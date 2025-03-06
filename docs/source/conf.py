@@ -65,6 +65,7 @@ extensions = [
     "sphinx_autodoc_typehints",
     "sphinx.ext.inheritance_diagram",
     "sphinxcontrib.autodoc_pydantic",
+    "sphinxcontrib.towncrier.ext",
     "sphinx_changelog",
 ]
 
