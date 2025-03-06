@@ -26,7 +26,7 @@ dependencies:
   - matplotlib>=3.4,<3.10
   - scipy>=1.12
   - iminuit>=2.8.0
-  - towncrier<24.7
+  - towncrier>=24.7
   - xmltodict
   # test dependencies
   - pytest>8.0
@@ -58,6 +58,7 @@ dependencies:
   - sphinx-autobuild>=2021.3.14
   - sphinx-autodoc-typehints
   - sphinx_changelog
+  - sphinxcontrib-towncrier
   - packaging
   - pip:
       - pytest-sphinx
