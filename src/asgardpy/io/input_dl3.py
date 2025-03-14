@@ -130,11 +130,6 @@ class DL3Files:
         Select Unique files from all of the provided LAT files, as per the
         given key. If there are no distinct key types of files, the value is None.
         """
-        # Have to make more checks or add conditions on selecting only select
-        # files instead from the glob-searched lists.
-
-        # if self.dl3_type.lower() in ["hawc"]:
-        # var_
         if self.dl3_type.lower() in ["lat"]:
             var_list = [
                 "events_files",

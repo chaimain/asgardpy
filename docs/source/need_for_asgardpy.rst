@@ -21,6 +21,8 @@ Some of the unique features in asgardpy are -
 
 #. Being able to read Fermi files as produced by `enrico <https://enrico.readthedocs.io/en/latest/>`_
 
+#. Distinct function to read Fermi XML file into Gammapy ``Models`` objects with :class:`~asgardpy.gammapy.read_models.read_fermi_xml_models_list`  (Example of simple usage with asgardpy can be seen in the `first section of the example notebook <https://github.com/chaimain/asgardpy/blob/main/notebooks/test_models.ipynb>`_)
+
 #. Useful scripts and functions to help with the spectral analyses.
 
 Reasons that may be added in future Gammapy releases

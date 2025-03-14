@@ -216,8 +216,8 @@ def params_rescale_to_gammapy(params_gpy, spectrum_type, en_scale_1_to_gpy=1.0e-
 
         case "index" | "index_1" | "index_2" | "beta":
             if not keep_sign:
-                # Other than EBL Attenuated Power Law?
-                # spectral indices in gammapy are always taken as positive values.
+                # For cases other than EBL Attenuated Power Law.
+                # Spectral indices in gammapy are always taken as positive values.
                 val_ = float(params_gpy["value"]) * float(params_gpy["scale"])
                 if val_ < 0:
                     params_gpy = rescale_parameters(params_gpy, -1)
@@ -260,11 +260,14 @@ def xml_spectral_model_to_gammapy(
     and with examples at
     https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/xml_model_defs.html
 
-    Models from the XML model, not read are -
+    Models from the XML model, not read in Gammapy are -
     ExpCutoff (Blazar modeling with EBL absorption included),
     BPLExpCutoff,
     PLSuperExpCutoff3 (Pulsar modeling),
     BandFunction (GRB analysis)
+    - If a user requires these functions, they can create corresponding Gammapy
+    SpectralModel classes in `asgardpy.data.target` and update the
+    SPECTRAL_MODEL_REGISTRY used in asgardpy.
 
     Parameters
     ----------

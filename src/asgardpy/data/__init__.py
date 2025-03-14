@@ -27,6 +27,7 @@ from asgardpy.data.target import (
     add_ebl_model_from_config,
     apply_selection_mask_to_models,
     config_to_dict,
+    get_models_from_catalog,
     set_models,
 )
 
@@ -47,5 +48,6 @@ __all__ = [
     "add_ebl_model_from_config",
     "apply_selection_mask_to_models",
     "config_to_dict",
+    "get_models_from_catalog",
     "set_models",
 ]

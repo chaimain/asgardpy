@@ -257,16 +257,7 @@ def get_filtered_observations(dl3_path, obs_config, log, dl3_index_files=None, e
 
     # Use the given list of Observation IDs to select Observations
     if len(obs_list) > 0:
-        # list of observation ids to be included
         filtered_obs_ids = obs_list
-        # else:  # Find another way to make the distinction between list and range
-        # the list has a min and max value to use this method
-        #    id_select = {
-        #        "type": "par_box",
-        #        "variable": "OBS_ID",
-        #        "value_range": obs_list,
-        #    }
-        #    obs_table = obs_table.select_observations(id_select)
 
     # Filter the Observations using the Time interval range provided
     if len(obs_time) != 0:
@@ -355,7 +346,6 @@ def get_dataset_reference(tag, geom, geom_config, name=None):
                 binsz_irf=binsize_irf,
                 reco_psf=geom_config.reco_psf,  # True for HAWC
                 energy_axis_true=energy_axis,
-                # rad_axis=MapAxis.from_bounds(0, 3, 200, unit='deg', name='rad'),
             )
         else:
             dataset_reference = MapDataset.create(
@@ -613,11 +603,10 @@ def generate_dl4_dataset(
     else:
         datasets_maker = DatasetsMaker(
             makers,
-            stack_datasets=False,  # Add to the config for 3D dataset?
+            stack_datasets=False,  # Hard-coded
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
-            cutout_mode="trim",  # Add to the config for 3D dataset?
-            # cutout_width=2*offset_max  # As used in the API, from geom.selection
+            cutout_mode="trim",  # Hard-coded
         )
 
     datasets = datasets_maker.run(dataset_reference, observations)

@@ -158,7 +158,7 @@ def get_target_model_from_config(source_name, asgardpy_target_config):
             source_name = asgardpy_target_config.source_name
             is_source_target = True
 
-            # Only taking the spectral model information right now.
+            # Only taking the spectral model information.
             if not asgardpy_target_config.from_3d:
                 models_ = read_models_from_asgardpy_config(asgardpy_target_config)
                 spectral_model = models_[0].spectral_model

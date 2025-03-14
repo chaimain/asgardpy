@@ -8,7 +8,6 @@ import logging
 import numpy as np
 from astropy import units as u
 from astropy.io import fits
-from gammapy.catalog import CATALOG_REGISTRY
 from gammapy.data import GTI, EventList
 from gammapy.datasets import Datasets, MapDataset
 from gammapy.irf import EDispKernel, EDispKernelMap, PSFMap
@@ -39,10 +38,7 @@ from asgardpy.base.reduction import (
     get_filtered_observations,
     get_safe_mask_maker,
 )
-from asgardpy.data.target import (
-    apply_selection_mask_to_models,
-    read_models_from_asgardpy_config,
-)
+from asgardpy.data.target import apply_selection_mask_to_models, get_models_from_catalog
 from asgardpy.gammapy.read_models import (
     create_gal_diffuse_skymodel,
     read_fermi_xml_models_list,
@@ -475,7 +471,7 @@ class Dataset3DGeneration:
         axis_reco = MapAxis.from_edges(
             self.events["counts_map"].geom.axes["energy"].edges,
             name="energy",
-            unit="MeV",  # Need to be generalized
+            unit="MeV",  # Hard-coded for Fermi-LAT
             interp="log",
         )
         axis_true = axis_reco.copy(name="energy_true")
@@ -531,8 +527,6 @@ class Dataset3DGeneration:
         """
         Separate function containing the procedures on creating a GADF DL4
         dataset.
-
-        non_gadf_file_list is not required here?
         """
         observations = get_filtered_observations(
             dl3_path=self.config_3d_dataset.input_dl3[0].input_dir,
@@ -560,29 +554,13 @@ class Dataset3DGeneration:
 
         # If there is no explicit list of models provided for the 3D data,
         # one can use one of the several catalogs available in Gammapy.
-        # Reading them as Models will keep the procedure uniform.
 
         # Unless the unique skymodels for 3D dataset is already set.
-        # Move it to Target module?
-        if len(self.list_source_models) == 0:
-            if not filled_skymodel:
-                # Read the SkyModel info from AsgardpyConfig.target section
-                if len(self.config_target.components) > 0:
-                    models_ = read_models_from_asgardpy_config(self.config_target)
-                    self.list_source_models = models_
-
-                # If a catalog information is provided, use it to build up the list of models
-                # Check if a catalog data is given with selection radius
-                if self.config_target.use_catalog.selection_radius != 0 * u.deg:
-                    catalog = CATALOG_REGISTRY.get_cls(self.config_target.use_catalog.name)()
-
-                    # One can also provide a separate file, but one has to add
-                    # another config option for reading Catalog file paths.
-                    sep = catalog.positions.separation(center_pos["center"].galactic)
-
-                    for k, cat_ in enumerate(catalog):
-                        if sep[k] < self.config_target.use_catalog.selection_radius:
-                            self.list_source_models.append(cat_.sky_model())
+        if len(self.list_source_models) == 0 and not filled_skymodel:
+            self.list_source_models = get_models_from_catalog(
+                self.config_target,
+                center_pos["center"].galactic,
+            )
 
         excluded_geom = generate_geom(
             tag="3d-ex",
@@ -715,9 +693,7 @@ class Dataset3DGeneration:
 
             for obs in observations:
                 dataset = dataset_maker.run(dataset_reference, obs)
-                dataset.exposure.meta["livetime"] = (
-                    6 * u.hour
-                )  ## Put by hand from Gammapy tutorial. Make a new entry in config?
+                dataset.exposure.meta["livetime"] = 6 * u.hour  # Hard-coded
                 dataset = safe_maker.run(dataset)
 
                 dataset.background.data *= transit_number
