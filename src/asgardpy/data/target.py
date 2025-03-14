@@ -7,6 +7,7 @@ from enum import Enum
 
 import astropy.units as u
 import numpy as np
+from gammapy.catalog import CATALOG_REGISTRY
 from gammapy.modeling import Parameter
 from gammapy.modeling.models import (
     SPATIAL_MODEL_REGISTRY,
@@ -34,6 +35,7 @@ __all__ = [
     "add_ebl_model_from_config",
     "apply_selection_mask_to_models",
     "config_to_dict",
+    "get_models_from_catalog",
     "read_models_from_asgardpy_config",
     "set_models",
 ]
@@ -575,3 +577,39 @@ def config_to_dict(model_config):
         model_dict["frame"] = model_config.frame
 
     return model_dict
+
+
+def get_models_from_catalog(config_target, center_position_gal):
+    """
+    From a given catalog in Gammapy, get a list of source SkyModels around the
+    target source as per the config information.
+
+    Parameters
+    ----------
+    config_target: `asgardpy.config.generator.AsgardpyConfig.target`
+        Config information on the target source.
+    center_position_gal: `astropy.coordinates.Galactic`
+        Central location of the target source in galactic coordinates.
+
+    Returns
+    list_source_models: `list`
+        List of catalog source models around the target source.
+    """
+    list_source_models = []
+
+    # Read the SkyModel info from AsgardpyConfig.target section
+    if len(config_target.components) > 0:
+        models_ = read_models_from_asgardpy_config(config_target)
+        list_source_models = models_
+
+    # Check if a catalog data is given with selection radius
+    if config_target.use_catalog.selection_radius != 0 * u.deg:
+        catalog = CATALOG_REGISTRY.get_cls(config_target.use_catalog.name)()
+
+        sep = catalog.positions.separation(center_position_gal)
+
+        for k, cat_ in enumerate(catalog):
+            if sep[k] < config_target.use_catalog.selection_radius:
+                list_source_models.append(cat_.sky_model())
+
+    return list_source_models

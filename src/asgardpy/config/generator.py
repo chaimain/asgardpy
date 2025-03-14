@@ -234,9 +234,6 @@ class AsgardpyConfig(BaseConfig):
         """
         Convert to YAML string.
         """
-        # Here using `dict()` instead of `json()` would be more natural.
-        # We should change this once pydantic adds support for custom encoders
-        # to `dict()`. See https://github.com/samuelcolvin/pydantic/issues/1043
         data = json.loads(self.model_dump_json())
         return yaml.dump(data, sort_keys=False, indent=4, width=80, default_flow_style=None)
 
