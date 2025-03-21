@@ -177,6 +177,49 @@ class AsgardpyAnalysis:
                 self.instrument_spectral_info["en_bins"] - self.instrument_spectral_info["free_params"]
             )
 
+    def run_dl3_dl4_steps(self, dl3_dl4_steps, kwargs):
+        """
+        Distinct analysis steps for Dataset reduction from DL3 to DL4 data products.
+        """
+        for step in dl3_dl4_steps:
+            analysis_step = AnalysisStep.create(step, self.config, **kwargs)
+
+            datasets_list, models_list, instrument_spectral_info = analysis_step.run()
+
+            self.update_models_list(models_list)
+
+            # To get all datasets_names from the datasets and update the final datasets list
+            for data in datasets_list:
+                if data.name not in self.dataset_name_list:
+                    self.dataset_name_list.append(data.name)
+                self.datasets.append(data)
+
+            self.add_to_instrument_info(instrument_spectral_info)
+
+        self.datasets, self.final_model = set_models(
+            self.config.target,
+            self.datasets,
+            self.dataset_name_list,
+            models=self.final_model,
+        )
+
+        self.update_dof_value()
+
+    def run_dl4_dl5_steps(self, dl4_dl5_steps, kwargs):
+        """
+        Distinct analysis steps for Joint-Likelihood fitting and transforming
+        DL4 to DL5 data products.
+        """
+        for step in dl4_dl5_steps:
+            analysis_step = AnalysisStep.create(step, self.config, **kwargs)
+
+            analysis_step.run(datasets=self.datasets, instrument_spectral_info=self.instrument_spectral_info)
+
+            # Update the final data product objects
+            for data_product in self.final_data_products:
+                if hasattr(analysis_step, data_product):
+                    setattr(self, data_product, getattr(analysis_step, data_product))
+
     def run(self, steps=None, **kwargs):
         """
         Main function to run the AnalaysisSteps provided.
@@ -193,44 +236,12 @@ class AsgardpyAnalysis:
 
         if len(dl3_dl4_steps) > 0:
             self.log.info("Perform DL3 to DL4 process!")
-
-            for step in dl3_dl4_steps:
-                analysis_step = AnalysisStep.create(step, self.config, **kwargs)
-
-                datasets_list, models_list, instrument_spectral_info = analysis_step.run()
-
-                self.update_models_list(models_list)
-
-                # To get all datasets_names from the datasets and update the final datasets list
-                for data in datasets_list:
-                    if data.name not in self.dataset_name_list:
-                        self.dataset_name_list.append(data.name)
-                    self.datasets.append(data)
-
-                self.add_to_instrument_info(instrument_spectral_info)
-
-            self.datasets, self.final_model = set_models(
-                self.config.target,
-                self.datasets,
-                self.dataset_name_list,
-                models=self.final_model,
-            )
+            self.run_dl3_dl4_steps(dl3_dl4_steps, kwargs)
             self.log.info("Models have been associated with the Datasets")
-
-            self.update_dof_value()
 
         if len(dl4_dl5_steps) > 0:
             self.log.info("Perform DL4 to DL5 processes!")
-
-            for step in dl4_dl5_steps:
-                analysis_step = AnalysisStep.create(step, self.config, **kwargs)
-
-                analysis_step.run(datasets=self.datasets, instrument_spectral_info=self.instrument_spectral_info)
-
-                # Update the final data product objects
-                for data_product in self.final_data_products:
-                    if hasattr(analysis_step, data_product):
-                        setattr(self, data_product, getattr(analysis_step, data_product))
+            self.run_dl4_dl5_steps(dl4_dl5_steps, kwargs)
 
         if self.fit_result:
             self.instrument_spectral_info, message = get_goodness_of_fit_stats(

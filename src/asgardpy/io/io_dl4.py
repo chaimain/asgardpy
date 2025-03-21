@@ -103,6 +103,33 @@ class DL4Files:
         self.log = logging.getLogger(__name__)
         self.log.setLevel(logging.INFO)
 
+    def fetch_dl4_files_by_filenames(self, all_dl4_files, obs_ids):
+        """
+        Assuming a simple nomenclature from gammapy on storing DL4 datasets
+        names as pha_obs[OBS_ID].fits or obs_[OBS_ID].fits i.e. a single integer
+        in the filename, being the OBS_ID or the DL4 dataset name.
+        """
+        dl4_file_list = []
+        for dl4_files in all_dl4_files:
+            obs_num = int(re.findall(r"\d+", dl4_files.name)[0])
+            if obs_num in obs_ids:
+                dl4_file_list.append(dl4_files)
+        return dl4_file_list
+
+    def read_dl4_file(self, filename):
+        """
+        Read a single file, which may be serialized in FITS or yaml format.
+        """
+        if str(filename)[-4:] == "yaml":
+            return Datasets.read(filename=filename)
+        elif str(filename)[-4:] in ["fits", "s.gz"]:
+            dataset_ = DATASET_REGISTRY.get_cls(self.dl4_type)().read(
+                filename=filename, format=self.dl4_dataset.dl4_format
+            )
+            return Datasets(dataset_)
+        else:
+            return None
+
     def get_dl4_files(self, observation_config):
         """
         Fetch the required DL4 files from the given directory path, file glob
@@ -111,7 +138,6 @@ class DL4Files:
 
         If Model files are also given, fetch them as well
         """
-        dl4_file_list = []
         dl4_model_files = []
 
         all_dl4_files = sorted(list(self.dl4_path.glob(self.dl4_dataset.glob_pattern["dl4_files"])))
@@ -127,32 +153,11 @@ class DL4Files:
             # No filtering required based on observation ids
             dl4_file_list = all_dl4_files
         else:
-            for dl4_files in all_dl4_files:
-                # Assuming a simple nomenclature from gammapy on storing DL4
-                # datasets names as pha_obs[OBS_ID].fits or obs_[OBS_ID].fits
-                # i.e. a single integer in the filename, being the OBS_ID or
-                # the DL4 dataset name.
-                obs_num = int(re.findall(r"\d+", dl4_files.name)[0])
-                if obs_num in obs_ids:
-                    dl4_file_list.append(dl4_files)
+            dl4_file_list = self.fetch_dl4_files_by_filenames(all_dl4_files, obs_ids)
 
         self.log.info("List of DL4 files are: %s", dl4_file_list)
 
         return dl4_file_list, dl4_model_files
-
-    def read_dl4_file(self, filename):
-        """
-        Read a single file, which may be serialized in FITS or yaml format.
-        """
-        if str(filename)[-4:] == "yaml":
-            return Datasets.read(filename=filename)
-        elif str(filename)[-4:] in ["fits", "s.gz"]:
-            dataset_ = DATASET_REGISTRY.get_cls(self.dl4_type)().read(
-                filename=filename, format=self.dl4_dataset.dl4_format
-            )
-            return Datasets(dataset_)
-        else:
-            return None
 
     def get_dl4_dataset(self, observation_config=None):
         """
