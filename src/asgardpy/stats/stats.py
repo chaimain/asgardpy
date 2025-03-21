@@ -232,11 +232,11 @@ def get_ts_target(datasets):
     stat_max_fit = 0
 
     for data in datasets:
-        # Assuming that the Counts Map is created with the target source as its center
-        region = data.counts.geom.center_skydir
-
         match data.stat_type:
             case "cash":
+                # Assuming that the Counts Map is created with the target source as its center
+                region = data.counts.geom.center_skydir
+
                 counts_on = (data.counts.copy() * data.mask).get_spectrum(region).data
                 mu_on = (data.npred() * data.mask).get_spectrum(region).data
 
@@ -244,6 +244,9 @@ def get_ts_target(datasets):
                 stat_max_fit += np.nansum(cash(n_on=counts_on, mu_on=counts_on).ravel())
 
             case "wstat":
+                # Assuming that the Counts Map is created with the target source as its center
+                region = data.counts.geom.center_skydir
+
                 counts_on = (data.counts.copy() * data.mask).get_spectrum(region).data
                 counts_off = np.nan_to_num((data.counts_off * data.mask).get_spectrum(region)).data
 

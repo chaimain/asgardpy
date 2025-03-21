@@ -263,6 +263,59 @@ def create_counts_map(geom_config, center_pos):
     return counts_map
 
 
+def create_1d_std_geom(geom_config, center_pos, energy_axis):
+    """
+    Distinct set of steps to generate Gammapy RegionGeom object for the case of
+    the standard 1D dataset.
+    """
+    # Defining the ON region's geometry for DL4 dataset
+    if center_pos["radius"] == 0 * u.deg:
+        on_region = PointSkyRegion(center_pos["center"])
+        # Hack to allow for the joint fit
+        # (otherwise pointskyregion.contains returns None)
+        on_region.meta = {"include": False}
+    else:
+        on_region = CircleSkyRegion(
+            center=center_pos["center"],
+            radius=u.Quantity(center_pos["radius"]),
+        )
+    return RegionGeom.create(region=on_region, axes=[energy_axis])
+
+
+def create_non_1d_std_geom(tag, geom_config, energy_axis, center_pos):
+    """
+    Distinct set of steps to generate Gammapy WcsGeom object for the case other
+    than the standard 1D dataset.
+    """
+    width_ = geom_config.wcs.map_frame_shape.width.to_value("deg")
+    height_ = geom_config.wcs.map_frame_shape.height.to_value("deg")
+
+    geom_params = {}
+
+    if "ex" in tag:  # For exclusion regions - include for 1D data as well
+        bin_size = geom_config.wcs.binsize.to_value("deg")
+        width_ = int(width_ / bin_size)
+        height_ = int(height_ / bin_size)
+
+        if "1d" in tag:
+            geom_params["npix"] = (width_, height_)
+        else:
+            # 3D-ex
+            geom_params["width"] = (width_, height_)
+    else:
+        # 3D dataset for DL4 creation
+        geom_params["width"] = (width_, height_)
+        geom_params["axes"] = [energy_axis]
+
+    geom_params["skydir"] = center_pos["center"]
+    geom_params["frame"] = center_pos["center"].frame
+    geom_params["binsz"] = geom_config.wcs.binsize
+    geom_params["proj"] = geom_config.wcs.proj
+
+    # Main geom for 3D Dataset
+    return WcsGeom.create(**geom_params)
+
+
 def generate_geom(tag, geom_config, center_pos):
     """
     Generate from a given target source position, the geometry of the ON
@@ -299,47 +352,8 @@ def generate_geom(tag, geom_config, center_pos):
                 energy_axis = MapAxis.from_energy_edges(energy_axis, name=axes_.name)
 
     if tag == "1d":
-        # Defining the ON region's geometry for DL4 dataset
-        if center_pos["radius"] == 0 * u.deg:
-            on_region = PointSkyRegion(center_pos["center"])
-            # Hack to allow for the joint fit
-            # (otherwise pointskyregion.contains returns None)
-            on_region.meta = {"include": False}
-        else:
-            on_region = CircleSkyRegion(
-                center=center_pos["center"],
-                radius=u.Quantity(center_pos["radius"]),
-            )
-
-        geom = RegionGeom.create(region=on_region, axes=[energy_axis])
-
+        geom = create_1d_std_geom(geom_config, center_pos, energy_axis)
     else:
-        width_ = geom_config.wcs.map_frame_shape.width.to_value("deg")
-        height_ = geom_config.wcs.map_frame_shape.height.to_value("deg")
-
-        geom_params = {}
-
-        if "ex" in tag:  # For exclusion regions - include for 1D data as well
-            bin_size = geom_config.wcs.binsize.to_value("deg")
-            width_ = int(width_ / bin_size)
-            height_ = int(height_ / bin_size)
-
-            if "1d" in tag:
-                geom_params["npix"] = (width_, height_)
-            else:
-                # 3D-ex
-                geom_params["width"] = (width_, height_)
-        else:
-            # 3D dataset for DL4 creation
-            geom_params["width"] = (width_, height_)
-            geom_params["axes"] = [energy_axis]
-
-        geom_params["skydir"] = center_pos["center"]
-        geom_params["frame"] = center_pos["center"].frame
-        geom_params["binsz"] = geom_config.wcs.binsize
-        geom_params["proj"] = geom_config.wcs.proj
-
-        # Main geom for 3D Dataset
-        geom = WcsGeom.create(**geom_params)
+        geom = create_non_1d_std_geom(tag, geom_config, energy_axis, center_pos)
 
     return geom
