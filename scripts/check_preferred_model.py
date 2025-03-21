@@ -76,6 +76,38 @@ def fetch_all_analysis_objects(main_config, spec_model_temp_files, ebl_scale_fac
     return main_analysis_list, spec_models_list
 
 
+def get_best_preferred_model_lrt(best_sp_idx_lrt, pref_over_pl_chi2_list, spec_models_list, PL_idx, log):
+    """
+    From a list of a given spectral model's preference over PL model as per LRT,
+    get the index of the best spectral model and write appropriate logs.
+    """
+    for idx in best_sp_idx_lrt:
+        if pref_over_pl_chi2_list[idx] > 5:
+            sp_idx_lrt = idx
+            log.info("Best preferred spectral model over PL is %s", spec_models_list[idx])
+        else:
+            sp_idx_lrt = PL_idx
+            log.info("No other model preferred over PL")
+    return sp_idx_lrt, log
+
+
+def get_best_preferred_model_aic(best_sp_idx_aic, list_rel_p, spec_models_list, fit_success_list, PL_idx, log):
+    """
+    From a list of a given spectral model's relative p-value from a list of
+    spectral models, as per AIC, get the index of the best spectral model and
+    write appropriate logs.
+    """
+    for idx in best_sp_idx_aic:
+        if list_rel_p[idx] > 0.95:
+            sp_idx_aic = idx
+            log.info("Best preferred spectral model is %s", spec_models_list[fit_success_list][idx])
+        else:
+            sp_idx_aic = PL_idx
+            log.info("No other model preferred, hence PL is selected")
+
+    return sp_idx_aic, log
+
+
 def main():
     args = parser.parse_args()
 
@@ -113,25 +145,26 @@ def main():
 
     # If any spectral model has at least 5 sigmas preference over PL
     best_sp_idx_lrt = np.nonzero(pref_over_pl_chi2_list == np.nanmax(pref_over_pl_chi2_list))[0]
-    for idx in best_sp_idx_lrt:
-        if pref_over_pl_chi2_list[idx] > 5:
-            sp_idx_lrt = idx
-            log.info("Best preferred spectral model over PL is %s", spec_models_list[idx])
-        else:
-            sp_idx_lrt = PL_idx
-            log.info("No other model preferred over PL")
+    sp_idx_lrt, log = get_best_preferred_model_lrt(
+        best_sp_idx_lrt,
+        pref_over_pl_chi2_list,
+        spec_models_list,
+        PL_idx,
+        log,
+    )
 
     list_rel_p = check_model_preference_aic(stat_list, dof_list)
 
     best_sp_idx_aic = np.nonzero(list_rel_p == np.nanmax(list_rel_p))[0]
 
-    for idx in best_sp_idx_aic:
-        if list_rel_p[idx] > 0.95:
-            sp_idx_aic = idx
-            log.info("Best preferred spectral model is %s", spec_models_list[fit_success_list][idx])
-        else:
-            sp_idx_aic = PL_idx
-            log.info("No other model preferred, hence PL is selected")
+    sp_idx_aic, log = get_best_preferred_model_aic(
+        best_sp_idx_aic,
+        list_rel_p,
+        spec_models_list,
+        fit_success_list,
+        PL_idx,
+        log,
+    )
 
     stats_table = tabulate_best_fit_stats(spec_models_list, fit_success_list, main_analysis_list, list_rel_p)
 

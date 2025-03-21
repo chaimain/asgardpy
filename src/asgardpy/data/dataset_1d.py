@@ -114,23 +114,9 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
             energy_bin_edges = dl4_files.get_spectral_energies()
             instrument_spectral_info["spectral_energy_ranges"].append(energy_bin_edges)
 
-            if self.config.general.stacked_dataset:
-                dataset = dataset.stack_reduce(name=config_1d_dataset.name)
-                dataset._meta.optional = {
-                    "instrument": config_1d_dataset.name,
-                }
-                dataset._meta.creation.creator += f", Asgardpy {__public_version__}"
-
-                en_bins = get_reco_energy_bins(dataset, en_bins)
-                datasets_1d_final.append(dataset)
-            else:
-                for data in dataset:
-                    data._meta.optional = {
-                        "instrument": config_1d_dataset.name,
-                    }
-                    data._meta.creation.creator += f", Asgardpy {__public_version__}"
-                    en_bins = get_reco_energy_bins(data, en_bins)
-                    datasets_1d_final.append(data)
+            datasets_1d_final, en_bins = update_final_1d_datasets(
+                datasets_1d_final, dataset, config_1d_dataset.name, en_bins, self.config.general.stacked_dataset
+            )
 
         instrument_spectral_info["en_bins"] = en_bins
 
@@ -142,6 +128,32 @@ class Datasets1DAnalysisStep(AnalysisStepBase):
             None,
             instrument_spectral_info,
         )
+
+
+def update_final_1d_datasets(datasets_1d_final, dataset, config_1d_dataset_name, en_bins, stacked_dataset=False):
+    """
+    Updating the final 1D datasets with appropriate update of the Metadata and
+    also the information of the energy bins.
+    """
+    if stacked_dataset:
+        dataset = dataset.stack_reduce(name=config_1d_dataset_name)
+        dataset._meta.optional = {
+            "instrument": config_1d_dataset_name,
+        }
+        dataset._meta.creation.creator += f", Asgardpy {__public_version__}"
+
+        en_bins = get_reco_energy_bins(dataset, en_bins)
+        datasets_1d_final.append(dataset)
+    else:
+        for data in dataset:
+            data._meta.optional = {
+                "instrument": config_1d_dataset_name,
+            }
+            data._meta.creation.creator += f", Asgardpy {__public_version__}"
+            en_bins = get_reco_energy_bins(data, en_bins)
+            datasets_1d_final.append(data)
+
+    return datasets_1d_final, en_bins
 
 
 class Dataset1DGeneration:

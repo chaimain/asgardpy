@@ -132,6 +132,25 @@ def gammapy_model_to_asgardpy_model_config(gammapy_model, asgardpy_config_file=N
     return asgardpy_config
 
 
+def get_output_file_path(output_file, gammapy_model):
+    """
+    Conditions to return a Path variable of the output_file provided and if it
+    is not provided, create a path in the model_templates sub-folder.
+    """
+    if not output_file:
+        if isinstance(gammapy_model[0].spectral_model, CompoundSpectralModel):
+            model_tag = gammapy_model[0].spectral_model.model1.tag[1] + "_ebl"
+        else:
+            model_tag = gammapy_model[0].spectral_model.tag[1]
+
+        output_file = CONFIG_PATH / f"model_templates/model_template_{model_tag}.yaml"
+        os.path.expandvars(output_file)
+    else:
+        if not isinstance(output_file, Path):
+            output_file = Path(os.path.expandvars(output_file))
+    return output_file
+
+
 def write_asgardpy_model_to_file(gammapy_model, output_file=None, recursive_merge=True):
     """
     Read the Gammapy Models object and save it as AsgardpyConfig YAML file
@@ -146,17 +165,7 @@ def write_asgardpy_model_to_file(gammapy_model, output_file=None, recursive_merg
         recursive_merge=recursive_merge,
     )
 
-    if not output_file:
-        if isinstance(gammapy_model[0].spectral_model, CompoundSpectralModel):
-            model_tag = gammapy_model[0].spectral_model.model1.tag[1] + "_ebl"
-        else:
-            model_tag = gammapy_model[0].spectral_model.tag[1]
-
-        output_file = CONFIG_PATH / f"model_templates/model_template_{model_tag}.yaml"
-        os.path.expandvars(output_file)
-    else:
-        if not isinstance(output_file, Path):
-            output_file = Path(os.path.expandvars(output_file))
+    output_file = get_output_file_path(output_file, gammapy_model)
 
     temp_ = asgardpy_config.model_dump(exclude_defaults=True)
     temp_["target"].pop("models_file", None)
