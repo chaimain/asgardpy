@@ -232,18 +232,18 @@ def get_ts_target(datasets):
     stat_max_fit = 0
 
     for data in datasets:
-        if data.stat_type != "chi2":
-            # Assuming that the Counts Map is created with the target source as its center
-            region = data.counts.geom.center_skydir
+        # Assuming that the Counts Map is created with the target source as its center
+        region = data.counts.geom.center_skydir
 
-            if data.stat_type == "cash":
+        match data.stat_type:
+            case "cash":
                 counts_on = (data.counts.copy() * data.mask).get_spectrum(region).data
                 mu_on = (data.npred() * data.mask).get_spectrum(region).data
 
                 stat_best_fit += np.nansum(cash(n_on=counts_on, mu_on=mu_on).ravel())
                 stat_max_fit += np.nansum(cash(n_on=counts_on, mu_on=counts_on).ravel())
 
-            elif data.stat_type == "wstat":
+            case "wstat":
                 counts_on = (data.counts.copy() * data.mask).get_spectrum(region).data
                 counts_off = np.nan_to_num((data.counts_off * data.mask).get_spectrum(region)).data
 
@@ -260,10 +260,11 @@ def get_ts_target(datasets):
 
                 stat_best_fit += np.nansum(wstat(n_on=counts_on, n_off=counts_off, alpha=alpha, mu_sig=mu_signal))
                 stat_max_fit += np.nansum(wstat(n_on=counts_on, n_off=counts_off, alpha=alpha, mu_sig=max_pred))
-        else:
-            # For FluxxPointsDataset
-            stat_best_fit += np.nansum(data.stat_array())
-            stat_max_fit += len(data.data.dnde.data)
+
+            case "chi2":
+                # For FluxxPointsDataset
+                stat_best_fit += np.nansum(data.stat_array())
+                stat_max_fit += len(data.data.dnde.data)
 
     return stat_best_fit, stat_max_fit
 

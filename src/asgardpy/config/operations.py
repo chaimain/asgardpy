@@ -65,9 +65,28 @@ def check_gammapy_model(gammapy_model):
     return models_gpy
 
 
+def recursive_merge_lists(final_config_key, extra_config_key, value):
+    """
+    Recursively merge from lists of dicts. Distinct function as an auxiliary for
+    the recursive_merge_dicts function.
+    """
+    new_config = []
+
+    for key_, value_ in zip(final_config_key, value, strict=False):
+        key_ = recursive_merge_dicts(key_ or {}, value_)
+        new_config.append(key_)
+
+    # For example moving from a smaller list of model parameters to a
+    # longer list.
+    if len(final_config_key) < len(extra_config_key):
+        for value_ in value[len(final_config_key) :]:
+            new_config.append(value_)
+    return new_config
+
+
 def recursive_merge_dicts(base_config, extra_config):
     """
-    recursively merge two dictionaries.
+    Recursively merge two dictionaries.
     Entries in extra_config override entries in base_config. The built-in
     update function cannot be used for hierarchical dicts.
 
@@ -98,19 +117,7 @@ def recursive_merge_dicts(base_config, extra_config):
 
     for key, value in extra_config.items():
         if key in final_config and isinstance(final_config[key], list):
-            new_config = []
-
-            for key_, value_ in zip(final_config[key], value, strict=False):
-                key_ = recursive_merge_dicts(key_ or {}, value_)
-                new_config.append(key_)
-
-            # For example moving from a smaller list of model parameters to a
-            # longer list.
-            if len(final_config[key]) < len(extra_config[key]):
-                for value_ in value[len(final_config[key]) :]:
-                    new_config.append(value_)
-            final_config[key] = new_config
-
+            final_config[key] = recursive_merge_lists(final_config[key], extra_config[key], value)
         elif key in final_config and isinstance(final_config[key], dict):
             final_config[key] = recursive_merge_dicts(final_config.get(key) or {}, value)
         else:
