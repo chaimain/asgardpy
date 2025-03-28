@@ -154,22 +154,14 @@ class TimeInterval:
     def _validate(value: dict) -> "TimeInterval":
         inv_dict: dict[str, str | float] = {}
 
-        if isinstance(value["format"], TimeFormatEnum):
-            inv_dict["format"] = value["format"]
+        inv_dict["format"] = value["format"]
 
         # Read all values as string
         value["start"] = str(value["start"])
         value["stop"] = str(value["stop"])
 
-        if not Time(value["start"], format=value["format"]):
-            raise ValueError(f"{value['start']} is not the right Time value for format {value['format']}")
-        else:
-            inv_dict["start"] = Time(value["start"], format=value["format"])
-
-        if not Time(value["stop"], format=value["format"]):
-            raise ValueError(f"{value['stop']} is not the right Time value for format {value['format']}")
-        else:
-            inv_dict["stop"] = Time(value["stop"], format=value["format"])
+        inv_dict["start"] = Time(value["start"], format=value["format"])
+        inv_dict["stop"] = Time(value["stop"], format=value["format"])
 
         return TimeInterval(inv_dict)
 

@@ -3,12 +3,17 @@ import pytest
 from asgardpy.config import AsgardpyConfig
 
 
-def test_config_basic():
+def test_config_basic(capsys):
     """Test on basic Config features."""
+
+    from IPython.display import display
 
     config = AsgardpyConfig()
     assert "AsgardpyConfig\n\n" in str(config)
     assert "AsgardpyConfig(general" in repr(config)
+    display(config, display_id="test0")
+    captured = capsys.readouterr()
+    assert captured.out[:20] == "AsgardpyConfig\n\n    "
 
     config_str_0 = """
     general:
@@ -32,6 +37,14 @@ def test_config_basic():
           outdir: ./bla/
         """
         AsgardpyConfig.from_yaml(config_str_2)
+
+    with pytest.raises(ValueError):
+        config_str_3 = """
+        target:
+          sky_position:
+            lon: 30 TeV
+        """
+        AsgardpyConfig.from_yaml(config_str_3)
 
 
 def test_config_time():
