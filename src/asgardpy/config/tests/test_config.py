@@ -33,6 +33,14 @@ def test_config_basic():
         """
         AsgardpyConfig.from_yaml(config_str_2)
 
+    with pytest.raises(ValueError):
+        config_str_3 = """
+        target:
+          sky_position:
+            lon: 30 TeV
+        """
+        AsgardpyConfig.from_yaml(config_str_3)
+
 
 def test_config_time():
     """Test for reading Time inputs."""

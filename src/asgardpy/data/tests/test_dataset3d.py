@@ -70,7 +70,6 @@ def test_fermi_fits_file(gammapy_data_path):
     assert source_pos["center"].ra.deg == 83.633
 
 
-@pytest.mark.test_data
 def test_hawc_analysis(hawc_dl3_config):
     """Basic test on running analysis of HAWC DL3 data."""
 

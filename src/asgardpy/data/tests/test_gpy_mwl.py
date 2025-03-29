@@ -101,8 +101,38 @@ def test_3d_hess_1d_magic(gpy_hess_magic):
     """Test for running HESS (3D) + MAGIC (1D) joint analysis."""
 
     analysis = AsgardpyAnalysis(gpy_hess_magic)
+    analysis.config.dataset3d.instruments[0].dataset_info.background.method = "ring"
+    analysis.config.dataset3d.instruments[0].dataset_info.background.parameters = {
+        "r_in": "1 deg",
+        "width": "3 deg",
+    }
 
     analysis.run(["datasets-3d", "datasets-1d", "fit"])
 
     assert int(analysis.datasets[0].gti.time_sum.value) == 5056
     assert isinstance(analysis.datasets[1].counts.geom.region, PointSkyRegion)
+
+
+def test_gpy_mwl_failsafe(gpy_hess_magic):
+    """Test for checking some failsafe options."""
+    import pytest
+
+    analysis_1 = AsgardpyAnalysis(gpy_hess_magic)
+    with pytest.raises(ValueError):
+        analysis_1.config.dataset1d.instruments[0].dataset_info.background.exclusion.regions[0].type = "a"
+        analysis_1.run(["datasets-1d"])
+
+    analysis_2 = AsgardpyAnalysis(gpy_hess_magic)
+    with pytest.raises(ValueError):
+        analysis_2.config.target.components[0].name = ""
+        analysis_2.config.dataset1d.instruments[0].dataset_info.background.exclusion.regions[
+            0
+        ].type = "CircleSkyRegion"
+        analysis_2.run(["datasets-1d"])
+
+    analysis_3 = AsgardpyAnalysis(gpy_hess_magic)
+    analysis_3.config.target.source_name = ""
+    analysis_3.config.target.components[0].name = "Crab Nebula"
+    analysis_3.run(["datasets-3d", "datasets-1d"])
+
+    assert analysis_3.final_model.names[0] == ""

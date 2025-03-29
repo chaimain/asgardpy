@@ -472,7 +472,7 @@ def get_exclusion_region_mask(
                     center=center_ex, radius=u.Quantity(region.parameters["region_radius"])
                 )
             else:
-                log.error(f"Unknown type of region passed {region.type}")
+                raise ValueError(f"Unknown type of region passed {region.type}")
             exclusion_regions.append(excluded_region)
 
     elif exclusion_params.exclusion_file.is_file():
@@ -538,8 +538,6 @@ def get_bkg_maker(bkg_config, exclusion_mask):
             bkg_maker = FoVBackgroundMaker(exclusion_mask=exclusion_mask, **bkg_config.parameters)
         case "ring":
             bkg_maker = RingBackgroundMaker(exclusion_mask=exclusion_mask, **bkg_config.parameters)
-        case _:
-            bkg_maker = None
 
     return bkg_maker
 
