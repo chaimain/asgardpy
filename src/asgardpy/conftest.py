@@ -24,7 +24,6 @@ def base_config_path():
     return "src/asgardpy/tests/config_test_base.yaml"
 
 
-# @pytest.mark.test_data
 @pytest.fixture  # (scope="session")
 def mwl_config_path():
     """Get the Gammapy MWL tutorial config path."""
@@ -46,7 +45,6 @@ def hawc_config_path():
     return "src/asgardpy/tests/config_hawc.yaml"
 
 
-@pytest.mark.test_data
 @pytest.fixture  # (scope="session")
 def ebl_deabs_path():
     """Get the base config path for basic tests."""

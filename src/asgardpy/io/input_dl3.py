@@ -146,17 +146,8 @@ class DL3Files:
                     var_list = [
                         "iso_diff_files",
                     ]
-            if isinstance(self.iso_diff_files, list):
-                self.iso_gal_f = self.iso_diff_files[0]
-            else:
-                self.iso_gal_f = self.iso_diff_files
-            file_list["iso_diff_file"] = self.iso_gal_f
-
-            if isinstance(self.gal_diff_files, list):
-                self.diff_gal_f = self.gal_diff_files[0]
-            else:
-                self.diff_gal_f = self.gal_diff_files
-            file_list["gal_diff_file"] = self.diff_gal_f
+            file_list["iso_diff_file"] = self.iso_diff_files[0]
+            file_list["gal_diff_file"] = self.gal_diff_files[0]
 
         if len(var_list) > 0:
             for _v in var_list:

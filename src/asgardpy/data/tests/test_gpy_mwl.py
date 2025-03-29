@@ -125,9 +125,14 @@ def test_gpy_mwl_failsafe(gpy_hess_magic):
     analysis_2 = AsgardpyAnalysis(gpy_hess_magic)
     with pytest.raises(ValueError):
         analysis_2.config.target.components[0].name = ""
+        analysis_2.config.dataset1d.instruments[0].dataset_info.background.exclusion.regions[
+            0
+        ].type = "CircleSkyRegion"
         analysis_2.run(["datasets-1d"])
 
     analysis_3 = AsgardpyAnalysis(gpy_hess_magic)
-    with pytest.raises(ValueError):
-        analysis_3.config.target.source_name = ""
-        analysis_3.run(["datasets-3d", "datasets-1d"])
+    analysis_3.config.target.source_name = ""
+    analysis_3.config.target.components[0].name = "Crab Nebula"
+    analysis_3.run(["datasets-3d", "datasets-1d"])
+
+    assert analysis_3.final_model.names[0] == ""

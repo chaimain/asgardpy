@@ -3,17 +3,21 @@ import pytest
 from asgardpy.config import AsgardpyConfig
 
 
-def test_config_basic(capsys):
-    """Test on basic Config features."""
+def test_config_basic_io(capsys):
+    """Test on basic IO Config features."""
 
     from IPython.display import display
 
     config = AsgardpyConfig()
-    assert "AsgardpyConfig\n\n" in str(config)
-    assert "AsgardpyConfig(general" in repr(config)
     display(config, display_id="test0")
     captured = capsys.readouterr()
     assert captured.out[:20] == "AsgardpyConfig\n\n    "
+    assert "AsgardpyConfig\n\n" in str(config)
+    assert "AsgardpyConfig(general" in repr(config)
+
+
+def test_config_basic_failsafe(capsys):
+    """Test on basic failsafe Config features."""
 
     config_str_0 = """
     general:

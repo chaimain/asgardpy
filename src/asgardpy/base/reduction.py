@@ -538,8 +538,6 @@ def get_bkg_maker(bkg_config, exclusion_mask):
             bkg_maker = FoVBackgroundMaker(exclusion_mask=exclusion_mask, **bkg_config.parameters)
         case "ring":
             bkg_maker = RingBackgroundMaker(exclusion_mask=exclusion_mask, **bkg_config.parameters)
-        case _:
-            bkg_maker = None
 
     return bkg_maker
 
