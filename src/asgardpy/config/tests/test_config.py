@@ -3,7 +3,7 @@ import pytest
 from asgardpy.config import AsgardpyConfig
 
 
-def test_config_basic_io():
+def test_config_basic():
     """Test on basic Config features."""
 
     config = AsgardpyConfig()
