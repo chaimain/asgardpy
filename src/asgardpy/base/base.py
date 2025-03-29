@@ -183,7 +183,7 @@ class BaseConfig(BaseModel):
         use_enum_values=True,
     )
 
-    def _repr_html_(self):
+    def _repr_html_(self):  # pragma: no cover
         try:
             return self.to_html()
         except AttributeError:
