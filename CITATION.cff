@@ -15,7 +15,7 @@ keywords:
 - Astronomy
 - "Gamma-rays"
 - "Data analysis"
-version: v0.5.1
+version: v0.5.3
 repository-code: "https://github.com/chaimain/asgardpy"
 license: Apache-2.0
 contact:

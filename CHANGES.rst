@@ -1,3 +1,26 @@
+Asgardpy 0.5.3 (2025-03-31)
+===========================
+
+
+API Changes
+-----------
+
+
+Bug Fixes
+---------
+
+
+New Features
+------------
+
+
+Maintenance
+-----------
+
+- Updates code-blocks of the pending notebooks and re-adds sphinxcontrib-towncrier after 0.5.0 release [`#202 <https://github.com/chaimain/asgardpy/pull/202>`__]
+
+- Extends test coverage and removes redundant checks. [`#205 <https://github.com/chaimain/asgardpy/pull/205>`__]
+
 Asgardpy 0.5.2 (2025-02-10)
 ===========================
 
