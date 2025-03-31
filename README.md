@@ -9,7 +9,7 @@ Example: 3D Fermi-LAT (with various source models in the Region of Interest stor
 Follow the documentation at https://asgardpy.readthedocs.io/en/latest/ for the main functionality of this pipeline.
 Follow the [Gammapy v1.3](https://docs.gammapy.org/1.3/) documentation for understanding the core Gammapy objects.
 
-Check this [documentation page](https://asgardpy.readthedocs.io/en/latest/need_for_asgardpy.html) for seeing the list of reasons to use Asgardpy over the latest release of Gammapy and this [documentation page](https://asgardpy.readthedocs.io/en/latest/crab_sed.html) for seeing an extended example of the usage of Asgardpy in analyzing multi-instrument data of Crab Nebula.
+Check this [documentation page](https://asgardpy.readthedocs.io/en/latest/need_for_asgardpy.html) for seeing the list of reasons to use Asgardpy over Gammapy v1.3 and this [documentation page](https://asgardpy.readthedocs.io/en/latest/crab_sed.html) for seeing an extended example of the usage of Asgardpy in analyzing multi-instrument data of Crab Nebula.
 
 The various Data Levels	used here follow the descriptions suggested by [GADF v0.3](https://gamma-astro-data-formats.readthedocs.io/en/latest/) and [CTAO](https://www.ctao.org/) Data Model.
 

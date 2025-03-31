@@ -1,1 +1,0 @@
-Extends test coverage and removes redundant checks.

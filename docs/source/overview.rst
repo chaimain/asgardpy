@@ -48,9 +48,9 @@ by the :class:`~asgardpy.io.io.DL3Files`.
 
 The main modules dealing with the 2 types of data being read are -
 
-#. 3D Dataset :class:`~asgardpy.data.data_3d`
+#. 3D Dataset :class:`~asgardpy.data.dataset_3d`
 
-#. 1D Dataset :class:`~asgardpy.data.data_1d`
+#. 1D Dataset :class:`~asgardpy.data.dataset_1d`
 
 They each build their Config components using classes defined with,
 
@@ -104,8 +104,8 @@ The various Config components and Analysis steps for the high-level analysis can
 For the analysis step of flux-points :class:`~asgardpy.data.dl4.FluxPointsAnalysisStep`, the flux points are estimated for each instrument dataset, using the respective energy ranges
 provided in the respective config section of ``spectral_energy_range``.
 
-For deriving the correct EBL-deabsorbed spectrum, one can use :class:`~asgardpy.analysis.analysis.get_correct_intrinsic_model` and
-:class:`~asgardpy.analysis.analysis.get_correct_ebl_deabs_flux_points` after running the flux-points analysis step.
+For deriving the correct EBL-deabsorbed spectrum, one can use :class:`~asgardpy.analysis.analysis.AsgardpyAnalysis.get_correct_intrinsic_model` and
+:class:`~asgardpy.analysis.analysis.AsgardpyAnalysis.get_correct_ebl_deabs_flux_points` after running the flux-points analysis step.
 
 .. _stats-intro:
 

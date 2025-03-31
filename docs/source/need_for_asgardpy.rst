@@ -4,18 +4,14 @@ Reasons for using Asgardpy over Gammapy v1.3
 Main reasons
 ------------
 
-The simple main reasons are the following -
+#. For multi-instrument `3D + 1D joint analysis <https://docs.gammapy.org/1.3/tutorials/analysis-3d/analysis_mwl.html>`_, starting from DL3 level data
 
-#. For `3D + 1D joint analysis <https://docs.gammapy.org/1.3/tutorials/analysis-3d/analysis_mwl.html>`_, starting from DL3 level data
-
-#. Using `HLI <https://docs.gammapy.org/1.3/user-guide/hli.html>`_ for 1D with energy-dependent RAD_MAX values
+#. Using `High Level Interface (HLI) <https://docs.gammapy.org/1.3/user-guide/hli.html>`_ for 1D datasets with energy-dependent RAD_MAX values
 
 #. Additional supporting features while using `HLI <https://docs.gammapy.org/1.3/user-guide/hli.html>`_
 
-Unique reasons
---------------
-
-Some of the unique features in asgardpy are -
+Unique features
+---------------
 
 #. While creating a multi-instrument list of DL4 datasets, letting the central spatial coordinate in the ``geom`` objects, be commonly shared
 
@@ -34,7 +30,7 @@ The following features may become redundant in asgardpy, after `Gammapy 2.0 <htt
 
 #. Easily reading existing Fermi XML files into Gammapy ``Models`` objects
 
-#. Using the High Level Interface for 1D dataset with energy-dependent ``RAD_MAX`` cuts (see `Workflow module <https://github.com/gammapy/gammapy/blob/main/gammapy/workflow/>`_)
+#. Using the `HLI <https://docs.gammapy.org/1.3/user-guide/hli.html>`_ for 1D dataset with energy-dependent ``RAD_MAX`` cuts (see `Workflow module <https://github.com/gammapy/gammapy/blob/main/gammapy/workflow/>`_)
 
 #. Having intermediate analysis steps, distinct for DL3 -> DL4 -> DL5 (see `Workflow module <https://github.com/gammapy/gammapy/blob/main/gammapy/workflow/>`_)
 
