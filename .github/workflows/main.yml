@@ -29,7 +29,7 @@ jobs:
       run:
         shell: bash -l {0}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup Python environment
         uses: ./.github/actions/setup-venv
         with:
@@ -39,7 +39,7 @@ jobs:
           source .venv/bin/activate
           python -m pip install --upgrade build
           python -m build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: asgardpy-release
           path: dist/
@@ -52,7 +52,7 @@ jobs:
     name: Build docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup Python environment
         uses: ./.github/actions/setup-venv
         with:
@@ -153,7 +153,7 @@ jobs:
           sudo swapon /swapfile
           sudo swapon --show
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Python ${{ matrix.python }} environment
         uses: ./.github/actions/setup-venv
@@ -185,7 +185,7 @@ jobs:
           tox -e ${{ matrix.tox_env }}
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
@@ -209,12 +209,12 @@ jobs:
       id-token: write
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -229,7 +229,7 @@ jobs:
           echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Download package distribution files
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: asgardpy-release
           path: dist/
